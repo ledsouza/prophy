@@ -1,7 +1,14 @@
 import { api } from "@/server/api";
+import axios from "axios";
 import { createContext, ReactElement, useEffect, useState } from "react";
 
-export const UserContext = createContext(false);
+export const UserContext = createContext<{
+    authorizedUser: boolean;
+    setAuthorizedUser: React.Dispatch<React.SetStateAction<boolean>>;
+}>({
+    authorizedUser: false,
+    setAuthorizedUser: () => {},
+});
 
 type UserProviderProps = {
     children: ReactElement;
@@ -25,7 +32,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }, []);
 
     return (
-        <UserContext.Provider value={authorizedUser}>
+        <UserContext.Provider value={{ authorizedUser, setAuthorizedUser }}>
             {children}
         </UserContext.Provider>
     );

@@ -1,6 +1,12 @@
+import { useContext } from "react";
+
+import { api } from "@/server/api";
+import Cookies from "js-cookie";
+
+import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { UserContext } from "@/contexts/UserContext";
 
 const loginFieldsSchema = z.object({
     username: z.string().min(1, { message: "O usuário é necessário" }),
@@ -12,6 +18,7 @@ const loginFieldsSchema = z.object({
 type LoginFields = z.infer<typeof loginFieldsSchema>;
 
 const Login = () => {
+    const { authorizedUser, setAuthorizedUser } = useContext(UserContext);
     const {
         register,
         handleSubmit,
@@ -20,8 +27,16 @@ const Login = () => {
         resolver: zodResolver(loginFieldsSchema),
     });
 
-    const onSubmit: SubmitHandler<LoginFields> = (data) => {
-        console.log(data);
+    const onSubmit: SubmitHandler<LoginFields> = async (data) => {
+        try {
+            const response = await api.post("/autenticacao/login", { ...data });
+            if (response.status === 200) {
+                setAuthorizedUser(true);
+                console.log(response.headers);
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     return (
