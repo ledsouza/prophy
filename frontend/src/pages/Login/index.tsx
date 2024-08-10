@@ -2,6 +2,11 @@ import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import api from "@/server/api";
+
+import AuthResponse from "@/types/auth-response";
+import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
+
 const loginFieldsSchema = z.object({
     username: z.string().min(1, { message: "O usuário é necessário" }),
     password: z
@@ -15,14 +20,19 @@ const Login = () => {
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<LoginFields>({
         resolver: zodResolver(loginFieldsSchema),
     });
 
     const onSubmit: SubmitHandler<LoginFields> = async (data) => {
         try {
-            console.log(data);
+            const response = await api.post<AuthResponse>(
+                "/autenticacao/token/",
+                { ...data }
+            );
+            localStorage.setItem(ACCESS_TOKEN, response.data.access);
+            localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
         } catch (error) {
             console.log(error);
         }
@@ -51,7 +61,9 @@ const Login = () => {
             {errors.password && (
                 <div className="text-red-500">{errors.password.message}</div>
             )}
-            <button type="submit">Logar</button>
+            <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Autenticando..." : "Logar"}
+            </button>
         </form>
     );
 };

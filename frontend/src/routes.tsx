@@ -12,7 +12,7 @@ function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<Default />}>
+                <Route path="/static" element={<Default />}>
                     <Route path="login" element={<Login />} />
                     <Route path="logout" element={<Logout />} />
                 </Route>
