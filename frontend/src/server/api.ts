@@ -1,9 +1,22 @@
 import axios from "axios";
 
-axios.defaults.xsrfCookieName = "csrftoken";
-axios.defaults.xsrfHeaderName = "X-CSRFToken";
-axios.defaults.withCredentials = true;
+import { ACCESS_TOKEN } from "@/constants/jwt-token.ts";
 
-export const api = axios.create({
-    baseURL: "http://127.0.0.1:8000",
+const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL,
 });
+
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem(ACCESS_TOKEN);
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+export default api;
