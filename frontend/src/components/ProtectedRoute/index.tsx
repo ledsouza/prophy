@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
                 setIsAuthenticated(false);
             }
         } catch (error) {
-            console.log(error);
+            console.log("Error refreshing token:", error);
             setIsAuthenticated(false);
         }
     };
@@ -52,7 +52,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         const tokenExpiration = decodedToken.exp;
         const now = Date.now() / 1000; // Convert milliseconds to seconds
 
-        if (tokenExpiration < now) {
+        if (tokenExpiration && tokenExpiration < now) {
             await refreshToken();
         } else {
             setIsAuthenticated(true);
