@@ -1,15 +1,14 @@
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
-from django.utils.decorators import method_decorator
 from django.contrib.auth import login, logout
+
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import UserLoginSerializer, UserSerializer
 from rest_framework import permissions, status
+
+from .serializers import UserLoginSerializer, UserSerializer
 from .validations import validate_username, validate_password
 
 
-@method_decorator(csrf_protect, name='dispatch')
 class UserLogin(APIView):
     permission_classes = (permissions.AllowAny,)
     authentication_classes = (SessionAuthentication,)
@@ -41,11 +40,3 @@ class UserView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response({'Usuário': serializer.data}, status=status.HTTP_200_OK)
-
-
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class GetCSRFToken(APIView):
-    permission_classes = (permissions.AllowAny, )
-
-    def get(self, request, format=None):
-        return Response({'success': 'CSRF cookie set'})
