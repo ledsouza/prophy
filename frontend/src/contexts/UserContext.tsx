@@ -1,13 +1,17 @@
-import { api } from "@/server/api";
-import axios from "axios";
-import { createContext, ReactElement, useEffect, useState } from "react";
+import { createContext, ReactElement, useState } from "react";
 
-export const UserContext = createContext<{
+export type UserContent = {
     authorizedUser: boolean;
-    setAuthorizedUser: React.Dispatch<React.SetStateAction<boolean>>;
-}>({
+    setAuthorizedUser: (valor: boolean) => void;
+    csrftoken: string;
+    setCSRFToken: (valor: string) => void;
+};
+
+export const UserContext = createContext<UserContent>({
     authorizedUser: false,
     setAuthorizedUser: () => {},
+    csrftoken: "",
+    setCSRFToken: () => {},
 });
 
 type UserProviderProps = {
@@ -16,23 +20,17 @@ type UserProviderProps = {
 
 export const UserProvider = ({ children }: UserProviderProps) => {
     const [authorizedUser, setAuthorizedUser] = useState(false);
-
-    const fetchUser = async () => {
-        try {
-            await api.get("/autenticacao/user");
-            setAuthorizedUser(true);
-        } catch (error) {
-            console.log(error);
-            setAuthorizedUser(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchUser();
-    }, []);
+    const [csrftoken, setCSRFToken] = useState("");
 
     return (
-        <UserContext.Provider value={{ authorizedUser, setAuthorizedUser }}>
+        <UserContext.Provider
+            value={{
+                authorizedUser,
+                setAuthorizedUser,
+                csrftoken,
+                setCSRFToken,
+            }}
+        >
             {children}
         </UserContext.Provider>
     );
