@@ -69,7 +69,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         return <div>Carregando...</div>;
     }
 
-    return isAuthenticated ? children : <Navigate to={`${BASE}/login`} />;
+    return isAuthenticated ? children : <Navigate to={`${BASE}login`} />;
 };
 
 export default ProtectedRoute;
