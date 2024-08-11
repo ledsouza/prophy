@@ -11,19 +11,17 @@ const Profile = () => {
     const [profileData, setProfileData] = useState<UserData[] | null>(null);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await api.get<UserData[]>(
-                    "autenticacao/user/"
-                );
-                setProfileData(response.data);
-            } catch (error) {
-                console.error("Error fetching profile data:", error);
-            }
-        };
-
         fetchData();
     }, []);
+
+    const fetchData = async () => {
+        try {
+            const response = await api.get<UserData[]>("autenticacao/user/");
+            setProfileData(response.data);
+        } catch (error) {
+            console.error("Error fetching profile data:", error);
+        }
+    };
 
     return (
         <div>

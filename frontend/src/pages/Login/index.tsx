@@ -6,9 +6,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import api from "@/server/api";
 
-import AuthResponse from "@/types/auth-response";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
 import { BASE } from "@/constants/routes";
+
+type AuthResponse = {
+    access: string;
+    refresh: string;
+};
 
 const loginFieldsSchema = z.object({
     username: z.string().min(1, { message: "O usuário é necessário" }),
@@ -38,7 +42,7 @@ const Login = () => {
             );
             localStorage.setItem(ACCESS_TOKEN, response.data.access);
             localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
-            navigate(`/${BASE}/profile`);
+            navigate(`${BASE}profile`);
         } catch (error) {
             console.log(error);
         }

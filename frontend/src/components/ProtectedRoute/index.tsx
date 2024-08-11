@@ -4,9 +4,14 @@ import { jwtDecode } from "jwt-decode";
 
 import api from "@/server/api";
 
-import JwtPayload from "@/types/jwt-payload";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
 import { BASE } from "@/constants/routes";
+
+type JwtPayload = {
+    user_id: number;
+    exp: number;
+    iat: number;
+};
 
 type ProtectedRouteProps = {
     children: ReactElement;
