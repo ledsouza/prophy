@@ -1,14 +1,16 @@
+from django.contrib.auth.models import User
+
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import generics
 
 from .serializers import UserSerializer
 
 
-class UserView(APIView):
+class UserView(generics.ListAPIView):
+    serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response({'Usuário': serializer.data}, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        user = self.request.user
+        queryset = User.objects.filter(pk=user.pk)
+        return queryset

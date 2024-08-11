@@ -6,6 +6,7 @@ import api from "@/server/api";
 
 import JwtPayload from "@/types/jwt-payload";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
+import { BASE } from "@/constants/routes";
 
 type ProtectedRouteProps = {
     children: ReactElement;
@@ -63,7 +64,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         return <div>Carregando...</div>;
     }
 
-    return isAuthenticated ? children : <Navigate to="/login" />;
+    return isAuthenticated ? children : <Navigate to={`${BASE}/login`} />;
 };
 
 export default ProtectedRoute;
