@@ -8,7 +8,7 @@ import { BASE } from "./constants/routes";
 
 const Logout = () => {
     localStorage.clear();
-    return <Navigate to="/login" />; // Need tests
+    return <Navigate to={`${BASE}login`} />; // Need tests
 };
 
 function AppRoutes() {
