@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -8,6 +8,8 @@ import api from "@/server/api";
 
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
 import { BASE } from "@/constants/routes";
+import { useContext, useEffect } from "react";
+import { AuthContext, AuthContextType } from "@/contexts/AuthContext";
 
 type AuthResponse = {
     access: string;
@@ -25,7 +27,9 @@ type LoginFields = z.infer<typeof loginFieldsSchema>;
 
 const Login = () => {
     const navigate = useNavigate();
-
+    const { isAuthenticated, setIsAuthenticated, auth } = useContext(
+        AuthContext
+    ) as AuthContextType;
     const {
         register,
         handleSubmit,
@@ -33,6 +37,10 @@ const Login = () => {
     } = useForm<LoginFields>({
         resolver: zodResolver(loginFieldsSchema),
     });
+
+    useEffect(() => {
+        auth().catch(() => setIsAuthenticated(false));
+    }, []);
 
     const onSubmit: SubmitHandler<LoginFields> = async (data) => {
         try {
@@ -47,6 +55,10 @@ const Login = () => {
             console.log(error);
         }
     };
+
+    if (isAuthenticated) {
+        return <Navigate to={`${BASE}profile`} />;
+    }
 
     return (
         <form
