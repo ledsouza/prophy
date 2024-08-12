@@ -5,10 +5,12 @@ import api from "@/server/api";
 
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
 
-type JwtPayload = {
-    user_id: number;
+type JwtPayloadType = {
+    token_type: string;
     exp: number;
     iat: number;
+    jti: string;
+    user_id: number;
 };
 
 export type AuthContextType = {
@@ -52,7 +54,7 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             setIsAuthenticated(false);
             return;
         }
-        const decodedToken = jwtDecode<JwtPayload>(token);
+        const decodedToken = jwtDecode<JwtPayloadType>(token);
         const tokenExpiration = decodedToken.exp;
         const now = Date.now() / 1000; // Convert milliseconds to seconds
 
