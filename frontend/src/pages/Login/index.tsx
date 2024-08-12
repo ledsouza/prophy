@@ -5,15 +5,20 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import api from "@/server/api";
+import axios from "axios";
 
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
 import { BASE } from "@/constants/routes";
-import { useContext, useEffect } from "react";
+import { useContext, useState } from "react";
 import { AuthContext, AuthContextType } from "@/contexts/AuthContext";
 
-type AuthResponse = {
+type APIResponse = {
     access: string;
     refresh: string;
+};
+
+type ErrorResponse = {
+    detail: string;
 };
 
 const loginFieldsSchema = z.object({
@@ -27,9 +32,12 @@ type LoginFields = z.infer<typeof loginFieldsSchema>;
 
 const Login = () => {
     const navigate = useNavigate();
-    const { isAuthenticated, setIsAuthenticated, auth } = useContext(
+
+    const { isAuthenticated, setIsAuthenticated } = useContext(
         AuthContext
     ) as AuthContextType;
+    const [loginError, setLoginError] = useState<string | null>(null);
+
     const {
         register,
         handleSubmit,
@@ -38,21 +46,24 @@ const Login = () => {
         resolver: zodResolver(loginFieldsSchema),
     });
 
-    useEffect(() => {
-        auth().catch(() => setIsAuthenticated(false));
-    }, []);
-
     const onSubmit: SubmitHandler<LoginFields> = async (data) => {
         try {
-            const response = await api.post<AuthResponse>(
+            const response = await api.post<APIResponse>(
                 "/autenticacao/token/",
                 { ...data }
             );
             localStorage.setItem(ACCESS_TOKEN, response.data.access);
             localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
+            setIsAuthenticated(true);
             navigate(`${BASE}profile`);
         } catch (error) {
-            console.log(error);
+            if (axios.isAxiosError<ErrorResponse>(error) && error.response) {
+                if (error.response.status === 401) {
+                    setLoginError(error.response.data.detail);
+                } else {
+                    console.error("API Error:", error.response.data);
+                }
+            }
         }
     };
 
@@ -86,6 +97,9 @@ const Login = () => {
             <button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Autenticando..." : "Logar"}
             </button>
+            {loginError && (
+                <div className="text-red-500 mx-auto">{loginError}</div>
+            )}
         </form>
     );
 };
