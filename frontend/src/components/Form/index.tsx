@@ -7,7 +7,7 @@ const Form = ({ children, onSubmit, ...props }: FormProps) => {
         <form
             {...props}
             onSubmit={onSubmit}
-            className="flex flex-col justify-items-center gap-4 w-1/2 m-auto"
+            className="flex flex-col justify-items-center gap-4 w-1/3 m-auto"
         >
             {children}
         </form>
