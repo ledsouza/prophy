@@ -1,15 +1,19 @@
+// React and Router
 import { Navigate, useNavigate } from "react-router-dom";
+import { useContext, useState } from "react";
 
-import { z } from "zod";
+// Form and Validation
 import { SubmitHandler, useForm } from "react-hook-form";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import api from "@/server/api";
+// Data fetching and utilities
 import axios from "axios";
 
+// Project specifics
+import api from "@/server/api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
 import { BASE } from "@/constants/routes";
-import { useContext, useState } from "react";
 import { AuthContext, AuthContextType } from "@/contexts/AuthContext";
 
 type APIResponse = {
