@@ -15,7 +15,11 @@ import api from "@/server/api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "@/constants/jwt-token";
 import { BASE } from "@/constants/routes";
 import { AuthContext, AuthContextType } from "@/contexts/AuthContext";
+import Form from "@/components/Form";
+import Input from "@/components/Input";
+import Button from "@/components/Button";
 
+// Types
 type APIResponse = {
     access: string;
     refresh: string;
@@ -76,35 +80,28 @@ const Login = () => {
     }
 
     return (
-        <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col justify-items-center gap-4 w-1/2 m-auto"
-        >
-            <input
+        <Form onSubmit={handleSubmit(onSubmit)}>
+            <Input
                 {...register("username")}
+                label="Usuário"
                 type="text"
-                placeholder="Usuário"
-                className="border"
+                placeholder="Preencha o usuário aqui..."
+                error={errors.username?.message}
             />
-            {errors.username && (
-                <div className="text-red-500">{errors.username.message}</div>
-            )}
-            <input
+            <Input
                 {...register("password")}
+                label="Senha"
                 type="password"
-                placeholder="Senha"
-                className="border"
+                placeholder="Preencha a senha aqui..."
+                error={errors.password?.message}
             />
-            {errors.password && (
-                <div className="text-red-500">{errors.password.message}</div>
-            )}
-            <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Autenticando..." : "Logar"}
-            </button>
+            <Button type="submit" disabled={isSubmitting}>
+                Logar
+            </Button>
             {loginError && (
                 <div className="text-red-500 mx-auto">{loginError}</div>
             )}
-        </form>
+        </Form>
     );
 };
 

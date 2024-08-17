@@ -10,7 +10,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 
 const Logout = () => {
     localStorage.clear();
-    return <Navigate to={`${BASE}login`} />; // Need tests
+    return <Navigate to={`${BASE}login`} />;
 };
 
 function AppRoutes() {
