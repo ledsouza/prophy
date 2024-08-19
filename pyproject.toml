@@ -13,6 +13,7 @@ Markdown = "^3.6"
 django-cors-headers = "^4.4.0"
 python-dotenv = "^1.0.1"
 djangorestframework-simplejwt = "^5.3.1"
+djoser = "^2.2.3"
 
 
 [build-system]
