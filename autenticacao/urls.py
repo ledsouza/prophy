@@ -1,13 +1,14 @@
-from django.urls import path, include
-
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
+from django.urls import path
+from .views import (
+    CustomTokenObtainPairView,
+    CustomTokenRefreshView,
+    CustomTokenVerifyView,
+    LogoutView
 )
 
-from . import views
-
 urlpatterns = [
-    path("", include("djoser.urls")),
-    path("", include("djoser.urls.jwt")),
+    path('jwt/create/', CustomTokenObtainPairView.as_view()),
+    path('jwt/refresh/', CustomTokenRefreshView.as_view()),
+    path('jwt/verify/', CustomTokenVerifyView.as_view()),
+    path('logout/', LogoutView.as_view()),
 ]
