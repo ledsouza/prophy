@@ -9,6 +9,7 @@ def index_view(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('autenticacao/', include('autenticacao.urls')),
+    path('api/', include('autenticacao.urls')),
+    path('api/', include('djoser.urls')),
     path('', index_view, name='index'),
 ]
