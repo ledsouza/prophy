@@ -1,11 +1,11 @@
 import cn from "classnames";
 import { ImSpinner3 } from "react-icons/im";
 
-interface Props {
+type Props = {
     sm?: boolean;
     md?: boolean;
     lg?: boolean;
-}
+};
 
 export default function Spinner({ sm, md, lg }: Props) {
     const className = cn("animate-spin text-white-300 fill-white-300 mr-2", {
