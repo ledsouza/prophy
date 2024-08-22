@@ -1,5 +1,7 @@
 "use client";
 
+import { Metadata } from "next";
+import Image from "next/image";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +11,11 @@ import { useLoginMutation } from "@/redux/features/authApiSlice";
 import { setAuth } from "@/redux/features/authSlice";
 import { toast } from "react-toastify";
 import { Button, Form, Input } from "@/components/forms";
-import Image from "next/image";
+
+export const metadate: Metadata = {
+    title: "Prophy | Login",
+    description: "Página de login da Prophy",
+};
 
 const loginFieldsSchema = z.object({
     username: z.string().min(1, { message: "O usuário é necessário" }),
