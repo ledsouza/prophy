@@ -44,7 +44,9 @@ export default function Page() {
             toast.success("Você está autenticado!");
             router.push("/dashboard");
         } catch (error) {
-            toast.error("Houve uma falha no login");
+            toast.error(
+                "Houve uma falha ao acessar sua conta. Verifique se o usuário e senha estão corretos"
+            );
         }
     };
 
