@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
 
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { useLogoutMutation } from "@/redux/features/authApiSlice";
@@ -17,7 +16,6 @@ import {
 import { NavLink } from "@/components/common";
 
 export default function Navbar() {
-    const router = useRouter();
     const pathname = usePathname();
     const dispatch = useAppDispatch();
 
@@ -30,7 +28,6 @@ export default function Navbar() {
             .unwrap()
             .then(() => {
                 dispatch(setLogout());
-                router.push("/auth/login");
             });
     };
 
