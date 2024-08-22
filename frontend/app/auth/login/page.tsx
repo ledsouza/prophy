@@ -58,11 +58,11 @@ export default function Page() {
                         alt="Full Auth"
                     />
                     <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-                        Faça o login com a sua conta
+                        Acesse a sua conta
                     </h2>
                 </div>
             </div>
-            <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+            <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <Input
                         {...register("username")}
