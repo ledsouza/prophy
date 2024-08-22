@@ -1,1 +1,1 @@
-export { default as ToastSetup } from "./ToastSetup";
+export { default as Setup } from "./Setup";

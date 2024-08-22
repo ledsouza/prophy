@@ -5,7 +5,7 @@ import "@/../styles/globals.css";
 import Provider from "@/redux/Provider";
 
 import { NavBar, Footer } from "@/components/common";
-import { ToastSetup } from "./components/utils";
+import { Setup } from "./components/utils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +23,7 @@ export default function RootLayout({
         <html lang="pt-BR">
             <body className={inter.className}>
                 <Provider>
-                    <ToastSetup />
+                    <Setup />
                     <NavBar />
                     <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8 my-8">
                         {children}
