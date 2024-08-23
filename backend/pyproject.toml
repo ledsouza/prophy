@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "prophy"
+version = "0.1.0"
+description = "Aplicação Web para atendimentos de clientes no setor da física médica"
+authors = ["ledsouza <leandro.souza.159@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+Django = "^5.0"
+djangorestframework = "^3.15.2"
+Markdown = "^3.6"
+django-cors-headers = "^4.4.0"
+python-dotenv = "^1.0.1"
+djangorestframework-simplejwt = "^5.3.1"
+djoser = "^2.2.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
