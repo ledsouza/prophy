@@ -8,11 +8,11 @@ export default function Page() {
 
     const config = [
         {
-            label: "Nome",
+            label: "Usuário",
             value: user?.username,
         },
         {
-            label: "Email",
+            label: "E-mail",
             value: user?.email,
         },
     ];

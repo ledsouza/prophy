@@ -5,7 +5,7 @@ type UserAuth = {
     password: string;
 };
 
-type User = {
+export type User = {
     email: string;
     id: number;
     username: string;
