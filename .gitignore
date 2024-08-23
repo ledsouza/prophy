@@ -135,6 +135,7 @@ celerybeat.pid
 .env.*
 .env.local
 .env
+./.venv
 .venv
 env/
 venv/
@@ -215,7 +216,7 @@ cython_debug/
 #   having no cross-platform support, pipenv may install dependencies that don't work, or not
 #   install all needed dependencies.
 
-# poetry
+poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
