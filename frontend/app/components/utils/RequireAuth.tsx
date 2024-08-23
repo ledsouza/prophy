@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
 import { Spinner } from "@/components/common";
 
 type Props = {
@@ -13,16 +15,21 @@ export default function RequireAuth({ children }: Props) {
         (state) => state.auth
     );
 
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
+            toast.error(
+                "Você precisa estar autenticado para acessar essa página!"
+            );
+            redirect("/auth/login");
+        }
+    }, [isLoading, isAuthenticated]);
+
     if (isLoading) {
         return (
             <div className="flex justify-center my-8">
                 <Spinner lg />
             </div>
         );
-    }
-
-    if (!isAuthenticated) {
-        redirect("/auth/login");
     }
 
     return <>{children}</>;
