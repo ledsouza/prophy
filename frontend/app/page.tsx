@@ -1,12 +1,12 @@
-import Link from "next/link";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-    title: "Prophy | Página Inicial",
-    description: "Página inicial da Prophy",
-};
+import Link from "next/link";
+import { useAppSelector } from "./redux/hooks";
 
 export default function Page() {
+    const { isAuthenticated } = useAppSelector((state) => state.auth);
+    const authRedirect = isAuthenticated ? "/dashboard" : "/auth/login";
+
     return (
         <main className="bg-white">
             <div className="relative isolate px-6 pt-14 lg:px-8">
@@ -23,7 +23,7 @@ export default function Page() {
                         </p>
                         <div className="mt-10 flex items-center justify-center gap-x-6">
                             <Link
-                                href="/auth/login"
+                                href={authRedirect}
                                 className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                             >
                                 Acesse a sua conta

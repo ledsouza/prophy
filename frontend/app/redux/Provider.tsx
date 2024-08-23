@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { makeStore } from "./store";
+import { store } from "./store";
 import { Provider } from "react-redux";
 
 type Props = {
@@ -9,5 +9,5 @@ type Props = {
 };
 
 export default function CustomProvider({ children }: Props) {
-    return <Provider store={makeStore()}>{children}</Provider>;
+    return <Provider store={store}>{children}</Provider>;
 }
