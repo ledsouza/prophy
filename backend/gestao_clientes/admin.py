@@ -9,20 +9,29 @@ import calendar
 class ClienteAdmin(admin.ModelAdmin):
     list_display = ("cnpj", "nome_instituicao", "email_instituicao",
                     "telefone_instituicao", "endereco_instituicao")
+    list_display_links = ("nome_instituicao",)
     search_fields = ("cnpj", "nome_instituicao", "user__username")
 
 
 @admin.register(Unidade)
 class UnidadeAdmin(admin.ModelAdmin):
     list_display = ("nome", "cliente", "nome_contato", "email", "telefone")
+    list_display_links = ("nome", "cliente")
     search_fields = ("nome", "cliente__nome_instituicao", "nome_contato")
 
 
 @admin.register(Equipamento)
 class EquipamentoAdmin(admin.ModelAdmin):
-    list_display = ("modalidade", "marca", "modelo", "numero_serie", "unidade")
+    list_display = ("modalidade", "marca", "modelo",
+                    "numero_serie", "unidade", "cliente")
+    list_display_links = ("numero_serie", "unidade", "cliente")
     search_fields = ("marca", "modelo", "numero_serie", "unidade__nome")
     list_filter = ("marca", "modalidade", "unidade__cliente")
+
+    @admin.display(description="Cliente")
+    def cliente(self, obj):
+        client = obj.unidade.cliente
+        return client
 
 
 @admin.register(PotencialCliente)
