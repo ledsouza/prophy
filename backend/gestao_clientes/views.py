@@ -6,7 +6,7 @@ from .models import PotencialCliente
 from .serializers import CNPJSerializer
 
 
-class LatestClientStatusView(APIView):
+class LatestPotencialClienteStatusView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -22,6 +22,6 @@ class LatestClientStatusView(APIView):
                 return Response({'approved': latest_client.approved_client()}, status=status.HTTP_200_OK)
 
             except PotencialCliente.DoesNotExist:
-                return Response({'error': 'No client found with this CNPJ'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'Nenhum cliente foi encontrado com esse cnpj'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
