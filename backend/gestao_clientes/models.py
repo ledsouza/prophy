@@ -68,5 +68,13 @@ class PotencialCliente(models.Model):
     status = models.CharField(
         max_length=1, choices=STATUS, blank=False, null=False, default="P")
 
+    def approved_client(self):
+        if self.status == "A":
+            return True
+        return False
+
+    class Meta:
+        ordering = ["-data_proposta"]
+
     def __str__(self) -> str:
         return self.nome
