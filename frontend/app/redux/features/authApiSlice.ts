@@ -3,6 +3,7 @@ import { apiSlice } from "../services/apiSlice";
 type UserAuth = {
     username: string;
     password: string;
+    re_password?: string;
 };
 
 export type User = {
@@ -20,6 +21,12 @@ const authApiSlice = apiSlice.injectEndpoints({
                 body: { username, password },
             }),
         }),
+        logout: builder.mutation<void, void>({
+            query: () => ({
+                url: "logout/",
+                method: "POST",
+            }),
+        }),
         verify: builder.mutation<void, void>({
             query: () => ({
                 url: "jwt/verify/",
@@ -29,10 +36,11 @@ const authApiSlice = apiSlice.injectEndpoints({
         retrieveUser: builder.query<User, void>({
             query: () => "users/me/",
         }),
-        logout: builder.mutation<void, void>({
-            query: () => ({
-                url: "logout/",
+        register: builder.mutation<void, UserAuth>({
+            query: ({ username, password, re_password }) => ({
+                url: "users/",
                 method: "POST",
+                body: { username, password, re_password },
             }),
         }),
     }),
@@ -40,7 +48,8 @@ const authApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useLoginMutation,
+    useLogoutMutation,
     useVerifyMutation,
     useRetrieveUserQuery,
-    useLogoutMutation,
+    useRegisterMutation,
 } = authApiSlice;

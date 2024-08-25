@@ -140,6 +140,7 @@ SIMPLE_JWT = {
 
 DJOSER = {
     "TOKEN_MODEL": None,
+    "USER_CREATE_PASSWORD_RETYPE": True
 }
 
 AUTH_COOKIE = "access"
