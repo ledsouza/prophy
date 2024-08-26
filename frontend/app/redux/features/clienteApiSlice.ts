@@ -1,6 +1,6 @@
 import { apiSlice } from "../services/apiSlice";
 
-type Cliente = {
+export type Cliente = {
     cnpj: string;
     nome_instituicao: string;
     nome_contato: string;
@@ -10,9 +10,16 @@ type Cliente = {
     endereco_instituicao: string;
 };
 
+type PotencialClienteStatus = {
+    approved: boolean;
+};
+
 const clienteApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        verifyPotencialClienteStatus: builder.mutation<boolean, Cliente>({
+        verifyPotencialClienteStatus: builder.mutation<
+            PotencialClienteStatus,
+            Pick<Cliente, "cnpj">
+        >({
             query: ({ cnpj }) => ({
                 url: "potenciais-clientes/status/",
                 method: "POST",

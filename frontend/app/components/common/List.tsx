@@ -1,5 +1,3 @@
-import { Spinner } from "@/components/common";
-
 type Config = {
     label: string;
     value: string | undefined;
@@ -21,7 +19,7 @@ export default function List({ config }: Props) {
                     </div>
                     <div>
                         <p className="text-sm font-semibold leading-6 text-gray-900">
-                            {value || <Spinner sm />}
+                            {value || "-"}
                         </p>
                     </div>
                 </li>

@@ -57,7 +57,7 @@ export default function Page() {
                     <Image
                         className="mx-auto h-10 w-auto"
                         src={prophyIcon}
-                        alt="Full Auth"
+                        alt="Prophy"
                     />
                     <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
                         Acesse a sua conta

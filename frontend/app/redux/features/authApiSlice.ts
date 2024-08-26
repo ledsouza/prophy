@@ -36,7 +36,7 @@ const authApiSlice = apiSlice.injectEndpoints({
         retrieveUser: builder.query<User, void>({
             query: () => "users/me/",
         }),
-        register: builder.mutation<void, UserAuth>({
+        register: builder.mutation<any, UserAuth>({
             query: ({ username, password, re_password }) => ({
                 url: "users/",
                 method: "POST",
