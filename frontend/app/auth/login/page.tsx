@@ -81,7 +81,7 @@ export default function Page() {
                         Senha
                     </Input>
                     <Button type="submit" disabled={isSubmitting}>
-                        Logar
+                        Acessar
                     </Button>
                 </Form>
             </div>
