@@ -187,6 +187,7 @@ const Page = () => {
                         {...register("username")}
                         type="text"
                         errorMessage={errors.username?.message}
+                        placeholder="Nome de usuário"
                     >
                         Usuário
                     </Input>
@@ -194,6 +195,7 @@ const Page = () => {
                         {...register("password")}
                         type="password"
                         errorMessage={errors.password?.message}
+                        placeholder="Crie uma senha forte"
                     >
                         Senha
                     </Input>
@@ -201,6 +203,7 @@ const Page = () => {
                         {...register("re_password")}
                         type="password"
                         errorMessage={errors.re_password?.message}
+                        placeholder="Digite a senha novamente"
                     >
                         Confirmação de senha
                     </Input>
@@ -211,6 +214,7 @@ const Page = () => {
                         {...register("cnpj")}
                         type="text"
                         errorMessage={errors.cnpj?.message}
+                        placeholder="21835755000186"
                     >
                         CNPJ
                     </Input>
@@ -218,6 +222,7 @@ const Page = () => {
                         {...register("nome_instituicao")}
                         type="text"
                         errorMessage={errors.nome_instituicao?.message}
+                        placeholder="Digite o nome completo da instituição"
                     >
                         Nome
                     </Input>
@@ -225,6 +230,7 @@ const Page = () => {
                         {...register("email_instituicao")}
                         type="text"
                         errorMessage={errors.email_instituicao?.message}
+                        placeholder="nome@email.com"
                     >
                         E-mail
                     </Input>
@@ -232,6 +238,7 @@ const Page = () => {
                         {...register("telefone_instituicao")}
                         type="text"
                         errorMessage={errors.telefone_instituicao?.message}
+                        placeholder="51993859324"
                     >
                         Telefone
                     </Input>
@@ -239,6 +246,7 @@ const Page = () => {
                         {...register("endereco_instituicao")}
                         type="text"
                         errorMessage={errors.endereco_instituicao?.message}
+                        placeholder="Rua, número, bairro"
                     >
                         Endereço
                     </Input>
@@ -249,6 +257,7 @@ const Page = () => {
                         {...register("nome_contato")}
                         type="text"
                         errorMessage={errors.nome_contato?.message}
+                        placeholder="Digite seu nome completo"
                     >
                         Nome
                     </Input>
@@ -256,6 +265,7 @@ const Page = () => {
                         {...register("email_contato")}
                         type="text"
                         errorMessage={errors.email_contato?.message}
+                        placeholder="nome@email.com"
                     >
                         E-mail
                     </Input>
