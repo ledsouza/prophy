@@ -10,7 +10,7 @@ import calendar
 
 class Cliente(models.Model):
     """
-    Modelo representando um cliente.
+    Model representing a client.
     """
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="clientes")
@@ -36,7 +36,7 @@ class Cliente(models.Model):
 
 class Unidade(models.Model):
     """
-    Modelo representando uma unidade de um cliente.
+    Model representing a unit of a client.
     """
     cliente = models.ForeignKey(
         Cliente, on_delete=models.CASCADE, related_name="unidades")
@@ -56,7 +56,7 @@ class Unidade(models.Model):
 
 class Equipamento(models.Model):
     """
-    Modelo representando um equipamento de uma unidade.
+    Model representing equipment of a unit.
     """
     unidade = models.ForeignKey(
         Unidade, on_delete=models.CASCADE, related_name="equipamentos")
@@ -84,7 +84,7 @@ class Equipamento(models.Model):
 
 class Proposta(models.Model):
     """
-    Modelo representando uma proposta de contrato com um potencial cliente.
+    Model representing a contract proposal with a potential client.
     """
     STATUS = (
         ("A", "Aceito"),
