@@ -1,9 +1,5 @@
 from django.contrib import admin
-from django.conf import settings
-from .models import Cliente, Unidade, Equipamento, PotencialCliente
-from django.utils.translation import gettext as _
-
-import calendar
+from .models import Cliente, Unidade, Equipamento, Proposta
 
 
 class UnidadeInline(admin.TabularInline):
@@ -47,20 +43,15 @@ class EquipamentoAdmin(admin.ModelAdmin):
     list_filter = ("marca", "modalidade", "unidade__cliente")
 
     @admin.display(description="Cliente")
-    def cliente(self, obj):
+    def cliente(self, obj: "Equipamento"):
         client = obj.unidade.cliente
         return client
 
 
-@admin.register(PotencialCliente)
-class PotencialClienteAdmin(admin.ModelAdmin):
+@admin.register(Proposta)
+class PropostaAdmin(admin.ModelAdmin):
     list_display = ("cnpj", "nome", "proposal_month", "valor", "status")
     radio_fields = {"status": admin.HORIZONTAL}
     search_fields = ("cnpj", "nome", "proposal_month", "valor")
     list_filter = ("status",)
     date_hierarchy = "data_proposta"
-
-    @admin.display(description='Mês da Proposta')
-    def proposal_month(self, obj):
-        month_num = obj.data_proposta.month
-        return _(calendar.month_name[month_num])
