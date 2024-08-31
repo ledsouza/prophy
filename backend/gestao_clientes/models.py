@@ -24,9 +24,9 @@ class Cliente(models.Model):
     endereco_instituicao = models.CharField(
         "Endereço da instituição", max_length=50)
     estado_instituicao = models.CharField(
-        "Estado da instituição", max_length=2, choices=STATE_CHOICES, blank=True)
+        "Estado da instituição", max_length=2, choices=STATE_CHOICES)
     cidade_instituicao = models.CharField(
-        "Cidade da instituição", max_length=50, blank=True)
+        "Cidade da instituição", max_length=50)
     status = models.CharField("Status", max_length=1, choices=(
         ("A", "Ativo"), ("I", "Inativo")), default="A")
 

@@ -2,12 +2,15 @@ import { apiSlice } from "../services/apiSlice";
 
 export type Cliente = {
     cnpj: string;
-    nome_instituicao: string;
-    nome_contato: string;
-    email_contato: string;
-    email_instituicao: string;
-    telefone_instituicao: string;
-    endereco_instituicao: string;
+    nomeInstituicao: string;
+    nomeContato: string;
+    emailContato: string;
+    emailInstituicao: string;
+    telefoneInstituicao: string;
+    enderecoInstituicao: string;
+    estadoInstituicao: string;
+    cidadeInstituicao: string;
+    status: string;
 };
 
 type PropostaStatus = {
@@ -29,23 +32,27 @@ const clienteApiSlice = apiSlice.injectEndpoints({
         create: builder.mutation<void, Cliente>({
             query: ({
                 cnpj,
-                nome_instituicao,
-                nome_contato,
-                email_contato,
-                email_instituicao,
-                telefone_instituicao,
-                endereco_instituicao,
+                nomeInstituicao,
+                nomeContato,
+                emailContato,
+                emailInstituicao,
+                telefoneInstituicao,
+                enderecoInstituicao,
+                estadoInstituicao,
+                cidadeInstituicao,
             }) => ({
                 url: "clientes/",
                 method: "POST",
                 body: {
                     cnpj,
-                    nome_instituicao,
-                    nome_contato,
-                    email_contato,
-                    email_instituicao,
-                    telefone_instituicao,
-                    endereco_instituicao,
+                    nomeInstituicao,
+                    nomeContato,
+                    emailContato,
+                    emailInstituicao,
+                    telefoneInstituicao,
+                    enderecoInstituicao,
+                    estadoInstituicao,
+                    cidadeInstituicao,
                 },
             }),
         }),
