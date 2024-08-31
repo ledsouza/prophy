@@ -24,10 +24,12 @@ class EquipamentoInline(admin.TabularInline):
 
 @admin.register(Unidade)
 class UnidadeAdmin(admin.ModelAdmin):
-    list_display = ("nome", "cliente", "nome_contato", "email", "telefone")
+    list_display = ("nome", "cnpj", "cliente", "nome_contato",
+                    "email", "telefone", "estado", "cidade")
     list_display_links = ("nome",)
     autocomplete_fields = ("cliente",)
-    search_fields = ("nome", "cliente__nome_instituicao", "nome_contato")
+    search_fields = ("nome", "cnpj", "estado", "cidade")
+    list_filter = ("cliente__nome_instituicao",)
     inlines = [
         EquipamentoInline,
     ]
@@ -39,19 +41,15 @@ class EquipamentoAdmin(admin.ModelAdmin):
                     "numero_serie", "unidade", "cliente")
     list_display_links = ("numero_serie",)
     autocomplete_fields = ("unidade",)
-    search_fields = ("fabricante", "modelo", "numero_serie", "unidade__nome")
-    list_filter = ("fabricante", "modalidade", "unidade__cliente")
-
-    @admin.display(description="Cliente")
-    def cliente(self, obj: "Equipamento"):
-        client = obj.unidade.cliente
-        return client
+    search_fields = ("fabricante", "modelo", "numero_serie",
+                     "unidade__nome", "modalidade")
+    list_filter = ("fabricante", "modalidade", "unidade", "unidade__cliente")
 
 
 @admin.register(Proposta)
 class PropostaAdmin(admin.ModelAdmin):
     list_display = ("cnpj", "nome", "proposal_month", "valor", "status")
     radio_fields = {"status": admin.HORIZONTAL}
-    search_fields = ("cnpj", "nome", "proposal_month", "valor")
-    list_filter = ("status",)
+    search_fields = ("cnpj", "nome", "valor")
+    list_filter = ("status", "data_proposta")
     date_hierarchy = "data_proposta"

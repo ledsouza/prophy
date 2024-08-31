@@ -78,6 +78,11 @@ class Equipamento(models.Model):
     telefone_responsavel = models.CharField(
         "Telefone do responsável pela manutenção", max_length=11, blank=True, null=True)
 
+    @admin.display(description="Cliente")
+    def cliente(self):
+        client = self.unidade.cliente
+        return client
+
     def __str__(self) -> str:
         return f"{self.fabricante} - {self.modelo} ({self.unidade.nome})"
 
@@ -118,8 +123,8 @@ class Proposta(models.Model):
         return False
 
     @admin.display(description='Mês da Proposta')
-    def proposal_month(self, obj: "Proposta"):
-        month_num = obj.data_proposta.month
+    def proposal_month(self):
+        month_num = self.data_proposta.month
         return _(calendar.month_name[month_num])
 
     class Meta:

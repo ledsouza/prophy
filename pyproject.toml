@@ -17,6 +17,7 @@ djoser = "^2.2.3"
 pillow = "^10.4.0"
 django-stubs = "^5.0.4"
 localflavor = "^1.9"
+faker = "^28.1.0"
 
 
 [build-system]
