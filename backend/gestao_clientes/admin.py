@@ -35,12 +35,12 @@ class UnidadeAdmin(admin.ModelAdmin):
 
 @admin.register(Equipamento)
 class EquipamentoAdmin(admin.ModelAdmin):
-    list_display = ("modalidade", "marca", "modelo",
+    list_display = ("modalidade", "fabricante", "modelo",
                     "numero_serie", "unidade", "cliente")
     list_display_links = ("numero_serie",)
     autocomplete_fields = ("unidade",)
-    search_fields = ("marca", "modelo", "numero_serie", "unidade__nome")
-    list_filter = ("marca", "modalidade", "unidade__cliente")
+    search_fields = ("fabricante", "modelo", "numero_serie", "unidade__nome")
+    list_filter = ("fabricante", "modalidade", "unidade__cliente")
 
     @admin.display(description="Cliente")
     def cliente(self, obj: "Equipamento"):
