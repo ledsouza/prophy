@@ -6,7 +6,7 @@ import zxcvbn from "zxcvbn";
 
 import {
     useCreateMutation,
-    useVerifyPotencialClienteStatusMutation,
+    useVerifyPropostaStatusMutation,
 } from "@/redux/features/clienteApiSlice";
 import {
     useLoginMutation,
@@ -24,8 +24,7 @@ import { setAuth } from "@/redux/features/authSlice";
 import { toast } from "react-toastify";
 
 const Page = () => {
-    const [verifyPotencialClienteStatus] =
-        useVerifyPotencialClienteStatusMutation();
+    const [verifyPropostaStatus] = useVerifyPropostaStatusMutation();
     const [registerUser] = useRegisterMutation();
     const [login] = useLoginMutation();
     const [createClient] = useCreateMutation();
@@ -34,7 +33,7 @@ const Page = () => {
 
     const checkClientStatus = async (cnpj: string): Promise<boolean> => {
         try {
-            const response = await verifyPotencialClienteStatus({
+            const response = await verifyPropostaStatus({
                 cnpj,
             }).unwrap();
             return response.approved;

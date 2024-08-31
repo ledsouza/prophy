@@ -10,14 +10,14 @@ export type Cliente = {
     endereco_instituicao: string;
 };
 
-type PotencialClienteStatus = {
+type PropostaStatus = {
     approved: boolean;
 };
 
 const clienteApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        verifyPotencialClienteStatus: builder.mutation<
-            PotencialClienteStatus,
+        verifyPropostaStatus: builder.mutation<
+            PropostaStatus,
             Pick<Cliente, "cnpj">
         >({
             query: ({ cnpj }) => ({
@@ -52,5 +52,5 @@ const clienteApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useVerifyPotencialClienteStatusMutation, useCreateMutation } =
+export const { useVerifyPropostaStatusMutation, useCreateMutation } =
     clienteApiSlice;
