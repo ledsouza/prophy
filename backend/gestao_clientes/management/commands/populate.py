@@ -8,6 +8,16 @@ from localflavor.br.br_states import STATE_CHOICES
 fake = Faker('pt_BR')
 
 
+def fake_phone_number():
+    return fake.phone_number().replace(
+        '(', '').replace(')', '').replace('-', '').replace(' ', '').replace("+", "")
+
+
+def fake_cnpj():
+    return fake.cnpj().replace(
+        '.', '').replace('/', '').replace('-', '')
+
+
 class Command(BaseCommand):
     help = "Populate the database with fake data."
 
@@ -35,12 +45,12 @@ class Command(BaseCommand):
         for _ in range(num_clientes):
             Cliente.objects.create(
                 user=choice(users),
-                cnpj=fake.cnpj(),
+                cnpj=fake_cnpj(),
                 nome_instituicao=fake.company(),
                 nome_contato=fake.name(),
                 email_contato=fake.email(),
                 email_instituicao=fake.company_email(),
-                telefone_instituicao=fake.phone_number(),
+                telefone_instituicao=fake_phone_number(),
                 endereco_instituicao=fake.address(),
                 estado_instituicao=choice(STATE_CHOICES)[0],
                 cidade_instituicao=fake.city(),
@@ -54,10 +64,10 @@ class Command(BaseCommand):
                 Unidade.objects.create(
                     cliente=cliente,
                     nome=fake.company_suffix() + " " + fake.company(),
-                    cnpj=fake.cnpj(),
+                    cnpj=fake_cnpj(),
                     nome_contato=fake.name(),
                     email=fake.email(),
-                    telefone=fake.phone_number(),
+                    telefone=fake_phone_number(),
                     endereco=fake.address(),
                     estado=cliente.estado_instituicao,
                     cidade=cliente.cidade_instituicao
@@ -86,11 +96,11 @@ class Command(BaseCommand):
         status_choices = ['A', 'R', 'P']
         for _ in range(num_propostas):
             Proposta.objects.create(
-                cnpj=fake.cnpj(),
+                cnpj=fake_cnpj(),
                 cidade=fake.city(),
                 estado=choice(STATE_CHOICES)[0],
                 nome=fake.name(),
-                telefone=fake.phone_number(),
+                telefone=fake_phone_number(),
                 email=fake.email(),
                 data_proposta=fake.date(),
                 valor=fake.pydecimal(
