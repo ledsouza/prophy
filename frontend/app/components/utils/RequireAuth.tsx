@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
 import { useEffect } from "react";
-import { toast } from "react-toastify";
 import { Spinner } from "@/components/common";
 
 type Props = {
@@ -17,9 +16,6 @@ export default function RequireAuth({ children }: Props) {
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            toast.error(
-                "Você precisa estar autenticado para acessar essa página!"
-            );
             redirect("/auth/login");
         }
     }, [isLoading, isAuthenticated]);

@@ -2,14 +2,14 @@ import { apiSlice } from "../services/apiSlice";
 
 export type Cliente = {
     cnpj: string;
-    nomeInstituicao: string;
-    nomeContato: string;
-    emailContato: string;
-    emailInstituicao: string;
-    telefoneInstituicao: string;
-    enderecoInstituicao: string;
-    estadoInstituicao: string;
-    cidadeInstituicao: string;
+    nome_instituicao: string;
+    nome_contato: string;
+    email_contato: string;
+    email_instituicao: string;
+    telefone_instituicao: string;
+    endereco_instituicao: string;
+    estado_instituicao: string;
+    cidade_instituicao: string;
     status: string;
 };
 
@@ -24,35 +24,35 @@ const clienteApiSlice = apiSlice.injectEndpoints({
             Pick<Cliente, "cnpj">
         >({
             query: ({ cnpj }) => ({
-                url: "potenciais-clientes/status/",
+                url: "propostas/status/",
                 method: "POST",
                 body: { cnpj },
             }),
         }),
-        create: builder.mutation<void, Cliente>({
+        create: builder.mutation<void, Omit<Cliente, "status">>({
             query: ({
                 cnpj,
-                nomeInstituicao,
-                nomeContato,
-                emailContato,
-                emailInstituicao,
-                telefoneInstituicao,
-                enderecoInstituicao,
-                estadoInstituicao,
-                cidadeInstituicao,
+                nome_instituicao,
+                nome_contato,
+                email_contato,
+                email_instituicao,
+                telefone_instituicao,
+                endereco_instituicao,
+                estado_instituicao,
+                cidade_instituicao,
             }) => ({
                 url: "clientes/",
                 method: "POST",
                 body: {
                     cnpj,
-                    nomeInstituicao,
-                    nomeContato,
-                    emailContato,
-                    emailInstituicao,
-                    telefoneInstituicao,
-                    enderecoInstituicao,
-                    estadoInstituicao,
-                    cidadeInstituicao,
+                    nome_instituicao,
+                    nome_contato,
+                    email_contato,
+                    email_instituicao,
+                    telefone_instituicao,
+                    endereco_instituicao,
+                    estado_instituicao,
+                    cidade_instituicao,
                 },
             }),
         }),
