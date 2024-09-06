@@ -5,6 +5,11 @@ import zxcvbn from "zxcvbn";
 import { Button, Form, Input } from "@/components/forms";
 import { useForm, SubmitHandler } from "react-hook-form";
 
+import { brStates } from "@/constants";
+import ComboBox, { ComboboxDataProps } from "./ComboBox";
+import { useEffect, useState } from "react";
+import { useGetEstadosQuery } from "@/redux/services/ibgeApiSlice";
+
 const checkPasswordScore = (password: string) => {
     const result = zxcvbn(password);
     return result.score > 1;
@@ -86,9 +91,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
+        setValue,
     } = useForm<RegisterFields>({
         resolver: zodResolver(registerSchema),
     });
+
+    const [selectedState, setSelectedState] =
+        useState<ComboboxDataProps | null>(null);
+
+    const handleStateChange = (selectedState: ComboboxDataProps | null) => {
+        setSelectedState(selectedState);
+        setValue("estado_instituicao", selectedState?.id || "");
+    };
 
     return (
         <Form onSubmit={handleSubmit(onSubmit)}>
@@ -154,14 +168,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             >
                 Endereço
             </Input>
-            <Input
+            <ComboBox
+                data={brStates}
+                placeholder="Digite o estado"
+                selectedValue={selectedState}
+                onChange={handleStateChange}
+            >
+                Estado
+            </ComboBox>
+            {/* <Input
                 {...register("estado_instituicao")}
                 type="text"
                 errorMessage={errors.estado_instituicao?.message}
                 placeholder="SP"
             >
                 Estado
-            </Input>
+            </Input> */}
             <Input
                 {...register("cidade_instituicao")}
                 type="text"
