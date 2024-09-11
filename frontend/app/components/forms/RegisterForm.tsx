@@ -6,11 +6,14 @@ import { Button, Form, Input } from "@/components/forms";
 import { useForm, SubmitHandler } from "react-hook-form";
 
 import ComboBox, { ComboboxDataProps } from "./ComboBox";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     useGetEstadosQuery,
     useGetMunicipiosByEstadosIdQuery,
 } from "@/redux/services/ibgeApiSlice";
+import { skipToken } from "@reduxjs/toolkit/query";
+import useIBGELocalidades from "@/hooks/use-ibge-localidades";
+import { Spinner } from "../common";
 
 const checkPasswordScore = (password: string) => {
     const result = zxcvbn(password);
@@ -98,36 +101,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         resolver: zodResolver(registerSchema),
     });
 
-    const { data: estados, isSuccess: isEstadosSuccess } = useGetEstadosQuery();
-    const [selectedEstado, setSelectedEstado] =
-        useState<ComboboxDataProps | null>(null);
-
-    const { data: municipios, isSuccess: isMunicipiosSuccess } =
-        useGetMunicipiosByEstadosIdQuery(
-            selectedEstado ? selectedEstado.id : 0,
-            {
-                skip: !selectedEstado,
-            }
-        );
-    const [selectedMunicipio, setSelectedMunicipio] =
-        useState<ComboboxDataProps | null>(null);
-
-    useEffect(() => {
-        if (!selectedEstado) {
-            setSelectedMunicipio(null);
-        }
-    }, [selectedEstado]);
-
-    const handleEstadoChange = (selectedEstado: ComboboxDataProps | null) => {
-        setSelectedEstado(selectedEstado);
-        setValue("estado_instituicao", selectedEstado?.sigla || "");
-    };
-    const handleMunicipioChange = (
-        selectedMunicipio: ComboboxDataProps | null
-    ) => {
-        setSelectedMunicipio(selectedMunicipio);
-        setValue("cidade_instituicao", selectedMunicipio?.name || "");
-    };
+    const {
+        estados,
+        isEstadosSuccess,
+        selectedEstado,
+        handleEstadoChange,
+        municipios,
+        isMunicipiosSuccess,
+        selectedMunicipio,
+        handleMunicipioChange,
+    } = useIBGELocalidades(setValue);
 
     return (
         <Form onSubmit={handleSubmit(onSubmit)}>
@@ -185,15 +168,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             >
                 Telefone
             </Input>
-            <Input
-                {...register("endereco_instituicao")}
-                type="text"
-                errorMessage={errors.endereco_instituicao?.message}
-                placeholder="Rua, número, bairro"
-            >
-                Endereço
-            </Input>
-            {isEstadosSuccess && (
+            {isEstadosSuccess && estados ? (
                 <ComboBox
                     data={estados.map((estado) => ({
                         id: estado.id,
@@ -206,8 +181,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 >
                     Estado
                 </ComboBox>
+            ) : (
+                <div>
+                    <span>Carregando estados...</span>
+                    <Spinner />
+                </div>
             )}
-            {isMunicipiosSuccess ? (
+            {isMunicipiosSuccess && municipios ? (
                 <ComboBox
                     data={municipios.map((municipio) => ({
                         id: municipio.id,
@@ -224,6 +204,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     Cidade
                 </Input>
             )}
+            <Input
+                {...register("endereco_instituicao")}
+                type="text"
+                errorMessage={errors.endereco_instituicao?.message}
+                placeholder="Rua, número, bairro"
+            >
+                Endereço
+            </Input>
             <h3 className="text-center text-xl font-bold leading-9 tracking-tight text-gray-900">
                 Dados de contato
             </h3>

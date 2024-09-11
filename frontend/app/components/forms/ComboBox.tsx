@@ -46,6 +46,7 @@ const ComboBox: React.FC<ComboBoxProps> = ({
                 </Label>
                 <Combobox
                     value={selectedValue}
+                    virtual={{ options: filteredData }}
                     onChange={onChange}
                     onClose={() => setQuery("")}
                 >
@@ -60,7 +61,7 @@ const ComboBox: React.FC<ComboBoxProps> = ({
                         anchor="bottom"
                         className="z-50 empty:invisible block w-1/4 rounded-md border-0 p-2 bg-white text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     >
-                        {filteredData.map((value) => (
+                        {({ option: value }) => (
                             <ComboboxOption
                                 key={value.id}
                                 value={value}
@@ -68,7 +69,7 @@ const ComboBox: React.FC<ComboBoxProps> = ({
                             >
                                 {value.name}
                             </ComboboxOption>
-                        ))}
+                        )}
                     </ComboboxOptions>
                 </Combobox>
             </Field>

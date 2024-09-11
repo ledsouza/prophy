@@ -43,7 +43,7 @@ export default function Navbar() {
                 Dashboard
             </NavLink>
             <NavLink isMobile={isMobile} onClick={handleLogout}>
-                Logout
+                Sair
             </NavLink>
         </>
     );
