@@ -5,10 +5,12 @@ import zxcvbn from "zxcvbn";
 import { Button, Form, Input } from "@/components/forms";
 import { useForm, SubmitHandler } from "react-hook-form";
 
-import { brStates } from "@/constants";
 import ComboBox, { ComboboxDataProps } from "./ComboBox";
 import { useEffect, useState } from "react";
-import { useGetEstadosQuery } from "@/redux/services/ibgeApiSlice";
+import {
+    useGetEstadosQuery,
+    useGetMunicipiosByEstadosIdQuery,
+} from "@/redux/services/ibgeApiSlice";
 
 const checkPasswordScore = (password: string) => {
     const result = zxcvbn(password);
@@ -96,12 +98,35 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         resolver: zodResolver(registerSchema),
     });
 
-    const [selectedState, setSelectedState] =
+    const { data: estados, isSuccess: isEstadosSuccess } = useGetEstadosQuery();
+    const [selectedEstado, setSelectedEstado] =
         useState<ComboboxDataProps | null>(null);
 
-    const handleStateChange = (selectedState: ComboboxDataProps | null) => {
-        setSelectedState(selectedState);
-        setValue("estado_instituicao", selectedState?.id || "");
+    const { data: municipios, isSuccess: isMunicipiosSuccess } =
+        useGetMunicipiosByEstadosIdQuery(
+            selectedEstado ? selectedEstado.id : 0,
+            {
+                skip: !selectedEstado,
+            }
+        );
+    const [selectedMunicipio, setSelectedMunicipio] =
+        useState<ComboboxDataProps | null>(null);
+
+    useEffect(() => {
+        if (!selectedEstado) {
+            setSelectedMunicipio(null);
+        }
+    }, [selectedEstado]);
+
+    const handleEstadoChange = (selectedEstado: ComboboxDataProps | null) => {
+        setSelectedEstado(selectedEstado);
+        setValue("estado_instituicao", selectedEstado?.sigla || "");
+    };
+    const handleMunicipioChange = (
+        selectedMunicipio: ComboboxDataProps | null
+    ) => {
+        setSelectedMunicipio(selectedMunicipio);
+        setValue("cidade_instituicao", selectedMunicipio?.name || "");
     };
 
     return (
@@ -168,30 +193,37 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             >
                 Endereço
             </Input>
-            <ComboBox
-                data={brStates}
-                placeholder="Digite o estado"
-                selectedValue={selectedState}
-                onChange={handleStateChange}
-            >
-                Estado
-            </ComboBox>
-            {/* <Input
-                {...register("estado_instituicao")}
-                type="text"
-                errorMessage={errors.estado_instituicao?.message}
-                placeholder="SP"
-            >
-                Estado
-            </Input> */}
-            <Input
-                {...register("cidade_instituicao")}
-                type="text"
-                errorMessage={errors.cidade_instituicao?.message}
-                placeholder="São Paulo"
-            >
-                Cidade
-            </Input>
+            {isEstadosSuccess && (
+                <ComboBox
+                    data={estados.map((estado) => ({
+                        id: estado.id,
+                        name: estado.nome,
+                        sigla: estado.sigla,
+                    }))}
+                    placeholder="Digite o estado e selecione"
+                    selectedValue={selectedEstado}
+                    onChange={handleEstadoChange}
+                >
+                    Estado
+                </ComboBox>
+            )}
+            {isMunicipiosSuccess ? (
+                <ComboBox
+                    data={municipios.map((municipio) => ({
+                        id: municipio.id,
+                        name: municipio.nome,
+                    }))}
+                    placeholder="Digite a cidade e selecione"
+                    selectedValue={selectedMunicipio}
+                    onChange={handleMunicipioChange}
+                >
+                    Cidade
+                </ComboBox>
+            ) : (
+                <Input disabled placeholder="Selecione um estado">
+                    Cidade
+                </Input>
+            )}
             <h3 className="text-center text-xl font-bold leading-9 tracking-tight text-gray-900">
                 Dados de contato
             </h3>
