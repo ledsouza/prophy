@@ -5,13 +5,7 @@ import zxcvbn from "zxcvbn";
 import { Button, Form, Input } from "@/components/forms";
 import { useForm, SubmitHandler } from "react-hook-form";
 
-import ComboBox, { ComboboxDataProps } from "./ComboBox";
-import { useCallback, useEffect, useState } from "react";
-import {
-    useGetEstadosQuery,
-    useGetMunicipiosByEstadosIdQuery,
-} from "@/redux/services/ibgeApiSlice";
-import { skipToken } from "@reduxjs/toolkit/query";
+import ComboBox from "./ComboBox";
 import useIBGELocalidades from "@/hooks/use-ibge-localidades";
 import { Spinner } from "../common";
 
