@@ -1,5 +1,5 @@
 import cn from "classnames";
-import { ImSpinner3 } from "react-icons/im";
+import { ImSpinner3 } from "@react-icons/all-files/im/ImSpinner3";
 
 type Props = {
     sm?: boolean;

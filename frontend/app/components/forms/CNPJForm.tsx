@@ -44,7 +44,10 @@ const CNPJForm: React.FC<CNPJFormProps> = ({ onSubmit }) => {
                         src={prophyIcon}
                         alt="Prophy"
                     />
-                    <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+                    <h2
+                        data-testid="title"
+                        className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900"
+                    >
                         Insira o CNPJ da sua instituição
                     </h2>
                     <p className="text-center text-xl leading-9 tracking-tight text-gray-900">
@@ -59,10 +62,15 @@ const CNPJForm: React.FC<CNPJFormProps> = ({ onSubmit }) => {
                     type="text"
                     errorMessage={errors.cnpj?.message}
                     placeholder="21835755000186"
+                    data-testid="input-cnpj"
                 >
                     CNPJ
                 </Input>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    data-testid="button-submit"
+                >
                     {isSubmitting ? "Verificando..." : "Verificar CNPJ"}
                 </Button>
             </Form>

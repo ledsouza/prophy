@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode } from "react";
+import { ButtonHTMLAttributes } from "react";
 import { Spinner } from "@/components/common";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

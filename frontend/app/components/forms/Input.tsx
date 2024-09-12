@@ -23,7 +23,12 @@ const Input = forwardRef<HTMLInputElement, Props>(
                     />
                 </div>
                 {errorMessage && (
-                    <div className="text-red-500">{errorMessage}</div>
+                    <div
+                        data-testid="validation-error"
+                        className="text-red-500"
+                    >
+                        {errorMessage}
+                    </div>
                 )}
             </div>
         );
