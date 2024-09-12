@@ -2,10 +2,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isCNPJ } from "validation-br";
 
-import { Button, Form, Input } from "@/components/forms";
+import { Button, Form, HeaderForm, Input } from "@/components/forms";
 import { useForm, SubmitHandler } from "react-hook-form";
 
-import Image from "next/image";
 import prophyIcon from "@/../public/prophy-icon.jpeg";
 
 const cnpjSchema = z.object({
@@ -37,25 +36,13 @@ const CNPJForm: React.FC<CNPJFormProps> = ({ onSubmit }) => {
 
     return (
         <>
-            <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-2">
-                <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                    <Image
-                        className="mx-auto h-10 w-auto"
-                        src={prophyIcon}
-                        alt="Prophy"
-                    />
-                    <h2
-                        data-testid="title"
-                        className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900"
-                    >
-                        Insira o CNPJ da sua instituição
-                    </h2>
-                    <p className="text-center text-xl leading-9 tracking-tight text-gray-900">
-                        Para prosseguir com o cadastro da sua instituição, é
-                        necessário que o seu CNPJ esteja validado.
-                    </p>
-                </div>
-            </div>
+            <HeaderForm
+                src={prophyIcon}
+                alt="Icone da Prophy"
+                title="Insira o CNPJ da sua instituição"
+                subtitle="Para prosseguir com o cadastro da sua instituição, é
+                        necessário que o seu CNPJ esteja validado."
+            />
             <Form onSubmit={handleSubmit(handleCNPJSubmit)}>
                 <Input
                     {...register("cnpj")}

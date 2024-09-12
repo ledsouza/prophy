@@ -1,7 +1,8 @@
+"use client";
+
 import { ComboboxDataProps } from "@/components/forms/ComboBox";
 import { RegisterFields } from "@/components/forms/RegisterForm";
 import {
-    IBGEApiResponse,
     useGetEstadosQuery,
     useGetMunicipiosByEstadosIdQuery,
 } from "@/redux/services/ibgeApiSlice";
