@@ -5,7 +5,7 @@ describe("CNPJForm", () => {
         const onSubmit = cy.stub();
         cy.mount(<CNPJForm onSubmit={onSubmit} />);
 
-        cy.getByTestId("title").should(
+        cy.getByTestId("title-form").should(
             "contain",
             "Insira o CNPJ da sua instituição"
         );
