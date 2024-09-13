@@ -14,6 +14,11 @@ export default function useVerify() {
             .then(() => {
                 dispatch(setAuth());
             })
+            .catch((error) => {
+                if (error.status === 400) {
+                    console.log("Unauthenticated user: ", error);
+                }
+            })
             .finally(() => {
                 dispatch(finishInitialLoad());
             });

@@ -64,6 +64,7 @@ const LoginForm = () => {
                         {...register("username")}
                         type="text"
                         errorMessage={errors.username?.message}
+                        data-testid="username-input"
                     >
                         Usuário
                     </Input>
@@ -71,10 +72,15 @@ const LoginForm = () => {
                         {...register("password")}
                         type="password"
                         errorMessage={errors.password?.message}
+                        data-testid="password-input"
                     >
                         Senha
                     </Input>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        data-testid="submit-button"
+                    >
                         Acessar
                     </Button>
                 </Form>

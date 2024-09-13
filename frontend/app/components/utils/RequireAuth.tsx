@@ -1,6 +1,6 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/redux/hooks";
 import { useEffect } from "react";
 import { Spinner } from "@/components/common";
@@ -13,12 +13,13 @@ export default function RequireAuth({ children }: Props) {
     const { isLoading, isAuthenticated } = useAppSelector(
         (state) => state.auth
     );
+    const router = useRouter();
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            redirect("/auth/login");
+            router.push("/auth/login");
         }
-    }, [isLoading, isAuthenticated]);
+    }, [isLoading, isAuthenticated, router]);
 
     if (isLoading) {
         return (

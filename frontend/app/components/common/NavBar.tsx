@@ -42,7 +42,11 @@ export default function Navbar() {
             >
                 Dashboard
             </NavLink>
-            <NavLink isMobile={isMobile} onClick={handleLogout}>
+            <NavLink
+                isMobile={isMobile}
+                onClick={handleLogout}
+                data-testid="logout-btn"
+            >
                 Sair
             </NavLink>
         </>

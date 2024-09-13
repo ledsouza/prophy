@@ -32,6 +32,14 @@ class Command(BaseCommand):
 
     def populate_users(self, num_users=10):
         """Populates the User model with example data."""
+
+        # Default user for automated testing
+        User.objects.create_superuser(
+            username="admin",
+            email=fake.email(),
+            password='password123'
+        )
+
         for _ in range(num_users):
             User.objects.create_user(
                 username=fake.user_name(),
@@ -42,6 +50,7 @@ class Command(BaseCommand):
     def populate_clientes(self, num_clientes=10):
         """Populates the Cliente model with example data."""
         users = User.objects.all()
+
         for _ in range(num_clientes):
             Cliente.objects.create(
                 user=choice(users),
@@ -94,6 +103,36 @@ class Command(BaseCommand):
         """Populates the Proposta model with example data."""
         tipos_contrato = ['A', 'M']
         status_choices = ['A', 'R', 'P']
+
+        # Defaults Proposta for automated testing
+        Proposta.objects.create(
+            cnpj="26661570000116",
+            cidade=fake.city(),
+            estado=choice(STATE_CHOICES)[0],
+            nome=fake.name(),
+            telefone=fake_phone_number(),
+            email=fake.email(),
+            data_proposta=fake.date(),
+            valor=fake.pydecimal(
+                left_digits=5, right_digits=2, positive=True),
+            tipo_contrato=choice(tipos_contrato),
+            status="R"
+        )
+
+        Proposta.objects.create(
+            cnpj="11255395000190",
+            cidade=fake.city(),
+            estado=choice(STATE_CHOICES)[0],
+            nome=fake.name(),
+            telefone=fake_phone_number(),
+            email=fake.email(),
+            data_proposta=fake.date(),
+            valor=fake.pydecimal(
+                left_digits=5, right_digits=2, positive=True),
+            tipo_contrato=choice(tipos_contrato),
+            status="A"
+        )
+
         for _ in range(num_propostas):
             Proposta.objects.create(
                 cnpj=fake_cnpj(),

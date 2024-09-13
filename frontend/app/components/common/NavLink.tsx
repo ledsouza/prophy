@@ -9,6 +9,7 @@ type Props = {
     className?: string;
     onClick?: () => void;
     children: React.ReactNode;
+    "data-testid"?: string;
 };
 
 const NavLink = ({
@@ -19,6 +20,7 @@ const NavLink = ({
     className,
     onClick,
     children,
+    "data-testid": dataTestId,
 }: Props) => {
     const computedClassName = cn(
         className,
@@ -35,14 +37,23 @@ const NavLink = ({
 
     if (!href) {
         return (
-            <span className={computedClassName} role="button" onClick={onClick}>
+            <span
+                className={computedClassName}
+                role="button"
+                onClick={onClick}
+                data-testid={dataTestId}
+            >
                 {children}
             </span>
         );
     }
 
     return (
-        <Link className={computedClassName} href={href}>
+        <Link
+            className={computedClassName}
+            href={href}
+            data-testid={dataTestId}
+        >
             {children}
         </Link>
     );
