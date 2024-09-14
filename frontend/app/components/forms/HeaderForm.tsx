@@ -30,7 +30,10 @@ const HeaderForm = ({
                     </h2>
                 )}
                 {subtitle && (
-                    <p className="text-center text-xl leading-9 tracking-tight text-gray-900">
+                    <p
+                        data-testid="subtitle-form"
+                        className="text-center text-xl leading-9 tracking-tight text-gray-900"
+                    >
                         {subtitle}
                     </p>
                 )}

@@ -14,7 +14,20 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands'
+import "./commands";
+
+export const errorMessages = {
+    emptyUser: "O usuário é necessário",
+    shortPassword: "A senha deve conter no mínimo 8 caracteres",
+    emptyInstitutionName: "Nome da instituição é obrigatório",
+    invalidInstitutionEmail: "E-mail da instituição inválido",
+    shortPhone: "Telefone deve conter no mínimo 10 dígitos.",
+    emptyState: "Estado da instituição é obrigatório.",
+    emptyCity: "Cidade da instituição é obrigatório.",
+    emptyAddress: "Endereço da instituição é obrigatório.",
+    emptyContactName: "Nome do contato é obrigatório",
+    invalidContactEmail: "E-mail do contato inválido",
+};
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')

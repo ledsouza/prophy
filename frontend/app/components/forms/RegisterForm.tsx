@@ -24,10 +24,7 @@ export const registerSchema = z
             })
             .refine(checkPasswordScore, {
                 message:
-                    "Sua senha não pode ser muito parecida com o resto das suas informações pessoais ou ser uma senha comumente utilizada. Use uma combinação de letras maiúsculas e minúsculas, números e símbolos.",
-            })
-            .refine((password) => !/^\d+$/.test(password), {
-                message: "A senha não pode conter apenas números.",
+                    "Sua senha é muito fraca e coloca sua conta em risco. Por favor, crie uma senha mais forte.",
             }),
         re_password: z.string().min(8, {
             message:
@@ -53,19 +50,18 @@ export const registerSchema = z
             .email({ message: "E-mail da instituição inválido" }),
         telefone_instituicao: z
             .string()
-            .length(11, { message: "Telefone deve conter 11 dígitos." })
+            .min(10, { message: "Telefone deve conter no mínimo 10 dígitos." })
+            .max(11, { message: "Telefone deve conter no máximo 11 dígitos." })
             .regex(/^\d+$/, {
-                message: "Telefone deve conter apenas números.",
+                message:
+                    "Telefone deve conter apenas números com padrão nacional (DD9XXXXXXXX).",
             }),
         endereco_instituicao: z
             .string()
             .min(1, { message: "Endereço da instituição é obrigatório." }),
         estado_instituicao: z
             .string()
-            .min(2, { message: "Estado da instituição é obrigatório." })
-            .max(2, {
-                message: "Estado da instituição inválido.",
-            }),
+            .min(1, { message: "Estado da instituição é obrigatório." }),
         cidade_instituicao: z
             .string()
             .min(1, { message: "Cidade da instituição é obrigatório." }),
@@ -116,6 +112,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 type="text"
                 errorMessage={errors.username?.message}
                 placeholder="Nome de usuário"
+                data-testid="username-input"
             >
                 Usuário
             </Input>
@@ -124,6 +121,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 type="password"
                 errorMessage={errors.password?.message}
                 placeholder="Crie uma senha forte"
+                data-testid="password-input"
             >
                 Senha
             </Input>
@@ -132,6 +130,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 type="password"
                 errorMessage={errors.re_password?.message}
                 placeholder="Digite a senha novamente"
+                data-testid="repassword-input"
             >
                 Confirmação de senha
             </Input>
@@ -143,6 +142,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 type="text"
                 errorMessage={errors.nome_instituicao?.message}
                 placeholder="Digite o nome completo da instituição"
+                data-testid="institution-name-input"
             >
                 Nome
             </Input>
@@ -151,6 +151,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 type="text"
                 errorMessage={errors.email_instituicao?.message}
                 placeholder="nome@email.com"
+                data-testid="institution-email-input"
             >
                 E-mail
             </Input>
@@ -158,7 +159,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 {...register("telefone_instituicao")}
                 type="text"
                 errorMessage={errors.telefone_instituicao?.message}
-                placeholder="51993859324"
+                placeholder="Apenas números no padrão nacional (51983357247)"
+                data-testid="institution-phone-input"
             >
                 Telefone
             </Input>
@@ -169,9 +171,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                         name: estado.nome,
                         sigla: estado.sigla,
                     }))}
+                    errorMessage={
+                        errors.estado_instituicao
+                            ? "Estado da instituição é obrigatório."
+                            : ""
+                    }
                     placeholder="Digite o estado e selecione"
                     selectedValue={selectedEstado}
                     onChange={handleEstadoChange}
+                    data-testid="institution-state-input"
                 >
                     Estado
                 </ComboBox>
@@ -187,14 +195,29 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                         id: municipio.id,
                         name: municipio.nome,
                     }))}
+                    errorMessage={
+                        errors.cidade_instituicao
+                            ? "Cidade da instituição é obrigatório."
+                            : ""
+                    }
                     placeholder="Digite a cidade e selecione"
                     selectedValue={selectedMunicipio}
                     onChange={handleMunicipioChange}
+                    data-testid="institution-city-input"
                 >
                     Cidade
                 </ComboBox>
             ) : (
-                <Input disabled placeholder="Selecione um estado">
+                <Input
+                    disabled
+                    errorMessage={
+                        errors.cidade_instituicao
+                            ? "Cidade da instituição é obrigatório."
+                            : ""
+                    }
+                    placeholder="Selecione um estado"
+                    data-testid="institution-city-input"
+                >
                     Cidade
                 </Input>
             )}
@@ -203,6 +226,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 type="text"
                 errorMessage={errors.endereco_instituicao?.message}
                 placeholder="Rua, número, bairro"
+                data-testid="institution-address-input"
             >
                 Endereço
             </Input>
@@ -214,6 +238,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 type="text"
                 errorMessage={errors.nome_contato?.message}
                 placeholder="Digite seu nome completo"
+                data-testid="name-input"
             >
                 Nome
             </Input>
@@ -222,11 +247,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 type="text"
                 errorMessage={errors.email_contato?.message}
                 placeholder="nome@email.com"
+                data-testid="email-input"
             >
                 E-mail
             </Input>
             <div className="gap-2 sm:flex sm:flex-row-reverse sm:px-6">
-                <Button type="submit" disabled={isSubmitting}>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    data-testid="submit-btn"
+                >
                     Cadastrar
                 </Button>
                 <Button
@@ -234,6 +264,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     disabled={isSubmitting}
                     onClick={() => setIsModalOpen(false)}
                     variant="secondary"
+                    data-testid="cancel-btn"
                 >
                     Cancelar
                 </Button>

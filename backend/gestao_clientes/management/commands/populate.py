@@ -1,6 +1,9 @@
 from django.core.management.base import BaseCommand
 from gestao_clientes.models import Cliente, Unidade, Equipamento, Proposta
 from django.contrib.auth.models import User
+
+import json
+import os
 from faker import Faker
 from random import choice, randint
 from localflavor.br.br_states import STATE_CHOICES
@@ -26,9 +29,10 @@ class Command(BaseCommand):
         self.populate_clientes()
         self.populate_unidades()
         self.populate_equipamentos()
-        self.populate_propostas()
+        approved_cnpjs = self.populate_propostas()
+        self.create_json_fixture(approved_cnpjs)
         self.stdout.write(self.style.SUCCESS(
-            'Database populated successfully!'))
+            'Database populated and fixture created successfully!'))
 
     def populate_users(self, num_users=10):
         """Populates the User model with example data."""
@@ -99,10 +103,11 @@ class Command(BaseCommand):
                     foto_equipamento='./petct.jpg'
                 )
 
-    def populate_propostas(self, num_propostas=10):
+    def populate_propostas(self, num_propostas=100):
         """Populates the Proposta model with example data."""
         tipos_contrato = ['A', 'M']
         status_choices = ['A', 'R', 'P']
+        approved_cnpjs = []
 
         # Defaults Proposta for automated testing
         Proposta.objects.create(
@@ -119,21 +124,24 @@ class Command(BaseCommand):
             status="R"
         )
 
-        Proposta.objects.create(
-            cnpj="11255395000190",
-            cidade=fake.city(),
-            estado=choice(STATE_CHOICES)[0],
-            nome=fake.name(),
-            telefone=fake_phone_number(),
-            email=fake.email(),
-            data_proposta=fake.date(),
-            valor=fake.pydecimal(
-                left_digits=5, right_digits=2, positive=True),
-            tipo_contrato=choice(tipos_contrato),
-            status="A"
-        )
-
         for _ in range(num_propostas):
+            cnpj = fake_cnpj()
+
+            Proposta.objects.create(
+                cnpj=cnpj,
+                cidade=fake.city(),
+                estado=choice(STATE_CHOICES)[0],
+                nome=fake.name(),
+                telefone=fake_phone_number(),
+                email=fake.email(),
+                data_proposta=fake.date(),
+                valor=fake.pydecimal(
+                    left_digits=5, right_digits=2, positive=True),
+                tipo_contrato=choice(tipos_contrato),
+                status="A"
+            )
+            approved_cnpjs.append(cnpj)
+
             Proposta.objects.create(
                 cnpj=fake_cnpj(),
                 cidade=fake.city(),
@@ -147,3 +155,24 @@ class Command(BaseCommand):
                 tipo_contrato=choice(tipos_contrato),
                 status=choice(status_choices)
             )
+
+        return approved_cnpjs
+
+    def create_json_fixture(self, approved_cnpjs):
+        fixture_data = {"approved_cnpjs": approved_cnpjs}
+
+        # Construct the correct path for the fixture file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.abspath(
+            os.path.join(current_dir, '..', '..', '..', '..'))
+        fixture_path = os.path.join(
+            project_root, 'frontend', 'cypress', 'fixtures', 'propostas-aprovadas.json')
+
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(fixture_path), exist_ok=True)
+
+        with open(fixture_path, 'w') as json_file:
+            json.dump(fixture_data, json_file, indent=2)
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Created propostas-aprovadas.json with {len(approved_cnpjs)} CNPJs'))
