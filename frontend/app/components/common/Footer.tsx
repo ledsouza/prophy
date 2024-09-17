@@ -4,7 +4,8 @@ export default function Footer() {
             <div className="h-full px-2">
                 <div className="flex items-center justify-center h-full">
                     <p className="text-gray-400 text-xs">
-                        &copy; 2024 Prophy, Inc. Todos os direitos reservados.
+                        &copy; {new Date().getFullYear()} Prophy, Inc. Todos os
+                        direitos reservados.
                     </p>
                 </div>
             </div>

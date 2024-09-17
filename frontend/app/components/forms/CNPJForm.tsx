@@ -3,9 +3,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isCNPJ } from "validation-br";
 
 import { Button, Form, HeaderForm, Input } from "@/components/forms";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
 
-import prophyIcon from "@/../public/prophy-icon.jpeg";
+import prophyIcon from "@/../public/images/prophy-icon.jpeg";
 
 const cnpjSchema = z.object({
     cnpj: z

@@ -25,7 +25,7 @@ describe("Client login", () => {
     it("should redirect to the client dashboard after successful login", () => {
         cy.login(username, password);
 
-        cy.url().should("include", "/dashboard");
+        cy.url().should("include", "/dashboard/");
         cy.getByTestId("dashboard-title").should("contain", "Dashboard");
     });
 
@@ -67,7 +67,7 @@ describe("Client login", () => {
         cy.getCookie("access").should("exist");
         cy.getCookie("refresh").should("exist");
 
-        cy.url().should("include", "/dashboard");
+        cy.url().should("include", "/dashboard/");
         cy.getByTestId("dashboard-title").should("contain", "Dashboard");
     });
 
@@ -76,6 +76,6 @@ describe("Client login", () => {
 
         cy.getByTestId("logout-btn").click();
 
-        cy.url().should("include", "/auth/login");
+        cy.url().should("include", "/auth/login/");
     });
 });

@@ -6,6 +6,7 @@ import Provider from "@/redux/Provider";
 
 import { NavBar, Footer } from "@/components/common";
 import { Setup } from "./components/utils";
+import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="pt-BR">
+            <Head>
+                <link rel="icon" href="/favicon.ico" sizes="any" />
+            </Head>
             <body className={inter.className}>
                 <Provider>
                     <Setup />

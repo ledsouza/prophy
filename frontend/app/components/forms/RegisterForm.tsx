@@ -3,7 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import zxcvbn from "zxcvbn";
 
 import { Button, Form, Input } from "@/components/forms";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
 
 import ComboBox from "./ComboBox";
 import useIBGELocalidades from "@/hooks/use-ibge-localidades";

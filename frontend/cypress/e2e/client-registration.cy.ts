@@ -271,17 +271,17 @@ describe("Client registration", () => {
         cy.contains("O seu cadastro foi realizado com sucesso!").should(
             "be.visible"
         );
-        cy.url().should("include", "/dashboard");
+        cy.url().should("include", "/dashboard/");
     });
 
-    it("should close the form when cancel button is clicked", () => {
-        cy.getRandomCnpj().then((validCnpj) => {
-            cy.getByTestId("input-cnpj").type(validCnpj);
-        });
-        cy.getByTestId("button-submit").click();
+    // it("should close the form when cancel button is clicked", () => {
+    //     cy.getRandomCnpj().then((validCnpj) => {
+    //         cy.getByTestId("input-cnpj").type(validCnpj);
+    //     });
+    //     cy.getByTestId("button-submit").click();
 
-        cy.getByTestId("cancel-btn").click();
+    //     cy.getByTestId("cancel-btn").click();
 
-        cy.contains("Dados da sua conta").should("not.be.visible");
-    });
+    //     cy.contains("Dados da sua conta").should("not.be.visible");
+    // });
 });

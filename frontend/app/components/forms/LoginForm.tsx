@@ -7,12 +7,13 @@ import { useRouter } from "next/navigation";
 import { useLoginMutation } from "@/redux/features/authApiSlice";
 import { setAuth } from "@/redux/features/authSlice";
 import { useAppDispatch } from "@/redux/hooks";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
 
 import HeaderForm from "./HeaderForm";
 
 import { toast } from "react-toastify";
-import prophyIcon from "@/../public/prophy-icon.jpeg";
+import prophyIcon from "@/../public/images/prophy-icon.jpeg";
 import Form from "./Form";
 import Input from "./Input";
 import Button from "./Button";
