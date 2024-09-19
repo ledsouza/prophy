@@ -67,7 +67,7 @@ Cypress.Commands.add("login", (username, password) => {
         cy.setCookie("refresh", refresh);
     });
 
-    cy.wait(1000);
+    cy.wait(500);
 });
 
 Cypress.Commands.add("getRandomCnpj", () => {

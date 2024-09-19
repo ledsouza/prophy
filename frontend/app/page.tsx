@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAppSelector } from "./redux/hooks";
 
-export default function Page() {
+const HomePage = () => {
     const { isAuthenticated } = useAppSelector((state) => state.auth);
     const authRedirect = isAuthenticated ? "/dashboard" : "/auth/login";
 
@@ -34,4 +34,6 @@ export default function Page() {
             </div>
         </main>
     );
-}
+};
+
+export default HomePage;

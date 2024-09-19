@@ -103,7 +103,7 @@ class Command(BaseCommand):
                     foto_equipamento='./petct.jpg'
                 )
 
-    def populate_propostas(self, num_propostas=100):
+    def populate_propostas(self, num_propostas=300):
         """Populates the Proposta model with example data."""
         tipos_contrato = ['A', 'M']
         status_choices = ['A', 'R', 'P']

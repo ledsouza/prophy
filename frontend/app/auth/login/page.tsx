@@ -1,6 +1,6 @@
 import { LoginForm } from "@/components/forms";
 
-const Page = () => {
+const LoginPage = () => {
     return (
         <main>
             <LoginForm />
@@ -8,4 +8,4 @@ const Page = () => {
     );
 };
 
-export default Page;
+export default LoginPage;

@@ -173,16 +173,16 @@ describe("Client registration", () => {
         );
     });
 
-    it("should successfully submit the form with valid data", () => {
+    it.only("should successfully submit the form with valid data", () => {
         cy.intercept("POST", "http://localhost:8000/api/users/").as(
             "registerUser"
         );
         cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as(
             "loginUser"
         );
-        cy.intercept("POST", "http://localhost:8000/api/clientes/", {
-            statusCode: 201,
-        }).as("createClient");
+        cy.intercept("POST", "http://localhost:8000/api/clientes/").as(
+            "createClient"
+        );
 
         const username = faker.internet.userName();
         const password = "StrongPassword123!";

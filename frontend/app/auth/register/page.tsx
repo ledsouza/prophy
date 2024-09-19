@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Modal } from "@/components/common";
 import { useCNPJValidation, useRegistrationForm } from "@/hooks";
 
-const Page = () => {
+const RegisterPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { validateCNPJ, validatedCNPJ } = useCNPJValidation(setIsModalOpen);
     const { onSubmit } = useRegistrationForm({ validatedCNPJ, setIsModalOpen });
@@ -27,4 +27,4 @@ const Page = () => {
     );
 };
 
-export default Page;
+export default RegisterPage;
