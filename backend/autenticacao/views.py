@@ -8,6 +8,8 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
+from .serializers import GroupSerializer
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -81,3 +83,12 @@ class LogoutView(APIView):
         response.delete_cookie('refresh')
 
         return response
+
+
+class UserGroupsView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        groups = user.groups.all()
+        serializer = GroupSerializer(groups, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
