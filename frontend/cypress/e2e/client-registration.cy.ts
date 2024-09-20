@@ -173,7 +173,7 @@ describe("Client registration", () => {
         );
     });
 
-    it.only("should successfully submit the form with valid data", () => {
+    it("should successfully submit the form with valid data", () => {
         cy.intercept("POST", "http://localhost:8000/api/users/").as(
             "registerUser"
         );

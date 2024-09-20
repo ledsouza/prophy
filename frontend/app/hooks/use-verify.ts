@@ -1,7 +1,11 @@
 import { useEffect } from "react";
 
 import { useAppDispatch } from "@/redux/hooks";
-import { setAuth, finishInitialLoad } from "@/redux/features/authSlice";
+import {
+    setAuth,
+    finishInitialLoad,
+    setError,
+} from "@/redux/features/authSlice";
 import { useVerifyMutation } from "@/redux/features/authApiSlice";
 
 export default function useVerify() {
@@ -15,8 +19,11 @@ export default function useVerify() {
                 dispatch(setAuth());
             })
             .catch((error) => {
-                if (error.status === 400) {
-                    console.log("Unauthenticated user: ", error);
+                // Status == 400 usuário sem access e refresh cookies no browser
+                if (error.status === 400 || error.status === 401) {
+                    dispatch(setError("Usuário não autorizado"));
+                } else {
+                    console.error(error);
                 }
             })
             .finally(() => {
