@@ -12,6 +12,8 @@ const baseQuery = fetchBaseQuery({
     baseUrl: `${process.env.NEXT_PUBLIC_HOST}/api/`,
     credentials: "include",
 });
+
+// Middleware for all apiSlice requests
 const baseQueryWithReauth: BaseQueryFn<
     string | FetchArgs,
     unknown,
@@ -20,6 +22,7 @@ const baseQueryWithReauth: BaseQueryFn<
     await mutex.waitForUnlock();
     let result = await baseQuery(args, api, extraOptions);
     if (result.error && result.error.status === 401) {
+        // If the middleware isn't running, refresh the token and retry request
         if (!mutex.isLocked()) {
             const release = await mutex.acquire();
             try {
@@ -40,6 +43,7 @@ const baseQueryWithReauth: BaseQueryFn<
             } finally {
                 release();
             }
+            // If the middleware is running, wait until finish and retry request
         } else {
             await mutex.waitForUnlock();
             result = await baseQuery(args, api, extraOptions);
