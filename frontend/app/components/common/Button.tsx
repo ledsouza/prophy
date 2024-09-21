@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes } from "react";
 import { Spinner } from "@/components/common";
 import cn from "classnames";
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     variant?: "primary" | "secondary" | "danger";
     isLoading?: boolean;
 };
@@ -16,8 +16,8 @@ const Button = ({
     ...props
 }: ButtonProps) => {
     const computedClassName = cn(
-        className,
         "flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+        className,
         {
             "bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600":
                 variant === "primary",
