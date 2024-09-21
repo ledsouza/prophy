@@ -4,7 +4,7 @@ import { Button } from "@/components/common";
 import { ButtonProps } from "@/components/common/Button";
 
 const meta: Meta<ButtonProps> = {
-    title: "Button",
+    title: "Common/Button",
     tags: ["autodocs"],
     component: Button,
     argTypes: {},

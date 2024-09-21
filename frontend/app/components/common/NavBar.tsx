@@ -36,7 +36,7 @@ export default function Navbar() {
     const authLinks = (isMobile: boolean) => (
         <>
             <NavLink
-                isSelected={isSelected("/dashboard")}
+                isSelected={isSelected("/dashboard/")}
                 isMobile={isMobile}
                 href="/dashboard"
             >
@@ -55,14 +55,14 @@ export default function Navbar() {
     const guestLinks = (isMobile: boolean) => (
         <>
             <NavLink
-                isSelected={isSelected("/auth/login")}
+                isSelected={isSelected("/auth/login/")}
                 isMobile={isMobile}
                 href="/auth/login"
             >
                 Acessar a sua conta
             </NavLink>
             <NavLink
-                isSelected={isSelected("/auth/register")}
+                isSelected={isSelected("/auth/register/")}
                 isMobile={isMobile}
                 href="/auth/register"
             >
@@ -72,13 +72,13 @@ export default function Navbar() {
     );
 
     return (
-        <Disclosure as="nav" className="bg-gray-800">
+        <Disclosure as="nav" className="bg-primary">
             {({ open }) => (
                 <>
                     <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
                         <div className="relative flex h-16 items-center justify-between">
                             <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                                <DisclosureButton className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                                <DisclosureButton className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-tertiary hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                                     <span className="sr-only">
                                         Abrir menu principal
                                     </span>

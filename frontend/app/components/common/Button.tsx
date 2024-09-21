@@ -19,9 +19,9 @@ const Button = ({
         "flex justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
         className,
         {
-            "bg-indigo-600 text-white hover:bg-indigo-500 focus-visible:outline-indigo-600":
+            "bg-primary text-white hover:bg-tertiary focus-visible:outline-primary":
                 variant === "primary",
-            "bg-gray-200 text-gray-800 hover:bg-gray-300 focus-visible:outline-gray-600":
+            "bg-quaternary text-gray-800 hover:bg-opacity-50 focus-visible:outline-quaternary":
                 variant === "secondary",
             "bg-red-600 text-white hover:bg-red-500 focus-visible:outline-red-600":
                 variant === "danger",
@@ -34,11 +34,7 @@ const Button = ({
             className={computedClassName}
             disabled={disabled || isLoading}
         >
-            {isLoading ? (
-                <Spinner sm />
-            ) : (
-                <span className="flex items-center gap-2">{children}</span>
-            )}
+            {isLoading ? <Spinner sm /> : <div>{children}</div>}
         </button>
     );
 };
