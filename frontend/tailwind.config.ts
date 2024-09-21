@@ -13,6 +13,7 @@ const config: Config = {
                 secondary: "rgba(var(--secondary), <alpha-value>)",
                 tertiary: "rgba(var(--tertiary), <alpha-value>)",
                 quaternary: "rgba(var(--quaternary), <alpha-value>)",
+                placeholder: "rgba(var(--placeholder), <alpha-value>)",
                 "bg-light": "rgba(var(--bg-light), <alpha-value>)",
             },
         },

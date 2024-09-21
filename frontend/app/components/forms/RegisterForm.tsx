@@ -252,15 +252,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             >
                 E-mail
             </Input>
-            <div className="flex gap-2">
-                <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    data-testid="submit-btn"
-                    className="w-full"
-                >
-                    Cadastrar
-                </Button>
+            <div className="flex gap-2 py-4">
                 <Button
                     type="button"
                     disabled={isSubmitting}
@@ -270,6 +262,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     className="w-full"
                 >
                     Cancelar
+                </Button>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    data-testid="submit-btn"
+                    className="w-full"
+                >
+                    Cadastrar
                 </Button>
             </div>
         </Form>

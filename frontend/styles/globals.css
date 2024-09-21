@@ -4,10 +4,12 @@
 
 @layer base {
     :root {
+        /* Colors */
         --primary: 48, 71, 140;
         --secondary: 55, 82, 166;
         --tertiary: 72, 93, 217;
         --quaternary: 216, 222, 242;
+        --placeholder: 156, 163, 175;
 
         --bg-light: 240, 240, 242;
     }
