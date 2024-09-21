@@ -2,9 +2,11 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isCNPJ } from "validation-br";
 
-import { Button, Form, HeaderForm, Input } from "@/components/forms";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
+
+import { Form, HeaderForm, Input } from "@/components/forms";
+import { Button } from "@/components/common";
 
 import prophyIcon from "@/../public/images/prophy-icon.jpeg";
 

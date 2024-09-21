@@ -2,13 +2,13 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import zxcvbn from "zxcvbn";
 
-import { Button, Form, Input } from "@/components/forms";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 
-import ComboBox from "./ComboBox";
+import { Form, Input, ComboBox } from "@/components/forms";
+import { Button, Spinner } from "@/components/common";
+
 import useIBGELocalidades from "@/hooks/use-ibge-localidades";
-import { Spinner } from "../common";
 
 const checkPasswordScore = (password: string) => {
     const result = zxcvbn(password);

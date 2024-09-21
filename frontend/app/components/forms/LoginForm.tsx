@@ -10,13 +10,11 @@ import { useAppDispatch } from "@/redux/hooks";
 import { useForm } from "react-hook-form";
 import type { SubmitHandler } from "react-hook-form";
 
-import HeaderForm from "./HeaderForm";
+import { Form, HeaderForm, Input } from "@/components/forms";
+import { Button } from "@/components/common";
 
 import { toast } from "react-toastify";
 import prophyIcon from "@/../public/images/prophy-icon.jpeg";
-import Form from "./Form";
-import Input from "./Input";
-import Button from "./Button";
 
 const loginFieldsSchema = z.object({
     username: z.string().min(1, { message: "O usuário é necessário" }),
