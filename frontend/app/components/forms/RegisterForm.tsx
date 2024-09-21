@@ -252,11 +252,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             >
                 E-mail
             </Input>
-            <div className="gap-2 sm:flex sm:flex-row-reverse sm:px-6">
+            <div className="flex gap-2">
                 <Button
                     type="submit"
                     disabled={isSubmitting}
                     data-testid="submit-btn"
+                    className="w-full"
                 >
                     Cadastrar
                 </Button>
@@ -266,6 +267,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     onClick={() => setIsModalOpen(false)}
                     variant="secondary"
                     data-testid="cancel-btn"
+                    className="w-full"
                 >
                     Cancelar
                 </Button>

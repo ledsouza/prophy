@@ -79,6 +79,7 @@ const LoginForm = () => {
                         type="submit"
                         disabled={isSubmitting}
                         data-testid="submit-button"
+                        className="w-full"
                     >
                         Acessar
                     </Button>

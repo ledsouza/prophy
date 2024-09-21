@@ -60,6 +60,7 @@ const CNPJForm: React.FC<CNPJFormProps> = ({ onSubmit }) => {
                     type="submit"
                     disabled={isSubmitting}
                     data-testid="button-submit"
+                    className="w-full"
                 >
                     {isSubmitting ? "Verificando..." : "Verificar CNPJ"}
                 </Button>
