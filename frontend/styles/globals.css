@@ -10,13 +10,14 @@
         --tertiary: 128, 157, 242;
         --quaternary: 182, 197, 242;
 
-        --bg-light: 235, 242, 242;
+        --bg-light: 255, 255, 255;
 
         --text-primary: 17, 24, 39;
         --text-secondary: 92, 92, 92;
         --text-tertiary: 209, 213, 219;
-        --text-quaternary: 255, 255, 255;
         --text-disabled: 138, 138, 138;
         --text-placeholder: 156, 163, 175;
+
+        --danger: 220, 38, 38;
     }
 }

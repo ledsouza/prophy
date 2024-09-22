@@ -23,11 +23,11 @@ const NavLink = ({
     "data-testid": dataTestId,
 }: Props) => {
     const computedClassName = cn(
+        "rounded-md px-3 py-2 font-medium",
         className,
-        "text-text-quaternary rounded-md px-3 py-2 font-medium",
         {
-            "bg-secondary": isSelected,
-            "hover:bg-secondary": !isSelected && !isBanner,
+            "text-white bg-secondary": isSelected,
+            "text-white hover:bg-secondary": !isSelected && !isBanner,
             "block text-base": isMobile,
             "text-sm": !isMobile,
             "text-quaternary": isBanner,

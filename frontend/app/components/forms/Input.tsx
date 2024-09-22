@@ -9,7 +9,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 const Input = forwardRef<HTMLInputElement, Props>(
     ({ disabled = false, errorMessage, children, ...props }: Props, ref) => {
         const inputClassName = cn(
-            "block w-full rounded-md border-0 py-1.5 text-text-primary shadow-md ring-1 ring-inset ring-primary placeholder:text-text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
+            "block w-full rounded-md border-0 py-1.5 text-gray-primary shadow-md ring-1 ring-inset ring-primary placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
             {
                 "ring-tertiary": disabled,
             }
@@ -19,7 +19,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             <div>
                 {children && (
                     <div className="flex justify-between align-center">
-                        <label className="block text-sm font-medium leading-6 text-text-primary">
+                        <label className="block text-sm font-medium leading-6 text-gray-primary">
                             {children}
                         </label>
                     </div>
@@ -35,7 +35,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
                 {errorMessage && (
                     <div
                         data-testid="validation-error"
-                        className="text-red-700"
+                        className="text-danger mt-1"
                     >
                         {errorMessage}
                     </div>

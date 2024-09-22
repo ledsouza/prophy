@@ -21,9 +21,9 @@ const Button = ({
         {
             "bg-primary text-white hover:bg-secondary focus-visible:outline-primary":
                 variant === "primary",
-            "bg-quaternary text-gray-800 hover:bg-opacity-50 focus-visible:outline-quaternary":
+            "bg-quaternary text-gray-primary hover:bg-opacity-50 focus-visible:outline-quaternary":
                 variant === "secondary",
-            "bg-red-600 text-white hover:bg-red-500 focus-visible:outline-red-600":
+            "bg-danger text-white hover:bg-red-500 focus-visible:outline-danger":
                 variant === "danger",
         }
     );
