@@ -23,7 +23,7 @@ type CNPJFormProps = {
     onSubmit: (cnpj: string) => void;
 };
 
-const CNPJForm: React.FC<CNPJFormProps> = ({ onSubmit }) => {
+const CNPJForm = ({ onSubmit }: CNPJFormProps) => {
     const {
         register,
         handleSubmit,

@@ -55,6 +55,20 @@ class Command(BaseCommand):
         """Populates the Cliente model with example data."""
         users = User.objects.all()
 
+        Cliente.objects.create(
+            user=choice(users),
+            cnpj="78187773000116",
+            nome_instituicao=fake.company(),
+            nome_contato=fake.name(),
+            email_contato=fake.email(),
+            email_instituicao=fake.company_email(),
+            telefone_instituicao=fake_phone_number(),
+            endereco_instituicao=fake.address(),
+            estado_instituicao=choice(STATE_CHOICES)[0],
+            cidade_instituicao=fake.city(),
+            status=choice(['A', 'I'])
+        )
+
         for _ in range(num_clientes):
             Cliente.objects.create(
                 user=choice(users),

@@ -1,9 +1,10 @@
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from rest_framework import status, generics
+from rest_framework import viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
-from .models import Proposta
+from .models import Proposta, Cliente
 from .serializers import CNPJSerializer, ClienteSerializer
 
 
@@ -49,12 +50,38 @@ class LatestPropostaStatusView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CreateClienteView(generics.CreateAPIView):
+class ClienteViewSet(viewsets.ViewSet):
     """
-    View to create a new client. Only authenticated users can access this view.
+    A viewset that provides actions for listing and creating clients.
     """
-    serializer_class = ClienteSerializer
 
-    def perform_create(self, serializer: ClienteSerializer) -> None:
-        """Associate the logged in user with the new client."""
-        serializer.save(user=self.request.user)
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action == 'list':
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def list(self, request):
+        """
+        List all clients.
+        """
+        queryset = Cliente.objects.all()
+        cnpj = request.query_params.get('cnpj')
+        if cnpj is not None:
+            queryset = queryset.filter(cnpj=cnpj)
+        serializer = ClienteSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        """
+        Create a new client. Only authenticated users can access this view.
+        """
+        serializer = ClienteSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=self.request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
