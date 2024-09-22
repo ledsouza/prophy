@@ -8,9 +8,11 @@ import {
     Field,
     Label,
 } from "@headlessui/react";
+import { ReactNode, useEffect, useRef, useState } from "react";
+
 import { debounce } from "lodash";
 import { DebouncedFunc } from "lodash";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import cn from "classnames";
 
 export type ComboboxDataProps = {
     id: number;
@@ -24,6 +26,7 @@ type ComboBoxProps = {
     data: ComboboxDataProps[];
     selectedValue: ComboboxDataProps | null;
     onChange: (value: ComboboxDataProps) => void;
+    disabled?: boolean;
     errorMessage?: string;
     "data-testid"?: string;
 };
@@ -34,6 +37,7 @@ const ComboBox: React.FC<ComboBoxProps> = ({
     data,
     selectedValue,
     onChange,
+    disabled = false,
     errorMessage,
     "data-testid": dataTestId,
 }) => {
@@ -64,10 +68,17 @@ const ComboBox: React.FC<ComboBoxProps> = ({
         debouncedFilterRef.current?.(newQuery);
     };
 
+    const inputClassName = cn(
+        "block w-full rounded-md border-0 text-text-primary shadow-sm ring-1 ring-inset ring-primary placeholder:text-text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
+        {
+            "ring-tertiary": disabled,
+        }
+    );
+
     return (
         <>
             <Field data-testid={dataTestId}>
-                <Label className="block mb-2 text-sm font-medium leading-6 text-gray-900">
+                <Label className="block mb-2 text-sm font-medium leading-6 text-text-primary">
                     {children}
                 </Label>
                 <Combobox
@@ -81,12 +92,12 @@ const ComboBox: React.FC<ComboBoxProps> = ({
                         displayValue={(value: ComboboxDataProps) => value?.name}
                         placeholder={placeholder}
                         onChange={handleInputChange}
-                        className="block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        className={inputClassName}
                     />
                     {errorMessage && (
                         <div
                             data-testid="validation-error"
-                            className="text-red-500"
+                            className="text-red-700"
                         >
                             {errorMessage}
                         </div>
@@ -94,13 +105,13 @@ const ComboBox: React.FC<ComboBoxProps> = ({
                     <ComboboxOptions
                         anchor="bottom"
                         data-testid="combobox-options"
-                        className="z-50 empty:invisible block w-1/4 rounded-md border-0 p-2 bg-white text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        className="z-50 empty:invisible block w-1/5 rounded-md border-0 p-2 bg-white text-text-primary shadow-sm ring-1 ring-inset ring-primary focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                     >
                         {({ option: value }) => (
                             <ComboboxOption
                                 key={value.id}
                                 value={value}
-                                className="data-[focus]:bg-blue-100"
+                                className="rounded-md p-1 data-[focus]:bg-quaternary"
                             >
                                 {value.name}
                             </ComboboxOption>

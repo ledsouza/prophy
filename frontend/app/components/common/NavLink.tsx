@@ -24,14 +24,13 @@ const NavLink = ({
 }: Props) => {
     const computedClassName = cn(
         className,
-        "text-white rounded-md px-3 py-2 font-medium",
+        "text-text-quaternary rounded-md px-3 py-2 font-medium",
         {
             "bg-secondary": isSelected,
-            "text-gray-300 hover:bg-secondary hover:text-white":
-                !isSelected && !isBanner,
+            "hover:bg-secondary": !isSelected && !isBanner,
             "block text-base": isMobile,
             "text-sm": !isMobile,
-            "text-gray-300": isBanner,
+            "text-quaternary": isBanner,
         }
     );
 

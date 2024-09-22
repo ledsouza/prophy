@@ -24,7 +24,7 @@ const HeaderForm = ({
                 {title && (
                     <h2
                         data-testid="title-form"
-                        className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900"
+                        className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-text-primary"
                     >
                         {title}
                     </h2>
@@ -32,7 +32,7 @@ const HeaderForm = ({
                 {subtitle && (
                     <p
                         data-testid="subtitle-form"
-                        className="text-center text-xl leading-9 tracking-tight text-gray-900"
+                        className="text-center text-xl leading-9 tracking-tight text-text-secondary"
                     >
                         {subtitle}
                     </p>

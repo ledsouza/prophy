@@ -13,8 +13,14 @@ const config: Config = {
                 secondary: "rgba(var(--secondary), <alpha-value>)",
                 tertiary: "rgba(var(--tertiary), <alpha-value>)",
                 quaternary: "rgba(var(--quaternary), <alpha-value>)",
-                placeholder: "rgba(var(--placeholder), <alpha-value>)",
-                "bg-light": "rgba(var(--bg-light), <alpha-value>)",
+                "text-primary": "rgba(var(--text-primary), <alpha-value>)",
+                "text-secondary": "rgba(var(--text-secondary), <alpha-value>)",
+                "text-tertiary": "rgba(var(--text-tertiary), <alpha-value>)",
+                "text-quaternary":
+                    "rgba(var(--text-quaternary), <alpha-value>)",
+                "text-disabled": "rgba(var(--text-disabled), <alpha-value>)",
+                "text-placeholder":
+                    "rgba(var(--text-placeholder), <alpha-value>)",
             },
         },
     },

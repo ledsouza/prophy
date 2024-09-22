@@ -1,16 +1,25 @@
 import { forwardRef, InputHTMLAttributes } from "react";
+import cn from "classnames";
 
 type Props = InputHTMLAttributes<HTMLInputElement> & {
+    disabled?: boolean;
     errorMessage?: string;
 };
 
 const Input = forwardRef<HTMLInputElement, Props>(
-    ({ errorMessage, children, ...props }: Props, ref) => {
+    ({ disabled = false, errorMessage, children, ...props }: Props, ref) => {
+        const inputClassName = cn(
+            "block w-full rounded-md border-0 py-1.5 text-text-primary shadow-md ring-1 ring-inset ring-primary placeholder:text-text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
+            {
+                "ring-tertiary": disabled,
+            }
+        );
+
         return (
             <div>
                 {children && (
                     <div className="flex justify-between align-center">
-                        <label className="block text-sm font-medium leading-6 text-gray-900">
+                        <label className="block text-sm font-medium leading-6 text-text-primary">
                             {children}
                         </label>
                     </div>
@@ -19,13 +28,14 @@ const Input = forwardRef<HTMLInputElement, Props>(
                     <input
                         {...props}
                         ref={ref}
-                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-quaternary placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                        disabled={disabled}
+                        className={inputClassName}
                     />
                 </div>
                 {errorMessage && (
                     <div
                         data-testid="validation-error"
-                        className="text-red-500"
+                        className="text-red-700"
                     >
                         {errorMessage}
                     </div>

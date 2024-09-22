@@ -19,7 +19,7 @@ const Button = ({
         "flex justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
         className,
         {
-            "bg-primary text-white hover:bg-tertiary focus-visible:outline-primary":
+            "bg-primary text-white hover:bg-secondary focus-visible:outline-primary":
                 variant === "primary",
             "bg-quaternary text-gray-800 hover:bg-opacity-50 focus-visible:outline-quaternary":
                 variant === "secondary",

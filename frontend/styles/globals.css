@@ -5,12 +5,18 @@
 @layer base {
     :root {
         /* Colors */
-        --primary: 48, 71, 140;
-        --secondary: 55, 82, 166;
-        --tertiary: 72, 93, 217;
-        --quaternary: 216, 222, 242;
-        --placeholder: 156, 163, 175;
+        --primary: 28, 56, 140;
+        --secondary: 44, 81, 191;
+        --tertiary: 128, 157, 242;
+        --quaternary: 182, 197, 242;
 
-        --bg-light: 240, 240, 242;
+        --bg-light: 235, 242, 242;
+
+        --text-primary: 17, 24, 39;
+        --text-secondary: 92, 92, 92;
+        --text-tertiary: 209, 213, 219;
+        --text-quaternary: 255, 255, 255;
+        --text-disabled: 138, 138, 138;
+        --text-placeholder: 156, 163, 175;
     }
 }
