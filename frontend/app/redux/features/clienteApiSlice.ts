@@ -19,16 +19,15 @@ type PropostaStatus = {
 
 const clienteApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        verifyPropostaStatus: builder.mutation<
-            PropostaStatus,
-            Pick<Cliente, "cnpj">
-        >({
-            query: ({ cnpj }) => ({
-                url: "propostas/status/",
-                method: "POST",
-                body: { cnpj },
-            }),
-        }),
+        verifyPropostaStatus: builder.mutation<PropostaStatus, Cliente["cnpj"]>(
+            {
+                query: (cnpj) => ({
+                    url: "propostas/status/",
+                    method: "POST",
+                    body: { cnpj },
+                }),
+            }
+        ),
         create: builder.mutation<void, Omit<Cliente, "status">>({
             query: ({
                 cnpj,
@@ -56,8 +55,17 @@ const clienteApiSlice = apiSlice.injectEndpoints({
                 },
             }),
         }),
+        getByCnpj: builder.query<Cliente[], Cliente["cnpj"]>({
+            query: (cnpj) => ({
+                url: `clientes/?cnpj=${cnpj}`,
+                method: "GET",
+            }),
+        }),
     }),
 });
 
-export const { useVerifyPropostaStatusMutation, useCreateMutation } =
-    clienteApiSlice;
+export const {
+    useVerifyPropostaStatusMutation,
+    useCreateMutation,
+    useGetByCnpjQuery,
+} = clienteApiSlice;

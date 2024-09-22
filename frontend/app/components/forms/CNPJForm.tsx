@@ -1,3 +1,5 @@
+"use client";
+
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isCNPJ } from "validation-br";
@@ -10,11 +12,29 @@ import { Button } from "@/components/common";
 
 import prophyIcon from "@/../public/images/prophy-icon.jpeg";
 
+// Helper function to fetch CNPJ data
+const fetchCNPJData = async (cnpj: string) => {
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_HOST}/api/clientes/?cnpj=${cnpj}`
+    );
+    return await response.json();
+};
+
 const cnpjSchema = z.object({
     cnpj: z
         .string()
         .length(14, { message: "O CNPJ deve conter 14 caracteres" })
-        .refine(isCNPJ, { message: "Digite um CNPJ válido" }),
+        .refine(isCNPJ, { message: "Digite um CNPJ válido" })
+        .refine(
+            async (value) => {
+                const data = await fetchCNPJData(value);
+                if (data.length > 0) {
+                    return false;
+                }
+                return true;
+            },
+            { message: "Este CNPJ já está cadastrado." }
+        ),
 });
 
 type CNPJFields = z.infer<typeof cnpjSchema>;

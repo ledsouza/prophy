@@ -69,9 +69,11 @@ const ComboBox: React.FC<ComboBoxProps> = ({
     };
 
     const inputClassName = cn(
-        "block w-full rounded-md border-0 text-text-primary shadow-sm ring-1 ring-inset ring-primary placeholder:text-text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
+        "block w-full rounded-md border-0 text-text-primary shadow-sm ring-1 ring-inset placeholder:text-text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
         {
             "ring-tertiary": disabled,
+            "bg-danger bg-opacity-5 ring-danger": errorMessage,
+            "ring-primary": !disabled && !errorMessage,
         }
     );
 
@@ -97,7 +99,7 @@ const ComboBox: React.FC<ComboBoxProps> = ({
                     {errorMessage && (
                         <div
                             data-testid="validation-error"
-                            className="text-red-700"
+                            className="text-danger"
                         >
                             {errorMessage}
                         </div>
