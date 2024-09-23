@@ -2,7 +2,7 @@ import { fakerPT_BR as faker } from "@faker-js/faker";
 import { errorMessages } from "cypress/support/e2e";
 
 describe("Client Registration", () => {
-    const invalidCnpj = "26661570000116";
+    const invalidCnpj = "09352176000187";
     const registeredCnpj = "78187773000116";
     const registeredUsername = "admin";
 
@@ -212,7 +212,7 @@ describe("Client Registration", () => {
             );
         });
 
-        it.only("should show an error message for already registered username", () => {
+        it("should show an error message for already registered username", () => {
             cy.intercept("POST", "http://localhost:8000/api/users/").as(
                 "registerUser"
             );

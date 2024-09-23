@@ -45,7 +45,14 @@ const useRegistrationForm = ({
                 cidade_instituicao,
             } = registerSchema.parse(data);
 
-            await registerUser({ username, password, re_password }).unwrap();
+            await registerUser({
+                username,
+                email: email_contato,
+                name: nome_contato,
+                password,
+                re_password,
+            }).unwrap();
+
             await login({ username, password });
             dispatch(setAuth());
 

@@ -1,6 +1,6 @@
 describe("Client Login", () => {
     const username = "admin";
-    const password = "password123";
+    const password = "passwordtest";
 
     beforeEach(() => {
         cy.visit("/auth/login");

@@ -2,6 +2,8 @@ import { apiSlice } from "../services/apiSlice";
 
 type UserAuth = {
     username: string;
+    email: string;
+    name: string;
     password: string;
     re_password?: string;
 };
@@ -16,7 +18,7 @@ export type User = {
 
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<void, UserAuth>({
+        login: builder.mutation<void, Omit<UserAuth, "email" | "name">>({
             query: ({ username, password }) => ({
                 url: "jwt/create/",
                 method: "POST",
@@ -39,10 +41,10 @@ const authApiSlice = apiSlice.injectEndpoints({
             query: () => "users/me/",
         }),
         register: builder.mutation<any, UserAuth>({
-            query: ({ username, password, re_password }) => ({
+            query: ({ username, email, name, password, re_password }) => ({
                 url: "users/",
                 method: "POST",
-                body: { username, password, re_password },
+                body: { username, email, name, password, re_password },
             }),
         }),
     }),
