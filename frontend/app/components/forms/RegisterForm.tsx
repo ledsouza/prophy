@@ -9,9 +9,6 @@ import { Form, Input, ComboBox } from "@/components/forms";
 import { Button, Spinner } from "@/components/common";
 
 import useIBGELocalidades from "@/hooks/use-ibge-localidades";
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import { SerializedError } from "@reduxjs/toolkit";
-import { useEffect, useState } from "react";
 
 const checkPasswordScore = (password: string) => {
     const result = zxcvbn(password);
@@ -25,6 +22,9 @@ export const registerSchema = z
             .string()
             .min(8, {
                 message: "A senha deve conter no mínimo 8 caracteres",
+            })
+            .refine((val) => !/^\d+$/.test(val), {
+                message: "Evite senhas que contenham apenas números.",
             })
             .refine(checkPasswordScore, {
                 message:
