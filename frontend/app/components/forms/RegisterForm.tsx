@@ -9,6 +9,9 @@ import { Form, Input, ComboBox } from "@/components/forms";
 import { Button, Spinner } from "@/components/common";
 
 import useIBGELocalidades from "@/hooks/use-ibge-localidades";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { SerializedError } from "@reduxjs/toolkit";
+import { useEffect, useState } from "react";
 
 const checkPasswordScore = (password: string) => {
     const result = zxcvbn(password);
@@ -79,10 +82,7 @@ type RegisterFormProps = {
     setIsModalOpen: (value: boolean) => void;
 };
 
-const RegisterForm: React.FC<RegisterFormProps> = ({
-    onSubmit,
-    setIsModalOpen,
-}) => {
+const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
     const {
         register,
         handleSubmit,

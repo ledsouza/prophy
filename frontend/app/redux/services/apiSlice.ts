@@ -7,9 +7,11 @@ import type {
 import { setAuth, logout } from "../features/authSlice";
 import { Mutex } from "async-mutex";
 
+const baseUrl = `${process.env.NEXT_PUBLIC_HOST}/api/`;
+
 const mutex = new Mutex();
 const baseQuery = fetchBaseQuery({
-    baseUrl: `${process.env.NEXT_PUBLIC_HOST}/api/`,
+    baseUrl: baseUrl,
     credentials: "include",
 });
 
@@ -50,6 +52,11 @@ const baseQueryWithReauth: BaseQueryFn<
         }
     }
     return result;
+};
+
+export const getClienteByCnpj = async (cnpj: string) => {
+    const response = await fetch(`${baseUrl}clientes/?cnpj=${cnpj}`);
+    return await response.json();
 };
 
 export const apiSlice = createApi({

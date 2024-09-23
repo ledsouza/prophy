@@ -34,7 +34,7 @@ const Setup = () => {
                     "text-base text-gray-primary font-med block p-3"
                 }
                 position="top-right"
-                autoClose={5000}
+                autoClose={3000}
             />
         </>
     );

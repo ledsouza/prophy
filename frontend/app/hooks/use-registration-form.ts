@@ -65,7 +65,12 @@ const useRegistrationForm = ({
             setIsModalOpen(false);
             router.push("/dashboard");
         } catch (error: any) {
-            console.error("Registration error:", error);
+            if (error?.status === 400) {
+                console.log("useRegistrationForm Error Status 400: ", error);
+                toast.info("Um usuário com este nome de usuário já existe.");
+                return;
+            }
+            console.error("useRegistrationForm Error:", error);
             toast.error(
                 "Algo deu errado. Por favor, tente novamente. Se o problema continuar, entre em contato conosco."
             );

@@ -8,7 +8,10 @@ import { useCNPJValidation, useRegistrationForm } from "@/hooks";
 const RegisterPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const { validateCNPJ, validatedCNPJ } = useCNPJValidation(setIsModalOpen);
-    const { onSubmit } = useRegistrationForm({ validatedCNPJ, setIsModalOpen });
+    const { onSubmit } = useRegistrationForm({
+        validatedCNPJ,
+        setIsModalOpen,
+    });
 
     return (
         <main>

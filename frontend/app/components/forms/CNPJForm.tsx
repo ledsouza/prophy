@@ -11,14 +11,7 @@ import { Form, HeaderForm, Input } from "@/components/forms";
 import { Button } from "@/components/common";
 
 import prophyIcon from "@/../public/images/prophy-icon.jpeg";
-
-// Helper function to fetch CNPJ data
-const fetchCNPJData = async (cnpj: string) => {
-    const response = await fetch(
-        `${process.env.NEXT_PUBLIC_HOST}/api/clientes/?cnpj=${cnpj}`
-    );
-    return await response.json();
-};
+import { getClienteByCnpj } from "@/redux/services/apiSlice";
 
 const cnpjSchema = z.object({
     cnpj: z
@@ -26,8 +19,8 @@ const cnpjSchema = z.object({
         .length(14, { message: "O CNPJ deve conter 14 caracteres" })
         .refine(isCNPJ, { message: "Digite um CNPJ válido" })
         .refine(
-            async (value) => {
-                const data = await fetchCNPJData(value);
+            async (submittedCnpj) => {
+                const data = await getClienteByCnpj(submittedCnpj);
                 if (data.length > 0) {
                     return false;
                 }
