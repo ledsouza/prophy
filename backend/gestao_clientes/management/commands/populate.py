@@ -1,6 +1,9 @@
 from django.core.management.base import BaseCommand
+from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group
+
 from gestao_clientes.models import Cliente, Unidade, Equipamento, Proposta
-from django.contrib.auth.models import User
+from autenticacao.models import UserAccount
 
 import json
 import os
@@ -21,10 +24,15 @@ def fake_cnpj():
         '.', '').replace('/', '').replace('-', '')
 
 
+PROFILES = ["Gerente", "Gerente de Unidade",
+            "Físico Médico Interno", "Físico Médico Externo", "Cliente"]
+
+
 class Command(BaseCommand):
     help = "Populate the database with fake data."
 
     def handle(self, *args, **options):
+        self.create_groups()
         self.populate_users()
         self.populate_clientes()
         self.populate_unidades()
@@ -34,26 +42,41 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             'Database populated and fixture created successfully!'))
 
+    def create_groups(self):
+        permissions = Permission.objects.all()
+
+        for profile in PROFILES:
+            group, _ = Group.objects.get_or_create(name=profile)
+
+            if profile == "Gerente" or profile == "Físico Médico Interno":
+                group.permissions.set(permissions)
+
+            if profile == "Cliente":
+                group.permissions.set([permissions.get(name__contains="view cliente"), permissions.get(
+                    name__contains="view unidade"), permissions.get(name__contains="view equipamento")])
+
     def populate_users(self, num_users=10):
         """Populates the User model with example data."""
 
         # Default user for automated testing
-        User.objects.create_superuser(
+        UserAccount.objects.create_superuser(
             username="admin",
             email=fake.email(),
-            password='password123'
+            password="password123",
+            name="Admin"
         )
 
         for _ in range(num_users):
-            User.objects.create_user(
+            UserAccount.objects.create_user(
                 username=fake.user_name(),
                 email=fake.email(),
-                password='password123'
+                password="password123",
+                name=fake.name()
             )
 
     def populate_clientes(self, num_clientes=10):
         """Populates the Cliente model with example data."""
-        users = User.objects.all()
+        users = UserAccount.objects.all()
 
         Cliente.objects.create(
             user=choice(users),

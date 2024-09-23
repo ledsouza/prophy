@@ -1,8 +1,9 @@
 from datetime import date
 from django.db import models
-from django.contrib.auth.models import User
 from django.contrib import admin
 from django.utils.translation import gettext as _
+
+from autenticacao.models import UserAccount
 
 from localflavor.br.br_states import STATE_CHOICES
 import calendar
@@ -13,7 +14,7 @@ class Cliente(models.Model):
     Model representing a client.
     """
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="clientes")
+        UserAccount, on_delete=models.SET_NULL, related_name="clientes", blank=True, null=True)
     cnpj = models.CharField("CNPJ", max_length=14, unique=True)
     nome_instituicao = models.CharField("Nome da instituição", max_length=50)
     nome_contato = models.CharField("Nome do contato", max_length=50)
@@ -39,7 +40,7 @@ class Unidade(models.Model):
     Model representing a unit of a client.
     """
     cliente = models.ForeignKey(
-        Cliente, on_delete=models.CASCADE, related_name="unidades")
+        Cliente, on_delete=models.SET_NULL, related_name="unidades", blank=True, null=True)
     nome = models.CharField("Nome da unidade", max_length=50)
     cnpj = models.CharField("CNPJ da unidade", max_length=14, unique=True)
     nome_contato = models.CharField("Nome do contato", max_length=50)
@@ -59,7 +60,7 @@ class Equipamento(models.Model):
     Model representing equipment of a unit.
     """
     unidade = models.ForeignKey(
-        Unidade, on_delete=models.CASCADE, related_name="equipamentos")
+        Unidade, on_delete=models.SET_NULL, related_name="equipamentos", blank=True, null=True)
     modalidade = models.CharField(max_length=50)
     fabricante = models.CharField(max_length=30)
     modelo = models.CharField(max_length=30)

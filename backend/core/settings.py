@@ -1,4 +1,3 @@
-
 from django.core.management.utils import get_random_secret_key
 from os import getenv, path
 from pathlib import Path
@@ -165,3 +164,5 @@ FRONTEND_URL = getenv("FRONTEND_URL")
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = 'autenticacao.UserAccount'

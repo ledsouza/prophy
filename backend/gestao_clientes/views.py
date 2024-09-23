@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
-from .models import Proposta, Cliente
+from .models import Proposta, Cliente, Unidade
 from .serializers import CNPJSerializer, ClienteSerializer
 
 
