@@ -62,7 +62,7 @@ class Command(BaseCommand):
         UserAccount.objects.create_superuser(
             username="admin",
             email=fake.email(),
-            password="password123",
+            password="passwordtest",
             name="Admin"
         )
 
@@ -70,7 +70,7 @@ class Command(BaseCommand):
             UserAccount.objects.create_user(
                 username=fake.user_name(),
                 email=fake.email(),
-                password="password123",
+                password="passwordtest",
                 name=fake.name()
             )
 
@@ -148,7 +148,7 @@ class Command(BaseCommand):
 
         # Defaults Proposta for automated testing
         Proposta.objects.create(
-            cnpj="26661570000116",
+            cnpj="09352176000187",
             cidade=fake.city(),
             estado=choice(STATE_CHOICES)[0],
             nome=fake.name(),
@@ -159,6 +159,20 @@ class Command(BaseCommand):
                 left_digits=5, right_digits=2, positive=True),
             tipo_contrato=choice(tipos_contrato),
             status="R"
+        )
+
+        Proposta.objects.create(
+            cnpj="26661570000116",
+            cidade=fake.city(),
+            estado=choice(STATE_CHOICES)[0],
+            nome=fake.name(),
+            telefone=fake_phone_number(),
+            email=fake.email(),
+            data_proposta=fake.date(),
+            valor=fake.pydecimal(
+                left_digits=5, right_digits=2, positive=True),
+            tipo_contrato=choice(tipos_contrato),
+            status="A"
         )
 
         for _ in range(num_propostas):
