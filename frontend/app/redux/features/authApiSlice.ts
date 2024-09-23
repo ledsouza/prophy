@@ -7,9 +7,11 @@ type UserAuth = {
 };
 
 export type User = {
-    email: string;
     id: number;
     username: string;
+    email: string;
+    name: string;
+    profile: string;
 };
 
 const authApiSlice = apiSlice.injectEndpoints({

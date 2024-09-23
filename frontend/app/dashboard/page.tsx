@@ -8,12 +8,16 @@ const DashboardPage = () => {
 
     const config = [
         {
-            label: "Usuário",
-            value: user?.username,
+            label: "Nome",
+            value: user?.name,
         },
         {
             label: "E-mail",
             value: user?.email,
+        },
+        {
+            label: "Perfil",
+            value: user?.profile,
         },
     ];
 
