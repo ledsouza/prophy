@@ -4,8 +4,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
-from .models import Proposta, Cliente, Unidade
-from .serializers import CNPJSerializer, ClienteSerializer
+from django.contrib.auth.models import AnonymousUser
+from .models import Proposta, Cliente, Unidade, Equipamento
+from .serializers import CNPJSerializer, ClienteSerializer, UnidadeSerializer, EquipamentoSerializer
 
 
 class LatestPropostaStatusView(APIView):
@@ -53,11 +54,25 @@ class LatestPropostaStatusView(APIView):
 class ClienteViewSet(viewsets.ViewSet):
     """
     A viewset that provides actions for listing and creating clients.
+
+    list:
+        List all clients.
+        - If the request is made by an authenticated client, it will only list their own client data.
+        - If the request is made by an authenticated user other than a client, or an anonymous user, it will list all clients.
+        - Accepts an optional query parameter 'cnpj' to filter clients by CNPJ.
+
+    create:
+        Create a new client.
+        - Only authenticated users can access this view.
+        - The authenticated user will be assigned as the owner of the created client.
     """
 
     def get_permissions(self):
         """
         Instantiates and returns the list of permissions that this view requires.
+
+        For the 'list' action, any user (authenticated or not) is granted access.
+        For all other actions, only authenticated users are granted access.
         """
         if self.action == 'list':
             permission_classes = [AllowAny]
@@ -69,12 +84,17 @@ class ClienteViewSet(viewsets.ViewSet):
         """
         List all clients.
         """
-        queryset = Cliente.objects.all()
+        user = request.user
+        if not isinstance(user, AnonymousUser) and user.profile == "Cliente":
+            queryset = Cliente.objects.filter(user=user)
+        else:
+            queryset = Cliente.objects.all()
+
         cnpj = request.query_params.get('cnpj')
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
         serializer = ClienteSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request):
         """
@@ -85,3 +105,51 @@ class ClienteViewSet(viewsets.ViewSet):
             serializer.save(user=self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UnidadeViewSet(viewsets.ViewSet):
+    """
+    A viewset that provides an action for listing units.
+
+    list:
+        List all units.
+        - If the request is made by an authenticated client, it will only list the units associated with their own client data.
+        - If the request is made by an authenticated user other than a client, it will list all units.
+    """
+
+    def list(self, request):
+        """
+        List all units.
+        """
+        user = request.user
+        if user.profile == "Cliente":
+            queryset = Unidade.objects.filter(cliente__user=user)
+        else:
+            queryset = Unidade.objects.all()
+
+        serializer = UnidadeSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class EquipamentoViewSet(viewsets.ViewSet):
+    """
+    A viewset that provides an action for listing equipments.
+
+    list:
+        List all equipments.
+        - If the request is made by an authenticated client, it will only list the equipments associated with their own client data.
+        - If the request is made by an authenticated user other than a client, it will list all equipments.
+    """
+
+    def list(self, request):
+        """
+        List all equipments.
+        """
+        user = request.user
+        if user.profile == "Cliente":
+            queryset = Equipamento.objects.filter(unidade__cliente__user=user)
+        else:
+            queryset = Equipamento.objects.all()
+
+        serializer = EquipamentoSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

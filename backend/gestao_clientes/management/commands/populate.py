@@ -58,7 +58,7 @@ class Command(BaseCommand):
     def populate_users(self, num_users=10):
         """Populates the User model with example data."""
 
-        # Default user for automated testing
+        # Default users for automated testing
         UserAccount.objects.create_superuser(
             username="admin",
             email=fake.email(),
@@ -66,6 +66,16 @@ class Command(BaseCommand):
             name="Admin"
         )
 
+        UserAccount.objects.create_user(
+            username="cliente",
+            email=fake.email(),
+            password="passwordtest",
+            name="cliente",
+            profile="Cliente",
+            id=999
+        )
+
+        # Random users for automated testing
         for _ in range(num_users):
             UserAccount.objects.create_user(
                 username=fake.user_name(),
@@ -78,8 +88,9 @@ class Command(BaseCommand):
         """Populates the Cliente model with example data."""
         users = UserAccount.objects.all()
 
+        # Default clients for automated testing
         Cliente.objects.create(
-            user=choice(users),
+            user=users.get(username="cliente"),
             cnpj="78187773000116",
             nome_instituicao=fake.company(),
             nome_contato=fake.name(),
@@ -89,12 +100,28 @@ class Command(BaseCommand):
             endereco_instituicao=fake.address(),
             estado_instituicao=choice(STATE_CHOICES)[0],
             cidade_instituicao=fake.city(),
-            status=choice(['A', 'I'])
+            status=choice(['A', 'I']),
+            id=1000
+        )
+        Cliente.objects.create(
+            user=users.get(username="cliente"),
+            cnpj="90217758000179",
+            nome_instituicao=fake.company(),
+            nome_contato=fake.name(),
+            email_contato=fake.email(),
+            email_instituicao=fake.company_email(),
+            telefone_instituicao=fake_phone_number(),
+            endereco_instituicao=fake.address(),
+            estado_instituicao=choice(STATE_CHOICES)[0],
+            cidade_instituicao=fake.city(),
+            status=choice(['A', 'I']),
+            id=1001
         )
 
+        # Random clients for automated testing
         for _ in range(num_clientes):
             Cliente.objects.create(
-                user=choice(users),
+                user=choice(users.exclude(username="cliente")),
                 cnpj=fake_cnpj(),
                 nome_instituicao=fake.company(),
                 nome_contato=fake.name(),
@@ -109,7 +136,37 @@ class Command(BaseCommand):
 
     def populate_unidades(self, num_unidades_per_cliente=2):
         """Populates the Unidade model with example data."""
-        for cliente in Cliente.objects.all():
+        user_client = UserAccount.objects.get(username="cliente")
+        clients = Cliente.objects.filter(user=user_client)
+
+        # Default units for automated testing
+        Unidade.objects.create(
+            cliente=clients[0],
+            nome=fake.company_suffix() + " " + fake.company(),
+            cnpj=fake_cnpj(),
+            nome_contato=fake.name(),
+            email=fake.email(),
+            telefone=fake_phone_number(),
+            endereco=fake.address(),
+            estado=clients[0].estado_instituicao,
+            cidade=clients[0].cidade_instituicao,
+            id=1000
+        )
+        Unidade.objects.create(
+            cliente=clients[1],
+            nome=fake.company_suffix() + " " + fake.company(),
+            cnpj=fake_cnpj(),
+            nome_contato=fake.name(),
+            email=fake.email(),
+            telefone=fake_phone_number(),
+            endereco=fake.address(),
+            estado=clients[1].estado_instituicao,
+            cidade=clients[1].cidade_instituicao,
+            id=1001
+        )
+
+        # Random units for automated testing
+        for cliente in Cliente.objects.all().exclude(user=user_client):
             for _ in range(num_unidades_per_cliente):
                 Unidade.objects.create(
                     cliente=cliente,
@@ -128,7 +185,31 @@ class Command(BaseCommand):
         modalidades = ['Tomógrafo', 'Raio-X',
                        'Ultrassom', 'Ressonância Magnética']
         fabricantes = ['GE', 'Philips', 'Siemens', 'Toshiba']
-        for unidade in Unidade.objects.all():
+
+        user_client = UserAccount.objects.get(username="cliente")
+
+        # Default equipments for automated testing
+        Equipamento.objects.create(
+            unidade=Unidade.objects.filter(cliente__user=user_client)[0],
+            modalidade=choice(modalidades),
+            fabricante=choice(fabricantes),
+            modelo=fake.word().upper() + "-" + str(randint(100, 999)),
+            numero_serie=fake.bothify(text='????-######'),
+            registro_anvisa=fake.bothify(text='?????????????'),
+            foto_equipamento='./petct.jpg'
+        )
+        Equipamento.objects.create(
+            unidade=Unidade.objects.filter(cliente__user=user_client)[1],
+            modalidade=choice(modalidades),
+            fabricante=choice(fabricantes),
+            modelo=fake.word().upper() + "-" + str(randint(100, 999)),
+            numero_serie=fake.bothify(text='????-######'),
+            registro_anvisa=fake.bothify(text='?????????????'),
+            foto_equipamento='./petct.jpg'
+        )
+
+        # Random equipments for automated testing
+        for unidade in Unidade.objects.all().exclude(cliente__user=user_client):
             for _ in range(num_equipamentos_per_unidade):
                 Equipamento.objects.create(
                     unidade=unidade,
