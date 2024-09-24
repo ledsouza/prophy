@@ -160,6 +160,36 @@ describe("Client Registration", () => {
             );
         });
 
+        it("should show an error message for only numeric passwords", () => {
+            cy.getRandomCnpj().then((validCnpj) => {
+                cy.getByTestId("input-cnpj").type(validCnpj);
+            });
+            cy.getByTestId("button-submit").click();
+
+            cy.getByTestId("username-input").type(faker.internet.userName());
+            cy.getByTestId("password-input").type("10678910");
+            cy.getByTestId("repassword-input").type("10678910");
+            cy.getByTestId("institution-name-input").type(faker.company.name());
+            cy.getByTestId("institution-email-input").type(
+                faker.internet.email()
+            );
+            cy.getByTestId("institution-phone-input").type(fakerPhone());
+            cy.selectCombobox("institution-state-input", "São Paulo");
+            cy.selectCombobox("institution-city-input", "São Paulo");
+            cy.getByTestId("institution-address-input").type(
+                faker.location.streetAddress()
+            );
+            cy.getByTestId("name-input").type(faker.person.fullName());
+            cy.getByTestId("email-input").type(faker.internet.email());
+
+            cy.getByTestId("submit-btn").click();
+
+            cy.getByTestId("validation-error").should(
+                "contain",
+                "Evite senhas que contenham apenas números."
+            );
+        });
+
         it("should show an error message for weak passwords", () => {
             cy.getRandomCnpj().then((validCnpj) => {
                 cy.getByTestId("input-cnpj").type(validCnpj);
