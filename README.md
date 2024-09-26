@@ -12,12 +12,14 @@ This application is a comprehensive web-based system designed for medical physic
 
 * **Backend:** Django, Django REST Framework
 * **Frontend:** React, Next.js, TypeScript
+* **Testing:** Postman and Cypress
 * **Database:** PostgreSQL
-* **State Management:** Redux, RTK Query
+* **State Management:** Redux
+* **Data Fetching and Caching:** RTK Query
 * **Form Validation:** Zod
 * **Authentication:** JWT (JSON Web Token)
 * **Styling:** Tailwind CSS
-* **Deployment:** DigitalOcean, Nginx (as a reverse proxy)
+* **Deployment:** DigitalOcean
 
 ## Detailed Features
 
@@ -25,24 +27,26 @@ This application is a comprehensive web-based system designed for medical physic
 
 * **Secure user registration and login system.**
 * **Role-based access control (RBAC) with the following user profiles:**
-    * **Manager:** Full access (read and edit permissions) to all features.
-    * **Internal Medical Physicist:** Full access to most features, including client-specific data, institutional materials, and scheduling.
-    * **Client:** Access to their own institution's data, equipment information, schedules (read-only), and invoices (read-only).
+    * **Prophy Manager:** Full access to all features.
+    * **Comercial**: Access to clients data (read-only), reports (read-only) and proposal of contracts (add/edit/read)
+    * **Internal Medical Physicist:** Access to most features, including client-specific data, institutional materials, and scheduling.
+    * **Client Manager:** Access to their own institution's data, equipment information, schedules (read-only), and invoices (read-only).
     * **Unit Manager:**  Assigned by clients to manage specific units, with access limited to their assigned units' data.
     * **External Medical Physicist:** Limited access to schedules (read-only) and client data (read-only) associated with their assigned appointments.
 
 ### Client Management
 
-* **Public Client Registration Form:**
-    * Allows potential clients to submit their information and request services.
-    * Data is stored in a separate "Potential Clients" table for tracking and follow-up.
-* **Approved Client Dashboard:**
+* **Client Registration Form:**
+    * Allows approved clients to submit their information and request services.
+    * Data is stored in a separate table of proposals for tracking and follow-up of non-clients.
+* **Clients Dashboard:**
     * Clients can register and manage their institution's information:
         * CNPJ (Brazilian company ID)
         * Institution details
         * Contact details
         * Units and responsible managers
         * Equipment inventory
+    * Updating data needs approval from someone in the Prophy Staff
 * **Client Data Management (Internal Staff):**
     * Internal staff can view, edit, and manage client data:
         * Client details
