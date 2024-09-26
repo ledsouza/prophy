@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useAppSelector } from "./redux/hooks";
+import { Typography } from "@/components/foundation";
+import { ButtonLink } from "@/components/common";
 
 const HomePage = () => {
     const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -12,22 +13,29 @@ const HomePage = () => {
             <div className="relative isolate px-6 pt-14 lg:px-8">
                 <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
                     <div className="text-center">
-                        <h1 className="text-4xl font-bold tracking-tight text-gray-primary sm:text-6xl">
+                        <Typography
+                            element="h1"
+                            size="title1"
+                            variant="primary"
+                            className="font-bold tracking-tight"
+                        >
                             Proteção Radiológica, Física Médica e Ensino
-                        </h1>
-                        <p className="mt-6 text-lg leading-8 text-gray-secondary">
+                        </Typography>
+                        <Typography
+                            element="h2"
+                            variant="secondary"
+                            size="title3"
+                            className="mt-6"
+                        >
                             A Prophy oferece soluções personalizadas em física
                             médica para radiodiagnóstico e medicina nuclear,
                             garantindo a qualidade e segurança dos seus
                             procedimentos.
-                        </p>
+                        </Typography>
                         <div className="mt-10 flex items-center justify-center gap-x-6">
-                            <Link
-                                href={authRedirect}
-                                className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tertiary"
-                            >
+                            <ButtonLink href={authRedirect}>
                                 Acesse a sua conta
-                            </Link>
+                            </ButtonLink>
                         </div>
                     </div>
                 </div>

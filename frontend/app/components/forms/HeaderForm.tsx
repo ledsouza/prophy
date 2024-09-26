@@ -1,4 +1,5 @@
 import Image, { ImageProps } from "next/image";
+import { Typography } from "@/components/foundation";
 
 type HeaderFormProps = ImageProps & {
     title?: string;
@@ -22,20 +23,26 @@ const HeaderForm = ({
                     {...props}
                 />
                 {title && (
-                    <h2
-                        data-testid="title-form"
-                        className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-text-primary"
+                    <Typography
+                        element="h2"
+                        variant="primary"
+                        size="title2"
+                        className="mt-10 font-bold text-center tracking-tight"
+                        dataTestId="title-form"
                     >
                         {title}
-                    </h2>
+                    </Typography>
                 )}
                 {subtitle && (
-                    <p
-                        data-testid="subtitle-form"
-                        className="text-center text-xl leading-9 tracking-tight text-text-secondary"
+                    <Typography
+                        element="h3"
+                        variant="secondary"
+                        size="title3"
+                        className="text-center tracking-tight mt-2"
+                        dataTestId="subtitle-form"
                     >
                         {subtitle}
-                    </p>
+                    </Typography>
                 )}
             </div>
         </div>
