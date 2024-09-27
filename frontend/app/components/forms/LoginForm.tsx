@@ -14,7 +14,7 @@ import { Form, HeaderForm, Input } from "@/components/forms";
 import { Button } from "@/components/common";
 
 import { toast } from "react-toastify";
-import prophyIcon from "@/../public/images/prophy-icon.jpeg";
+import prophyIcon from "@/../public/images/prophy-icon.png";
 
 const loginFieldsSchema = z.object({
     username: z.string().min(1, { message: "O usuário é necessário" }),

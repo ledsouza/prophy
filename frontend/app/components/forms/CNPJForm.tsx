@@ -10,7 +10,7 @@ import type { SubmitHandler } from "react-hook-form";
 import { Form, HeaderForm, Input } from "@/components/forms";
 import { Button } from "@/components/common";
 
-import prophyIcon from "@/../public/images/prophy-icon.jpeg";
+import prophyIcon from "@/../public/images/prophy-icon.png";
 import { getClienteByCnpj } from "@/redux/services/apiSlice";
 
 const cnpjSchema = z.object({
