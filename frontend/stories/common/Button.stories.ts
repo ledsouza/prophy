@@ -1,25 +1,27 @@
-import { Meta, StoryObj } from "@storybook/react";
-
-import { Button } from "@/components/common";
-import { ButtonProps } from "@/components/common/Button";
+import Button, { ButtonProps } from "@/components/common/Button";
+import type { Meta, StoryObj } from "@storybook/react";
 
 const meta: Meta<ButtonProps> = {
     title: "Common/Button",
-    tags: ["autodocs"],
     component: Button,
     argTypes: {
         children: {
             type: "string",
         },
+        disabled: {
+            type: "boolean",
+        },
         variant: {
-            type: "string",
-            control: "radio",
             options: ["primary", "secondary", "danger"],
+            control: { type: "select" },
         },
         isLoading: {
             type: "boolean",
         },
         className: {
+            type: "string",
+        },
+        href: {
             type: "string",
         },
     },
@@ -29,6 +31,41 @@ export default meta;
 
 export const Primary: StoryObj<ButtonProps> = {
     args: {
-        children: "Button",
+        children: "Primary Button",
+    },
+};
+
+export const Secondary: StoryObj<ButtonProps> = {
+    args: {
+        children: "Secondary Button",
+        variant: "secondary",
+    },
+};
+
+export const Danger: StoryObj<ButtonProps> = {
+    args: {
+        children: "Danger Button",
+        variant: "danger",
+    },
+};
+
+export const Disabled: StoryObj<ButtonProps> = {
+    args: {
+        children: "Disabled Button",
+        disabled: true,
+    },
+};
+
+export const Loading: StoryObj<ButtonProps> = {
+    args: {
+        children: "Loading Button",
+        isLoading: true,
+    },
+};
+
+export const LinkButton: StoryObj<ButtonProps> = {
+    args: {
+        children: "Link Button",
+        href: "/example",
     },
 };

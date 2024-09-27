@@ -1,17 +1,36 @@
-import { ButtonHTMLAttributes } from "react";
+import { ButtonHTMLAttributes, ReactNode } from "react";
 import { Spinner } from "@/components/common";
 import cn from "classnames";
+import Link, { LinkProps } from "next/link";
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-    variant?: "primary" | "secondary" | "danger";
+type ButtonVariant = "primary" | "secondary" | "danger";
+
+type CommonButtonProps = {
+    children?: ReactNode;
+    disabled?: boolean;
+    variant?: ButtonVariant;
     isLoading?: boolean;
+    className?: string;
 };
+
+type ButtonAsButton = ButtonHTMLAttributes<HTMLButtonElement> &
+    CommonButtonProps & {
+        href?: never;
+    };
+
+type ButtonAsLink = LinkProps &
+    CommonButtonProps & {
+        href: string;
+    };
+
+export type ButtonProps = ButtonAsButton | ButtonAsLink;
 
 const Button = ({
     children,
     disabled,
     variant = "primary",
     isLoading = false,
+    href,
     className,
     ...props
 }: ButtonProps) => {
@@ -28,13 +47,27 @@ const Button = ({
         }
     );
 
+    const content = isLoading ? <Spinner md /> : <div>{children}</div>;
+
+    if (href) {
+        return (
+            <Link
+                {...(props as LinkProps)}
+                className={computedClassName}
+                href={href}
+            >
+                {content}
+            </Link>
+        );
+    }
+
     return (
         <button
-            {...props}
+            {...(props as ButtonHTMLAttributes<HTMLButtonElement>)}
             className={computedClassName}
             disabled={disabled || isLoading}
         >
-            {isLoading ? <Spinner md /> : <div>{children}</div>}
+            {content}
         </button>
     );
 };

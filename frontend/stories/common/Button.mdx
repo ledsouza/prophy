@@ -1,0 +1,42 @@
+import { Meta, Controls, Primary, Canvas } from "@storybook/blocks";
+
+import * as Story from "./Button.stories.ts";
+
+<Meta of={Story} />
+
+# Button
+
+This is a versatile button component that can be used as a standard button or a link.
+
+## Variants
+
+### Primary
+
+<Canvas of={Story.Primary} />
+
+### Secondary
+
+<Canvas of={Story.Secondary} />
+
+### Danger
+
+<Canvas of={Story.Danger} />
+
+## States
+
+### Disabled
+
+<Canvas of={Story.Disabled} />
+
+### Loading
+
+<Canvas of={Story.Loading} />
+
+## Link Button
+
+<Canvas of={Story.LinkButton} />
+
+## Interactive Documentation:
+
+<Primary />
+<Controls />

@@ -2,7 +2,7 @@
 
 import { useAppSelector } from "./redux/hooks";
 import { Typography } from "@/components/foundation";
-import { ButtonLink } from "@/components/common";
+import { Button } from "@/components/common";
 
 const HomePage = () => {
     const { isAuthenticated } = useAppSelector((state) => state.auth);
@@ -33,9 +33,9 @@ const HomePage = () => {
                             procedimentos.
                         </Typography>
                         <div className="mt-10 flex items-center justify-center gap-x-6">
-                            <ButtonLink href={authRedirect}>
+                            <Button href={authRedirect}>
                                 Acesse a sua conta
-                            </ButtonLink>
+                            </Button>
                         </div>
                     </div>
                 </div>
