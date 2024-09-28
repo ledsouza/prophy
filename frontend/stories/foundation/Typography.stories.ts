@@ -4,7 +4,7 @@ import { Typography } from "@/components/foundation";
 import { TypographyProps } from "@/components/foundation/Typography";
 
 const meta: Meta<TypographyProps> = {
-    title: "Foundation/Typography",
+    title: "Design System/Foundation/Typography",
     tags: ["autodocs"],
     component: Typography,
     argTypes: {

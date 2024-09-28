@@ -4,7 +4,7 @@ import { Box } from "@/components/foundation";
 import { BoxProps } from "@/components/foundation/Box";
 
 const meta: Meta<BoxProps> = {
-    title: "Foundation/Box",
+    title: "Design System/Foundation/Box",
     component: Box,
     tags: ["autodocs"],
     argTypes: {

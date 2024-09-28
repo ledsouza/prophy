@@ -4,7 +4,7 @@ import { Input } from "@/components/forms";
 import { InputProps } from "@/components/forms/Input";
 
 const meta: Meta<InputProps> = {
-    title: "Forms/Input",
+    title: "Design System/Forms/Input",
     tags: ["autodocs"],
     component: Input,
     argTypes: {

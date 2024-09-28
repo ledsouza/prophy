@@ -27,7 +27,7 @@ const ComboBoxStory = (args: ComboBoxProps) => {
 };
 
 const meta: Meta<typeof ComboBox> = {
-    title: "Forms/ComboBox",
+    title: "Design System/Forms/ComboBox",
     component: ComboBox,
     decorators: [
         (Story) => (

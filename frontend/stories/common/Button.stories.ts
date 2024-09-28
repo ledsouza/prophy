@@ -1,8 +1,8 @@
-import Button, { ButtonProps } from "@/components/common/Button";
+import { Button } from "@/components/common";
 import type { Meta, StoryObj } from "@storybook/react";
 
-const meta: Meta<ButtonProps> = {
-    title: "Common/Button",
+const meta: Meta<typeof Button> = {
+    title: "Design System/Common/Button",
     component: Button,
     argTypes: {
         children: {
@@ -29,41 +29,41 @@ const meta: Meta<ButtonProps> = {
 
 export default meta;
 
-export const Primary: StoryObj<ButtonProps> = {
+export const Primary: StoryObj<typeof Button> = {
     args: {
         children: "Primary Button",
     },
 };
 
-export const Secondary: StoryObj<ButtonProps> = {
+export const Secondary: StoryObj<typeof Button> = {
     args: {
         children: "Secondary Button",
         variant: "secondary",
     },
 };
 
-export const Danger: StoryObj<ButtonProps> = {
+export const Danger: StoryObj<typeof Button> = {
     args: {
         children: "Danger Button",
         variant: "danger",
     },
 };
 
-export const Disabled: StoryObj<ButtonProps> = {
+export const Disabled: StoryObj<typeof Button> = {
     args: {
         children: "Disabled Button",
         disabled: true,
     },
 };
 
-export const Loading: StoryObj<ButtonProps> = {
+export const Loading: StoryObj<typeof Button> = {
     args: {
         children: "Loading Button",
         isLoading: true,
     },
 };
 
-export const LinkButton: StoryObj<ButtonProps> = {
+export const LinkButton: StoryObj<typeof Button> = {
     args: {
         children: "Link Button",
         href: "/example",
