@@ -2,6 +2,7 @@ from datetime import date
 from django.db import models
 from django.contrib import admin
 from django.utils.translation import gettext as _
+from django.utils.html import format_html
 
 from autenticacao.models import UserAccount
 
@@ -13,23 +14,30 @@ class Cliente(models.Model):
     """
     Model representing a client.
     """
-    user = models.ForeignKey(
-        UserAccount, on_delete=models.SET_NULL, related_name="clientes", blank=True, null=True)
+    users = models.ManyToManyField(
+        UserAccount, related_name="clientes", blank=True, verbose_name="Usuários")
     cnpj = models.CharField("CNPJ", max_length=14, unique=True)
     nome_instituicao = models.CharField("Nome da instituição", max_length=50)
     nome_contato = models.CharField("Nome do contato", max_length=50)
     email_contato = models.EmailField("E-mail do contato")
     email_instituicao = models.EmailField("E-mail da instituição")
     telefone_instituicao = models.CharField(
-        "Telefone da instituição", max_length=11)
+        "Telefone da instituição", max_length=13)
     endereco_instituicao = models.CharField(
-        "Endereço da instituição", max_length=50)
+        "Endereço da instituição", max_length=100)
     estado_instituicao = models.CharField(
         "Estado da instituição", max_length=2, choices=STATE_CHOICES)
     cidade_instituicao = models.CharField(
         "Cidade da instituição", max_length=50)
     status = models.CharField("Status", max_length=1, choices=(
         ("A", "Ativo"), ("I", "Inativo")), default="A")
+
+    @admin.display(description="Responsáveis")
+    def responsaveis(self):
+        associated_users = self.users.all()
+        associated_users = [f"<strong>{user.profile}:</strong> {
+            user.name}" for user in associated_users]
+        return format_html("<br>".join(associated_users))
 
     def __str__(self) -> str:
         return self.nome_instituicao
@@ -41,15 +49,15 @@ class Unidade(models.Model):
     """
     cliente = models.ForeignKey(
         Cliente, on_delete=models.SET_NULL, related_name="unidades", blank=True, null=True)
-    nome = models.CharField("Nome da unidade", max_length=50)
-    cnpj = models.CharField("CNPJ da unidade", max_length=14, unique=True)
+    nome = models.CharField("Nome", max_length=50)
+    cnpj = models.CharField("CNPJ", max_length=14, unique=True)
     nome_contato = models.CharField("Nome do contato", max_length=50)
-    email = models.EmailField("E-mail da unidade")
-    telefone = models.CharField("Telefone da unidade", max_length=11)
-    endereco = models.CharField("Endereço da unidade", max_length=50)
+    email = models.EmailField("E-mail")
+    telefone = models.CharField("Telefone", max_length=13)
+    endereco = models.CharField("Endereço", max_length=100)
     estado = models.CharField(
-        "Estado da unidade", max_length=2, choices=STATE_CHOICES, blank=True)
-    cidade = models.CharField("Cidade da unidade", max_length=50, blank=True)
+        "Estado", max_length=2, choices=STATE_CHOICES, blank=True)
+    cidade = models.CharField("Cidade", max_length=50, blank=True)
 
     def __str__(self) -> str:
         return f"{self.nome} - {self.cliente.nome_instituicao}"
@@ -77,7 +85,7 @@ class Equipamento(models.Model):
     email_responsavel = models.EmailField(
         "E-mail do responsável pela manutenção", blank=True, null=True)
     telefone_responsavel = models.CharField(
-        "Telefone do responsável pela manutenção", max_length=11, blank=True, null=True)
+        "Telefone do responsável pela manutenção", max_length=13, blank=True, null=True)
 
     @admin.display(description="Cliente")
     def cliente(self):
@@ -108,7 +116,7 @@ class Proposta(models.Model):
     estado = models.CharField("Estado da instituição",
                               max_length=2, choices=STATE_CHOICES)
     nome = models.CharField("Nome do contato", max_length=50)
-    telefone = models.CharField("Telefone do contato", max_length=11)
+    telefone = models.CharField("Telefone do contato", max_length=13)
     email = models.EmailField("E-mail do contato")
     data_proposta = models.DateField("Data da proposta", default=date.today)
     valor = models.DecimalField(

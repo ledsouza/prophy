@@ -11,21 +11,34 @@ from faker import Faker
 from random import choice, randint
 from localflavor.br.br_states import STATE_CHOICES
 
-fake = Faker('pt_BR')
+fake = Faker("pt_BR")
 
 
 def fake_phone_number():
     return fake.phone_number().replace(
-        '(', '').replace(')', '').replace('-', '').replace(' ', '').replace("+", "")
+        "(", "").replace(")", "").replace("-", "").replace(" ", "").replace("+", "")
 
 
 def fake_cnpj():
     return fake.cnpj().replace(
-        '.', '').replace('/', '').replace('-', '')
+        ".", "").replace("/", "").replace("-", "")
 
 
-PROFILES = ["Gerente", "Gerente de Unidade",
-            "Físico Médico Interno", "Físico Médico Externo", "Cliente"]
+def fake_cpf():
+    return fake.cpf().replace(".", "").replace("-", "")
+
+
+PROFILES = [
+    "Físico Médico Interno",
+    "Físico Médico Externo",
+    "Gerente Prophy",
+    "Gerente Geral do Cliente",
+    "Gerente de Unidade",
+    "Comercial"
+]
+
+CPF_ADMIN = "03446254005"
+CPF_GERENTE_CLIENTE = "82484874073"
 
 
 class Command(BaseCommand):
@@ -48,10 +61,10 @@ class Command(BaseCommand):
         for profile in PROFILES:
             group, _ = Group.objects.get_or_create(name=profile)
 
-            if profile == "Gerente" or profile == "Físico Médico Interno":
+            if profile == "Gerente Prophy":
                 group.permissions.set(permissions)
 
-            if profile == "Cliente":
+            if profile == "Gerente Geral do Cliente":
                 group.permissions.set([permissions.get(name__contains="view cliente"), permissions.get(
                     name__contains="view unidade"), permissions.get(name__contains="view equipamento")])
 
@@ -60,25 +73,25 @@ class Command(BaseCommand):
 
         # Default users for automated testing
         UserAccount.objects.create_superuser(
-            username="admin",
+            cpf=CPF_ADMIN,
             email=fake.email(),
             password="passwordtest",
             name="Admin"
         )
 
         UserAccount.objects.create_user(
-            username="cliente",
+            cpf=CPF_GERENTE_CLIENTE,
             email=fake.email(),
             password="passwordtest",
             name="cliente",
-            profile="Cliente",
+            profile="Gerente Geral do Cliente",
             id=999
         )
 
         # Random users for automated testing
         for _ in range(num_users):
             UserAccount.objects.create_user(
-                username=fake.user_name(),
+                cpf=fake_cpf(),
                 email=fake.email(),
                 password="passwordtest",
                 name=fake.name()
@@ -89,8 +102,7 @@ class Command(BaseCommand):
         users = UserAccount.objects.all()
 
         # Default clients for automated testing
-        Cliente.objects.create(
-            user=users.get(username="cliente"),
+        cliente1 = Cliente.objects.create(
             cnpj="78187773000116",
             nome_instituicao=fake.company(),
             nome_contato=fake.name(),
@@ -103,8 +115,9 @@ class Command(BaseCommand):
             status=choice(['A', 'I']),
             id=1000
         )
-        Cliente.objects.create(
-            user=users.get(username="cliente"),
+        cliente1.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
+
+        cliente2 = Cliente.objects.create(
             cnpj="90217758000179",
             nome_instituicao=fake.company(),
             nome_contato=fake.name(),
@@ -117,11 +130,11 @@ class Command(BaseCommand):
             status=choice(['A', 'I']),
             id=1001
         )
+        cliente2.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
 
         # Random clients for automated testing
         for _ in range(num_clientes):
-            Cliente.objects.create(
-                user=choice(users.exclude(username="cliente")),
+            cliente = Cliente.objects.create(
                 cnpj=fake_cnpj(),
                 nome_instituicao=fake.company(),
                 nome_contato=fake.name(),
@@ -133,11 +146,12 @@ class Command(BaseCommand):
                 cidade_instituicao=fake.city(),
                 status=choice(['A', 'I'])
             )
+            cliente.users.add(choice(users.exclude(cpf=CPF_GERENTE_CLIENTE)))
 
     def populate_unidades(self, num_unidades_per_cliente=2):
         """Populates the Unidade model with example data."""
-        user_client = UserAccount.objects.get(username="cliente")
-        clients = Cliente.objects.filter(user=user_client)
+        user_client = UserAccount.objects.get(cpf=CPF_GERENTE_CLIENTE)
+        clients = Cliente.objects.filter(users=user_client)
 
         # Default units for automated testing
         Unidade.objects.create(
@@ -166,7 +180,7 @@ class Command(BaseCommand):
         )
 
         # Random units for automated testing
-        for cliente in Cliente.objects.all().exclude(user=user_client):
+        for cliente in Cliente.objects.all().exclude(users=user_client):
             for _ in range(num_unidades_per_cliente):
                 Unidade.objects.create(
                     cliente=cliente,
@@ -186,11 +200,11 @@ class Command(BaseCommand):
                        'Ultrassom', 'Ressonância Magnética']
         fabricantes = ['GE', 'Philips', 'Siemens', 'Toshiba']
 
-        user_client = UserAccount.objects.get(username="cliente")
+        user_client = UserAccount.objects.get(cpf=CPF_GERENTE_CLIENTE)
 
         # Default equipments for automated testing
         Equipamento.objects.create(
-            unidade=Unidade.objects.filter(cliente__user=user_client)[0],
+            unidade=Unidade.objects.filter(cliente__users=user_client)[0],
             modalidade=choice(modalidades),
             fabricante=choice(fabricantes),
             modelo=fake.word().upper() + "-" + str(randint(100, 999)),
@@ -199,7 +213,7 @@ class Command(BaseCommand):
             foto_equipamento='./petct.jpg'
         )
         Equipamento.objects.create(
-            unidade=Unidade.objects.filter(cliente__user=user_client)[1],
+            unidade=Unidade.objects.filter(cliente__users=user_client)[1],
             modalidade=choice(modalidades),
             fabricante=choice(fabricantes),
             modelo=fake.word().upper() + "-" + str(randint(100, 999)),
@@ -209,7 +223,7 @@ class Command(BaseCommand):
         )
 
         # Random equipments for automated testing
-        for unidade in Unidade.objects.all().exclude(cliente__user=user_client):
+        for unidade in Unidade.objects.all().exclude(cliente__users=user_client):
             for _ in range(num_equipamentos_per_unidade):
                 Equipamento.objects.create(
                     unidade=unidade,

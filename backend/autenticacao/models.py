@@ -8,10 +8,16 @@ from django.contrib.auth.models import (
 
 
 class UserAccountManager(BaseUserManager):
-    def create_user(self, username, email, password, profile="Cliente", **kwargs):
+    def create_user(self, cpf, email, password, profile="Gerente Geral do Cliente", **kwargs):
         valid_profiles = [
-            "Gerente", "Físico Médico Interno", "Físico Médico Externo", "Cliente", "Gerente de Unidade"]
-        if not username:
+            "Físico Médico Interno",
+            "Físico Médico Externo",
+            "Gerente Prophy",
+            "Gerente Geral do Cliente",
+            "Gerente de Unidade",
+            "Comercial"
+        ]
+        if not cpf:
             raise ValueError("Usuários devem conter um nome de usuário.")
         if not email:
             raise ValueError('Usuários devem conter um e-mail.')
@@ -23,7 +29,7 @@ class UserAccountManager(BaseUserManager):
         email = email.lower()
 
         user = self.model(
-            username=username,
+            cpf=cpf,
             email=email,
             profile=profile,
             **kwargs
@@ -37,10 +43,10 @@ class UserAccountManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, username, email, password, profile="Gerente", **kwargs):
+    def create_superuser(self, cpf, email, password, profile="Gerente Prophy", **kwargs):
 
         user = self.create_user(
-            username=username,
+            cpf=cpf,
             email=email,
             password=password,
             profile=profile,
@@ -55,27 +61,28 @@ class UserAccountManager(BaseUserManager):
 
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField("Nome de Usuário", max_length=255, unique=True)
+    PROFILE_CHOICES = [
+        ("Físico Médico Interno", "Físico Médico Interno"),
+        ("Físico Médico Externo", "Físico Médico Externo"),
+        ("Gerente Prophy", "Gerente Prophy"),
+        ("Gerente Geral do Cliente", "Gerente Geral do Cliente"),
+        ("Gerente de Unidade", "Gerente de Unidade"),
+        ("Comercial", "Comercial"),
+    ]
+
+    cpf = models.CharField("CPF", max_length=11, unique=True)
     email = models.EmailField("E-mail", max_length=255, unique=True)
     name = models.CharField("Nome", max_length=255)
+    profile = models.CharField(
+        "Perfil", max_length=30, choices=PROFILE_CHOICES, default="Gerente Geral do Cliente")
 
     is_active = models.BooleanField("Conta Ativa", default=True)
     is_staff = models.BooleanField("Acesso à Administração", default=False)
     is_superuser = models.BooleanField("Superusuário", default=False)
 
-    PROFILE_CHOICES = [
-        ("Físico Médico Interno", "Físico Médico Interno"),
-        ("Físico Médico Externo", "Físico Médico Externo"),
-        ("Gerente", "Gerente"),
-        ("Gerente de Unidade", "Gerente de Unidade"),
-        ("Cliente", "Cliente"),
-    ]
-    profile = models.CharField(
-        "Perfil", max_length=30, choices=PROFILE_CHOICES, default="Cliente")
-
     objects = UserAccountManager()
 
-    USERNAME_FIELD = "username"
+    USERNAME_FIELD = "cpf"
     REQUIRED_FIELDS = ["email", "name", "profile"]
 
     def __str__(self):

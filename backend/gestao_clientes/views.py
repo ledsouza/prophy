@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
 from django.contrib.auth.models import AnonymousUser
+from django.db import transaction
 from .models import Proposta, Cliente, Unidade, Equipamento
 from .serializers import CNPJSerializer, ClienteSerializer, UnidadeSerializer, EquipamentoSerializer
 
@@ -85,8 +86,8 @@ class ClienteViewSet(viewsets.ViewSet):
         List all clients.
         """
         user = request.user
-        if not isinstance(user, AnonymousUser) and user.profile == "Cliente":
-            queryset = Cliente.objects.filter(user=user)
+        if not isinstance(user, AnonymousUser) and user.profile == "Gerente Geral do Cliente":
+            queryset = Cliente.objects.filter(users=user)
         else:
             queryset = Cliente.objects.all()
 
@@ -96,13 +97,15 @@ class ClienteViewSet(viewsets.ViewSet):
         serializer = ClienteSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def create(self, request):
         """
         Create a new client. Only authenticated users can access this view.
         """
         serializer = ClienteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=self.request.user)
+            cliente = serializer.save()
+            cliente.users.add(self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -122,8 +125,8 @@ class UnidadeViewSet(viewsets.ViewSet):
         List all units.
         """
         user = request.user
-        if user.profile == "Cliente":
-            queryset = Unidade.objects.filter(cliente__user=user)
+        if user.profile == "Gerente Geral do Cliente":
+            queryset = Unidade.objects.filter(cliente__users=user)
         else:
             queryset = Unidade.objects.all()
 
@@ -146,8 +149,8 @@ class EquipamentoViewSet(viewsets.ViewSet):
         List all equipments.
         """
         user = request.user
-        if user.profile == "Cliente":
-            queryset = Equipamento.objects.filter(unidade__cliente__user=user)
+        if user.profile == "Gerente Geral do Cliente":
+            queryset = Equipamento.objects.filter(unidade__cliente__users=user)
         else:
             queryset = Equipamento.objects.all()
 

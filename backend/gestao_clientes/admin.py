@@ -4,32 +4,36 @@ from .models import Cliente, Unidade, Equipamento, Proposta
 
 class UnidadeInline(admin.TabularInline):
     model = Unidade
+    fields = ["cnpj", "nome", "estado", "cidade"]
+
+
+class EquipamentoInline(admin.TabularInline):
+    model = Equipamento
+    fields = ["modalidade", "fabricante", "modelo", "numero_serie"]
 
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
     list_display = ("cnpj", "nome_instituicao", "email_instituicao",
-                    "telefone_instituicao", "endereco_instituicao")
-    list_display_links = ("nome_instituicao",)
-    autocomplete_fields = ("user",)
-    search_fields = ("cnpj", "nome_instituicao", "user__username")
+                    "telefone_instituicao", "endereco_instituicao", "responsaveis")
+    list_display_links = ("cnpj",)
+    autocomplete_fields = ("users",)
+    search_fields = ("cnpj", "nome_instituicao", "users__cpf")
+
     inlines = [
         UnidadeInline,
     ]
 
 
-class EquipamentoInline(admin.TabularInline):
-    model = Equipamento
-
-
 @admin.register(Unidade)
 class UnidadeAdmin(admin.ModelAdmin):
-    list_display = ("nome", "cnpj", "cliente", "nome_contato",
+    list_display = ("cnpj", "nome", "cliente", "nome_contato",
                     "email", "telefone", "estado", "cidade")
-    list_display_links = ("nome",)
+    list_display_links = ("cnpj",)
     autocomplete_fields = ("cliente",)
     search_fields = ("nome", "cnpj", "estado", "cidade")
     list_filter = ("cliente__nome_instituicao",)
+
     inlines = [
         EquipamentoInline,
     ]
@@ -37,8 +41,8 @@ class UnidadeAdmin(admin.ModelAdmin):
 
 @admin.register(Equipamento)
 class EquipamentoAdmin(admin.ModelAdmin):
-    list_display = ("modalidade", "fabricante", "modelo",
-                    "numero_serie", "unidade", "cliente")
+    list_display = ("numero_serie", "modalidade", "fabricante", "modelo",
+                    "unidade", "cliente")
     list_display_links = ("numero_serie",)
     autocomplete_fields = ("unidade",)
     search_fields = ("fabricante", "modelo", "numero_serie",

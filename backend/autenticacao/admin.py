@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import Group
 from .models import UserAccount
 
 
@@ -8,14 +7,15 @@ from .models import UserAccount
 class UserAccountAdmin(BaseUserAdmin):
     verbose_name = "Conta de Usuário"
     verbose_name_plural = "Contas de Usuário"
-    list_display = ("username", "email", "name",
+    list_display = ("cpf", "email", "name",
                     "profile", "is_active", "is_staff")
-    list_display_links = ("username",)
-    search_fields = ("username", "name", "email")
+    list_display_links = ("cpf",)
+    search_fields = ("cpf", "name", "email")
     list_filter = ("profile", "is_active", "is_staff")
+    ordering = ["name"]
 
     fieldsets = (
-        (None, {'fields': ('username', 'email', 'name', 'password', 'profile')}),
+        (None, {'fields': ('cpf', 'email', 'name', 'password', 'profile')}),
         ('Permissões', {
             'fields': (
                 ('is_active', 'is_staff', 'is_superuser')
