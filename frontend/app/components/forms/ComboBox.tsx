@@ -20,7 +20,7 @@ export type ComboboxDataProps = {
     sigla?: string;
 };
 
-type ComboBoxProps = {
+export type ComboBoxProps = {
     children: ReactNode;
     placeholder?: string;
     data: ComboboxDataProps[];
@@ -31,7 +31,7 @@ type ComboBoxProps = {
     "data-testid"?: string;
 };
 
-const ComboBox: React.FC<ComboBoxProps> = ({
+const ComboBox = ({
     children,
     placeholder = "",
     data,
@@ -40,7 +40,7 @@ const ComboBox: React.FC<ComboBoxProps> = ({
     disabled = false,
     errorMessage,
     "data-testid": dataTestId,
-}) => {
+}: ComboBoxProps) => {
     const [filteredOptions, setFilteredOptions] = useState(data);
 
     const debouncedFilterRef = useRef<DebouncedFunc<(query: string) => void>>();
@@ -69,7 +69,7 @@ const ComboBox: React.FC<ComboBoxProps> = ({
     };
 
     const inputClassName = cn(
-        "block w-full rounded-md border-0 text-text-primary shadow-sm ring-1 ring-inset placeholder:text-text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
+        "block w-full rounded-md border-0 text-text-primary shadow-md ring-1 ring-inset placeholder:text-text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
         {
             "ring-tertiary": disabled,
             "bg-danger bg-opacity-5 ring-danger": errorMessage,
@@ -107,7 +107,7 @@ const ComboBox: React.FC<ComboBoxProps> = ({
                     <ComboboxOptions
                         anchor="bottom"
                         data-testid="combobox-options"
-                        className="z-50 empty:invisible block w-1/5 rounded-md border-0 p-2 bg-white text-text-primary shadow-sm ring-1 ring-inset ring-primary focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                        className="z-50 empty:invisible block w-60 rounded-md border-0 mt-2 p-2 bg-white text-text-primary shadow-lg ring-1 ring-inset ring-primary focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                     >
                         {({ option: value }) => (
                             <ComboboxOption
