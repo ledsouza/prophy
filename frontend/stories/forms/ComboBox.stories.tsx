@@ -101,14 +101,3 @@ export const WithError: Story = {
         return <ComboBoxStory {...args} />;
     },
 };
-
-export const EmptyData: Story = {
-    args: {
-        data: [],
-        selectedValue: null,
-        placeholder: "Select an option",
-    },
-    render: (args: ComboBoxProps) => {
-        return <ComboBoxStory {...args} />;
-    },
-};

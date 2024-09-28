@@ -79,7 +79,7 @@ const ComboBox = ({
 
     return (
         <>
-            <Field data-testid={dataTestId}>
+            <Field data-testid={dataTestId} disabled={disabled}>
                 <Label className="block mb-2 text-sm font-medium leading-6 text-text-primary">
                     {children}
                 </Label>
