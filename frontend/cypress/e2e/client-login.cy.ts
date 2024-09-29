@@ -1,7 +1,4 @@
 describe("Client Login", () => {
-    const username = "admin";
-    const password = "passwordtest";
-
     beforeEach(() => {
         cy.visit("/auth/login");
     });
@@ -12,7 +9,7 @@ describe("Client Login", () => {
                 "contain",
                 "Acesse a sua conta"
             );
-            cy.getByTestId("username-input").should("exist");
+            cy.getByTestId("cpf-input").should("exist");
             cy.getByTestId("password-input").should("exist");
             cy.getByTestId("submit-button").should("contain", "Acessar");
         });
@@ -20,7 +17,9 @@ describe("Client Login", () => {
 
     context("Success Scenario", () => {
         it("should successfully log in with valid credentials", () => {
-            cy.login(username, password);
+            cy.fixture("users.json").then((users) => {
+                cy.login(users.admin_user.cpf, users.admin_user.password);
+            });
 
             cy.getCookie("access").should("exist");
             cy.getCookie("refresh").should("exist");
@@ -29,14 +28,18 @@ describe("Client Login", () => {
         });
 
         it("should redirect to the client dashboard after successful login", () => {
-            cy.login(username, password);
+            cy.fixture("users.json").then((users) => {
+                cy.login(users.admin_user.cpf, users.admin_user.password);
+            });
 
             cy.url().should("include", "/dashboard/");
             cy.getByTestId("dashboard-title").should("contain", "Dashboard");
         });
 
         it("should persist login state on page refresh", () => {
-            cy.login(username, password);
+            cy.fixture("users.json").then((users) => {
+                cy.login(users.admin_user.cpf, users.admin_user.password);
+            });
 
             cy.reload();
 
@@ -48,7 +51,9 @@ describe("Client Login", () => {
         });
 
         it("should allow user to log out", () => {
-            cy.login(username, password);
+            cy.fixture("users.json").then((users) => {
+                cy.login(users.admin_user.cpf, users.admin_user.password);
+            });
 
             cy.getByTestId("logout-btn").click();
 
@@ -58,27 +63,33 @@ describe("Client Login", () => {
 
     context("Failure Scenario", () => {
         it("shows an error message if login fails", () => {
-            cy.getByTestId("username-input").type("wronguser");
+            cy.getByTestId("cpf-input").type("wronguser");
             cy.getByTestId("password-input").type("wrongpassword");
             cy.getByTestId("submit-button").click();
 
             cy.contains(
-                "Houve uma falha ao acessar sua conta. Verifique se o usuário e senha estão corretos"
+                "Houve uma falha ao acessar sua conta. Verifique se o CPF e senha estão corretos"
             ).should("be.visible");
         });
 
-        it("shows an error message if username field is empty", () => {
-            cy.getByTestId("password-input").type(password);
+        it("shows an error message if cpf field is empty", () => {
+            cy.fixture("users.json").then((users) => {
+                cy.getByTestId("password-input").type(
+                    users.admin_user.password
+                );
+            });
             cy.getByTestId("submit-button").click();
 
             cy.getByTestId("validation-error").should(
                 "contain",
-                "O usuário é necessário"
+                "O CPF é necessário"
             );
         });
 
         it("shows an error message if password field is empty", () => {
-            cy.getByTestId("username-input").type(username);
+            cy.fixture("users.json").then((users) => {
+                cy.getByTestId("cpf-input").type(users.admin_user.cpf);
+            });
             cy.getByTestId("submit-button").click();
 
             cy.getByTestId("validation-error").should(

@@ -17,11 +17,11 @@ declare global {
 
             /**
              * Custom command to log in with given credentials.
-             * @param username - The username for login.
+             * @param cpf - The cpf for login.
              * @param password - The password for login.
              * @example cy.login('admin', 'password123')
              */
-            login(username: string, password: string): Chainable<void>;
+            login(cpf: string, password: string): Chainable<void>;
 
             /**
              * Custom command to get a random CNPJ from the propostas-aprovadas.json fixture.
@@ -49,12 +49,12 @@ Cypress.Commands.add("selectCombobox", (id, option) => {
     cy.get('[role="option"]').click();
 });
 
-Cypress.Commands.add("login", (username, password) => {
+Cypress.Commands.add("login", (cpf, password) => {
     cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as(
         "loginRequest"
     );
 
-    cy.getByTestId("username-input").type(username);
+    cy.getByTestId("cpf-input").type(cpf);
     cy.getByTestId("password-input").type(password);
     cy.getByTestId("submit-button").click();
 
@@ -71,7 +71,7 @@ Cypress.Commands.add("login", (username, password) => {
 });
 
 Cypress.Commands.add("getRandomCnpj", () => {
-    return cy.fixture("propostas-aprovadas.json").then((fixtureData) => {
+    return cy.fixture("propostas.json").then((fixtureData) => {
         const cnpjs = fixtureData.approved_cnpjs;
 
         if (cnpjs.length === 0) {

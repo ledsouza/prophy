@@ -17,7 +17,7 @@
 import "./commands";
 
 export const errorMessages = {
-    emptyUser: "O usuário é necessário",
+    emptyCPF: "O CPF é necessário",
     shortPassword: "A senha deve conter no mínimo 8 caracteres",
     emptyInstitutionName: "Nome da instituição é obrigatório",
     invalidInstitutionEmail: "E-mail da instituição inválido",

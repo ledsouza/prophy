@@ -17,7 +17,7 @@ const checkPasswordScore = (password: string) => {
 
 export const registerSchema = z
     .object({
-        username: z.string().min(1, { message: "O usuário é necessário" }),
+        cpf: z.string().min(1, { message: "O CPF é necessário" }),
         password: z
             .string()
             .min(8, {
@@ -109,13 +109,13 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 Dados da sua conta
             </h3>
             <Input
-                {...register("username")}
+                {...register("cpf")}
                 type="text"
-                errorMessage={errors.username?.message}
-                placeholder="Nome de usuário"
-                data-testid="username-input"
+                errorMessage={errors.cpf?.message}
+                placeholder="Digite o seu CPF (apenas dígitos)"
+                data-testid="cpf-input"
             >
-                Usuário
+                CPF
             </Input>
             <Input
                 {...register("password")}

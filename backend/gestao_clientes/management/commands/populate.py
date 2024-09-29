@@ -39,6 +39,12 @@ PROFILES = [
 
 CPF_ADMIN = "03446254005"
 CPF_GERENTE_CLIENTE = "82484874073"
+PASSWORD = "passwordtest"
+
+REJECTED_PROPOSTA_CNPJ = "09352176000187"
+APPROVED_PROPOSTA_CNPJ = "26661570000116"
+
+REGISTERED_CNPJ = "78187773000116"
 
 
 class Command(BaseCommand):
@@ -46,12 +52,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.create_groups()
-        self.populate_users()
+        admin_user, client_user = self.populate_users()
         self.populate_clientes()
         self.populate_unidades()
         self.populate_equipamentos()
         approved_cnpjs = self.populate_propostas()
-        self.create_json_fixture(approved_cnpjs)
+        self.create_json_fixture(approved_cnpjs, admin_user, client_user)
         self.stdout.write(self.style.SUCCESS(
             'Database populated and fixture created successfully!'))
 
@@ -72,17 +78,17 @@ class Command(BaseCommand):
         """Populates the User model with example data."""
 
         # Default users for automated testing
-        UserAccount.objects.create_superuser(
+        admin_user = UserAccount.objects.create_superuser(
             cpf=CPF_ADMIN,
             email=fake.email(),
-            password="passwordtest",
+            password=PASSWORD,
             name="Admin"
         )
 
-        UserAccount.objects.create_user(
+        client_user = UserAccount.objects.create_user(
             cpf=CPF_GERENTE_CLIENTE,
             email=fake.email(),
-            password="passwordtest",
+            password=PASSWORD,
             name="cliente",
             profile="Gerente Geral do Cliente",
             id=999
@@ -93,9 +99,11 @@ class Command(BaseCommand):
             UserAccount.objects.create_user(
                 cpf=fake_cpf(),
                 email=fake.email(),
-                password="passwordtest",
+                password=PASSWORD,
                 name=fake.name()
             )
+
+        return admin_user, client_user
 
     def populate_clientes(self, num_clientes=10):
         """Populates the Cliente model with example data."""
@@ -103,7 +111,7 @@ class Command(BaseCommand):
 
         # Default clients for automated testing
         cliente1 = Cliente.objects.create(
-            cnpj="78187773000116",
+            cnpj=REGISTERED_CNPJ,
             nome_instituicao=fake.company(),
             nome_contato=fake.name(),
             email_contato=fake.email(),
@@ -243,7 +251,7 @@ class Command(BaseCommand):
 
         # Defaults Proposta for automated testing
         Proposta.objects.create(
-            cnpj="09352176000187",
+            cnpj=REJECTED_PROPOSTA_CNPJ,
             cidade=fake.city(),
             estado=choice(STATE_CHOICES)[0],
             nome=fake.name(),
@@ -254,20 +262,6 @@ class Command(BaseCommand):
                 left_digits=5, right_digits=2, positive=True),
             tipo_contrato=choice(tipos_contrato),
             status="R"
-        )
-
-        Proposta.objects.create(
-            cnpj="26661570000116",
-            cidade=fake.city(),
-            estado=choice(STATE_CHOICES)[0],
-            nome=fake.name(),
-            telefone=fake_phone_number(),
-            email=fake.email(),
-            data_proposta=fake.date(),
-            valor=fake.pydecimal(
-                left_digits=5, right_digits=2, positive=True),
-            tipo_contrato=choice(tipos_contrato),
-            status="A"
         )
 
         for _ in range(num_propostas):
@@ -304,21 +298,51 @@ class Command(BaseCommand):
 
         return approved_cnpjs
 
-    def create_json_fixture(self, approved_cnpjs):
-        fixture_data = {"approved_cnpjs": approved_cnpjs}
+    def create_json_fixture(self, approved_cnpjs, admin_user, client_user):
+        fixture_proposta = {
+            "approved_cnpjs": approved_cnpjs,
+            "rejected_cnpj": REJECTED_PROPOSTA_CNPJ
+        }
+        fixture_users = {"admin_user": {
+            "cpf": admin_user.cpf,
+            "password": PASSWORD
+        },
+            "client_user": {
+                "cpf": client_user.cpf,
+                "password": PASSWORD
+        }}
+        fixture_cliente = {
+            "registered_cnpj": REGISTERED_CNPJ
+        }
 
-        # Construct the correct path for the fixture file
+        # Construct the correct path for the fixture files
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.abspath(
             os.path.join(current_dir, '..', '..', '..', '..'))
         fixture_path = os.path.join(
-            project_root, 'frontend', 'cypress', 'fixtures', 'propostas-aprovadas.json')
+            project_root, 'frontend', 'cypress', 'fixtures')
+        fixture_path_proposta = os.path.join(
+            fixture_path, 'propostas.json')
+        fixture_path_users = os.path.join(fixture_path, 'users.json')
+        fixture_path_cliente = os.path.join(fixture_path, 'clientes.json')
 
         # Ensure the directory exists
         os.makedirs(os.path.dirname(fixture_path), exist_ok=True)
 
-        with open(fixture_path, 'w') as json_file:
-            json.dump(fixture_data, json_file, indent=2)
+        with open(fixture_path_proposta, 'w') as json_file:
+            json.dump(fixture_proposta, json_file, indent=2)
+
+        with open(fixture_path_users, 'w') as json_file:
+            json.dump(fixture_users, json_file, indent=2)
+
+        with open(fixture_path_cliente, 'w') as json_file:
+            json.dump(fixture_cliente, json_file, indent=2)
 
         self.stdout.write(self.style.SUCCESS(
-            f'Created propostas-aprovadas.json with {len(approved_cnpjs)} CNPJs'))
+            f'Created propostas.json'))
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Created users.json'))
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Created clientes.json'))

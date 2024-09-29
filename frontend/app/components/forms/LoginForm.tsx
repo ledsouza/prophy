@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 import prophyIcon from "@/../public/images/prophy-icon.png";
 
 const loginFieldsSchema = z.object({
-    username: z.string().min(1, { message: "O usuário é necessário" }),
+    cpf: z.string().min(1, { message: "O CPF é necessário" }),
     password: z
         .string()
         .min(8, { message: "A senha deve conter no mínimo 8 caracteres" }),
@@ -45,7 +45,7 @@ const LoginForm = () => {
             router.push("/dashboard");
         } catch (error) {
             toast.error(
-                "Houve uma falha ao acessar sua conta. Verifique se o usuário e senha estão corretos"
+                "Houve uma falha ao acessar sua conta. Verifique se o CPF e senha estão corretos"
             );
         }
     };
@@ -60,12 +60,12 @@ const LoginForm = () => {
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <Input
-                        {...register("username")}
+                        {...register("cpf")}
                         type="text"
-                        errorMessage={errors.username?.message}
-                        data-testid="username-input"
+                        errorMessage={errors.cpf?.message}
+                        data-testid="cpf-input"
                     >
-                        Usuário
+                        CPF
                     </Input>
                     <Input
                         {...register("password")}

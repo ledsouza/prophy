@@ -1,11 +1,8 @@
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { errorMessages } from "cypress/support/e2e";
+import { generate as fakeCPF } from "gerador-validador-cpf";
 
 describe("Client Registration", () => {
-    const invalidCnpj = "09352176000187";
-    const registeredCnpj = "78187773000116";
-    const registeredUsername = "admin";
-
     const fakerPhone = () => {
         return faker.phone
             .number({ style: "national" })
@@ -37,7 +34,9 @@ describe("Client Registration", () => {
 
     context("CNPJ Form Failure Scenario", () => {
         it("shows an error message if unauthorized cnpj", () => {
-            cy.getByTestId("input-cnpj").type(invalidCnpj);
+            cy.fixture("propostas.json").then((propostas) => {
+                cy.getByTestId("input-cnpj").type(propostas.rejected_cnpj);
+            });
             cy.getByTestId("button-submit").click();
 
             cy.get("[role='alert']").should(
@@ -76,7 +75,9 @@ describe("Client Registration", () => {
         });
 
         it("shows an error message if cnpj is already registered", () => {
-            cy.getByTestId("input-cnpj").type(registeredCnpj);
+            cy.fixture("clientes.json").then((clientes) => {
+                cy.getByTestId("input-cnpj").type(clientes.registered_cnpj);
+            });
             cy.getByTestId("button-submit").click();
 
             cy.getByTestId("validation-error").should(
@@ -97,7 +98,7 @@ describe("Client Registration", () => {
                 "exist"
             );
 
-            cy.getByTestId("username-input").should("exist");
+            cy.getByTestId("cpf-input").should("exist");
             cy.getByTestId("password-input").should("exist");
             cy.getByTestId("repassword-input").should("exist");
             cy.getByTestId("institution-name-input").should("exist");
@@ -136,7 +137,7 @@ describe("Client Registration", () => {
             });
             cy.getByTestId("button-submit").click();
 
-            cy.getByTestId("username-input").type(faker.internet.userName());
+            cy.getByTestId("cpf-input").type(fakeCPF());
             cy.getByTestId("password-input").type("StrongPassword123!");
             cy.getByTestId("repassword-input").type("DifferentPassword123!");
             cy.getByTestId("institution-name-input").type(faker.company.name());
@@ -166,7 +167,7 @@ describe("Client Registration", () => {
             });
             cy.getByTestId("button-submit").click();
 
-            cy.getByTestId("username-input").type(faker.internet.userName());
+            cy.getByTestId("cpf-input").type(fakeCPF());
             cy.getByTestId("password-input").type("10678910");
             cy.getByTestId("repassword-input").type("10678910");
             cy.getByTestId("institution-name-input").type(faker.company.name());
@@ -242,7 +243,7 @@ describe("Client Registration", () => {
             );
         });
 
-        it("should show an error message for already registered username", () => {
+        it("should show an error message for already registered cpf", () => {
             cy.intercept("POST", "http://localhost:8000/api/users/").as(
                 "registerUser"
             );
@@ -264,7 +265,9 @@ describe("Client Registration", () => {
             });
             cy.getByTestId("button-submit").click();
 
-            cy.getByTestId("username-input").type(registeredUsername);
+            cy.fixture("users.json").then((users) => {
+                cy.getByTestId("cpf-input").type(users.admin_user.cpf);
+            });
             cy.getByTestId("password-input").type(password);
             cy.getByTestId("repassword-input").type(password);
             cy.getByTestId("institution-name-input").type(fakeCompany);
@@ -284,7 +287,7 @@ describe("Client Registration", () => {
 
             cy.get("[role='alert']").should(
                 "contain",
-                "Um usuário com este nome de usuário já existe."
+                "Um usuário com este CPF já existe."
             );
         });
     });
@@ -301,7 +304,7 @@ describe("Client Registration", () => {
                 "createClient"
             );
 
-            const username = faker.internet.userName();
+            const cpf = fakeCPF();
             const password = "StrongPassword123!";
             const fakeCompany = faker.company.name();
             const fakeEmailCompany = faker.internet.email();
@@ -320,7 +323,7 @@ describe("Client Registration", () => {
             });
             cy.getByTestId("button-submit").click();
 
-            cy.getByTestId("username-input").type(username);
+            cy.getByTestId("cpf-input").type(cpf);
             cy.getByTestId("password-input").type(password);
             cy.getByTestId("repassword-input").type(password);
             cy.getByTestId("institution-name-input").type(fakeCompany);
@@ -337,10 +340,7 @@ describe("Client Registration", () => {
             cy.wait("@registerUser").then((interception) => {
                 expect(interception.response?.statusCode).to.eq(201);
 
-                expect(interception.request.body).to.have.property(
-                    "username",
-                    username
-                );
+                expect(interception.request.body).to.have.property("cpf", cpf);
                 expect(interception.request.body).to.have.property(
                     "password",
                     password
@@ -354,10 +354,7 @@ describe("Client Registration", () => {
             cy.wait("@loginUser").then((interception) => {
                 expect(interception.response?.statusCode).to.eq(200);
 
-                expect(interception.request.body).to.have.property(
-                    "username",
-                    username
-                );
+                expect(interception.request.body).to.have.property("cpf", cpf);
                 expect(interception.request.body).to.have.property(
                     "password",
                     password

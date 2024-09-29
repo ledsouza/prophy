@@ -1,0 +1,10 @@
+{
+  "admin_user": {
+    "cpf": "03446254005",
+    "password": "passwordtest"
+  },
+  "client_user": {
+    "cpf": "82484874073",
+    "password": "passwordtest"
+  }
+}

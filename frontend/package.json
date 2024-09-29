@@ -23,6 +23,7 @@
         "async-mutex": "^0.5.0",
         "class-variance-authority": "^0.7.0",
         "classnames": "^2.5.1",
+        "gerador-validador-cpf": "^5.0.2",
         "lodash": "^4.17.21",
         "next": "14.2.5",
         "react": "^18",

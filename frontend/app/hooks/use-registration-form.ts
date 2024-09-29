@@ -32,7 +32,7 @@ const useRegistrationForm = ({
     const onSubmit: SubmitHandler<RegisterFields> = async (data) => {
         try {
             const {
-                username,
+                cpf,
                 password,
                 re_password,
                 nome_instituicao,
@@ -46,14 +46,14 @@ const useRegistrationForm = ({
             } = registerSchema.parse(data);
 
             await registerUser({
-                username,
+                cpf,
                 email: email_contato,
                 name: nome_contato,
                 password,
                 re_password,
             }).unwrap();
 
-            await login({ username, password });
+            await login({ cpf, password });
             dispatch(setAuth());
 
             await createClient({
@@ -74,7 +74,7 @@ const useRegistrationForm = ({
         } catch (error: any) {
             if (error?.status === 400) {
                 console.log("useRegistrationForm Error Status 400: ", error);
-                toast.info("Um usuário com este nome de usuário já existe.");
+                toast.info("Um usuário com este CPF já existe.");
                 return;
             }
             console.error("useRegistrationForm Error:", error);
