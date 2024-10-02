@@ -23,6 +23,7 @@ This application is a comprehensive web-based system designed for medical physic
 * **Form Validation:** Zod
 * **Authentication:** JWT (JSON Web Token)
 * **Styling:** Tailwind CSS
+* **Design:** Figma
 * **Deployment:** DigitalOcean
 
 ## Detailed Features
