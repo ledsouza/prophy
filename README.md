@@ -1,3 +1,7 @@
+<div style="text-align: center;">
+   <img src="frontend/public/images/prophy-icon.png" alt="Prophy Logo">
+</div>
+
 ## Prophy Medical Physics Management System
 
 ![Status Badge](https://img.shields.io/badge/Status-In%20Progress-yellow)
