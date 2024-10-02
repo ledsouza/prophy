@@ -1,6 +1,6 @@
-<div style="text-align: center;">
-   <img src="frontend/public/images/prophy-icon.png" alt="Prophy Logo">
-</div>
+<p align="center">
+   <img width="150" height="150" src="frontend/public/images/prophy-icon.png" alt="Prophy Logo">
+</p>
 
 ## Prophy Medical Physics Management System
 
