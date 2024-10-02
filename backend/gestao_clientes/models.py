@@ -1,6 +1,7 @@
 from datetime import date
 from django.db import models
 from django.contrib import admin
+from django.core.validators import MinLengthValidator
 from django.utils.translation import gettext as _
 from django.utils.html import format_html
 
@@ -16,7 +17,8 @@ class Cliente(models.Model):
     """
     users = models.ManyToManyField(
         UserAccount, related_name="clientes", blank=True, verbose_name="Usuários")
-    cnpj = models.CharField("CNPJ", max_length=14, unique=True)
+    cnpj = models.CharField("CNPJ", max_length=14,
+                            unique=True, validators=[MinLengthValidator(14)])
     nome_instituicao = models.CharField("Nome da instituição", max_length=50)
     nome_contato = models.CharField("Nome do contato", max_length=50)
     email_contato = models.EmailField("E-mail do contato")
@@ -50,7 +52,8 @@ class Unidade(models.Model):
     cliente = models.ForeignKey(
         Cliente, on_delete=models.SET_NULL, related_name="unidades", blank=True, null=True)
     nome = models.CharField("Nome", max_length=50)
-    cnpj = models.CharField("CNPJ", max_length=14)
+    cnpj = models.CharField("CNPJ", max_length=14, validators=[
+                            MinLengthValidator(14)])
     nome_contato = models.CharField("Nome do contato", max_length=50)
     email = models.EmailField("E-mail")
     telefone = models.CharField("Telefone", max_length=13)
@@ -111,7 +114,8 @@ class Proposta(models.Model):
         ("M", "Mensal"),
     )
 
-    cnpj = models.CharField("CNPJ", max_length=14, unique=True)
+    cnpj = models.CharField("CNPJ", max_length=14, validators=[
+                            MinLengthValidator(14)])
     cidade = models.CharField("Cidade da instituição", max_length=50)
     estado = models.CharField("Estado da instituição",
                               max_length=2, choices=STATE_CHOICES)
