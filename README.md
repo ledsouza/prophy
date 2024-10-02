@@ -2,7 +2,7 @@
    <img width="150" height="150" src="frontend/public/images/prophy-icon.png" alt="Prophy Logo">
 </p>
 
-## Prophy Medical Physics Management System
+<h1 align="center">Prophy Medical Physics Management System</h1>
 
 ![Status Badge](https://img.shields.io/badge/Status-In%20Progress-yellow)
 
