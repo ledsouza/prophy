@@ -50,7 +50,7 @@ class Unidade(models.Model):
     cliente = models.ForeignKey(
         Cliente, on_delete=models.SET_NULL, related_name="unidades", blank=True, null=True)
     nome = models.CharField("Nome", max_length=50)
-    cnpj = models.CharField("CNPJ", max_length=14, unique=True)
+    cnpj = models.CharField("CNPJ", max_length=14)
     nome_contato = models.CharField("Nome do contato", max_length=50)
     email = models.EmailField("E-mail")
     telefone = models.CharField("Telefone", max_length=13)
