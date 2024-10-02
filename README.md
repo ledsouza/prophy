@@ -6,7 +6,7 @@
 
 This application is a comprehensive web-based system designed for medical physics companies to manage their clients, schedule appointments, organize institutional materials, and handle billing efficiently. 
 
-**This project is currently under development and is licensed exclusively for use by Prophy.**
+**This project is currently under development.**
 
 ## Technologies Used
 
@@ -112,33 +112,3 @@ Future development will include:
 * **Enhanced reporting and analytics.**
 * **Mobile app for clients and staff.**
 * **Continuous improvement based on user feedback.**
-
-## License
-
-This software is developed by Leandro da Silva de Souza for **Prophy**.
-
-### Ownership
-
-The software and all associated intellectual property rights are the exclusive property of **Prophy**.
-
-### Usage
-
-This software is licensed exclusively to **Prophy**. It may only be used, distributed, or modified as per the agreements set forth by **Prophy**. Any unauthorized use, distribution, or modification is strictly prohibited.
-
-### Distribution
-
-This software is intended for internal use by **Prophy** and its authorized personnel. Redistribution outside of **Prophy** is not permitted unless explicitly authorized by **Prophy**.
-
-### Modifications
-
-Any modifications or derivative works based on this software must be approved by **Prophy**. All rights to such modifications or derivative works are retained by **Prophy** unless otherwise agreed.
-
-### Support and Maintenance
-
-Support and maintenance of this software will be provided according to the terms agreed upon with **Prophy**. Any issues or bugs should be reported to the designated support contact at **Prophy**.
-
-### Warranty and Liability
-
-This software is provided “as is,” without any express or implied warranties, including but not limited to the implied warranties of merchantability and fitness for a particular purpose. **Prophy** assumes no responsibility for the accuracy, reliability, or completeness of the software and does not warrant that the software will operate uninterrupted or be error-free.
-
-In no event shall the developer be liable for any indirect, incidental, special, or consequential damages, including but not limited to loss of profits, business interruption, or loss of information, arising out of the use or inability to use the software. The total liability of the developer, whether in contract, tort, or otherwise, shall not exceed the amount paid by **Prophy** for the software.
