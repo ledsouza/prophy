@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Aplicação Web para atendimentos de clientes no setor da física médica"
 authors = ["ledsouza <leandro.souza.159@gmail.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
