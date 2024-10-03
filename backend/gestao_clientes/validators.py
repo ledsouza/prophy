@@ -29,7 +29,7 @@ class FixedLength:
 
     def __call__(self, value):
         if len(value) != self.length:
-            message = f"Esse campo deve conter {self.length} caracteres."
+            message = f"Este campo deve conter {self.length} caracteres."
             raise ValidationError(message)
 
     def deconstruct(self):

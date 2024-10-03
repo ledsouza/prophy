@@ -1,4 +1,5 @@
 from django.db import models
+from gestao_clientes.validators import FixedLength
 from django.contrib.auth.models import (
     BaseUserManager,
     AbstractBaseUser,
@@ -70,7 +71,8 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         ("Comercial", "Comercial"),
     ]
 
-    cpf = models.CharField("CPF", max_length=11, unique=True)
+    cpf = models.CharField("CPF", max_length=11,
+                           unique=True, validators=[FixedLength(11)])
     email = models.EmailField("E-mail", max_length=255, unique=True)
     name = models.CharField("Nome", max_length=255)
     profile = models.CharField(
