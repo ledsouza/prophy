@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "djoser",
     "corsheaders",
     "rest_framework_simplejwt",
+    'django_filters',
     "autenticacao",
     "gestao_clientes",
 ]

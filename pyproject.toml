@@ -20,6 +20,7 @@ django-stubs = "^5.0.4"
 localflavor = "^1.9"
 faker = "^28.1.0"
 validate-docbr = "^1.10.0"
+django-filter = "^24.3"
 
 
 [build-system]

@@ -96,6 +96,8 @@ class ClienteViewSet(viewsets.ViewSet):
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
 
+        queryset = queryset.order_by("users")
+
         # Pagination
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
@@ -139,6 +141,8 @@ class UnidadeViewSet(viewsets.ViewSet):
         else:
             queryset = Unidade.objects.all()
 
+        queryset = queryset.order_by("cliente")
+
         # Pagination
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
@@ -169,6 +173,8 @@ class EquipamentoViewSet(viewsets.ViewSet):
             queryset = Equipamento.objects.filter(unidade__cliente__users=user)
         else:
             queryset = Equipamento.objects.all()
+
+        queryset = queryset.order_by("unidade")
 
         # Pagination
         paginator = PageNumberPagination()
