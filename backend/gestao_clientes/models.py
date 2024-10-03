@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from django.utils.html import format_html
 
 from autenticacao.models import UserAccount
-from gestao_clientes.validators import FixedLength
+from core.validators import FixedLength
 
 from localflavor.br.br_states import STATE_CHOICES
 import calendar

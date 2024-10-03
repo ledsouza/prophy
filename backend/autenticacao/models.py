@@ -1,5 +1,5 @@
 from django.db import models
-from gestao_clientes.validators import FixedLength
+from core.validators import FixedLength
 from django.contrib.auth.models import (
     BaseUserManager,
     AbstractBaseUser,
