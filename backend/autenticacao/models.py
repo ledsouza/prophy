@@ -1,5 +1,6 @@
 from django.db import models
-from core.validators import FixedLength, AlphaOnly
+from core.validators import AlphaOnly
+from autenticacao.validators import CPFValidator
 from django.contrib.auth.models import (
     BaseUserManager,
     AbstractBaseUser,
@@ -72,7 +73,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     ]
 
     cpf = models.CharField("CPF", max_length=11,
-                           unique=True, validators=[FixedLength(11)])
+                           unique=True, validators=[CPFValidator()])
     email = models.EmailField("E-mail", max_length=255, unique=True)
     name = models.CharField("Nome", max_length=255, validators=[AlphaOnly()])
     profile = models.CharField(

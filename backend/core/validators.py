@@ -63,7 +63,7 @@ class AlphaOnly:
     """
 
     def __call__(self, value: str):
-        if not value.isalpha():
+        if not value.replace(" ", "").isalpha():
             message = "Este campo deve conter apenas letras."
             raise ValidationError(message)
 

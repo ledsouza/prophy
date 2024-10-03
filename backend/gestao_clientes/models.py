@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from django.utils.html import format_html
 
 from autenticacao.models import UserAccount
+from gestao_clientes.validators import CNPJValidator
 from core.validators import FixedLength, AlphaOnly
 
 from localflavor.br.br_states import STATE_CHOICES
@@ -18,7 +19,7 @@ class Cliente(models.Model):
     users = models.ManyToManyField(
         UserAccount, related_name="clientes", blank=True, verbose_name="Usuários")
     cnpj = models.CharField("CNPJ", max_length=14,
-                            unique=True, validators=[FixedLength(14)])
+                            unique=True, validators=[CNPJValidator()])
     nome_instituicao = models.CharField("Nome da instituição", max_length=50)
     nome_contato = models.CharField(
         "Nome do contato", max_length=50, validators=[AlphaOnly()])
@@ -52,9 +53,9 @@ class Unidade(models.Model):
     """
     cliente = models.ForeignKey(
         Cliente, on_delete=models.SET_NULL, related_name="unidades", blank=True, null=True)
-    nome = models.CharField("Nome", max_length=50, validators=[AlphaOnly()])
+    nome = models.CharField("Nome", max_length=50)
     cnpj = models.CharField("CNPJ", max_length=14, validators=[
-                            FixedLength(14)])
+                            CNPJValidator()])
     nome_contato = models.CharField(
         "Nome do contato", max_length=50, validators=[AlphaOnly()])
     email = models.EmailField("E-mail")
@@ -118,7 +119,7 @@ class Proposta(models.Model):
     )
 
     cnpj = models.CharField("CNPJ", max_length=14, validators=[
-                            FixedLength(14)])
+                            CNPJValidator()])
     cidade = models.CharField("Cidade da instituição",
                               max_length=50, validators=[AlphaOnly()])
     estado = models.CharField("Estado da instituição",
