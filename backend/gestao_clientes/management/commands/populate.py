@@ -263,6 +263,20 @@ class Command(BaseCommand):
             status="R"
         )
 
+        Proposta.objects.create(
+            cnpj=APPROVED_PROPOSTA_CNPJ,
+            cidade=fake.city(),
+            estado=choice(STATE_CHOICES)[0],
+            nome=fake.name(),
+            telefone=fake_phone_number(),
+            email=fake.email(),
+            data_proposta=fake.date(),
+            valor=fake.pydecimal(
+                left_digits=5, right_digits=2, positive=True),
+            tipo_contrato=choice(tipos_contrato),
+            status="A"
+        )
+
         for _ in range(num_propostas):
             cnpj = fake_cnpj()
 
