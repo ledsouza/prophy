@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from django.utils.html import format_html
 
 from autenticacao.models import UserAccount
-from core.validators import FixedLength
+from core.validators import FixedLength, AlphaOnly
 
 from localflavor.br.br_states import STATE_CHOICES
 import calendar
@@ -20,7 +20,8 @@ class Cliente(models.Model):
     cnpj = models.CharField("CNPJ", max_length=14,
                             unique=True, validators=[FixedLength(14)])
     nome_instituicao = models.CharField("Nome da instituição", max_length=50)
-    nome_contato = models.CharField("Nome do contato", max_length=50)
+    nome_contato = models.CharField(
+        "Nome do contato", max_length=50, validators=[AlphaOnly()])
     email_contato = models.EmailField("E-mail do contato")
     email_instituicao = models.EmailField("E-mail da instituição")
     telefone_instituicao = models.CharField(
@@ -51,16 +52,18 @@ class Unidade(models.Model):
     """
     cliente = models.ForeignKey(
         Cliente, on_delete=models.SET_NULL, related_name="unidades", blank=True, null=True)
-    nome = models.CharField("Nome", max_length=50)
+    nome = models.CharField("Nome", max_length=50, validators=[AlphaOnly()])
     cnpj = models.CharField("CNPJ", max_length=14, validators=[
                             FixedLength(14)])
-    nome_contato = models.CharField("Nome do contato", max_length=50)
+    nome_contato = models.CharField(
+        "Nome do contato", max_length=50, validators=[AlphaOnly()])
     email = models.EmailField("E-mail")
     telefone = models.CharField("Telefone", max_length=13)
     endereco = models.CharField("Endereço", max_length=100)
     estado = models.CharField(
         "Estado", max_length=2, choices=STATE_CHOICES, blank=True)
-    cidade = models.CharField("Cidade", max_length=50, blank=True)
+    cidade = models.CharField("Cidade", max_length=50,
+                              blank=True, validators=[AlphaOnly()])
 
     def __str__(self) -> str:
         return f"{self.nome} - {self.cliente.nome_instituicao}"
@@ -84,7 +87,7 @@ class Equipamento(models.Model):
     foto_etiqueta = models.ImageField(
         "Foto da etiqueta", upload_to="equipamentos/etiquetas", blank=True, null=True)
     responsavel_manutencao = models.CharField(
-        "Responsável pela manutenção", max_length=50, blank=True, null=True)
+        "Responsável pela manutenção", max_length=50, blank=True, null=True, validators=[AlphaOnly()])
     email_responsavel = models.EmailField(
         "E-mail do responsável pela manutenção", blank=True, null=True)
     telefone_responsavel = models.CharField(
@@ -116,10 +119,12 @@ class Proposta(models.Model):
 
     cnpj = models.CharField("CNPJ", max_length=14, validators=[
                             FixedLength(14)])
-    cidade = models.CharField("Cidade da instituição", max_length=50)
+    cidade = models.CharField("Cidade da instituição",
+                              max_length=50, validators=[AlphaOnly()])
     estado = models.CharField("Estado da instituição",
                               max_length=2, choices=STATE_CHOICES)
-    nome = models.CharField("Nome do contato", max_length=50)
+    nome = models.CharField(
+        "Nome do contato", max_length=50, validators=[AlphaOnly()])
     telefone = models.CharField("Telefone do contato", max_length=13)
     email = models.EmailField("E-mail do contato")
     data_proposta = models.DateField("Data da proposta", default=date.today)
