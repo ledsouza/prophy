@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -94,8 +95,16 @@ class ClienteViewSet(viewsets.ViewSet):
         cnpj = request.query_params.get('cnpj')
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
-        serializer = ClienteSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        # Pagination
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = ClienteSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = ClienteSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def create(self, request):
@@ -130,8 +139,15 @@ class UnidadeViewSet(viewsets.ViewSet):
         else:
             queryset = Unidade.objects.all()
 
-        serializer = UnidadeSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Pagination
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = UnidadeSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = UnidadeSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EquipamentoViewSet(viewsets.ViewSet):
@@ -154,5 +170,12 @@ class EquipamentoViewSet(viewsets.ViewSet):
         else:
             queryset = Equipamento.objects.all()
 
-        serializer = EquipamentoSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Pagination
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = EquipamentoSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = EquipamentoSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
