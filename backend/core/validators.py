@@ -36,7 +36,7 @@ class FixedLength:
         """
         Tells Django how to deconstruct this validator for migrations.
         """
-        path = "gestao_clientes.validators.FixedLength"
+        path = "core.validators.FixedLength"
         args = (self.length,)
         kwargs = {}
         return (path, args, kwargs)
