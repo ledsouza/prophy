@@ -15,8 +15,7 @@ fake = Faker("pt_BR")
 
 
 def fake_phone_number():
-    return fake.phone_number().replace(
-        "(", "").replace(")", "").replace("-", "").replace(" ", "").replace("+", "")
+    return fake.msisdn()[2:]
 
 
 def fake_cnpj():
