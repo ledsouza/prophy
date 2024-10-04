@@ -7,35 +7,45 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
+
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 from .models import Proposta, Cliente, Unidade, Equipamento
 from .serializers import CNPJSerializer, ClienteSerializer, UnidadeSerializer, EquipamentoSerializer
 
 
 class LatestPropostaStatusView(APIView):
     """
-    View to check the approval status of the latest contract proposal with a given CNPJ.
-
-    This view allows unauthenticated access.
-
-    ## POST Request:
-
-    **Expected Data:**
-
-    - `cnpj`: The CNPJ of the Proposta.
-
-    **Response:**
-
-    - **200 OK:** If a Proposta with the given CNPJ is found.
-        - Returns a JSON object containing the 'approved' key with a boolean value
-          indicating whether the latest Proposta is approved or not.
-    - **404 Not Found:** If no Proposta with the given CNPJ is found.
-        - Returns a JSON object with an error message.
-    - **400 Bad Request:** If the provided data is invalid (e.g., invalid CNPJ format).
-        - Returns a JSON object containing the validation errors.
+    Check the approval status of the latest contract proposal with a given CNPJ.
     """
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        security=[{'Bearer': []}],
+        request_body=CNPJSerializer,
+        responses={
+            200: openapi.Response(
+                description="Successful Response",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'approved': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Approval status of the latest proposal')
+                    }
+                )
+            ),
+            404: "Proposta not found",
+            400: "Invalid CNPJ format or missing data"
+        }
+    )
     def post(self, request: Request) -> Response:
+        """
+        Check the approval status of the latest contract proposal.
+
+        ## Permissions
+
+        - All users (authenticated or not) can check.
+        """
         serializer = CNPJSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -55,26 +65,17 @@ class LatestPropostaStatusView(APIView):
 
 class ClienteViewSet(viewsets.ViewSet):
     """
-    A viewset that provides actions for listing and creating clients.
+    Viewset for managing clients.
 
-    list:
-        List all clients.
-        - If the request is made by an authenticated client, it will only list their own client data.
-        - If the request is made by an authenticated user other than a client, or an anonymous user, it will list all clients.
-        - Accepts an optional query parameter 'cnpj' to filter clients by CNPJ.
-
-    create:
-        Create a new client.
-        - Only authenticated users can access this view.
-        - The authenticated user will be assigned as the owner of the created client.
+    Provides actions for listing and creating clients.
     """
 
     def get_permissions(self):
         """
-        Instantiates and returns the list of permissions that this view requires.
+        Get permissions based on the action being performed.
 
-        For the 'list' action, any user (authenticated or not) is granted access.
-        For all other actions, only authenticated users are granted access.
+        - `list`: Allow any user (authenticated or not).
+        - All other actions: Require authentication.
         """
         if self.action == 'list':
             permission_classes = [AllowAny]
@@ -82,9 +83,51 @@ class ClienteViewSet(viewsets.ViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    @swagger_auto_schema(
+        security=[{'Bearer': []}],
+        manual_parameters=[
+            openapi.Parameter(
+                'cnpj',
+                openapi.IN_QUERY,
+                description="Filter clients by CNPJ",
+                type=openapi.TYPE_STRING
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Successful Response",
+                schema=ClienteSerializer(many=True)
+            )
+        }
+    )
     def list(self, request):
         """
-        List all clients.
+        List clients.
+
+        ## Permissions:
+
+        - All users (authenticated or not) can list clients.
+        - Authenticated Gerente Geral do Cliente: List clients associated with their user data.
+
+        ## Pagination Format:
+
+        **Successful Response (200 OK):**
+
+        ```json
+        {
+            "count": 123,  // Total number of clients
+            "next": "http://api.example.com/clients/?page=2", // Link to next page (if available)
+            "previous": null, // Link to previous page (if available)
+            "results": [
+                {
+                    "id": 1,
+                    "cnpj": "12345678000190",
+                    // ... other client fields
+                },
+                // ... more clients on this page
+            ]
+        }
+        ```
         """
         user = request.user
         if not isinstance(user, AnonymousUser) and user.profile == "Gerente Geral do Cliente":
@@ -108,10 +151,25 @@ class ClienteViewSet(viewsets.ViewSet):
             serializer = ClienteSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        security=[{'Bearer': []}],
+        request_body=ClienteSerializer,
+        responses={
+            201: openapi.Response(
+                description="Client created successfully",
+                schema=ClienteSerializer()
+            ),
+            400: "Invalid data provided"
+        }
+    )
     @transaction.atomic
     def create(self, request):
         """
-        Create a new client. Only authenticated users can access this view.
+        Create a new client.
+
+        ## Permissions:
+
+        - Only authenticated users.
         """
         serializer = ClienteSerializer(data=request.data)
         if serializer.is_valid():
@@ -123,17 +181,45 @@ class ClienteViewSet(viewsets.ViewSet):
 
 class UnidadeViewSet(viewsets.ViewSet):
     """
-    A viewset that provides an action for listing units.
-
-    list:
-        List all units.
-        - If the request is made by an authenticated client, it will only list the units associated with their own client data.
-        - If the request is made by an authenticated user other than a client, it will list all units.
+    Viewset for listing units.
     """
 
+    @swagger_auto_schema(
+        security=[{'Bearer': []}],
+        responses={
+            200: openapi.Response(
+                description="Successful Response",
+                schema=UnidadeSerializer(many=True)
+            )
+        }
+    )
     def list(self, request):
         """
-        List all units.
+        List units.
+
+        ## Permissions:
+
+        - Authenticated Gerente Geral do Cliente: List units associated with their user data.
+        - Other authenticated users: List all units.
+
+        ## Pagination Format:
+
+        **Successful Response (200 OK):**
+
+        ```json
+        {
+            "count": 123,  // Total number of units
+            "next": "http://api.example.com/units/?page=2", // Link to next page (if available)
+            "previous": null, // Link to previous page (if available)
+            "results": [
+                {
+                    "id": 1,
+                    // ... other unit fields
+                },
+                // ... more units on this page
+            ]
+        }
+        ```
         """
         user = request.user
         if user.profile == "Gerente Geral do Cliente":
@@ -156,17 +242,45 @@ class UnidadeViewSet(viewsets.ViewSet):
 
 class EquipamentoViewSet(viewsets.ViewSet):
     """
-    A viewset that provides an action for listing equipments.
-
-    list:
-        List all equipments.
-        - If the request is made by an authenticated client, it will only list the equipments associated with their own client data.
-        - If the request is made by an authenticated user other than a client, it will list all equipments.
+    Viewset for listing equipments.
     """
 
+    @swagger_auto_schema(
+        security=[{'Bearer': []}],
+        responses={
+            200: openapi.Response(
+                description="Successful Response",
+                schema=EquipamentoSerializer(many=True)
+            )
+        }
+    )
     def list(self, request):
         """
-        List all equipments.
+        List equipments.
+
+        ## Permissions:
+
+        - Authenticated Gerente Geral do Cliente: List equipments associated with their user data.
+        - Other authenticated users: List all equipments.
+
+        ## Response Format:
+
+        **Successful Response (200 OK):**
+
+        ```json
+        {
+            "count": 123,  // Total number of equipments
+            "next": "http://api.example.com/equipments/?page=2", // Link to next page (if available)
+            "previous": null, // Link to previous page (if available)
+            "results": [
+                {
+                    "id": 1,
+                    // ... other equipment fields
+                },
+                // ... more equipments on this page
+            ]
+        }
+        ```
         """
         user = request.user
         if user.profile == "Gerente Geral do Cliente":

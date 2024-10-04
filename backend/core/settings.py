@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework_simplejwt",
     'django_filters',
+    'drf_yasg',
     "autenticacao",
     "gestao_clientes",
 ]
@@ -149,6 +150,18 @@ AUTH_COOKIE_SECURE = getenv("AUTH_COOKIE_SECURE", "True") == "True"
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = "/"
 AUTH_COOKIE_SAMESITE = "Lax"
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+        }
+    },
+    'USE_SESSION_AUTH': False,
+}
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

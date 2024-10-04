@@ -4,7 +4,6 @@ from .views import (
     CustomTokenRefreshView,
     CustomTokenVerifyView,
     LogoutView,
-    UserGroupsView
 )
 
 urlpatterns = [
@@ -12,5 +11,4 @@ urlpatterns = [
     path('jwt/refresh/', CustomTokenRefreshView.as_view()),
     path('jwt/verify/', CustomTokenVerifyView.as_view()),
     path('logout/', LogoutView.as_view()),
-    path('groups/', UserGroupsView.as_view()),
 ]
