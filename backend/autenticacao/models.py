@@ -79,9 +79,12 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     profile = models.CharField(
         "Perfil", max_length=30, choices=PROFILE_CHOICES, default="Gerente Geral do Cliente")
 
-    is_active = models.BooleanField("Conta Ativa", default=True)
-    is_staff = models.BooleanField("Acesso à Administração", default=False)
-    is_superuser = models.BooleanField("Superusuário", default=False)
+    is_active = models.BooleanField(
+        "Conta Ativa", default=True, help_text="Indica que o usuário será tratado como ativo. Ao invés de excluir contas de usuário, desmarque isso.")
+    is_staff = models.BooleanField("Acesso à Administração", default=False,
+                                   help_text="Indica que usuário consegue acessar este site de administração.")
+    is_superuser = models.BooleanField(
+        "Superusuário", default=False, help_text="Indica que este usuário tem todas as permissões sem atribuí-las explicitamente.")
 
     objects = UserAccountManager()
 
