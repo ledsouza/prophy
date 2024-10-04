@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework import viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.response import Response
@@ -74,11 +74,11 @@ class ClienteViewSet(viewsets.ViewSet):
         """
         Get permissions based on the action being performed.
 
-        - `list`: Allow any user (authenticated or not).
+        - `list`: The request is authenticated as a user, or is a read-only request.
         - All other actions: Require authentication.
         """
         if self.action == 'list':
-            permission_classes = [AllowAny]
+            permission_classes = [IsAuthenticatedOrReadOnly]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
@@ -106,7 +106,7 @@ class ClienteViewSet(viewsets.ViewSet):
 
         ## Permissions:
 
-        - All users (authenticated or not) can list clients.
+        - Unauthenticated Users: Read-only.
         - Authenticated Gerente Geral do Cliente: List clients associated with their user data.
 
         ## Pagination Format:
