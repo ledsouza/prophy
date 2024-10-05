@@ -6,7 +6,7 @@ from django.utils.html import format_html
 
 from autenticacao.models import UserAccount
 from gestao_clientes.validators import CNPJValidator
-from core.validators import FixedLength, AlphaOnly
+from core.validators import AlphaOnly
 
 from localflavor.br.br_states import STATE_CHOICES
 import calendar
@@ -17,7 +17,7 @@ class Cliente(models.Model):
     Model representing a client.
     """
     users = models.ManyToManyField(
-        UserAccount, related_name="clientes", blank=True, verbose_name="Usuários")
+        UserAccount, related_name="clientes", blank=True, verbose_name="Responsáveis")
     cnpj = models.CharField("CNPJ", max_length=14,
                             unique=True, validators=[CNPJValidator()])
     nome_instituicao = models.CharField("Nome da instituição", max_length=50)
@@ -51,6 +51,8 @@ class Unidade(models.Model):
     """
     Model representing a unit of a client.
     """
+    user = models.ForeignKey(UserAccount, on_delete=models.SET_NULL,
+                             related_name="users", blank=True, null=True, verbose_name="Responsável")
     cliente = models.ForeignKey(
         Cliente, on_delete=models.SET_NULL, related_name="unidades", blank=True, null=True)
     nome = models.CharField("Nome", max_length=50)

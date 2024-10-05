@@ -30,7 +30,7 @@ class UnidadeAdmin(admin.ModelAdmin):
     list_display = ("cnpj", "nome", "cliente", "nome_contato",
                     "email", "telefone", "estado", "cidade")
     list_display_links = ("cnpj",)
-    autocomplete_fields = ("cliente",)
+    autocomplete_fields = ("cliente", "user")
     search_fields = ("nome", "cnpj", "estado", "cidade")
     list_filter = ("cliente__nome_instituicao",)
 

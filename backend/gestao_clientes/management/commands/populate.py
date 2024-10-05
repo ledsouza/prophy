@@ -157,11 +157,13 @@ class Command(BaseCommand):
 
     def populate_unidades(self, num_unidades_per_cliente=2):
         """Populates the Unidade model with example data."""
+        all_users = UserAccount.objects.all()
         user_client = UserAccount.objects.get(cpf=CPF_GERENTE_CLIENTE)
         clients = Cliente.objects.filter(users=user_client)
 
         # Default units for automated testing
         Unidade.objects.create(
+            user=user_client,
             cliente=clients[0],
             nome=fake.company_suffix() + " " + fake.company(),
             cnpj=fake_cnpj(),
@@ -174,6 +176,7 @@ class Command(BaseCommand):
             id=1000
         )
         Unidade.objects.create(
+            user=user_client,
             cliente=clients[1],
             nome=fake.company_suffix() + " " + fake.company(),
             cnpj=fake_cnpj(),
@@ -190,6 +193,7 @@ class Command(BaseCommand):
         for cliente in Cliente.objects.all().exclude(users=user_client):
             for _ in range(num_unidades_per_cliente):
                 Unidade.objects.create(
+                    user=choice(all_users),
                     cliente=cliente,
                     nome=fake.company_suffix() + " " + fake.company(),
                     cnpj=fake_cnpj(),
