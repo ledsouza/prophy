@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import Group
+from django.conf import settings
 
 from gestao_clientes.models import Cliente, Unidade, Equipamento, Proposta
 from autenticacao.models import UserAccount
@@ -26,15 +27,6 @@ def fake_cnpj():
 def fake_cpf():
     return fake.cpf().replace(".", "").replace("-", "")
 
-
-PROFILES = [
-    "Físico Médico Interno",
-    "Físico Médico Externo",
-    "Gerente Prophy",
-    "Gerente Geral do Cliente",
-    "Gerente de Unidade",
-    "Comercial"
-]
 
 CPF_ADMIN = "03446254005"
 CPF_GERENTE_CLIENTE = "82484874073"
@@ -63,13 +55,13 @@ class Command(BaseCommand):
     def create_groups(self):
         permissions = Permission.objects.all()
 
-        for profile in PROFILES:
-            group, _ = Group.objects.get_or_create(name=profile)
+        for role in settings.ROLES:
+            group, _ = Group.objects.get_or_create(name=role)
 
-            if profile == "Gerente Prophy":
+            if role == "Gerente Prophy":
                 group.permissions.set(permissions)
 
-            if profile == "Gerente Geral do Cliente":
+            if role == "Gerente Geral do Cliente":
                 group.permissions.set([permissions.get(name__contains="view cliente"), permissions.get(
                     name__contains="view unidade"), permissions.get(name__contains="view equipamento")])
 
@@ -89,7 +81,7 @@ class Command(BaseCommand):
             email=fake.email(),
             password=PASSWORD,
             name="cliente",
-            profile="Gerente Geral do Cliente",
+            role="Gerente Geral do Cliente",
             id=999
         )
 

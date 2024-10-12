@@ -130,7 +130,7 @@ class ClienteViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if not isinstance(user, AnonymousUser) and user.profile == "Gerente Geral do Cliente":
+        if not isinstance(user, AnonymousUser) and user.role == "Gerente Geral do Cliente":
             queryset = Cliente.objects.filter(users=user)
         else:
             queryset = Cliente.objects.all()
@@ -222,7 +222,7 @@ class UnidadeViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.profile == "Gerente Geral do Cliente":
+        if user.role == "Gerente Geral do Cliente":
             queryset = Unidade.objects.filter(cliente__users=user)
         else:
             queryset = Unidade.objects.all()
@@ -283,7 +283,7 @@ class EquipamentoViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.profile == "Gerente Geral do Cliente":
+        if user.role == "Gerente Geral do Cliente":
             queryset = Equipamento.objects.filter(unidade__cliente__users=user)
         else:
             queryset = Equipamento.objects.all()

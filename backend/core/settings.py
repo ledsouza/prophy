@@ -190,3 +190,12 @@ FRONTEND_URL = getenv("FRONTEND_URL")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'autenticacao.UserAccount'
+
+ROLES = [
+    "Gerente Prophy",
+    "Gerente Geral do Cliente",
+    "Gerente de Unidade",
+    "Físico Médico Interno",
+    "Físico Médico Externo",
+    "Comercial"
+]

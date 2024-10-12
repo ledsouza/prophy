@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from core.validators import AlphaOnly
 from autenticacao.validators import CPFValidator
 from django.contrib.auth.models import (
@@ -10,22 +11,14 @@ from django.contrib.auth.models import (
 
 
 class UserAccountManager(BaseUserManager):
-    def create_user(self, cpf, email, password, profile="Gerente Geral do Cliente", **kwargs):
-        valid_profiles = [
-            "Físico Médico Interno",
-            "Físico Médico Externo",
-            "Gerente Prophy",
-            "Gerente Geral do Cliente",
-            "Gerente de Unidade",
-            "Comercial"
-        ]
+    def create_user(self, cpf, email, password, role="Gerente Geral do Cliente", **kwargs):
         if not cpf:
             raise ValueError("Usuários devem conter um nome de usuário.")
         if not email:
             raise ValueError('Usuários devem conter um e-mail.')
-        if profile not in valid_profiles:
+        if role not in settings.ROLES:
             raise ValueError(
-                "Esse perfil de usuário não é valido. As opções são: ", valid_profiles)
+                "Esse perfil de usuário não é valido. As opções são: ", settings.ROLES)
 
         email = self.normalize_email(email)
         email = email.lower()
@@ -33,25 +26,25 @@ class UserAccountManager(BaseUserManager):
         user = self.model(
             cpf=cpf,
             email=email,
-            profile=profile,
+            role=role,
             **kwargs
         )
 
         user.set_password(password)
         user.save(using=self._db)
 
-        group, _ = Group.objects.get_or_create(name=profile)
+        group, _ = Group.objects.get_or_create(name=role)
         user.groups.add(group)
 
         return user
 
-    def create_superuser(self, cpf, email, password, profile="Gerente Prophy", **kwargs):
+    def create_superuser(self, cpf, email, password, role="Gerente Prophy", **kwargs):
 
         user = self.create_user(
             cpf=cpf,
             email=email,
             password=password,
-            profile=profile,
+            role=role,
             **kwargs
         )
 
@@ -63,7 +56,7 @@ class UserAccountManager(BaseUserManager):
 
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
-    PROFILE_CHOICES = [
+    ROLE_CHOICES = [
         ("Físico Médico Interno", "Físico Médico Interno"),
         ("Físico Médico Externo", "Físico Médico Externo"),
         ("Gerente Prophy", "Gerente Prophy"),
@@ -76,8 +69,8 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
                            unique=True, validators=[CPFValidator()])
     email = models.EmailField("E-mail", max_length=255, unique=True)
     name = models.CharField("Nome", max_length=255, validators=[AlphaOnly()])
-    profile = models.CharField(
-        "Perfil", max_length=30, choices=PROFILE_CHOICES, default="Gerente Geral do Cliente")
+    role = models.CharField(
+        "Perfil", max_length=30, choices=ROLE_CHOICES, default="Gerente Geral do Cliente")
 
     is_active = models.BooleanField(
         "Conta Ativa", default=True, help_text="Indica que o usuário será tratado como ativo. Ao invés de excluir contas de usuário, desmarque isso.")
@@ -89,7 +82,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     objects = UserAccountManager()
 
     USERNAME_FIELD = "cpf"
-    REQUIRED_FIELDS = ["email", "name", "profile"]
+    REQUIRED_FIELDS = ["email", "name", "role"]
 
     def __str__(self):
         return self.name

@@ -20,13 +20,13 @@ class UserAccountManagerTests(TestCase):
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
 
-    def test_create_user_with_invalid_profile(self):
+    def test_create_user_with_invalid_role(self):
         with self.assertRaises(ValueError):
             User.objects.create_user(
                 cpf='12345678901',
                 email='test@example.com',
                 password='testpass123',
-                profile='Invalid Profile'
+                role='Invalid role'
             )
 
     def test_create_user_without_cpf(self):
@@ -68,7 +68,7 @@ class UserAccountTests(TestCase):
             name='Test User'
         )
         self.assertEqual(user.name, 'Test User')
-        self.assertEqual(user.profile, 'Gerente Geral do Cliente')
+        self.assertEqual(user.role, 'Gerente Geral do Cliente')
 
     def test_cpf_validator(self):
         with self.assertRaises(ValidationError):
@@ -124,7 +124,7 @@ class UserAccountTests(TestCase):
             email='test@example.com',
             password='testpass123',
             name='Test User',
-            profile='Físico Médico Interno'
+            role='Físico Médico Interno'
         )
         self.assertTrue(user.groups.filter(
             name='Físico Médico Interno').exists())
