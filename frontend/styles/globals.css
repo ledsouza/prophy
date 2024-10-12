@@ -3,22 +3,22 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Colors */
-    --primary: 28, 56, 140;
-    --secondary: 44, 81, 191;
-    --tertiary: 128, 157, 242;
-    --quaternary: 182, 197, 242;
+    :root {
+        /* Colors */
+        --primary: 28, 56, 140;
+        --secondary: 44, 81, 191;
+        --tertiary: 128, 157, 242;
+        --quaternary: 182, 197, 242;
 
-    --bg-light: 255, 255, 255;
+        --bg-light: 255, 255, 255;
 
-    --text-primary: 17, 24, 39;
-    --text-secondary: 92, 92, 92;
-    --text-tertiary: 209, 213, 219;
-    --text-disabled: 138, 138, 138;
-    --text-placeholder: 156, 163, 175;
+        --text-primary: 17, 24, 39;
+        --text-secondary: 92, 92, 92;
+        --text-tertiary: 209, 213, 219;
+        --text-disabled: 138, 138, 138;
+        --text-placeholder: 156, 163, 175;
 
-    --danger: 220, 38, 38;
-    --success: 22, 163, 74;
-  }
+        --danger: 220, 38, 38;
+        --success: 22, 163, 74;
+    }
 }

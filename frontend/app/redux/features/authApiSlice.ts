@@ -13,7 +13,13 @@ export type User = {
   cpf: string;
   email: string;
   name: string;
-  role: string;
+  role:
+    | "Físico Médico Interno"
+    | "Físico Médico Externo"
+    | "Gerente Prophy"
+    | "Gerente Geral do Cliente"
+    | "Gerente de Unidade"
+    | "Comercial";
 };
 
 const authApiSlice = apiSlice.injectEndpoints({
