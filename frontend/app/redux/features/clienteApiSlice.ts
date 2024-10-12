@@ -1,6 +1,12 @@
-import { apiSlice } from "../services/apiSlice";
+import {
+    apiSlice,
+    ListQueryParams,
+    PaginatedResponse,
+} from "../services/apiSlice";
+import { User } from "./authApiSlice";
 
 export type Cliente = {
+    id: number;
     cnpj: string;
     nome_instituicao: string;
     nome_contato: string;
@@ -11,6 +17,7 @@ export type Cliente = {
     estado_instituicao: string;
     cidade_instituicao: string;
     status: string;
+    users?: Pick<User, "name" | "role">[];
 };
 
 type PropostaStatus = {
@@ -28,44 +35,38 @@ const clienteApiSlice = apiSlice.injectEndpoints({
                 }),
             }
         ),
-        create: builder.mutation<void, Omit<Cliente, "status">>({
-            query: ({
-                cnpj,
-                nome_instituicao,
-                nome_contato,
-                email_contato,
-                email_instituicao,
-                telefone_instituicao,
-                endereco_instituicao,
-                estado_instituicao,
-                cidade_instituicao,
-            }) => ({
+        createClient: builder.mutation<void, Omit<Cliente, "status" | "id">>({
+            query: (clienteData) => ({
                 url: "clientes/",
                 method: "POST",
-                body: {
-                    cnpj,
-                    nome_instituicao,
-                    nome_contato,
-                    email_contato,
-                    email_instituicao,
-                    telefone_instituicao,
-                    endereco_instituicao,
-                    estado_instituicao,
-                    cidade_instituicao,
-                },
+                body: clienteData,
             }),
         }),
-        getByCnpj: builder.query<Cliente[], Cliente["cnpj"]>({
-            query: (cnpj) => ({
-                url: `clientes/?cnpj=${cnpj}`,
+        getByCnpj: builder.query<
+            PaginatedResponse<Cliente>,
+            { cnpj: Cliente["cnpj"] } & ListQueryParams
+        >({
+            query: ({ cnpj, page = 1 }) => ({
+                url: `clientes/`,
                 method: "GET",
+                params: { cnpj, page },
             }),
         }),
+        listClients: builder.query<PaginatedResponse<Cliente>, ListQueryParams>(
+            {
+                query: ({ page = 1 }) => ({
+                    url: "clientes/",
+                    method: "GET",
+                    params: { page },
+                }),
+            }
+        ),
     }),
 });
 
 export const {
     useVerifyPropostaStatusMutation,
-    useCreateMutation,
+    useCreateClientMutation,
     useGetByCnpjQuery,
+    useListClientsQuery,
 } = clienteApiSlice;

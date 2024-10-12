@@ -146,6 +146,7 @@ class Command(BaseCommand):
                 status=choice(['A', 'I'])
             )
             cliente.users.add(choice(users.exclude(cpf=CPF_GERENTE_CLIENTE)))
+            cliente.users.add(users.get(cpf=CPF_ADMIN))
 
     def populate_unidades(self, num_unidades_per_cliente=2):
         """Populates the Unidade model with example data."""

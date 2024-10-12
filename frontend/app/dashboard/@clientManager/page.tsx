@@ -1,9 +1,35 @@
+"use client";
+
 import React from "react";
 
+import { useListClientsQuery as getClients } from "@/redux/features/clienteApiSlice";
+import { useListUnitsQuery as getUnits } from "@/redux/features/unidadeApiSlice";
+
 import { Typography } from "@/components/foundation";
-import { Button, UnitCard } from "@/components/common";
+import { Button, Spinner, UnitCard } from "@/components/common";
 
 function ClientPage() {
+    const { data: paginatedClientsData, isLoading: isLoadingClients } =
+        getClients({});
+    const clientData = paginatedClientsData?.results[0];
+
+    const { data: paginatedUnitsData } = getUnits({});
+    const unitsData = paginatedUnitsData?.results;
+
+    function formatPhoneNumber(phone: string): string {
+        if (phone.length == 11) {
+            return `(${phone.slice(0, 2)}) ${phone.slice(2, 7)} - ${phone.slice(
+                7
+            )}`;
+        }
+        if (phone.length == 10) {
+            return `(${phone.slice(0, 2)}) ${phone.slice(2, 6)} - ${phone.slice(
+                6
+            )}`;
+        }
+        throw new Error("Invalid phone number length");
+    }
+
     return (
         <main className="flex gap-6">
             <div className="flex gap-6 flex-col w-2/5">
@@ -20,7 +46,11 @@ function ClientPage() {
                         Responsável Prophy
                     </Typography>
                     <Typography element="p" size="md">
-                        Alexandre Ferret
+                        {
+                            clientData?.users?.find(
+                                (user) => user.role === "Gerente Prophy"
+                            )?.name
+                        }
                     </Typography>
                     <Typography element="p" size="md">
                         (51) 98580 - 0080
@@ -30,25 +60,32 @@ function ClientPage() {
                     </Typography>
                 </div>
 
-                <div>
-                    <Typography
-                        element="h3"
-                        size="title3"
-                        className="font-semibold"
-                    >
-                        Hospital de Clínicas de Porto Alegre
-                    </Typography>
-                    <Typography element="p" size="md">
-                        (51) 98580 - 0080
-                    </Typography>
-                    <Typography element="p" size="md">
-                        contato@hcpa.com
-                    </Typography>
-                    <Typography element="p" size="md">
-                        Rua Ramiro Barcelos, 2350 Bloco A, Av. Protásio Alves,
-                        211 - Bloco B e C - Santa Cecília, Porto Alegre - RS
-                    </Typography>
-                </div>
+                {!isLoadingClients ? (
+                    <div>
+                        <Typography
+                            element="h3"
+                            size="title3"
+                            className="font-semibold"
+                        >
+                            {clientData?.nome_instituicao}
+                        </Typography>
+                        <Typography element="p" size="md">
+                            {formatPhoneNumber(
+                                clientData?.telefone_instituicao!
+                            )}
+                        </Typography>
+                        <Typography element="p" size="md">
+                            {clientData?.email_instituicao}
+                        </Typography>
+                        <Typography element="p" size="md">
+                            {clientData?.endereco_instituicao}
+                        </Typography>
+                    </div>
+                ) : (
+                    <div className="flex justify-center align-middle">
+                        <Spinner md />
+                    </div>
+                )}
 
                 <div>
                     <Typography
@@ -92,16 +129,14 @@ function ClientPage() {
                 </Typography>
 
                 <div className="flex flex-col gap-6">
-                    <UnitCard
-                        title="Unidade de Cardiologia Avançada"
-                        status="Aceito"
-                        equipmentsCount={3}
-                    />
-                    <UnitCard
-                        title="Centro de Oncologia Integral"
-                        status="Aceito"
-                        equipmentsCount={1}
-                    />
+                    {unitsData?.map((unit) => (
+                        <UnitCard
+                            key={unit.id}
+                            title={unit.nome}
+                            status="Aceito"
+                            equipmentsCount={2}
+                        />
+                    ))}
                 </div>
 
                 <Button>Adicionar Unidade</Button>

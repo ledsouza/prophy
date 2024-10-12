@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from .models import Cliente, Unidade, Equipamento
+from gestao_clientes.models import Cliente, Unidade, Equipamento
+from autenticacao.models import UserAccount
+
+
+class UserNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAccount
+        fields = ["name", "role"]
 
 
 class CNPJSerializer(serializers.Serializer):
@@ -7,9 +14,19 @@ class CNPJSerializer(serializers.Serializer):
 
 
 class ClienteSerializer(serializers.ModelSerializer):
+    users = UserNameSerializer(many=True, read_only=True)
+
     class Meta:
         model = Cliente
         fields = "__all__"
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['users'] = [
+            {'name': user['name'], 'role': user['role']}
+            for user in representation['users']
+        ]
+        return representation
 
 
 class UnidadeSerializer(serializers.ModelSerializer):

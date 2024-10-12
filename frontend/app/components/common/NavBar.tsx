@@ -14,6 +14,7 @@ import {
 } from "@headlessui/react";
 
 import { NavLink } from "@/components/common";
+import { apiSlice } from "@/redux/services/apiSlice";
 
 export default function Navbar() {
     const pathname = usePathname();

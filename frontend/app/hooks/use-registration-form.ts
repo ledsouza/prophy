@@ -6,7 +6,7 @@ import {
     useLoginMutation,
     useRegisterMutation,
 } from "@/redux/features/authApiSlice";
-import { useCreateMutation } from "@/redux/features/clienteApiSlice";
+import { useCreateClientMutation } from "@/redux/features/clienteApiSlice";
 import { setAuth } from "@/redux/features/authSlice";
 import { toast } from "react-toastify";
 import {
@@ -25,7 +25,7 @@ const useRegistrationForm = ({
 }: RegisterFormProps) => {
     const [registerUser] = useRegisterMutation();
     const [login] = useLoginMutation();
-    const [createClient] = useCreateMutation();
+    const [createClient] = useCreateClientMutation();
     const dispatch = useAppDispatch();
     const router = useRouter();
 
