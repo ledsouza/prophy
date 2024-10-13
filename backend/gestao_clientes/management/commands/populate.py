@@ -132,7 +132,7 @@ class Command(BaseCommand):
         cliente2.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
 
         # Random clients for automated testing
-        for _ in range(num_clientes):
+        for _ in range(num_clientes + randint(0, 4)):
             cliente = Cliente.objects.create(
                 cnpj=fake_cnpj(),
                 nome_instituicao=fake.company(),
@@ -184,7 +184,7 @@ class Command(BaseCommand):
 
         # Random units for automated testing
         for cliente in Cliente.objects.all().exclude(users=user_client):
-            for _ in range(num_unidades_per_cliente):
+            for _ in range(num_unidades_per_cliente + randint(0, 4)):
                 Unidade.objects.create(
                     user=choice(all_users),
                     cliente=cliente,
@@ -228,7 +228,7 @@ class Command(BaseCommand):
 
         # Random equipments for automated testing
         for unidade in Unidade.objects.all().exclude(cliente__users=user_client):
-            for _ in range(num_equipamentos_per_unidade):
+            for _ in range(num_equipamentos_per_unidade + randint(0, 4)):
                 Equipamento.objects.create(
                     unidade=unidade,
                     modalidade=choice(modalidades),

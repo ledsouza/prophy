@@ -2,35 +2,43 @@
 
 import React, { useEffect, useState } from "react";
 
+import { useListClientsQuery, Cliente } from "@/redux/features/clienteApiSlice";
+import { useListUnitsQuery, Unidade } from "@/redux/features/unidadeApiSlice";
 import {
-    Cliente,
-    useListClientsQuery as getClients,
-} from "@/redux/features/clienteApiSlice";
-import {
-    useListUnitsQuery as getUnits,
-    Unidade,
-} from "@/redux/features/unidadeApiSlice";
+    useListEquipmentsQuery,
+    Equipamento,
+} from "@/redux/features/equipamentoApiSlice";
 
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { ClientInfo, UnitCard } from "@/components/client";
 import { toast } from "react-toastify";
 import { SelectData } from "@/components/forms/Select";
+import { useAllEquipments } from "@/hooks/use-all-equipments";
 
 function ClientPage() {
     const {
         data: paginatedClientsData,
         isLoading: isLoadingClients,
         error: errorClients,
-    } = getClients({ page: 1 });
+    } = useListClientsQuery({ page: 1 });
 
     const {
         data: paginatedUnitsData,
         isLoading: isLoadingUnits,
         error: errorUnits,
-    } = getUnits({
+    } = useListUnitsQuery({
         page: 1,
     });
+
+    const getPageNumber = (url: string): number | null => {
+        const match = url.match(/page=(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+    };
+
+    const [page, setPage] = useState(1);
+    const [equipments, setEquipments] = useState<Equipamento[]>([]);
+    const { data: paginatedEquipmentsData } = useListEquipmentsQuery({ page });
 
     useEffect(() => {
         if (errorClients) {
@@ -65,7 +73,16 @@ function ClientPage() {
             setSelectedClient(clientOptions[0]);
             setFilteredClient(paginatedClientsData.results[0]);
         }
-    }, [paginatedClientsData]);
+        if (paginatedEquipmentsData?.results) {
+            setEquipments([...equipments, ...paginatedEquipmentsData.results]);
+            if (paginatedEquipmentsData.next) {
+                const nextPage = Number(
+                    getPageNumber(paginatedEquipmentsData.next)
+                );
+                setPage(nextPage);
+            }
+        }
+    }, [paginatedClientsData, paginatedEquipmentsData]);
 
     useEffect(() => {
         if (selectedClient && paginatedClientsData?.results) {
@@ -138,7 +155,12 @@ function ClientPage() {
                                 key={unit.id}
                                 title={unit.nome}
                                 status="Aceito"
-                                equipmentsCount={2}
+                                equipmentsCount={
+                                    equipments.filter(
+                                        (equipment) =>
+                                            equipment.unidade === unit.id
+                                    ).length
+                                }
                             />
                         ))
                     ) : (
