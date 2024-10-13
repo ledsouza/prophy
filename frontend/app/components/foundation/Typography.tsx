@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
-const textStyles = cva("leading-8", {
+const textStyles = cva("", {
     variants: {
         variant: {
             primary: "text-gray-primary",

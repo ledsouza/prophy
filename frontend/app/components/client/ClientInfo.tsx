@@ -1,28 +1,51 @@
 import React from "react";
-import { Cliente } from "@/redux/features/clienteApiSlice";
 
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
+import { Select } from "@/components/forms";
+import { SelectData } from "@/components/forms/Select";
+import { Cliente } from "@/redux/features/clienteApiSlice";
 
 type ClientInfoProps = {
-    clientData: Cliente;
+    clientOptions: SelectData[];
+    selectedClient: SelectData;
+    setSelectedClient: (value: SelectData) => void;
+    filteredClient: Cliente;
 };
 
-function formatPhoneNumber(phone: string): string {
-    if (phone.length == 11) {
-        return `(${phone.slice(0, 2)}) ${phone.slice(2, 7)} - ${phone.slice(
-            7
-        )}`;
+function formatPhoneNumber(phone?: string): string | undefined {
+    if (!phone) return undefined;
+
+    if (phone.length === 11) {
+        return `(${phone.slice(0, 2)}) ${phone.slice(2, 7)}-${phone.slice(7)}`;
+    } else if (phone.length === 10) {
+        return `(${phone.slice(0, 2)}) ${phone.slice(2, 6)}-${phone.slice(6)}`;
+    } else {
+        return "Número de telefone inválido";
     }
-    if (phone.length == 10) {
-        return `(${phone.slice(0, 2)}) ${phone.slice(2, 6)} - ${phone.slice(
-            6
-        )}`;
-    }
-    throw new Error("Invalid phone number length");
 }
 
-function ClientInfo({ clientData }: ClientInfoProps) {
+function ClientInfo({
+    clientOptions,
+    selectedClient,
+    setSelectedClient,
+    filteredClient,
+}: ClientInfoProps) {
+    // const clientOptions = clientData.map((client) => ({
+    //     id: client.id,
+    //     value: client.nome_instituicao,
+    // }));
+
+    // const [selectedClient, setSelectedClient] = useState(clientOptions[0]);
+    // const [filteredClient, setFilteredClient] = useState(clientData[0]);
+
+    // useEffect(() => {
+    //     const newFilteredClient = clientData.find(
+    //         (client) => client.id === selectedClient?.id
+    //     );
+    //     setFilteredClient(newFilteredClient!);
+    // }, [selectedClient]);
+
     return (
         <div className="flex gap-6 flex-col w-2/5">
             <Typography element="h2" size="title2" className="font-bold">
@@ -30,19 +53,19 @@ function ClientInfo({ clientData }: ClientInfoProps) {
             </Typography>
 
             <div>
-                <Typography
-                    element="h3"
-                    size="title3"
-                    className="font-semibold"
-                >
-                    {clientData?.nome_instituicao}
-                </Typography>
+                <Select
+                    options={clientOptions}
+                    selectedData={selectedClient}
+                    setSelect={setSelectedClient}
+                    listBoxStyles="mb-4"
+                />
                 <Typography element="p" size="md">
-                    {formatPhoneNumber(clientData?.telefone_instituicao!)}
+                    {formatPhoneNumber(filteredClient?.telefone_instituicao!)}
                     <br />
-                    {clientData?.email_instituicao}
-                    <br />
-                    {clientData?.endereco_instituicao}
+                    {filteredClient?.email_instituicao}
+                </Typography>
+                <Typography element="p" size="md" className="leading-2">
+                    {filteredClient?.endereco_instituicao}
                 </Typography>
             </div>
 
@@ -55,11 +78,9 @@ function ClientInfo({ clientData }: ClientInfoProps) {
                     Físico Médico Responsável
                 </Typography>
                 <Typography element="p" size="md">
-                    {
-                        clientData?.users?.find(
-                            (user) => user.role === "Gerente Prophy"
-                        )?.name
-                    }
+                    {filteredClient?.users?.find(
+                        (user) => user.role === "Gerente Prophy"
+                    )?.name || "N/A"}
                 </Typography>
                 <Typography element="p" size="md">
                     (51) 98580 - 0080

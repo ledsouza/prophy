@@ -1,14 +1,21 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-import { useListClientsQuery as getClients } from "@/redux/features/clienteApiSlice";
-import { useListUnitsQuery as getUnits } from "@/redux/features/unidadeApiSlice";
+import {
+    Cliente,
+    useListClientsQuery as getClients,
+} from "@/redux/features/clienteApiSlice";
+import {
+    useListUnitsQuery as getUnits,
+    Unidade,
+} from "@/redux/features/unidadeApiSlice";
 
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { ClientInfo, UnitCard } from "@/components/client";
 import { toast } from "react-toastify";
+import { SelectData } from "@/components/forms/Select";
 
 function ClientPage() {
     const {
@@ -40,8 +47,43 @@ function ClientPage() {
         }
     }, [errorClients, errorUnits]);
 
-    const clientData = paginatedClientsData?.results[0];
     const unitsData = paginatedUnitsData?.results;
+    const [selectedClient, setSelectedClient] = useState<SelectData | null>(
+        null
+    );
+    const [filteredClient, setFilteredClient] = useState<Cliente | null>(null);
+    const [filteredUnits, setfilteredUnits] = useState<Unidade[] | null>(null);
+
+    useEffect(() => {
+        if (paginatedClientsData?.results?.length) {
+            const clientOptions = paginatedClientsData.results.map(
+                (client) => ({
+                    id: client.id,
+                    value: client.nome_instituicao,
+                })
+            );
+            setSelectedClient(clientOptions[0]);
+            setFilteredClient(paginatedClientsData.results[0]);
+        }
+    }, [paginatedClientsData]);
+
+    useEffect(() => {
+        if (selectedClient && paginatedClientsData?.results) {
+            const newFilteredClient = paginatedClientsData.results.find(
+                (client) => client.id === selectedClient?.id
+            );
+            if (newFilteredClient) {
+                setFilteredClient(newFilteredClient);
+            }
+            if (unitsData) {
+                setfilteredUnits(
+                    unitsData?.filter(
+                        (unit) => unit.cliente === selectedClient.id
+                    )
+                );
+            }
+        }
+    }, [selectedClient, paginatedClientsData]);
 
     if (isLoadingClients || isLoadingUnits) {
         return <Spinner lg />;
@@ -64,9 +106,21 @@ function ClientPage() {
         );
     }
 
+    const clientOptions = paginatedClientsData?.results.map((client) => ({
+        id: client.id,
+        value: client.nome_instituicao,
+    }));
+
     return (
         <main className="flex gap-6">
-            {clientData && <ClientInfo clientData={clientData} />}
+            {clientOptions && selectedClient && filteredClient && (
+                <ClientInfo
+                    clientOptions={clientOptions}
+                    selectedClient={selectedClient}
+                    setSelectedClient={setSelectedClient}
+                    filteredClient={filteredClient}
+                />
+            )}
 
             <div className="w-full flex flex-col gap-6 bg-white rounded-xl shadow-lg p-8">
                 <Typography
@@ -78,8 +132,8 @@ function ClientPage() {
                 </Typography>
 
                 <div className="flex flex-col gap-6">
-                    {unitsData ? (
-                        unitsData?.map((unit) => (
+                    {filteredUnits ? (
+                        filteredUnits?.map((unit) => (
                             <UnitCard
                                 key={unit.id}
                                 title={unit.nome}
