@@ -11,7 +11,7 @@ type UnitCardProps = {
 
 function UnitCard({ title, status, equipmentsCount }: UnitCardProps) {
     return (
-        <div className="bg-light rounded-xl shadow-sm p-6 divide-y-2">
+        <div className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary">
             <div className="flex justify-between pb-4">
                 <Typography element="h3" size="title3">
                     {title}

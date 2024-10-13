@@ -65,7 +65,7 @@ class Command(BaseCommand):
                 group.permissions.set([permissions.get(name__contains="view cliente"), permissions.get(
                     name__contains="view unidade"), permissions.get(name__contains="view equipamento")])
 
-    def populate_users(self, num_users=10):
+    def populate_users(self, num_users=20):
         """Populates the User model with example data."""
 
         # Default users for automated testing
@@ -73,7 +73,7 @@ class Command(BaseCommand):
             cpf=CPF_ADMIN,
             email=fake.email(),
             password=PASSWORD,
-            name="Admin"
+            name="Alexandre Ferret"
         )
 
         client_user = UserAccount.objects.create_user(
@@ -96,7 +96,7 @@ class Command(BaseCommand):
 
         return admin_user, client_user
 
-    def populate_clientes(self, num_clientes=10):
+    def populate_clientes(self, num_clientes=20):
         """Populates the Cliente model with example data."""
         users = UserAccount.objects.all()
 
@@ -148,7 +148,7 @@ class Command(BaseCommand):
             cliente.users.add(choice(users.exclude(cpf=CPF_GERENTE_CLIENTE)))
             cliente.users.add(users.get(cpf=CPF_ADMIN))
 
-    def populate_unidades(self, num_unidades_per_cliente=2):
+    def populate_unidades(self, num_unidades_per_cliente=4):
         """Populates the Unidade model with example data."""
         all_users = UserAccount.objects.all()
         user_client = UserAccount.objects.get(cpf=CPF_GERENTE_CLIENTE)
