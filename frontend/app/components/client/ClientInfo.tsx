@@ -6,24 +6,14 @@ import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
 import { Cliente } from "@/redux/features/clienteApiSlice";
 
+import { formatPhoneNumber } from "@/utils/format";
+
 type ClientInfoProps = {
     clientOptions: SelectData[];
     selectedClient: SelectData;
     setSelectedClient: (value: SelectData) => void;
     filteredClient: Cliente;
 };
-
-function formatPhoneNumber(phone?: string): string | undefined {
-    if (!phone) return undefined;
-
-    if (phone.length === 11) {
-        return `(${phone.slice(0, 2)}) ${phone.slice(2, 7)}-${phone.slice(7)}`;
-    } else if (phone.length === 10) {
-        return `(${phone.slice(0, 2)}) ${phone.slice(2, 6)}-${phone.slice(6)}`;
-    } else {
-        return "Número de telefone inválido";
-    }
-}
 
 function ClientInfo({
     clientOptions,
@@ -48,13 +38,19 @@ function ClientInfo({
                     selectedData={selectedClient}
                     setSelect={setSelectedClient}
                     listBoxStyles="mb-4"
+                    dataTestId="client-options"
                 />
-                <Typography element="p" size="md">
+                <Typography element="p" size="md" dataTestId="client-details">
                     {formatPhoneNumber(filteredClient?.telefone_instituicao!)}
                     <br />
                     {filteredClient?.email_instituicao}
                 </Typography>
-                <Typography element="p" size="md" className="leading-2">
+                <Typography
+                    element="p"
+                    size="md"
+                    className="leading-2"
+                    dataTestId="client-details-address"
+                >
                     {filteredClient?.endereco_instituicao}
                 </Typography>
             </div>
@@ -64,18 +60,23 @@ function ClientInfo({
                     element="h3"
                     size="title3"
                     className="font-semibold"
+                    dataTestId="prophy-header"
                 >
                     Físico Médico Responsável
                 </Typography>
-                <Typography element="p" size="md">
+                <Typography
+                    element="p"
+                    size="md"
+                    dataTestId="prophy-responsible"
+                >
                     {filteredClient?.users?.find(
                         (user) => user.role === "Gerente Prophy"
                     )?.name || "N/A"}
                 </Typography>
-                <Typography element="p" size="md">
+                <Typography element="p" size="md" dataTestId="prophy-phone">
                     (51) 98580 - 0080
                 </Typography>
-                <Typography element="p" size="md">
+                <Typography element="p" size="md" dataTestId="prophy-email">
                     contato@prophy.com
                 </Typography>
             </div>
@@ -85,28 +86,33 @@ function ClientInfo({
                     element="h3"
                     size="title3"
                     className="font-semibold"
+                    dataTestId="invoice-header"
                 >
                     Cobrança
                 </Typography>
-                <Typography element="p" size="md">
+                <Typography element="p" size="md" dataTestId="invoice-nf">
                     Número NFe:{" "}
                     <Typography element="span" className="font-semibold">
                         Nº: 000027
                     </Typography>
                 </Typography>
-                <Typography element="p" size="md">
+                <Typography element="p" size="md" dataTestId="invoice-emission">
                     Emissão:{" "}
                     <Typography element="span" className="font-semibold">
                         26 de Junho de 2024
                     </Typography>
                 </Typography>
-                <Typography element="p" size="md">
+                <Typography element="p" size="md" dataTestId="invoice-due">
                     Vencimento:{" "}
                     <Typography element="span" className="font-semibold">
                         26 de Julho de 2024
                     </Typography>
                 </Typography>
-                <Button variant="secondary" className="mt-2">
+                <Button
+                    variant="secondary"
+                    className="mt-2"
+                    data-testid="invoice-btn-details"
+                >
                     Acessar detalhes
                 </Button>
             </div>

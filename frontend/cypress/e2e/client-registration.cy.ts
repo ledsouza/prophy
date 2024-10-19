@@ -75,8 +75,8 @@ describe("Client Registration", () => {
         });
 
         it("shows an error message if cnpj is already registered", () => {
-            cy.fixture("clientes.json").then((clientes) => {
-                cy.getByTestId("input-cnpj").type(clientes.registered_cnpj);
+            cy.fixture("registered-client.json.json").then((client) => {
+                cy.getByTestId("input-cnpj").type(client.registered_cnpj);
             });
             cy.getByTestId("button-submit").click();
 

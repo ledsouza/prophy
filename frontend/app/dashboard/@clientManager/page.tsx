@@ -27,14 +27,22 @@ function ClientPage() {
     if (hasNoData) {
         return (
             <div className="flex flex-col items-center justify-center h-screen gap-8">
-                <Typography element="h2" size="title2" className="font-bold">
+                <Typography
+                    element="h2"
+                    size="title2"
+                    className="font-bold"
+                    dataTestId="data-not-found"
+                >
                     Nenhum dado encontrado
                 </Typography>
                 <Typography element="p" size="lg">
                     Não encontramos nenhum dado associado a essa conta! Por
                     favor, entre em contato conosco.
                 </Typography>
-                <Button onClick={() => router.refresh()}>
+                <Button
+                    onClick={() => router.refresh()}
+                    data-testid="btn-refresh"
+                >
                     Tentar novamente
                 </Button>
             </div>
@@ -62,7 +70,7 @@ function ClientPage() {
                 </Typography>
 
                 <div className="flex flex-col gap-6">
-                    {filteredUnits ? (
+                    {filteredUnits && filteredUnits.length > 0 ? (
                         filteredUnits?.map((unit) => (
                             <UnitCard
                                 key={unit.id}
@@ -74,16 +82,22 @@ function ClientPage() {
                                             equipment.unidade === unit.id
                                     ).length
                                 }
+                                dataTestId={`unit-card-${unit.id}`}
                             />
                         ))
                     ) : (
-                        <Typography element="p" size="lg">
-                            Nenhuma unidade encontrada
+                        <Typography
+                            element="p"
+                            size="lg"
+                            dataTestId="unit-not-found"
+                            className="justify-center text-center"
+                        >
+                            Nenhuma unidade registrada
                         </Typography>
                     )}
                 </div>
 
-                <Button>Adicionar Unidade</Button>
+                <Button data-testid="btn-add-unit">Adicionar Unidade</Button>
             </div>
         </main>
     );

@@ -7,11 +7,20 @@ type UnitCardProps = {
     title: string;
     status: string;
     equipmentsCount: Number;
+    dataTestId?: string | undefined;
 };
 
-function UnitCard({ title, status, equipmentsCount }: UnitCardProps) {
+function UnitCard({
+    title,
+    status,
+    equipmentsCount,
+    dataTestId,
+}: UnitCardProps) {
     return (
-        <div className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary">
+        <div
+            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary"
+            data-testid={dataTestId}
+        >
             <div className="flex justify-between pb-4">
                 <Typography element="h3" size="title3">
                     {title}
@@ -24,13 +33,15 @@ function UnitCard({ title, status, equipmentsCount }: UnitCardProps) {
                 </div>
             </div>
             <div className="flex gap-10 justify-between pt-4">
-                <Typography>
+                <Typography dataTestId="equipments-counts">
                     Quantidade de Equipamentos:{" "}
                     <Typography element="span" className="font-semibold">
                         {String(equipmentsCount)}
                     </Typography>
                 </Typography>
-                <Button variant="secondary">Adicionar Equipamento</Button>
+                <Button variant="secondary" data-testid="btn-add-equipment">
+                    Adicionar Equipamento
+                </Button>
             </div>
         </div>
     );

@@ -13,6 +13,22 @@ from random import choice, randint
 from localflavor.br.br_states import STATE_CHOICES
 
 fake = Faker("pt_BR")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(
+    os.path.join(current_dir, '..', '..', '..', '..'))
+
+
+CPF_ADMIN = "03446254005"
+CPF_GERENTE_CLIENTE = "82484874073"
+PASSWORD = "passwordtest"
+
+REJECTED_PROPOSTA_CNPJ = "09352176000187"
+APPROVED_PROPOSTA_CNPJ = "26661570000116"
+
+REGISTERED_CNPJ = "78187773000116"
+
+FIXTURE_PATH = os.path.join(
+    project_root, 'frontend', 'cypress', 'fixtures')
 
 
 def fake_phone_number():
@@ -28,14 +44,21 @@ def fake_cpf():
     return fake.cpf().replace(".", "").replace("-", "")
 
 
-CPF_ADMIN = "03446254005"
-CPF_GERENTE_CLIENTE = "82484874073"
-PASSWORD = "passwordtest"
+def create_fixture_path(output_name: str) -> str:
+    return os.path.join(
+        FIXTURE_PATH, output_name)
 
-REJECTED_PROPOSTA_CNPJ = "09352176000187"
-APPROVED_PROPOSTA_CNPJ = "26661570000116"
 
-REGISTERED_CNPJ = "78187773000116"
+def write_json_file(data: dict, file_path: str) -> None:
+    """
+    Writes data to a JSON file with indentation.
+
+    Args:
+        data: A dictionary to be converted to JSON.
+        file_path (str): The path to the file where the JSON data will be saved.
+    """
+    with open(file_path, 'w', encoding="utf-8") as json_file:
+        json.dump(data, json_file, indent=2)
 
 
 class Command(BaseCommand):
@@ -44,11 +67,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.create_groups()
         admin_user, client_user = self.populate_users()
-        self.populate_clientes()
-        self.populate_unidades()
+        default_clients = self.populate_clientes()
+        default_units = self.populate_unidades()
         self.populate_equipamentos()
         approved_cnpjs = self.populate_propostas()
-        self.create_json_fixture(approved_cnpjs, admin_user, client_user)
+        self.create_json_fixture(
+            approved_cnpjs, admin_user, client_user, default_clients, default_units)
         self.stdout.write(self.style.SUCCESS(
             'Database populated and fixture created successfully!'))
 
@@ -150,6 +174,36 @@ class Command(BaseCommand):
             cliente.users.add(choice(users.exclude(cpf=CPF_GERENTE_CLIENTE)))
             cliente.users.add(users.get(cpf=CPF_ADMIN))
 
+        default_clients = {
+            "client1": {
+                "cnpj": cliente1.cnpj,
+                "nome_instituicao": cliente1.nome_instituicao,
+                "nome_contato": cliente1.nome_contato,
+                "email_contato": cliente1.email_contato,
+                "email_instituicao": cliente1.email_instituicao,
+                "telefone_instituicao": cliente1.telefone_instituicao,
+                "endereco_instituicao": cliente1.endereco_instituicao,
+                "estado_instituicao": cliente1.estado_instituicao,
+                "cidade_instituicao": cliente1.cidade_instituicao,
+                "status": cliente1.status,
+                "id": cliente1.id
+            },
+            "client2": {
+                "cnpj": cliente2.cnpj,
+                "nome_instituicao": cliente2.nome_instituicao,
+                "nome_contato": cliente2.nome_contato,
+                "email_contato": cliente2.email_contato,
+                "email_instituicao": cliente2.email_instituicao,
+                "telefone_instituicao": cliente2.telefone_instituicao,
+                "endereco_instituicao": cliente2.endereco_instituicao,
+                "estado_instituicao": cliente2.estado_instituicao,
+                "cidade_instituicao": cliente2.cidade_instituicao,
+                "status": cliente2.status,
+                "id": cliente2.id
+            }
+        }
+        return default_clients
+
     def populate_unidades(self, num_unidades_per_cliente=4):
         """Populates the Unidade model with example data."""
         all_users = UserAccount.objects.all()
@@ -157,7 +211,7 @@ class Command(BaseCommand):
         clients = Cliente.objects.filter(users=user_client)
 
         # Default units for automated testing
-        Unidade.objects.create(
+        unidade1 = Unidade.objects.create(
             user=user_client,
             cliente=clients[0],
             nome="Cardiologia",
@@ -170,7 +224,7 @@ class Command(BaseCommand):
             cidade=clients[0].cidade_instituicao,
             id=1000
         )
-        Unidade.objects.create(
+        unidade2 = Unidade.objects.create(
             user=user_client,
             cliente=clients[1],
             nome="Santa Rita",
@@ -183,6 +237,35 @@ class Command(BaseCommand):
             cidade=clients[1].cidade_instituicao,
             id=1001
         )
+
+        default_units = {
+            "unit1": {
+                "user": unidade1.user.id,
+                "cliente": unidade1.cliente.id,
+                "nome": unidade1.nome,
+                "cnpj": unidade1.cnpj,
+                "nome_contato": unidade1.nome_contato,
+                "email": unidade1.email,
+                "telefone": unidade1.telefone,
+                "endereco": unidade1.endereco,
+                "estado": unidade1.estado,
+                "cidade": unidade1.cidade,
+                "id": unidade1.id
+            },
+            "unit2": {
+                "user": unidade2.user.id,
+                "cliente": unidade2.cliente.id,
+                "nome": unidade2.nome,
+                "cnpj": unidade2.cnpj,
+                "nome_contato": unidade2.nome_contato,
+                "email": unidade2.email,
+                "telefone": unidade2.telefone,
+                "endereco": unidade2.endereco,
+                "estado": unidade2.estado,
+                "cidade": unidade2.cidade,
+                "id": unidade2.id
+            }
+        }
 
         # Random units for automated testing
         for cliente in Cliente.objects.all().exclude(users=user_client):
@@ -199,6 +282,8 @@ class Command(BaseCommand):
                     estado=cliente.estado_instituicao,
                     cidade=cliente.cidade_instituicao
                 )
+
+        return default_units
 
     def populate_equipamentos(self, num_equipamentos_per_unidade=3):
         """Populates the Equipamento model with example data."""
@@ -310,7 +395,7 @@ class Command(BaseCommand):
 
         return approved_cnpjs
 
-    def create_json_fixture(self, approved_cnpjs, admin_user, client_user):
+    def create_json_fixture(self, approved_cnpjs, admin_user, client_user, default_clients, default_units):
         fixture_proposta = {
             "approved_cnpjs": approved_cnpjs,
             "rejected_cnpj": REJECTED_PROPOSTA_CNPJ
@@ -323,38 +408,45 @@ class Command(BaseCommand):
                 "cpf": client_user.cpf,
                 "password": PASSWORD
         }}
-        fixture_cliente = {
+        fixture_registered_client = {
             "registered_cnpj": REGISTERED_CNPJ
         }
+        fixture_default_clients = default_clients
+        fixture_default_units = default_units
 
         # Construct the correct path for the fixture files
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.abspath(
-            os.path.join(current_dir, '..', '..', '..', '..'))
-        fixture_path = os.path.join(
-            project_root, 'frontend', 'cypress', 'fixtures')
-        fixture_path_proposta = os.path.join(
-            fixture_path, 'propostas.json')
-        fixture_path_users = os.path.join(fixture_path, 'users.json')
-        fixture_path_cliente = os.path.join(fixture_path, 'clientes.json')
+        fixture_path_proposta = create_fixture_path("propostas.json")
+        fixture_path_users = create_fixture_path("users.json")
+        fixture_registered_client_path = create_fixture_path(
+            "registered-client.json")
+        fixture_default_clients_path = create_fixture_path(
+            "default-clients.json")
+        fixture_default_units_path = create_fixture_path(
+            "default-units.json")
 
         # Ensure the directory exists
-        os.makedirs(os.path.dirname(fixture_path), exist_ok=True)
+        os.makedirs(os.path.dirname(FIXTURE_PATH), exist_ok=True)
 
-        with open(fixture_path_proposta, 'w') as json_file:
-            json.dump(fixture_proposta, json_file, indent=2)
-
-        with open(fixture_path_users, 'w') as json_file:
-            json.dump(fixture_users, json_file, indent=2)
-
-        with open(fixture_path_cliente, 'w') as json_file:
-            json.dump(fixture_cliente, json_file, indent=2)
-
-        self.stdout.write(self.style.SUCCESS(
-            f'Created propostas.json in {fixture_path_proposta}'))
+        write_json_file(data=fixture_proposta, file_path=fixture_path_proposta)
+        write_json_file(data=fixture_users, file_path=fixture_path_users)
+        write_json_file(data=fixture_registered_client,
+                        file_path=fixture_registered_client_path)
+        write_json_file(data=fixture_default_clients,
+                        file_path=fixture_default_clients_path)
+        write_json_file(data=fixture_default_units,
+                        file_path=fixture_default_units_path)
 
         self.stdout.write(self.style.SUCCESS(
-            f'Created users.json in {fixture_path_users}'))
+            f'Created {fixture_path_proposta}'))
 
         self.stdout.write(self.style.SUCCESS(
-            f'Created clientes.json in {fixture_path_cliente}'))
+            f'Created {fixture_path_users}'))
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Created {fixture_registered_client_path}'))
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Created {fixture_default_clients_path}'))
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Created {fixture_default_units_path}'))
