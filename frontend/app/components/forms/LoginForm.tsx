@@ -15,6 +15,7 @@ import { Button } from "@/components/common";
 
 import { toast } from "react-toastify";
 import prophyIcon from "@/../public/images/prophy-icon.png";
+import { clearApiCache } from "@/redux/services/apiSlice";
 
 const loginFieldsSchema = z.object({
     cpf: z.string().min(1, { message: "O CPF é necessário" }),
@@ -40,6 +41,7 @@ const LoginForm = () => {
     const onSubmit: SubmitHandler<LoginFields> = async (data) => {
         try {
             await login({ ...data }).unwrap();
+            dispatch(clearApiCache());
             dispatch(setAuth());
             toast.success("Você está autenticado!");
             router.push("/dashboard");

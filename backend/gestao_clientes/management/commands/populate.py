@@ -103,33 +103,35 @@ class Command(BaseCommand):
         # Default clients for automated testing
         cliente1 = Cliente.objects.create(
             cnpj=REGISTERED_CNPJ,
-            nome_instituicao=fake.company(),
-            nome_contato=fake.name(),
-            email_contato=fake.email(),
-            email_instituicao=fake.company_email(),
-            telefone_instituicao=fake_phone_number(),
-            endereco_instituicao=fake.address(),
-            estado_instituicao=choice(STATE_CHOICES)[0],
-            cidade_instituicao=fake.city(),
+            nome_instituicao="Hospital de Clínicas de Porto Alegre",
+            nome_contato="Alexandre Bacelar",
+            email_contato="abacelar@hcpa.com",
+            email_instituicao="secretariageral@hcpa.edu.br",
+            telefone_instituicao="5133596100",
+            endereco_instituicao="Rua Ramiro Barcelos, 2350 Bloco A, Av. Protásio Alves, 211 - Bloco B e C - Santa Cecília, Porto Alegre - RS, 90035-903",
+            estado_instituicao="RS",
+            cidade_instituicao="Porto Alegre",
             status=choice(['A', 'I']),
             id=1000
         )
         cliente1.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
+        cliente1.users.add(users.get(cpf=CPF_ADMIN))
 
         cliente2 = Cliente.objects.create(
             cnpj="90217758000179",
-            nome_instituicao=fake.company(),
-            nome_contato=fake.name(),
-            email_contato=fake.email(),
-            email_instituicao=fake.company_email(),
-            telefone_instituicao=fake_phone_number(),
-            endereco_instituicao=fake.address(),
-            estado_instituicao=choice(STATE_CHOICES)[0],
-            cidade_instituicao=fake.city(),
+            nome_instituicao="Santa Casa de Porto Alegre",
+            nome_contato="Osvaldo Estrela Anselmi",
+            email_contato="estrela@santacasa.com",
+            email_instituicao="ouvidoria@santacasa.tche.br",
+            telefone_instituicao="5132148000",
+            endereco_instituicao="Rua Professor Annes Dias, 295 - Centro Histórico, Porto Alegre - RS, 90020-090",
+            estado_instituicao="RS",
+            cidade_instituicao="Porto Alegre",
             status=choice(['A', 'I']),
             id=1001
         )
         cliente2.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
+        cliente2.users.add(users.get(cpf=CPF_ADMIN))
 
         # Random clients for automated testing
         for _ in range(num_clientes + randint(0, 4)):
@@ -158,7 +160,7 @@ class Command(BaseCommand):
         Unidade.objects.create(
             user=user_client,
             cliente=clients[0],
-            nome=fake.company_suffix() + " " + fake.company(),
+            nome="Cardiologia",
             cnpj=fake_cnpj(),
             nome_contato=fake.name(),
             email=fake.email(),
@@ -171,7 +173,7 @@ class Command(BaseCommand):
         Unidade.objects.create(
             user=user_client,
             cliente=clients[1],
-            nome=fake.company_suffix() + " " + fake.company(),
+            nome="Santa Rita",
             cnpj=fake_cnpj(),
             nome_contato=fake.name(),
             email=fake.email(),
@@ -349,10 +351,10 @@ class Command(BaseCommand):
             json.dump(fixture_cliente, json_file, indent=2)
 
         self.stdout.write(self.style.SUCCESS(
-            f'Created propostas.json'))
+            f'Created propostas.json in {fixture_path_proposta}'))
 
         self.stdout.write(self.style.SUCCESS(
-            f'Created users.json'))
+            f'Created users.json in {fixture_path_users}'))
 
         self.stdout.write(self.style.SUCCESS(
-            f'Created clientes.json'))
+            f'Created clientes.json in {fixture_path_cliente}'))
