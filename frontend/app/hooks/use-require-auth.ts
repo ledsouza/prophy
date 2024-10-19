@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { redirect } from "next/navigation";
 
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
@@ -18,7 +17,7 @@ const useRequireAuth = () => {
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
             try {
-                redirect("/auth/login");
+                router.push("/auth/login");
             } finally {
                 dispatch(clearApiCache());
             }
