@@ -64,6 +64,7 @@ const LoginForm = () => {
                         type="text"
                         errorMessage={errors.cpf?.message}
                         data-testid="cpf-input"
+                        placeholder="86453108054"
                     >
                         CPF
                     </Input>
@@ -72,6 +73,7 @@ const LoginForm = () => {
                         type="password"
                         errorMessage={errors.password?.message}
                         data-testid="password-input"
+                        placeholder="Digite a sua senha"
                     >
                         Senha
                     </Input>
