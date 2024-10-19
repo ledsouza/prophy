@@ -293,7 +293,7 @@ describe("Client Registration", () => {
     });
 
     context("Client Form Success Scenario", () => {
-        it("should successfully submit the form with valid data", () => {
+        it("should successfully submit the form with valid data and be redirect to client dashboard", () => {
             cy.intercept("POST", "http://localhost:8000/api/users/").as(
                 "registerUser"
             );
@@ -386,6 +386,7 @@ describe("Client Registration", () => {
                 "be.visible"
             );
             cy.url().should("include", "/dashboard/");
+            cy.getByTestId("client-header").should("be.visible");
         });
 
         it("should close the form when cancel button is clicked", () => {
@@ -396,7 +397,7 @@ describe("Client Registration", () => {
 
             cy.getByTestId("cancel-btn").click();
 
-            cy.contains("Dados da sua conta").should("not.be.visible");
+            cy.getByTestId("modal").should("not.exist");
         });
     });
 });

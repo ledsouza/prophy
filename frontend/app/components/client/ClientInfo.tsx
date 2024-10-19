@@ -33,7 +33,12 @@ function ClientInfo({
 }: ClientInfoProps) {
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
-            <Typography element="h2" size="title2" className="font-bold">
+            <Typography
+                element="h2"
+                size="title2"
+                className="font-bold"
+                dataTestId="client-header"
+            >
                 Detalhes do Cliente
             </Typography>
 
