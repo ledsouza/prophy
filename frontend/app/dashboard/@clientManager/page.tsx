@@ -12,9 +12,9 @@ import {
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { ClientInfo, UnitCard } from "@/components/client";
-import { toast } from "react-toastify";
 import { SelectData } from "@/components/forms/Select";
-import { useAllEquipments } from "@/hooks/use-all-equipments";
+import { toast } from "react-toastify";
+import { getPageNumber } from "@/utils/pagination";
 
 function ClientPage() {
     const {
@@ -30,11 +30,6 @@ function ClientPage() {
     } = useListUnitsQuery({
         page: 1,
     });
-
-    const getPageNumber = (url: string): number | null => {
-        const match = url.match(/page=(\d+)/);
-        return match ? parseInt(match[1], 10) : null;
-    };
 
     const [page, setPage] = useState(1);
     const [equipments, setEquipments] = useState<Equipamento[]>([]);
