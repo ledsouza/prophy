@@ -42,7 +42,7 @@ function ClientPage() {
     }
 
     return (
-        <main className="flex gap-6">
+        <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
             {clientOptions && selectedClient && filteredClient && (
                 <ClientInfo
                     clientOptions={clientOptions}
@@ -52,7 +52,7 @@ function ClientPage() {
                 />
             )}
 
-            <div className="w-full flex flex-col gap-6 bg-white rounded-xl shadow-lg p-8">
+            <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
                 <Typography
                     element="h2"
                     size="title2"

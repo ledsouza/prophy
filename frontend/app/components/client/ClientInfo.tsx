@@ -31,23 +31,8 @@ function ClientInfo({
     setSelectedClient,
     filteredClient,
 }: ClientInfoProps) {
-    // const clientOptions = clientData.map((client) => ({
-    //     id: client.id,
-    //     value: client.nome_instituicao,
-    // }));
-
-    // const [selectedClient, setSelectedClient] = useState(clientOptions[0]);
-    // const [filteredClient, setFilteredClient] = useState(clientData[0]);
-
-    // useEffect(() => {
-    //     const newFilteredClient = clientData.find(
-    //         (client) => client.id === selectedClient?.id
-    //     );
-    //     setFilteredClient(newFilteredClient!);
-    // }, [selectedClient]);
-
     return (
-        <div className="flex gap-6 flex-col w-2/5">
+        <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
             <Typography element="h2" size="title2" className="font-bold">
                 Detalhes do Cliente
             </Typography>
