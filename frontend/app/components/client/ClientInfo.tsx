@@ -64,21 +64,43 @@ function ClientInfo({
                 >
                     Físico Médico Responsável
                 </Typography>
-                <Typography
-                    element="p"
-                    size="md"
-                    dataTestId="prophy-responsible"
-                >
-                    {filteredClient?.users?.find(
-                        (user) => user.role === "Gerente Prophy"
-                    )?.name || "N/A"}
-                </Typography>
-                <Typography element="p" size="md" dataTestId="prophy-phone">
-                    (51) 98580 - 0080
-                </Typography>
-                <Typography element="p" size="md" dataTestId="prophy-email">
-                    contato@prophy.com
-                </Typography>
+                {filteredClient?.users?.find(
+                    (user) => user.role === "Gerente Prophy"
+                ) ? (
+                    <>
+                        <Typography
+                            element="p"
+                            size="md"
+                            dataTestId="prophy-responsible"
+                        >
+                            {
+                                filteredClient?.users?.find(
+                                    (user) => user.role === "Gerente Prophy"
+                                )?.name
+                            }
+                        </Typography>
+                        <Typography
+                            element="p"
+                            size="md"
+                            dataTestId="prophy-phone"
+                        >
+                            (51) 98580 - 0080
+                        </Typography>
+                        <Typography
+                            element="p"
+                            size="md"
+                            dataTestId="prophy-email"
+                        >
+                            contato@prophy.com
+                        </Typography>
+                    </>
+                ) : (
+                    <Typography>
+                        Nomearemos um físico médico para esta instituição. Em
+                        breve, divulgaremos os dados de contato do profissional
+                        responsável.
+                    </Typography>
+                )}
             </div>
 
             <div>
