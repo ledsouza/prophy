@@ -24,5 +24,18 @@
     "cidade_instituicao": "Porto Alegre",
     "status": "A",
     "id": 1001
+  },
+  "clientEmpty": {
+    "cnpj": "57428412000144",
+    "nome_instituicao": "Hospital Cristo Redentor",
+    "nome_contato": "Osvaldo Estrela Anselmi",
+    "email_contato": "estrela@ghc.com",
+    "email_instituicao": "ouvidoria@ghc.br",
+    "telefone_instituicao": "5133574100",
+    "endereco_instituicao": "Rua Domingos Rubbo, 20 - Cristo Redentor, Porto Alegre - RS, 91040-000",
+    "estado_instituicao": "RS",
+    "cidade_instituicao": "Porto Alegre",
+    "status": "A",
+    "id": 1002
   }
 }

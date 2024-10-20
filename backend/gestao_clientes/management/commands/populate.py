@@ -157,6 +157,21 @@ class Command(BaseCommand):
         cliente2.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
         cliente2.users.add(users.get(cpf=CPF_ADMIN))
 
+        cliente_empty = Cliente.objects.create(
+            cnpj="57428412000144",
+            nome_instituicao="Hospital Cristo Redentor",
+            nome_contato="Osvaldo Estrela Anselmi",
+            email_contato="estrela@ghc.com",
+            email_instituicao="ouvidoria@ghc.br",
+            telefone_instituicao="5133574100",
+            endereco_instituicao="Rua Domingos Rubbo, 20 - Cristo Redentor, Porto Alegre - RS, 91040-000",
+            estado_instituicao="RS",
+            cidade_instituicao="Porto Alegre",
+            status=choice(['A', 'I']),
+            id=1002
+        )
+        cliente_empty.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
+
         # Random clients for automated testing
         for _ in range(num_clientes + randint(0, 4)):
             cliente = Cliente.objects.create(
@@ -200,6 +215,19 @@ class Command(BaseCommand):
                 "cidade_instituicao": cliente2.cidade_instituicao,
                 "status": cliente2.status,
                 "id": cliente2.id
+            },
+            "clientEmpty": {
+                "cnpj": cliente_empty.cnpj,
+                "nome_instituicao": cliente_empty.nome_instituicao,
+                "nome_contato": cliente_empty.nome_contato,
+                "email_contato": cliente_empty.email_contato,
+                "email_instituicao": cliente_empty.email_instituicao,
+                "telefone_instituicao": cliente_empty.telefone_instituicao,
+                "endereco_instituicao": cliente_empty.endereco_instituicao,
+                "estado_instituicao": cliente_empty.estado_instituicao,
+                "cidade_instituicao": cliente_empty.cidade_instituicao,
+                "status": cliente_empty.status,
+                "id": cliente_empty.id
             }
         }
         return default_clients
@@ -326,7 +354,7 @@ class Command(BaseCommand):
                     foto_equipamento='./petct.jpg'
                 )
 
-    def populate_propostas(self, num_propostas=300):
+    def populate_propostas(self, num_propostas=100):
         """Populates the Proposta model with example data."""
         tipos_contrato = ['A', 'M']
         status_choices = ['A', 'R', 'P']

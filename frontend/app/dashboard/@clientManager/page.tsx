@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { ClientInfo, UnitCard } from "@/components/client";
-import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 
 function ClientPage() {
     const router = useRouter();
@@ -40,7 +40,7 @@ function ClientPage() {
                     favor, entre em contato conosco.
                 </Typography>
                 <Button
-                    onClick={() => router.refresh()}
+                    onClick={() => router.refresh()} // TODO: Needs to deal with cache
                     data-testid="btn-refresh"
                 >
                     Tentar novamente
