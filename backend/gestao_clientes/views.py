@@ -58,7 +58,7 @@ class LatestPropostaStatusView(APIView):
                 return Response({'approved': latest_client.approved_client()}, status=status.HTTP_200_OK)
 
             except Proposta.DoesNotExist:
-                return Response({'error': 'Nenhum cliente foi encontrado com esse cnpj'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'error': 'Nenhum cliente foi encontrado com esse cnpj.'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

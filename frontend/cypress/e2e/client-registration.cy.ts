@@ -50,7 +50,7 @@ describe("Client Registration", () => {
 
             cy.getByTestId("validation-error").should(
                 "contain",
-                "O CNPJ deve conter 14 caracteres"
+                "O CNPJ deve conter 14 caracteres."
             );
         });
 
@@ -60,7 +60,7 @@ describe("Client Registration", () => {
 
             cy.getByTestId("validation-error").should(
                 "contain",
-                "Digite um CNPJ válido"
+                "CNPJ inválido. Certifique-se de que você digitou todos os 14 dígitos corretamente."
             );
         });
 
@@ -70,12 +70,12 @@ describe("Client Registration", () => {
 
             cy.get("[role='alert']").should(
                 "contain",
-                "Nenhum cliente foi encontrado com esse CNPJ"
+                "Nenhum cliente foi encontrado com esse CNPJ."
             );
         });
 
         it("shows an error message if cnpj is already registered", () => {
-            cy.fixture("registered-client.json.json").then((client) => {
+            cy.fixture("registered-client.json").then((client) => {
                 cy.getByTestId("input-cnpj").type(client.registered_cnpj);
             });
             cy.getByTestId("button-submit").click();
@@ -131,6 +131,21 @@ describe("Client Registration", () => {
             });
         });
 
+        it("should show error message for invalid cpf", () => {
+            cy.getRandomCnpj().then((validCnpj) => {
+                cy.getByTestId("input-cnpj").type(validCnpj);
+            });
+            cy.getByTestId("button-submit").click();
+
+            cy.getByTestId("cpf-input").type("11111111111");
+            cy.getByTestId("submit-btn").click();
+
+            cy.getByTestId("validation-error").should(
+                "contain",
+                "CPF inválido. Certifique-se de que você digitou todos os 11 dígitos corretamente."
+            );
+        });
+
         it("should show an error message for mismatched passwords", () => {
             cy.getRandomCnpj().then((validCnpj) => {
                 cy.getByTestId("input-cnpj").type(validCnpj);
@@ -157,7 +172,7 @@ describe("Client Registration", () => {
 
             cy.getByTestId("validation-error").should(
                 "contain",
-                "As senhas não coincidem"
+                "As senhas não coincidem."
             );
         });
 
@@ -220,11 +235,11 @@ describe("Client Registration", () => {
 
             cy.getByTestId("validation-error").should(
                 "contain",
-                "E-mail do contato inválido"
+                "E-mail do contato inválido."
             );
             cy.getByTestId("validation-error").should(
                 "contain",
-                "E-mail da instituição inválido"
+                "E-mail da instituição inválido."
             );
         });
 

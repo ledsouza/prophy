@@ -1,27 +1,28 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import zxcvbn from "zxcvbn";
 
 import { useForm } from "react-hook-form";
+import useIBGELocalidades from "@/hooks/use-ibge-localidades";
 import type { SubmitHandler } from "react-hook-form";
 
 import { Form, Input, ComboBox } from "@/components/forms";
 import { Button, Spinner } from "@/components/common";
-
-import useIBGELocalidades from "@/hooks/use-ibge-localidades";
-
-const checkPasswordScore = (password: string) => {
-    const result = zxcvbn(password);
-    return result.score > 1;
-};
+import { checkPasswordScore } from "@/utils/validation";
+import { isCPF } from "validation-br";
 
 export const registerSchema = z
     .object({
-        cpf: z.string().min(1, { message: "O CPF é necessário" }),
+        cpf: z
+            .string()
+            .length(11, { message: "O CPF deve conter 11 caracteres." })
+            .refine(isCPF, {
+                message:
+                    "CPF inválido. Certifique-se de que você digitou todos os 11 dígitos corretamente.",
+            }),
         password: z
             .string()
             .min(8, {
-                message: "A senha deve conter no mínimo 8 caracteres",
+                message: "A senha deve conter no mínimo 8 caracteres.",
             })
             .refine((val) => !/^\d+$/.test(val), {
                 message: "Evite senhas que contenham apenas números.",
@@ -32,26 +33,26 @@ export const registerSchema = z
             }),
         re_password: z.string().min(8, {
             message:
-                "A confirmaçao de senha deve conter no mínimo 8 caracteres",
+                "A confirmaçao de senha deve conter no mínimo 8 caracteres.",
         }),
         nome_instituicao: z
             .string()
-            .min(1, { message: "Nome da instituição é obrigatório" })
+            .min(1, { message: "Nome da instituição é obrigatório." })
             .max(50, {
-                message: "Nome da instituição não pode exceder 50 caracteres",
+                message: "Nome da instituição não pode exceder 50 caracteres.",
             }),
         nome_contato: z
             .string()
-            .min(1, { message: "Nome do contato é obrigatório" })
+            .min(1, { message: "Nome do contato é obrigatório." })
             .max(50, {
-                message: "Nome do contato não pode exceder 50 caracteres",
+                message: "Nome do contato não pode exceder 50 caracteres.",
             }),
         email_contato: z
             .string()
-            .email({ message: "E-mail do contato inválido" }),
+            .email({ message: "E-mail do contato inválido." }),
         email_instituicao: z
             .string()
-            .email({ message: "E-mail da instituição inválido" }),
+            .email({ message: "E-mail da instituição inválido." }),
         telefone_instituicao: z
             .string()
             .min(10, { message: "Telefone deve conter no mínimo 10 dígitos." })
@@ -71,7 +72,7 @@ export const registerSchema = z
             .min(1, { message: "Cidade da instituição é obrigatório." }),
     })
     .refine((data) => data.password === data.re_password, {
-        message: "As senhas não coincidem",
+        message: "As senhas não coincidem.",
         path: ["re_password"],
     });
 
