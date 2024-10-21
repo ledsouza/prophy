@@ -56,7 +56,7 @@ export function useClientDataLoading() {
                 );
             }
         });
-    }, [errorClients, errorUnits]);
+    }, [errorClients, errorUnits, errorEquipments]);
 
     // Initialize client data
     // The client options allow users to choose which client's information they want to see.
@@ -79,8 +79,8 @@ export function useClientDataLoading() {
     // Handle equipment pagination
     useEffect(() => {
         if (paginatedEquipmentsData?.results) {
-            setEquipments((prev) => [
-                ...prev,
+            setEquipments((prevState) => [
+                ...prevState,
                 ...paginatedEquipmentsData.results,
             ]);
 
