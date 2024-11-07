@@ -95,7 +95,7 @@ class Command(BaseCommand):
         # Default users for automated testing
         admin_user = UserAccount.objects.create_superuser(
             cpf=CPF_ADMIN,
-            email=fake.email(),
+            email="leandro.souza.159@gmail.com",
             password=PASSWORD,
             name="Alexandre Ferret"
         )

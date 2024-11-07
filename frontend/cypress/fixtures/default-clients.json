@@ -9,7 +9,7 @@
     "endereco_instituicao": "Rua Ramiro Barcelos, 2350 Bloco A, Av. Prot\u00e1sio Alves, 211 - Bloco B e C - Santa Cec\u00edlia, Porto Alegre - RS, 90035-903",
     "estado_instituicao": "RS",
     "cidade_instituicao": "Porto Alegre",
-    "status": "I",
+    "status": "A",
     "id": 1000
   },
   "client2": {
@@ -22,7 +22,7 @@
     "endereco_instituicao": "Rua Professor Annes Dias, 295 - Centro Hist\u00f3rico, Porto Alegre - RS, 90020-090",
     "estado_instituicao": "RS",
     "cidade_instituicao": "Porto Alegre",
-    "status": "A",
+    "status": "I",
     "id": 1001
   },
   "clientEmpty": {

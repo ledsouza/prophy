@@ -141,7 +141,8 @@ SIMPLE_JWT = {
 
 DJOSER = {
     "TOKEN_MODEL": None,
-    "USER_CREATE_PASSWORD_RETYPE": True
+    "USER_CREATE_PASSWORD_RETYPE": True,
+    "PASSWORD_RESET_CONFIRM_URL": "password-reset/{uid}/{token}",
 }
 
 AUTH_COOKIE = "access"
@@ -184,12 +185,19 @@ REST_FRAMEWORK = {
 
 FRONTEND_URL = getenv("FRONTEND_URL")
 
+# Email Settings
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_HOST = "localhost"
+EMAIL_PORT = "8025"
+DEFAULT_FROM_EMAIL = "ledevsouza@gmail.com"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = 'autenticacao.UserAccount'
+AUTH_USER_MODEL = "autenticacao.UserAccount"
 
 ROLES = [
     "Gerente Prophy",

@@ -1,5 +1,8 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
+
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.views import (
@@ -8,8 +11,15 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
+from autenticacao.serializers import UnitManagerUserSerializer
+from autenticacao.email import UnitManagerPasswordResetEmail
+
+from djoser.conf import settings as djoser_settings
+from djoser.views import UserViewSet as DjoserUserViewSet
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+
+User = get_user_model()
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -185,3 +195,62 @@ class LogoutView(APIView):
         response.delete_cookie('refresh')
 
         return response
+
+
+class CustomUserViewSet(DjoserUserViewSet):
+    @action(["post"], detail=False, url_path="create-unit-manager")
+    def create_unit_manager(self, request, *args, **kwargs):
+        """
+        Custom endpoint for creating a 'Gerente de Unidade' (Unit Manager) user.
+
+        This endpoint allows only users with the roles 'Gerente Geral do Cliente' or 'Gerente Prophy' 
+        to create a new 'Gerente de Unidade' user. A password reset email is sent to the newly created 
+        user's email address upon successful creation.
+
+        Args:
+            request: The HTTP request object, containing user data and required fields 'cpf', 'email', and 'name'.
+
+        Returns:
+            Response: A JSON response with a success message and the new user's email if creation 
+                    is successful. If the user is created but the email fails to send, returns a 
+                    partial success message.
+
+        Raises:
+            HTTP_403_FORBIDDEN: If the request user does not have permission to create a 'Gerente de Unidade'.
+        """
+        # Ensure only Gerente Geral do Cliente and Gerente Prophy can create this user
+        if (request.user.role != "Gerente Geral do Cliente" or
+                    request.user.role != "Gerente Prophy"
+                ):
+            return Response(
+                {"detail": "Only Gerente Geral do Cliente or Gerente Prophy can create Gerente de Unidade users"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Validate input data
+        serializer = UnitManagerUserSerializer(data={
+            "cpf": request.data.get("cpf"),
+            "email": request.data.get("email"),
+            "name": request.data.get("name"),
+        })
+        serializer.is_valid(raise_exception=True)
+
+        # Create the user
+        user = serializer.save()
+
+        if user:
+            context = {"user": user}
+            to = [user.email]
+            UnitManagerPasswordResetEmail(
+                self.request, context, template_name="email/unit-manager-password-reset.html").send(to)
+
+            return Response({
+                "detail": "Unit manager user created. Password reset email sent.",
+                "email": user.email
+            }, status=status.HTTP_201_CREATED)
+
+        # If something goes wrong with sending reset email
+        return Response({
+            "detail": "User created but could not send password reset email",
+            "email": user.email
+        }, status=status.HTTP_206_PARTIAL_CONTENT)
