@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { useListClientsQuery, Cliente } from "@/redux/features/clientApiSlice";
-import { useListUnitsQuery, Unidade } from "@/redux/features/unitApiSlice";
+import {
+    useListClientsQuery,
+    ClientDTO,
+} from "@/redux/features/clientApiSlice";
+import { useListUnitsQuery, UnitDTO } from "@/redux/features/unitApiSlice";
 import {
     useListEquipmentsQuery,
-    Equipamento,
+    EquipmentDTO,
 } from "@/redux/features/equipmentApiSlice";
 
 import { SelectData } from "@/components/forms/Select";
@@ -13,13 +16,15 @@ import { getPageNumber } from "@/utils/pagination";
 
 export function useClientDataLoading() {
     const [page, setPage] = useState(1);
-    const [equipments, setEquipments] = useState<Equipamento[]>([]);
+    const [equipments, setEquipments] = useState<EquipmentDTO[]>([]);
     const [clientOptions, setClientOptions] = useState<SelectData[]>([]);
     const [selectedClient, setSelectedClient] = useState<SelectData | null>(
         null
     );
-    const [filteredClient, setFilteredClient] = useState<Cliente | null>(null);
-    const [filteredUnits, setFilteredUnits] = useState<Unidade[] | null>(null);
+    const [filteredClient, setFilteredClient] = useState<ClientDTO | null>(
+        null
+    );
+    const [filteredUnits, setFilteredUnits] = useState<UnitDTO[] | null>(null);
 
     const {
         data: paginatedClientsData,
@@ -67,7 +72,7 @@ export function useClientDataLoading() {
             const clientOptions = paginatedClientsData.results.map(
                 (client) => ({
                     id: client.id,
-                    value: client.nome_instituicao,
+                    value: client.name,
                 })
             );
 
@@ -111,7 +116,7 @@ export function useClientDataLoading() {
             setFilteredClient(newFilteredClient);
             setFilteredUnits(
                 paginatedUnitsData.results.filter(
-                    (unit) => unit.cliente === selectedClient.id
+                    (unit) => unit.client === selectedClient.id
                 )
             );
         }

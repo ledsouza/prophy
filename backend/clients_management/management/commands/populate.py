@@ -408,7 +408,7 @@ class Command(BaseCommand):
         return approved_cnpjs
 
     def create_json_fixture(self, approved_cnpjs, admin_user, client_user, default_clients, default_units):
-        fixture_proposal = {
+        fixture_proposals = {
             "approved_cnpjs": approved_cnpjs,
             "rejected_cnpj": REJECTED_PROPOSAL_CNPJ
         }
@@ -439,7 +439,8 @@ class Command(BaseCommand):
         # Ensure the directory exists
         os.makedirs(os.path.dirname(FIXTURE_PATH), exist_ok=True)
 
-        write_json_file(data=fixture_proposal, file_path=fixture_path_proposal)
+        write_json_file(data=fixture_proposals,
+                        file_path=fixture_path_proposal)
         write_json_file(data=fixture_users, file_path=fixture_path_users)
         write_json_file(data=fixture_registered_client,
                         file_path=fixture_registered_client_path)

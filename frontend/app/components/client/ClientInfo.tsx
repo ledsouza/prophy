@@ -41,9 +41,9 @@ function ClientInfo({
                     dataTestId="client-options"
                 />
                 <Typography element="p" size="md" dataTestId="client-details">
-                    {formatPhoneNumber(filteredClient?.telefone_instituicao!)}
+                    {formatPhoneNumber(filteredClient?.phone)}
                     <br />
-                    {filteredClient?.email_instituicao}
+                    {filteredClient?.email}
                 </Typography>
                 <Typography
                     element="p"
@@ -51,7 +51,7 @@ function ClientInfo({
                     className="leading-2"
                     dataTestId="client-details-address"
                 >
-                    {filteredClient?.endereco_instituicao}
+                    {filteredClient?.address}
                 </Typography>
             </div>
 

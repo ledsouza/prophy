@@ -67,8 +67,8 @@ const baseQueryWithReauth: BaseQueryFn<
 
 export const clearApiCache = () => apiSlice.util.resetApiState();
 
-export const getClienteByCnpj = async (cnpj: string) => {
-    const response = await fetch(`${baseUrl}clientes/?cnpj=${cnpj}`);
+export const getClientByCnpj = async (cnpj: string) => {
+    const response = await fetch(`${baseUrl}clients/?cnpj=${cnpj}`);
     const data = await response.json();
     return data.results;
 };

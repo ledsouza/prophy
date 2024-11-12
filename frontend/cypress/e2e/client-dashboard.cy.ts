@@ -41,7 +41,7 @@ describe("Client dashboard", () => {
             it("should display a user friendly page when no clients are available", () => {
                 cy.intercept(
                     "GET",
-                    "http://localhost:8000/api/clientes/?page=1",
+                    "http://localhost:8000/api/clients/?page=1",
                     {
                         statusCode: 200,
                         body: {
@@ -65,19 +65,15 @@ describe("Client dashboard", () => {
             });
 
             it("should display a user friendly page when no units are available", () => {
-                cy.intercept(
-                    "GET",
-                    "http://localhost:8000/api/unidades/?page=1",
-                    {
-                        statusCode: 200,
-                        body: {
-                            count: 0,
-                            next: null,
-                            previous: null,
-                            results: [],
-                        },
-                    }
-                ).as("getUnits");
+                cy.intercept("GET", "http://localhost:8000/api/units/?page=1", {
+                    statusCode: 200,
+                    body: {
+                        count: 0,
+                        next: null,
+                        previous: null,
+                        results: [],
+                    },
+                }).as("getUnits");
 
                 cy.visit("/auth/login");
                 cy.fixture("users.json").then((users) => {
@@ -103,14 +99,14 @@ describe("Client dashboard", () => {
             cy.fixture("default-clients.json").then((clients) => {
                 cy.getByTestId("client-options").should(
                     "contain",
-                    clients.client1.nome_instituicao
+                    clients.client1.name
                 );
                 cy.getByTestId("client-details")
                     .should("contain", "(51) 3359 - 6100")
-                    .and("contain", clients.client1.email_instituicao);
+                    .and("contain", clients.client1.email);
                 cy.getByTestId("client-details-address").should(
                     "contain",
-                    clients.client1.endereco_instituicao
+                    clients.client1.address
                 );
                 cy.getByTestId("prophy-responsible").should(
                     "contain",
@@ -129,7 +125,7 @@ describe("Client dashboard", () => {
             cy.fixture("default-units.json").then((units) => {
                 cy.getByTestId(`unit-card-${units.unit1.id}`).should(
                     "contain",
-                    units.unit1.nome
+                    units.unit1.name
                 );
                 cy.getByTestId("equipments-counts")
                     .should("be.visible")
@@ -142,26 +138,26 @@ describe("Client dashboard", () => {
                 cy.getByTestId("client-options").find("button").click();
                 cy.get('[role="listbox"]').should("be.visible");
                 cy.get('[role="option"]')
-                    .contains(clients.client2.nome_instituicao)
+                    .contains(clients.client2.name)
                     .click();
 
                 cy.getByTestId("client-options").should(
                     "contain",
-                    clients.client2.nome_instituicao
+                    clients.client2.name
                 );
                 cy.getByTestId("client-details")
                     .should("contain", "(51) 3214 - 8000")
-                    .and("contain", clients.client2.email_instituicao);
+                    .and("contain", clients.client2.email);
                 cy.getByTestId("client-details-address").should(
                     "contain",
-                    clients.client2.endereco_instituicao
+                    clients.client2.address
                 );
             });
 
             cy.fixture("default-units.json").then((units) => {
                 cy.getByTestId(`unit-card-${units.unit2.id}`).should(
                     "contain",
-                    units.unit2.nome
+                    units.unit2.name
                 );
                 cy.getByTestId("equipments-counts")
                     .should("be.visible")

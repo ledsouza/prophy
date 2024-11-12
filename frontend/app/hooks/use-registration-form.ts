@@ -34,23 +34,23 @@ const useRegistrationForm = ({
             const {
                 cpf,
                 password,
-                re_password,
-                nome_instituicao,
-                nome_contato,
-                email_contato,
-                email_instituicao,
-                telefone_instituicao,
-                endereco_instituicao,
-                estado_instituicao,
-                cidade_instituicao,
+                rePassword,
+                institutionName,
+                contactName,
+                contactEmail,
+                institutionEmail,
+                institutionPhone,
+                address,
+                state,
+                city,
             } = registerSchema.parse(data);
 
             await registerUser({
                 cpf,
-                email: email_contato,
-                name: nome_contato,
+                email: contactEmail,
+                name: contactName,
                 password,
-                re_password,
+                re_password: rePassword,
             }).unwrap();
 
             await login({ cpf, password });
@@ -58,14 +58,12 @@ const useRegistrationForm = ({
 
             await createClient({
                 cnpj: validatedCNPJ,
-                nome_instituicao,
-                nome_contato,
-                email_contato,
-                email_instituicao,
-                telefone_instituicao,
-                endereco_instituicao,
-                estado_instituicao,
-                cidade_instituicao,
+                name: institutionName,
+                email: institutionEmail,
+                phone: institutionPhone,
+                address,
+                state,
+                city,
             });
 
             toast.success("O seu cadastro foi realizado com sucesso!");

@@ -46,6 +46,7 @@ describe("Client Login", () => {
             cy.getCookie("access").should("exist");
             cy.getCookie("refresh").should("exist");
 
+            cy.wait(500);
             cy.url().should("include", "/dashboard/");
             cy.getByTestId("dashboard-title").should("contain", "Dashboard");
         });

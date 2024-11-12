@@ -74,12 +74,12 @@ function ClientPage() {
                         filteredUnits?.map((unit) => (
                             <UnitCard
                                 key={unit.id}
-                                title={unit.nome}
+                                title={unit.name}
                                 status="Aceito"
                                 equipmentsCount={
                                     equipments.filter(
                                         (equipment) =>
-                                            equipment.unidade === unit.id
+                                            equipment.unit === unit.id
                                     ).length
                                 }
                                 dataTestId={`unit-card-${unit.id}`}

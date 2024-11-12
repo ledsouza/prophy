@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import {
-    Equipamento,
+    EquipmentDTO,
     useListEquipmentsQuery,
 } from "@/redux/features/equipmentApiSlice";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
 
 export const useAllEquipments = () => {
-    const [allEquipments, setAllEquipments] = useState<Equipamento[]>([]);
+    const [allEquipments, setAllEquipments] = useState<EquipmentDTO[]>([]);
     const [isLoadingAll, setIsLoadingAll] = useState(true);
     const [errorAll, setErrorAll] = useState<
         FetchBaseQueryError | SerializedError | null
@@ -18,7 +18,7 @@ export const useAllEquipments = () => {
     });
 
     const fetchAllEquipments = async () => {
-        let allResults: Equipamento[] = [];
+        let allResults: EquipmentDTO[] = [];
         let currentPage = 1;
         let hasNextPage = true;
 

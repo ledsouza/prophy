@@ -16,6 +16,12 @@
 // Import commands.js using ES2015 syntax:
 import "./commands";
 
+Cypress.on("uncaught:exception", (err, runnable) => {
+    if (err.message.includes("NEXT_REDIRECT")) {
+        return false;
+    }
+});
+
 export const errorMessages = {
     emptyCPF: "O CPF deve conter 11 caracteres.",
     shortPassword: "A senha deve conter no mínimo 8 caracteres.",

@@ -31,29 +31,29 @@ export const registerSchema = z
                 message:
                     "Sua senha é muito fraca e coloca sua conta em risco. Por favor, crie uma senha mais forte.",
             }),
-        re_password: z.string().min(8, {
+        rePassword: z.string().min(8, {
             message:
                 "A confirmaçao de senha deve conter no mínimo 8 caracteres.",
         }),
-        nome_instituicao: z
+        institutionName: z
             .string()
             .min(1, { message: "Nome da instituição é obrigatório." })
             .max(50, {
                 message: "Nome da instituição não pode exceder 50 caracteres.",
             }),
-        nome_contato: z
+        contactName: z
             .string()
             .min(1, { message: "Nome do contato é obrigatório." })
             .max(50, {
                 message: "Nome do contato não pode exceder 50 caracteres.",
             }),
-        email_contato: z
+        contactEmail: z
             .string()
             .email({ message: "E-mail do contato inválido." }),
-        email_instituicao: z
+        institutionEmail: z
             .string()
             .email({ message: "E-mail da instituição inválido." }),
-        telefone_instituicao: z
+        institutionPhone: z
             .string()
             .min(10, { message: "Telefone deve conter no mínimo 10 dígitos." })
             .max(11, { message: "Telefone deve conter no máximo 11 dígitos." })
@@ -61,19 +61,19 @@ export const registerSchema = z
                 message:
                     "Telefone deve conter apenas números com padrão nacional (DD9XXXXXXXX).",
             }),
-        endereco_instituicao: z
+        address: z
             .string()
             .min(1, { message: "Endereço da instituição é obrigatório." }),
-        estado_instituicao: z
+        state: z
             .string()
             .min(1, { message: "Estado da instituição é obrigatório." }),
-        cidade_instituicao: z
+        city: z
             .string()
             .min(1, { message: "Cidade da instituição é obrigatório." }),
     })
-    .refine((data) => data.password === data.re_password, {
+    .refine((data) => data.password === data.rePassword, {
         message: "As senhas não coincidem.",
-        path: ["re_password"],
+        path: ["rePassword"],
     });
 
 export type RegisterFields = z.infer<typeof registerSchema>;
@@ -128,9 +128,9 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 Senha
             </Input>
             <Input
-                {...register("re_password")}
+                {...register("rePassword")}
                 type="password"
-                errorMessage={errors.re_password?.message}
+                errorMessage={errors.rePassword?.message}
                 placeholder="Digite a senha novamente"
                 data-testid="repassword-input"
             >
@@ -140,27 +140,27 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 Dados da sua instituição
             </h3>
             <Input
-                {...register("nome_instituicao")}
+                {...register("institutionName")}
                 type="text"
-                errorMessage={errors.nome_instituicao?.message}
+                errorMessage={errors.institutionName?.message}
                 placeholder="Digite o nome completo da instituição"
                 data-testid="institution-name-input"
             >
                 Nome
             </Input>
             <Input
-                {...register("email_instituicao")}
+                {...register("institutionEmail")}
                 type="text"
-                errorMessage={errors.email_instituicao?.message}
+                errorMessage={errors.institutionEmail?.message}
                 placeholder="nome@email.com"
                 data-testid="institution-email-input"
             >
                 E-mail
             </Input>
             <Input
-                {...register("telefone_instituicao")}
+                {...register("institutionPhone")}
                 type="text"
-                errorMessage={errors.telefone_instituicao?.message}
+                errorMessage={errors.institutionPhone?.message}
                 placeholder="Apenas números no padrão nacional (51983357247)"
                 data-testid="institution-phone-input"
             >
@@ -174,7 +174,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                         sigla: estado.sigla,
                     }))}
                     errorMessage={
-                        errors.estado_instituicao
+                        errors.state
                             ? "Estado da instituição é obrigatório."
                             : ""
                     }
@@ -198,7 +198,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                         name: municipio.nome,
                     }))}
                     errorMessage={
-                        errors.cidade_instituicao
+                        errors.city
                             ? "Cidade da instituição é obrigatório."
                             : ""
                     }
@@ -213,7 +213,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 <Input
                     disabled
                     errorMessage={
-                        errors.cidade_instituicao
+                        errors.city
                             ? "Cidade da instituição é obrigatório."
                             : ""
                     }
@@ -224,9 +224,9 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 </Input>
             )}
             <Input
-                {...register("endereco_instituicao")}
+                {...register("address")}
                 type="text"
-                errorMessage={errors.endereco_instituicao?.message}
+                errorMessage={errors.address?.message}
                 placeholder="Rua, número, bairro"
                 data-testid="institution-address-input"
             >
@@ -236,18 +236,18 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 Dados de contato
             </h3>
             <Input
-                {...register("nome_contato")}
+                {...register("contactName")}
                 type="text"
-                errorMessage={errors.nome_contato?.message}
+                errorMessage={errors.contactName?.message}
                 placeholder="Digite seu nome completo"
                 data-testid="name-input"
             >
                 Nome
             </Input>
             <Input
-                {...register("email_contato")}
+                {...register("contactEmail")}
                 type="text"
-                errorMessage={errors.email_contato?.message}
+                errorMessage={errors.contactEmail?.message}
                 placeholder="nome@email.com"
                 data-testid="email-input"
             >

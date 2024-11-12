@@ -50,14 +50,14 @@ const useIBGELocalidades = (setValue: UseFormSetValue<RegisterFields>) => {
 
     const handleEstadoChange = (selectedEstado: ComboboxDataProps | null) => {
         setSelectedEstado(selectedEstado);
-        setValue("estado_instituicao", selectedEstado?.sigla || "");
+        setValue("state", selectedEstado?.sigla || "");
     };
 
     const handleMunicipioChange = (
         selectedMunicipio: ComboboxDataProps | null
     ) => {
         setSelectedMunicipio(selectedMunicipio);
-        setValue("cidade_instituicao", selectedMunicipio?.name || "");
+        setValue("city", selectedMunicipio?.name || "");
     };
 
     return {

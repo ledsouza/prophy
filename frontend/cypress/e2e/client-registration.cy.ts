@@ -34,8 +34,8 @@ describe("Client Registration", () => {
 
     context("CNPJ Form Failure Scenario", () => {
         it("shows an error message if unauthorized cnpj", () => {
-            cy.fixture("propostas.json").then((propostas) => {
-                cy.getByTestId("input-cnpj").type(propostas.rejected_cnpj);
+            cy.fixture("proposals.json").then((proposals) => {
+                cy.getByTestId("input-cnpj").type(proposals.rejected_cnpj);
             });
             cy.getByTestId("button-submit").click();
 
@@ -315,7 +315,7 @@ describe("Client Registration", () => {
             cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as(
                 "loginUser"
             );
-            cy.intercept("POST", "http://localhost:8000/api/clientes/").as(
+            cy.intercept("POST", "http://localhost:8000/api/clients/").as(
                 "createClient"
             );
 
@@ -386,14 +386,12 @@ describe("Client Registration", () => {
 
                 expect(interception.request.body).to.deep.equal({
                     cnpj: validCnpj,
-                    nome_instituicao: fakeCompany,
-                    nome_contato: fakeContactName,
-                    email_contato: fakeContactEmail,
-                    email_instituicao: fakeEmailCompany,
-                    telefone_instituicao: fakePhone,
-                    endereco_instituicao: fakeStreet,
-                    estado_instituicao: fakeUF,
-                    cidade_instituicao: fakeCity,
+                    name: fakeCompany,
+                    email: fakeEmailCompany,
+                    phone: fakePhone,
+                    address: fakeStreet,
+                    state: fakeUF,
+                    city: fakeCity,
                 });
             });
 

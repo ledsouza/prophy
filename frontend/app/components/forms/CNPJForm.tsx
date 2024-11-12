@@ -11,7 +11,7 @@ import { Form, HeaderForm, Input } from "@/components/forms";
 import { Button } from "@/components/common";
 
 import prophyIcon from "@/../public/images/prophy-icon.png";
-import { getClienteByCnpj } from "@/redux/services/apiSlice";
+import { getClientByCnpj } from "@/redux/services/apiSlice";
 
 const cnpjSchema = z.object({
     cnpj: z
@@ -23,7 +23,7 @@ const cnpjSchema = z.object({
         })
         .refine(
             async (submittedCnpj) => {
-                const data = await getClienteByCnpj(submittedCnpj);
+                const data = await getClientByCnpj(submittedCnpj);
                 return data.length === 0;
             },
             { message: "Este CNPJ já está cadastrado." }

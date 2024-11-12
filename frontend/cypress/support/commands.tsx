@@ -24,7 +24,7 @@ declare global {
             login(cpf: string, password: string): Chainable<void>;
 
             /**
-             * Custom command to get a random CNPJ from the propostas-aprovadas.json fixture.
+             * Custom command to get a random CNPJ from the proposals.json fixture.
              *
              * @example
              * cy.getRandomCnpj().then((cnpj) => {
@@ -71,7 +71,7 @@ Cypress.Commands.add("login", (cpf, password) => {
 });
 
 Cypress.Commands.add("getRandomCnpj", () => {
-    return cy.fixture("propostas.json").then((fixtureData) => {
+    return cy.fixture("proposals.json").then((fixtureData) => {
         const cnpjs = fixtureData.approved_cnpjs;
 
         if (cnpjs.length === 0) {

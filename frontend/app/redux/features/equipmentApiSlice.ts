@@ -4,29 +4,29 @@ import {
     PaginatedResponse,
 } from "../services/apiSlice";
 
-export type Equipamento = {
+export type EquipmentDTO = {
     id: number;
-    modalidade: string;
-    fabricante: string;
-    modelo: string;
-    numero_serie: string;
-    registro_anvisa: string;
-    foto_equipamento: string;
-    foto_etiqueta: string;
-    responsavel_manutencao: string;
-    email_responsavel: string;
-    telefone_responsavel: string;
-    unidade: number;
+    modality: string;
+    manufacturer: string;
+    model: string;
+    series_number: string;
+    anvisa_registry: string;
+    equipment_photo: string;
+    label_photo: string;
+    maintenance_responsable: string;
+    email_maintenance_responsable: string;
+    phone_maintenance_responsable: string;
+    unit: number;
 };
 
-const equipamentoApiSlice = apiSlice.injectEndpoints({
+const equipmentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         listEquipments: builder.query<
-            PaginatedResponse<Equipamento>,
+            PaginatedResponse<EquipmentDTO>,
             ListQueryParams
         >({
             query: ({ page = 1 }) => ({
-                url: "equipamentos/",
+                url: "equipments/",
                 method: "GET",
                 params: { page },
             }),
@@ -34,4 +34,4 @@ const equipamentoApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useListEquipmentsQuery } = equipamentoApiSlice;
+export const { useListEquipmentsQuery } = equipmentApiSlice;

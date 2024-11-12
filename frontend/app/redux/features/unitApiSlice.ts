@@ -4,25 +4,24 @@ import {
     PaginatedResponse,
 } from "../services/apiSlice";
 
-export type Unidade = {
+export type UnitDTO = {
     id: number;
-    nome: string;
+    name: string;
     cnpj: string;
-    nome_contato: string;
     email: string;
-    telefone: string;
-    endereco: string;
-    estado: string;
-    cidade: string;
+    phone: string;
+    address: string;
+    state: string;
+    city: string;
     user: number;
-    cliente: number;
+    client: number;
 };
 
-const unidadeApiSlice = apiSlice.injectEndpoints({
+const unitApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        listUnits: builder.query<PaginatedResponse<Unidade>, ListQueryParams>({
+        listUnits: builder.query<PaginatedResponse<UnitDTO>, ListQueryParams>({
             query: ({ page = 1 }) => ({
-                url: "unidades/",
+                url: "units/",
                 method: "GET",
                 params: { page },
             }),
@@ -30,4 +29,4 @@ const unidadeApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useListUnitsQuery } = unidadeApiSlice;
+export const { useListUnitsQuery } = unitApiSlice;

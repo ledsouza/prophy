@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { useVerifyPropostaStatusMutation } from "@/redux/features/clientApiSlice";
+import { useVerifyProposalStatusMutation } from "@/redux/features/clientApiSlice";
 import { toast } from "react-toastify";
 
 const useCNPJValidation = (setIsModalOpen: (value: boolean) => void) => {
-    const [verifyPropostaStatus] = useVerifyPropostaStatusMutation();
+    const [verifyProposalStatus] = useVerifyProposalStatusMutation();
     const [validatedCNPJ, setValidatedCNPJ] = useState("");
 
     const validateCNPJ = async (cnpj: string) => {
         try {
-            const response = await verifyPropostaStatus(cnpj).unwrap();
+            const response = await verifyProposalStatus(cnpj).unwrap();
             if (response.approved) {
                 toast.success("CNPJ Válido! Prossiga com o cadastro.");
                 setValidatedCNPJ(cnpj);
