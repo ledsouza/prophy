@@ -284,11 +284,11 @@ class EquipmentViewSet(viewsets.ViewSet):
         """
         user = request.user
         if user.role == "Gerente Geral do Cliente":
-            queryset = Equipment.objects.filter(Unit__client__users=user)
+            queryset = Equipment.objects.filter(unit__client__users=user)
         else:
             queryset = Equipment.objects.all()
 
-        queryset = queryset.order_by("Unit")
+        queryset = queryset.order_by("unit")
 
         # Pagination
         paginator = PageNumberPagination()

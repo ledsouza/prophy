@@ -1,10 +1,10 @@
 from django.apps import AppConfig
 
 
-class AutenticacaoConfig(AppConfig):
+class UsersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'autenticacao'
+    name = 'users'
     verbose_name = "Autenticações e Permissões"
 
     def ready(self) -> None:
-        import autenticacao.signals
+        import users.signals

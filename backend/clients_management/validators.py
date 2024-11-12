@@ -29,7 +29,7 @@ class CNPJValidator:
         """
         Tells Django how to deconstruct this validator for migrations.
         """
-        path = "gestao_clientes.validators.CNPJValidator"
+        path = "clients_management.validators.CNPJValidator"
         args = ()
         kwargs = {}
         return (path, args, kwargs)

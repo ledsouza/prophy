@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from gestao_clientes.models import Client, Unit, Equipment
-from autenticacao.models import UserAccount
+from clients_management.models import Client, Unit, Equipment
+from users.models import UserAccount
 
 
 class UserNameSerializer(serializers.ModelSerializer):

@@ -4,8 +4,8 @@ from django.contrib import admin
 from django.utils.translation import gettext as _
 from django.utils.html import format_html
 
-from autenticacao.models import UserAccount
-from gestao_clientes.validators import CNPJValidator
+from users.models import UserAccount
+from clients_management.validators import CNPJValidator
 from core.validators import AlphaOnly
 
 from localflavor.br.br_states import STATE_CHOICES

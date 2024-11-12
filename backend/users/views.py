@@ -11,8 +11,8 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
-from autenticacao.serializers import UnitManagerUserSerializer
-from autenticacao.email import UnitManagerPasswordResetEmail
+from users.serializers import UnitManagerUserSerializer
+from users.email import UnitManagerPasswordResetEmail
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 from drf_yasg.utils import swagger_auto_schema

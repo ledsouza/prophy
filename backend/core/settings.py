@@ -48,8 +48,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     'django_filters',
     'drf_yasg',
-    "autenticacao",
-    "gestao_clientes",
+    "users",
+    "clients_management",
 ]
 
 MIDDLEWARE = [
@@ -166,7 +166,7 @@ SWAGGER_SETTINGS = {
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "autenticacao.authentication.CustomJWTAuthentication",
+        "users.authentication.CustomJWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -197,7 +197,7 @@ DEFAULT_FROM_EMAIL = "ledevsouza@gmail.com"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "autenticacao.UserAccount"
+AUTH_USER_MODEL = "users.UserAccount"
 
 ROLES = [
     "Gerente Prophy",

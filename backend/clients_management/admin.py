@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gestao_clientes.models import Client, Unit, Equipment, Proposal
+from clients_management.models import Client, Unit, Equipment, Proposal
 
 
 class UnitInline(admin.TabularInline):

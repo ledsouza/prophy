@@ -18,7 +18,7 @@
     "address": "Rua Professor Annes Dias, 295 - Centro Hist\u00f3rico, Porto Alegre - RS, 90020-090",
     "state": "RS",
     "city": "Porto Alegre",
-    "status": "A",
+    "status": "I",
     "id": 1001
   },
   "client_empty": {
@@ -29,7 +29,7 @@
     "address": "Rua Domingos Rubbo, 20 - Cristo Redentor, Porto Alegre - RS, 91040-000",
     "state": "RS",
     "city": "Porto Alegre",
-    "status": "I",
+    "status": "A",
     "id": 1002
   }
 }

@@ -3,8 +3,8 @@ from django.contrib.auth.models import Permission
 from django.contrib.auth.models import Group
 from django.conf import settings
 
-from gestao_clientes.models import Client, Unit, Equipment, Proposal
-from autenticacao.models import UserAccount
+from clients_management.models import Client, Unit, Equipment, Proposal
+from users.models import UserAccount
 
 import json
 import os

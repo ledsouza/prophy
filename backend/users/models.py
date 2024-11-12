@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from core.validators import AlphaOnly
-from autenticacao.validators import CPFValidator
+from users.validators import CPFValidator
 from django.contrib.auth.models import (
     BaseUserManager,
     AbstractBaseUser,

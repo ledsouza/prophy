@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.translation import gettext as _
 
-from gestao_clientes.models import Client, Unit, Equipment, Proposal
+from clients_management.models import Client, Unit, Equipment, Proposal
 from datetime import date
 
 UserAccount = get_user_model()
