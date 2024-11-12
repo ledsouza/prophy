@@ -38,6 +38,7 @@ const useRegistrationForm = ({
                 institutionName,
                 contactName,
                 contactEmail,
+                contactPhone,
                 institutionEmail,
                 institutionPhone,
                 address,
@@ -49,6 +50,7 @@ const useRegistrationForm = ({
                 cpf,
                 email: contactEmail,
                 name: contactName,
+                phone: contactPhone,
                 password,
                 re_password: rePassword,
             }).unwrap();

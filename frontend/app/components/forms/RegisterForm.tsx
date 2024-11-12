@@ -50,6 +50,10 @@ export const registerSchema = z
         contactEmail: z
             .string()
             .email({ message: "E-mail do contato inválido." }),
+        contactPhone: z.string().length(11, {
+            message:
+                "O número de celular deve estar no padrão de 11 dígitos (DD9XXXXXXXX).",
+        }),
         institutionEmail: z
             .string()
             .email({ message: "E-mail da instituição inválido." }),
@@ -136,6 +140,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
             >
                 Confirmação de senha
             </Input>
+
             <h3 className="text-center text-xl font-bold leading-9 tracking-tight text-gray-900">
                 Dados da sua instituição
             </h3>
@@ -161,7 +166,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 {...register("institutionPhone")}
                 type="text"
                 errorMessage={errors.institutionPhone?.message}
-                placeholder="Apenas números no padrão nacional (51983357247)"
+                placeholder="DD9XXXXXXXX"
                 data-testid="institution-phone-input"
             >
                 Telefone
@@ -232,6 +237,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
             >
                 Endereço
             </Input>
+
             <h3 className="text-center text-xl font-bold leading-9 tracking-tight text-gray-900">
                 Dados de contato
             </h3>
@@ -252,6 +258,15 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 data-testid="email-input"
             >
                 E-mail
+            </Input>
+            <Input
+                {...register("contactPhone")}
+                type="text"
+                errorMessage={errors.contactPhone?.message}
+                placeholder="DD9XXXXXXXX"
+                data-testid="contact-phone-input"
+            >
+                Celular
             </Input>
             <div className="flex gap-2 py-4">
                 <Button

@@ -4,14 +4,16 @@ type UserAuth = {
     cpf: string;
     email: string;
     name: string;
+    phone: string;
     password: string;
     re_password?: string;
 };
 
-export type User = {
+export type UserDTO = {
     id: number;
     cpf: string;
     email: string;
+    phone: string;
     name: string;
     role:
         | "Físico Médico Interno"
@@ -24,7 +26,10 @@ export type User = {
 
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<void, Omit<UserAuth, "email" | "name">>({
+        login: builder.mutation<
+            void,
+            Omit<UserAuth, "email" | "name" | "phone">
+        >({
             query: ({ cpf, password }) => ({
                 url: "jwt/create/",
                 method: "POST",
@@ -43,20 +48,20 @@ const authApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
             }),
         }),
-        retrieveUser: builder.query<User, void>({
+        retrieveUser: builder.query<UserDTO, void>({
             query: () => "users/me/",
         }),
-        getById: builder.query<User, User["id"]>({
+        getById: builder.query<UserDTO, UserDTO["id"]>({
             query: (id) => ({
                 url: `users/${id}`,
                 method: "GET",
             }),
         }),
         register: builder.mutation<any, UserAuth>({
-            query: ({ cpf, email, name, password, re_password }) => ({
+            query: ({ cpf, email, phone, name, password, re_password }) => ({
                 url: "users/",
                 method: "POST",
-                body: { cpf, email, name, password, re_password },
+                body: { cpf, email, phone, name, password, re_password },
             }),
         }),
     }),
