@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='useraccount',
             name='cpf',
-            field=models.CharField(max_length=11, unique=True, validators=[autenticacao.validators.CPFValidator()], verbose_name='CPF'),
+            field=models.CharField(max_length=11, unique=True, validators=[
+                                   autenticacao.validators.CPFValidator()], verbose_name='CPF'),
         ),
     ]

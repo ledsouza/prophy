@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
     Equipamento,
     useListEquipmentsQuery,
-} from "@/redux/features/equipamentoApiSlice";
+} from "@/redux/features/equipmentApiSlice";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
 

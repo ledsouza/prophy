@@ -4,7 +4,7 @@ import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
-import { Cliente } from "@/redux/features/clienteApiSlice";
+import { ClientDTO } from "@/redux/features/clientApiSlice";
 
 import { formatPhoneNumber } from "@/utils/format";
 
@@ -12,7 +12,7 @@ type ClientInfoProps = {
     clientOptions: SelectData[];
     selectedClient: SelectData;
     setSelectedClient: (value: SelectData) => void;
-    filteredClient: Cliente;
+    filteredClient: ClientDTO;
 };
 
 function ClientInfo({

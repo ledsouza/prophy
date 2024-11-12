@@ -31,7 +31,7 @@ class CPFValidator:
         """
         Tells Django how to deconstruct this validator for migrations.
         """
-        path = "autenticacao.validators.CPFValidator"
+        path = "users.validators.CPFValidator"
         args = ()
         kwargs = {}
         return (path, args, kwargs)

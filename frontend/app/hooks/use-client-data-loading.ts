@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-import { useListClientsQuery, Cliente } from "@/redux/features/clienteApiSlice";
-import { useListUnitsQuery, Unidade } from "@/redux/features/unidadeApiSlice";
+import { useListClientsQuery, Cliente } from "@/redux/features/clientApiSlice";
+import { useListUnitsQuery, Unidade } from "@/redux/features/unitApiSlice";
 import {
     useListEquipmentsQuery,
     Equipamento,
-} from "@/redux/features/equipamentoApiSlice";
+} from "@/redux/features/equipmentApiSlice";
 
 import { SelectData } from "@/components/forms/Select";
 import { toast } from "react-toastify";

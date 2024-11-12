@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from gestao_clientes.models import Cliente, Unidade, Equipamento
+from gestao_clientes.models import Client, Unit, Equipment
 from autenticacao.models import UserAccount
 
 
@@ -13,11 +13,11 @@ class CNPJSerializer(serializers.Serializer):
     cnpj = serializers.CharField(max_length=14)
 
 
-class ClienteSerializer(serializers.ModelSerializer):
+class ClientSerializer(serializers.ModelSerializer):
     users = UserNameSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Cliente
+        model = Client
         fields = "__all__"
 
     def to_representation(self, instance):
@@ -29,13 +29,13 @@ class ClienteSerializer(serializers.ModelSerializer):
         return representation
 
 
-class UnidadeSerializer(serializers.ModelSerializer):
+class UnitSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Unidade
+        model = Unit
         fields = "__all__"
 
 
-class EquipamentoSerializer(serializers.ModelSerializer):
+class EquipmentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Equipamento
+        model = Equipment
         fields = "__all__"

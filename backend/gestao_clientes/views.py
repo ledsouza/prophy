@@ -11,11 +11,11 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from .models import Proposta, Cliente, Unidade, Equipamento
-from .serializers import CNPJSerializer, ClienteSerializer, UnidadeSerializer, EquipamentoSerializer
+from .models import Proposal, Client, Unit, Equipment
+from .serializers import CNPJSerializer, ClientSerializer, UnitSerializer, EquipmentSerializer
 
 
-class LatestPropostaStatusView(APIView):
+class LatestProposalStatusView(APIView):
     """
     Check the approval status of the latest contract proposal with a given CNPJ.
     """
@@ -34,7 +34,7 @@ class LatestPropostaStatusView(APIView):
                     }
                 )
             ),
-            404: "Proposta not found",
+            404: "Proposal not found",
             400: "Invalid CNPJ format or missing data"
         }
     )
@@ -52,18 +52,18 @@ class LatestPropostaStatusView(APIView):
             cnpj = serializer.validated_data['cnpj']
 
             try:
-                latest_client = Proposta.objects.filter(
+                latest_client = Proposal.objects.filter(
                     cnpj=cnpj
-                ).latest('data_proposta')
+                ).latest('date')
                 return Response({'approved': latest_client.approved_client()}, status=status.HTTP_200_OK)
 
-            except Proposta.DoesNotExist:
+            except Proposal.DoesNotExist:
                 return Response({'error': 'Nenhum cliente foi encontrado com esse cnpj.'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ClienteViewSet(viewsets.ViewSet):
+class ClientViewSet(viewsets.ViewSet):
     """
     Viewset for managing clients.
 
@@ -96,7 +96,7 @@ class ClienteViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Successful Response",
-                schema=ClienteSerializer(many=True)
+                schema=ClientSerializer(many=True)
             )
         }
     )
@@ -131,9 +131,9 @@ class ClienteViewSet(viewsets.ViewSet):
         """
         user = request.user
         if not isinstance(user, AnonymousUser) and user.role == "Gerente Geral do Cliente":
-            queryset = Cliente.objects.filter(users=user)
+            queryset = Client.objects.filter(users=user)
         else:
-            queryset = Cliente.objects.all()
+            queryset = Client.objects.all()
 
         cnpj = request.query_params.get('cnpj')
         if cnpj is not None:
@@ -145,19 +145,19 @@ class ClienteViewSet(viewsets.ViewSet):
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
-            serializer = ClienteSerializer(page, many=True)
+            serializer = ClientSerializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
         else:
-            serializer = ClienteSerializer(queryset, many=True)
+            serializer = ClientSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         security=[{'Bearer': []}],
-        request_body=ClienteSerializer,
+        request_body=ClientSerializer,
         responses={
             201: openapi.Response(
                 description="Client created successfully",
-                schema=ClienteSerializer()
+                schema=ClientSerializer()
             ),
             400: "Invalid data provided"
         }
@@ -171,15 +171,15 @@ class ClienteViewSet(viewsets.ViewSet):
 
         - Only authenticated users.
         """
-        serializer = ClienteSerializer(data=request.data)
+        serializer = ClientSerializer(data=request.data)
         if serializer.is_valid():
-            cliente = serializer.save()
-            cliente.users.add(self.request.user)
+            client = serializer.save()
+            client.users.add(self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UnidadeViewSet(viewsets.ViewSet):
+class UnitViewSet(viewsets.ViewSet):
     """
     Viewset for listing units.
     """
@@ -189,7 +189,7 @@ class UnidadeViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Successful Response",
-                schema=UnidadeSerializer(many=True)
+                schema=UnitSerializer(many=True)
             )
         }
     )
@@ -223,24 +223,24 @@ class UnidadeViewSet(viewsets.ViewSet):
         """
         user = request.user
         if user.role == "Gerente Geral do Cliente":
-            queryset = Unidade.objects.filter(cliente__users=user)
+            queryset = Unit.objects.filter(client__users=user)
         else:
-            queryset = Unidade.objects.all()
+            queryset = Unit.objects.all()
 
-        queryset = queryset.order_by("cliente")
+        queryset = queryset.order_by("client")
 
         # Pagination
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
-            serializer = UnidadeSerializer(page, many=True)
+            serializer = UnitSerializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
         else:
-            serializer = UnidadeSerializer(queryset, many=True)
+            serializer = UnitSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class EquipamentoViewSet(viewsets.ViewSet):
+class EquipmentViewSet(viewsets.ViewSet):
     """
     Viewset for listing equipments.
     """
@@ -250,7 +250,7 @@ class EquipamentoViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Successful Response",
-                schema=EquipamentoSerializer(many=True)
+                schema=EquipmentSerializer(many=True)
             )
         }
     )
@@ -284,18 +284,18 @@ class EquipamentoViewSet(viewsets.ViewSet):
         """
         user = request.user
         if user.role == "Gerente Geral do Cliente":
-            queryset = Equipamento.objects.filter(unidade__cliente__users=user)
+            queryset = Equipment.objects.filter(Unit__client__users=user)
         else:
-            queryset = Equipamento.objects.all()
+            queryset = Equipment.objects.all()
 
-        queryset = queryset.order_by("unidade")
+        queryset = queryset.order_by("Unit")
 
         # Pagination
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
-            serializer = EquipamentoSerializer(page, many=True)
+            serializer = EquipmentSerializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
         else:
-            serializer = EquipamentoSerializer(queryset, many=True)
+            serializer = EquipmentSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)

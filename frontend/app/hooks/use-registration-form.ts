@@ -6,7 +6,7 @@ import {
     useLoginMutation,
     useRegisterMutation,
 } from "@/redux/features/authApiSlice";
-import { useCreateClientMutation } from "@/redux/features/clienteApiSlice";
+import { useCreateClientMutation } from "@/redux/features/clientApiSlice";
 import { setAuth } from "@/redux/features/authSlice";
 import { toast } from "react-toastify";
 import {

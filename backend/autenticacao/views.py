@@ -14,7 +14,6 @@ from rest_framework_simplejwt.views import (
 from autenticacao.serializers import UnitManagerUserSerializer
 from autenticacao.email import UnitManagerPasswordResetEmail
 
-from djoser.conf import settings as djoser_settings
 from djoser.views import UserViewSet as DjoserUserViewSet
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi

@@ -14,16 +14,19 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='cliente',
             name='cnpj',
-            field=models.CharField(max_length=14, unique=True, validators=[gestao_clientes.validators.CNPJValidator()], verbose_name='CNPJ'),
+            field=models.CharField(max_length=14, unique=True, validators=[
+                                   gestao_clientes.validators.CNPJValidator()], verbose_name='CNPJ'),
         ),
         migrations.AlterField(
             model_name='proposta',
             name='cnpj',
-            field=models.CharField(max_length=14, validators=[gestao_clientes.validators.CNPJValidator()], verbose_name='CNPJ'),
+            field=models.CharField(max_length=14, validators=[
+                                   gestao_clientes.validators.CNPJValidator()], verbose_name='CNPJ'),
         ),
         migrations.AlterField(
             model_name='unidade',
             name='cnpj',
-            field=models.CharField(max_length=14, validators=[gestao_clientes.validators.CNPJValidator()], verbose_name='CNPJ'),
+            field=models.CharField(max_length=14, validators=[
+                                   gestao_clientes.validators.CNPJValidator()], verbose_name='CNPJ'),
         ),
     ]

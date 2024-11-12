@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useVerifyPropostaStatusMutation } from "@/redux/features/clienteApiSlice";
+import { useVerifyPropostaStatusMutation } from "@/redux/features/clientApiSlice";
 import { toast } from "react-toastify";
 
 const useCNPJValidation = (setIsModalOpen: (value: boolean) => void) => {
