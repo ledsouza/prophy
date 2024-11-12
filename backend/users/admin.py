@@ -7,7 +7,7 @@ from users.models import UserAccount
 class UserAccountAdmin(BaseUserAdmin):
     verbose_name = "Conta de Usuário"
     verbose_name_plural = "Contas de Usuário"
-    list_display = ("cpf", "email", "name",
+    list_display = ("cpf", "name", "email", "phone",
                     "role", "is_active", "is_staff")
     list_display_links = ("cpf",)
     search_fields = ("cpf", "name", "email")
@@ -15,11 +15,11 @@ class UserAccountAdmin(BaseUserAdmin):
     ordering = ["name"]
 
     fieldsets = (
-        (None, {'fields': ('cpf', 'email', 'name', 'password', 'role')}),
-        ('Permissões', {
-            'fields': (
-                ('is_active', 'is_staff', 'is_superuser')
+        (None, {"fields": ("cpf", "name", "email", "phone", "password", "role")}),
+        ("Permissões", {
+            "fields": (
+                ("is_active", "is_staff", "is_superuser")
             ),
-            'description': "Gerencie permissões extras além das permissões definidas no perfil."
+            "description": "Gerencie permissões extras além das permissões definidas no perfil."
         }),
     )

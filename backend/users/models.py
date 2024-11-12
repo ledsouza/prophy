@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from core.validators import AlphaOnly
-from users.validators import CPFValidator
+from users.validators import CPFValidator, MobilePhoneValidator
 from django.contrib.auth.models import (
     BaseUserManager,
     AbstractBaseUser,
@@ -67,8 +67,10 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     cpf = models.CharField("CPF", max_length=11,
                            unique=True, validators=[CPFValidator()])
-    email = models.EmailField("E-mail", max_length=255, unique=True)
     name = models.CharField("Nome", max_length=255, validators=[AlphaOnly()])
+    email = models.EmailField("E-mail", max_length=255, unique=True)
+    phone = models.CharField("Celular", max_length=11,
+                             unique=True, null=True, validators=[MobilePhoneValidator()])
     role = models.CharField(
         "Perfil", max_length=30, choices=ROLE_CHOICES, default="Gerente Geral do Cliente")
 
@@ -82,7 +84,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     objects = UserAccountManager()
 
     USERNAME_FIELD = "cpf"
-    REQUIRED_FIELDS = ["email", "name", "role"]
+    REQUIRED_FIELDS = ["name", "email", "phone", "role"]
 
     def __str__(self):
         return self.name

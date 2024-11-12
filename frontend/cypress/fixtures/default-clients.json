@@ -7,7 +7,7 @@
     "address": "Rua Ramiro Barcelos, 2350 Bloco A, Av. Prot\u00e1sio Alves, 211 - Bloco B e C - Santa Cec\u00edlia, Porto Alegre - RS, 90035-903",
     "state": "RS",
     "city": "Porto Alegre",
-    "status": "I",
+    "status": "A",
     "id": 1000
   },
   "client2": {
@@ -18,7 +18,7 @@
     "address": "Rua Professor Annes Dias, 295 - Centro Hist\u00f3rico, Porto Alegre - RS, 90020-090",
     "state": "RS",
     "city": "Porto Alegre",
-    "status": "I",
+    "status": "A",
     "id": 1001
   },
   "client_empty": {

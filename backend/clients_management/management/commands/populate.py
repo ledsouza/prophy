@@ -96,6 +96,7 @@ class Command(BaseCommand):
         admin_user = UserAccount.objects.create_superuser(
             cpf=CPF_ADMIN,
             email="leandro.souza.159@gmail.com",
+            phone=fake_phone_number(),
             password=PASSWORD,
             name="Alexandre Ferret"
         )
@@ -103,6 +104,7 @@ class Command(BaseCommand):
         client_user = UserAccount.objects.create_user(
             cpf=CPF_GERENTE_CLIENTE,
             email=fake.email(),
+            phone=fake_phone_number(),
             password=PASSWORD,
             name="Cliente",
             role="Gerente Geral do Cliente",
@@ -114,6 +116,7 @@ class Command(BaseCommand):
             UserAccount.objects.create_user(
                 cpf=fake_cpf(),
                 email=fake.email(),
+                phone=fake_phone_number(),
                 password=PASSWORD,
                 name=fake.name()
             )
