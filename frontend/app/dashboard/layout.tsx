@@ -17,7 +17,7 @@ export default function DashboardLayout({
     if (isLoading) {
         return (
             <div className="flex justify-center my-8">
-                <Spinner lg />
+                <Spinner fullscreen />
             </div>
         );
     }

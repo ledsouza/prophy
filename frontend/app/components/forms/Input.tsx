@@ -31,10 +31,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 )}
                 <div className="mt-2">
                     <input
-                        {...props}
                         ref={ref}
                         disabled={disabled}
                         className={inputClassName}
+                        {...props}
                     />
                 </div>
                 {errorMessage && (

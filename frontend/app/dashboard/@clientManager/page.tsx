@@ -6,6 +6,9 @@ import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { ClientInfo, UnitCard } from "@/components/client";
+import { Input } from "@/components/forms";
+import { useEffect, useState } from "react";
+import { UnitDTO } from "@/redux/features/unitApiSlice";
 
 function ClientPage() {
     const router = useRouter();
@@ -20,8 +23,37 @@ function ClientPage() {
         setSelectedClient,
     } = useClientDataLoading();
 
+    const [searchedUnits, setSearchedUnits] = useState<UnitDTO[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const handleSearchInputChange = (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setSearchTerm(event.target.value);
+    };
+
+    useEffect(() => {
+        if (filteredUnits && filteredUnits.length > 0) {
+            if (searchTerm.length > 0) {
+                setSearchedUnits(
+                    filteredUnits.filter((unit) =>
+                        unit.name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase())
+                    )
+                );
+            } else {
+                setSearchedUnits(filteredUnits);
+            }
+        } else {
+            setSearchedUnits([]);
+        }
+    }, [filteredUnits, searchTerm]);
+
+    console.log(filteredUnits);
+
     if (isLoading) {
-        return <Spinner lg />;
+        return <Spinner fullscreen />;
     }
 
     if (hasNoData) {
@@ -61,17 +93,21 @@ function ClientPage() {
             )}
 
             <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
-                <Typography
-                    element="h2"
-                    size="title2"
-                    className="mb-6 font-bold"
-                >
+                <Typography element="h2" size="title2" className="font-bold">
                     Unidades
                 </Typography>
 
+                {filteredUnits?.length !== 0 && (
+                    <Input
+                        placeholder="Buscar unidades por nome"
+                        value={searchTerm}
+                        onChange={handleSearchInputChange}
+                    />
+                )}
+
                 <div className="flex flex-col gap-6">
-                    {filteredUnits && filteredUnits.length > 0 ? (
-                        filteredUnits?.map((unit) => (
+                    {searchedUnits && searchedUnits.length > 0 ? (
+                        searchedUnits?.map((unit) => (
                             <UnitCard
                                 key={unit.id}
                                 title={unit.name}
@@ -92,7 +128,9 @@ function ClientPage() {
                             dataTestId="unit-not-found"
                             className="justify-center text-center"
                         >
-                            Nenhuma unidade registrada
+                            {filteredUnits?.length === 0
+                                ? "Nenhuma unidade registrada"
+                                : "Nenhuma unidade encontrada para o termo pesquisado"}
                         </Typography>
                     )}
                 </div>
