@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import useIBGELocalidades from "@/hooks/use-ibge-localidades";
-import type { SubmitHandler } from "react-hook-form";
 
 import { Form, Input, ComboBox } from "@/components/forms";
 import { Button, Spinner } from "@/components/common";
@@ -50,10 +49,16 @@ export const registerSchema = z
         contactEmail: z
             .string()
             .email({ message: "E-mail do contato inválido." }),
-        contactPhone: z.string().length(11, {
-            message:
-                "O número de celular deve estar no padrão de 11 dígitos (DD9XXXXXXXX).",
-        }),
+        contactPhone: z
+            .string()
+            .length(11, {
+                message:
+                    "O número de celular deve estar no padrão de 11 dígitos (DD9XXXXXXXX).",
+            })
+            .refine((value) => /^\d{2}9\d{8}$/.test(value), {
+                message:
+                    "O número de celular deve estar no padrão de 11 dígitos (DD9XXXXXXXX).",
+            }),
         institutionEmail: z
             .string()
             .email({ message: "E-mail da instituição inválido." }),
@@ -63,7 +68,7 @@ export const registerSchema = z
             .max(11, { message: "Telefone deve conter no máximo 11 dígitos." })
             .regex(/^\d+$/, {
                 message:
-                    "Telefone deve conter apenas números com padrão nacional (DD9XXXXXXXX).",
+                    "Telefone deve conter apenas números com padrão nacional (DDXXXXXXXX).",
             }),
         address: z
             .string()

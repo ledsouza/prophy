@@ -1,15 +1,11 @@
+import { randomMobilePhoneNumber } from "@/utils/generator";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { errorMessages } from "cypress/support/e2e";
 import { generate as fakeCPF } from "gerador-validador-cpf";
 
 describe("Client Registration", () => {
     const fakerPhone = () => {
-        return faker.phone
-            .number({ style: "national" })
-            .replace("(", "")
-            .replace(")", "")
-            .replace("-", "")
-            .replace(/\s/g, "");
+        return randomMobilePhoneNumber();
     };
 
     beforeEach(() => {
@@ -243,7 +239,7 @@ describe("Client Registration", () => {
             );
         });
 
-        it("should show an error message for invalid phone number format", () => {
+        it("should show an error message for invalid institution phone number format", () => {
             cy.getRandomCnpj().then((validCnpj) => {
                 cy.getByTestId("input-cnpj").type(validCnpj);
             });
@@ -254,7 +250,22 @@ describe("Client Registration", () => {
 
             cy.getByTestId("validation-error").should(
                 "contain",
-                "Telefone deve conter apenas números com padrão nacional (DD9XXXXXXXX)."
+                "Telefone deve conter apenas números com padrão nacional (DDXXXXXXXX)."
+            );
+        });
+
+        it("should show an error message for invalid contact phone number format", () => {
+            cy.getRandomCnpj().then((validCnpj) => {
+                cy.getByTestId("input-cnpj").type(validCnpj);
+            });
+            cy.getByTestId("button-submit").click();
+
+            cy.getByTestId("contact-phone-input").type("(51)5555555");
+            cy.getByTestId("submit-btn").click();
+
+            cy.getByTestId("validation-error").should(
+                "contain",
+                "O número de celular deve estar no padrão de 11 dígitos (DD9XXXXXXXX)."
             );
         });
 
@@ -293,6 +304,7 @@ describe("Client Registration", () => {
             cy.getByTestId("institution-address-input").type(fakeStreet);
             cy.getByTestId("name-input").type(fakeContactName);
             cy.getByTestId("email-input").type(fakeContactEmail);
+            cy.getByTestId("contact-phone-input").type(fakePhone);
 
             cy.getByTestId("submit-btn").click();
 
@@ -349,6 +361,7 @@ describe("Client Registration", () => {
             cy.getByTestId("institution-address-input").type(fakeStreet);
             cy.getByTestId("name-input").type(fakeContactName);
             cy.getByTestId("email-input").type(fakeContactEmail);
+            cy.getByTestId("contact-phone-input").type(fakePhone);
 
             cy.getByTestId("submit-btn").click();
 
@@ -356,6 +369,18 @@ describe("Client Registration", () => {
                 expect(interception.response?.statusCode).to.eq(201);
 
                 expect(interception.request.body).to.have.property("cpf", cpf);
+                expect(interception.request.body).to.have.property(
+                    "name",
+                    fakeContactName
+                );
+                expect(interception.request.body).to.have.property(
+                    "email",
+                    fakeContactEmail
+                );
+                expect(interception.request.body).to.have.property(
+                    "phone",
+                    fakePhone
+                );
                 expect(interception.request.body).to.have.property(
                     "password",
                     password
