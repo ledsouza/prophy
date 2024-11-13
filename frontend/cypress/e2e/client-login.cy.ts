@@ -33,7 +33,10 @@ describe("Client Login", () => {
             });
 
             cy.url().should("include", "/dashboard/");
-            cy.getByTestId("dashboard-title").should("contain", "Dashboard");
+            cy.getByTestId("dashboard-title").should(
+                "contain",
+                "Painel de Gerenciamento"
+            );
         });
 
         it("should persist login state on page refresh", () => {
@@ -48,7 +51,10 @@ describe("Client Login", () => {
 
             cy.wait(500);
             cy.url().should("include", "/dashboard/");
-            cy.getByTestId("dashboard-title").should("contain", "Dashboard");
+            cy.getByTestId("dashboard-title").should(
+                "contain",
+                "Painel de Gerenciamento"
+            );
         });
 
         it("should allow user to log out", () => {

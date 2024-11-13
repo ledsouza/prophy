@@ -40,7 +40,7 @@ export default function Navbar() {
                 isMobile={isMobile}
                 href="/dashboard"
             >
-                Dashboard
+                Painel de Gerenciamento
             </NavLink>
             <NavLink
                 isMobile={isMobile}
