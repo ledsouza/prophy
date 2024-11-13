@@ -3,7 +3,7 @@ import {
     ListQueryParams,
     PaginatedResponse,
 } from "../services/apiSlice";
-import { User } from "./authApiSlice";
+import { UserDTO } from "./authApiSlice";
 
 export type ClientDTO = {
     id: number;
@@ -15,7 +15,7 @@ export type ClientDTO = {
     state: string;
     city: string;
     status: string;
-    users?: Pick<User, "name" | "role">[];
+    users?: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
 };
 
 type ProposalStatus = {

@@ -414,11 +414,17 @@ class Command(BaseCommand):
         }
         fixture_users = {"admin_user": {
             "cpf": admin_user.cpf,
-            "password": PASSWORD
+            "password": PASSWORD,
+            "name": admin_user.name,
+            "email": admin_user.email,
+            "phone": admin_user.phone
         },
             "client_user": {
                 "cpf": client_user.cpf,
-                "password": PASSWORD
+                "password": PASSWORD,
+                "name": client_user.name,
+                "email": client_user.email,
+                "phone": client_user.phone
         }}
         fixture_registered_client = {
             "registered_cnpj": REGISTERED_CNPJ

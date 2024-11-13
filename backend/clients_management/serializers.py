@@ -6,7 +6,7 @@ from users.models import UserAccount
 class UserNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
-        fields = ["name", "role"]
+        fields = ["name", "role", "email", "phone"]
 
 
 class CNPJSerializer(serializers.Serializer):
@@ -22,9 +22,10 @@ class ClientSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['users'] = [
-            {'name': user['name'], 'role': user['role']}
-            for user in representation['users']
+        representation["users"] = [
+            {"name": user["name"], "role": user["role"],
+                "email": user["email"], "phone": user["phone"]}
+            for user in representation["users"]
         ]
         return representation
 

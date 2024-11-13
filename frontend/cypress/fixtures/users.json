@@ -1,10 +1,16 @@
 {
   "admin_user": {
     "cpf": "03446254005",
-    "password": "passwordtest"
+    "password": "passwordtest",
+    "name": "Alexandre Ferret",
+    "email": "leandro.souza.159@gmail.com",
+    "phone": "41992093025"
   },
   "client_user": {
     "cpf": "82484874073",
-    "password": "passwordtest"
+    "password": "passwordtest",
+    "name": "Cliente",
+    "email": "caroline07@example.net",
+    "phone": "51986355238"
   }
 }

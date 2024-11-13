@@ -1,3 +1,5 @@
+import { formatPhoneNumber } from "@/utils/format";
+
 describe("Client dashboard", () => {
     context("Rendering", () => {
         it("should display the client details", () => {
@@ -9,10 +11,9 @@ describe("Client dashboard", () => {
             cy.getByTestId("client-header").should("be.visible");
             cy.getByTestId("client-options").should("be.visible");
             cy.getByTestId("client-details").should("be.visible");
-            cy.getByTestId("prophy-header").should("be.visible");
-            cy.getByTestId("prophy-responsible").should("be.visible");
-            cy.getByTestId("prophy-phone").should("be.visible");
-            cy.getByTestId("prophy-email").should("be.visible");
+            cy.getByTestId("gerente-prophy").should("be.visible");
+            cy.getByTestId("comercial-header").should("be.visible");
+            cy.getByTestId("comercial-details").should("be.visible");
             cy.getByTestId("invoice-header").should("be.visible");
             cy.getByTestId("invoice-nf").should("be.visible");
             cy.getByTestId("invoice-emission").should("be.visible");
@@ -108,17 +109,20 @@ describe("Client dashboard", () => {
                     "contain",
                     clients.client1.address
                 );
-                cy.getByTestId("prophy-responsible").should(
+            });
+
+            cy.fixture("users.json").then((users) => {
+                cy.getByTestId("gerente-prophy").should(
                     "contain",
-                    "Alexandre Ferret"
+                    users.admin_user.name
                 );
-                cy.getByTestId("prophy-phone").should(
+                cy.getByTestId("gerente-prophy").should(
                     "contain",
-                    "(51) 98580 - 0080"
+                    formatPhoneNumber(users.admin_user.phone)
                 );
-                cy.getByTestId("prophy-email").should(
+                cy.getByTestId("gerente-prophy").should(
                     "contain",
-                    "contato@prophy.com"
+                    users.admin_user.email
                 );
             });
 
