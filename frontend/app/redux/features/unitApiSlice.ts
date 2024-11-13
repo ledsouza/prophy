@@ -26,7 +26,14 @@ const unitApiSlice = apiSlice.injectEndpoints({
                 params: { page },
             }),
         }),
+        createUnit: builder.mutation<UnitDTO, Omit<UnitDTO, "id" | "user">>({
+            query: (unitData) => ({
+                url: "units/",
+                method: "POST",
+                body: unitData,
+            }),
+        }),
     }),
 });
 
-export const { useListUnitsQuery } = unitApiSlice;
+export const { useListUnitsQuery, useCreateUnitMutation } = unitApiSlice;

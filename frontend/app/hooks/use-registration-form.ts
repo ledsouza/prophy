@@ -7,6 +7,7 @@ import {
     useRegisterMutation,
 } from "@/redux/features/authApiSlice";
 import { useCreateClientMutation } from "@/redux/features/clientApiSlice";
+import { useCreateUnitMutation } from "@/redux/features/unitApiSlice";
 import { setAuth } from "@/redux/features/authSlice";
 import { toast } from "react-toastify";
 import {
@@ -26,6 +27,8 @@ const useRegistrationForm = ({
     const [registerUser] = useRegisterMutation();
     const [login] = useLoginMutation();
     const [createClient] = useCreateClientMutation();
+    const [createUnit] = useCreateUnitMutation();
+
     const dispatch = useAppDispatch();
     const router = useRouter();
 
@@ -58,7 +61,7 @@ const useRegistrationForm = ({
             await login({ cpf, password });
             dispatch(setAuth());
 
-            await createClient({
+            const clientResponse = await createClient({
                 cnpj: validatedCNPJ,
                 name: institutionName,
                 email: institutionEmail,
@@ -67,6 +70,19 @@ const useRegistrationForm = ({
                 state,
                 city,
             });
+
+            if (!clientResponse.error) {
+                await createUnit({
+                    cnpj: validatedCNPJ,
+                    name: institutionName,
+                    email: institutionEmail,
+                    phone: institutionPhone,
+                    address,
+                    state,
+                    city,
+                    client: clientResponse.data?.id,
+                });
+            }
 
             toast.success("O seu cadastro foi realizado com sucesso!");
             setIsModalOpen(false);

@@ -239,6 +239,31 @@ class UnitViewSet(viewsets.ViewSet):
             serializer = UnitSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        security=[{'Bearer': []}],
+        request_body=UnitSerializer,
+        responses={
+            201: openapi.Response(
+                description="Unit created successfully",
+                schema=UnitSerializer()
+            ),
+            400: "Invalid data provided"
+        }
+    )
+    def create(self, request):
+        """
+        Create a new unit.
+
+        ## Permissions:
+
+        - Only authenticated users.
+        """
+        serializer = UnitSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EquipmentViewSet(viewsets.ViewSet):
     """

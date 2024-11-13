@@ -34,7 +34,10 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 body: { cnpj },
             }),
         }),
-        createClient: builder.mutation<void, Omit<ClientDTO, "status" | "id">>({
+        createClient: builder.mutation<
+            ClientDTO,
+            Omit<ClientDTO, "status" | "id">
+        >({
             query: (clientData) => ({
                 url: "clients/",
                 method: "POST",
