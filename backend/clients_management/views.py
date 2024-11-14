@@ -86,36 +86,6 @@ class ClientViewSet(viewsets.ViewSet):
     Provides actions for listing and creating clients.
     """
 
-    def get_permissions(self):
-        """
-        Get permissions based on the action being performed.
-
-        - `list`: The request is authenticated as a user, or is a read-only request.
-        - All other actions: Require authentication.
-        """
-        if self.action == 'list':
-            permission_classes = [IsAuthenticatedOrReadOnly]
-        else:
-            permission_classes = [IsAuthenticated]
-        return [permission() for permission in permission_classes]
-
-    @swagger_auto_schema(
-        security=[{'Bearer': []}],
-        manual_parameters=[
-            openapi.Parameter(
-                'cnpj',
-                openapi.IN_QUERY,
-                description="Filter clients by CNPJ",
-                type=openapi.TYPE_STRING
-            )
-        ],
-        responses={
-            200: openapi.Response(
-                description="Successful Response",
-                schema=ClientSerializer(many=True)
-            )
-        }
-    )
     def list(self, request):
         """
         List clients.
@@ -146,7 +116,7 @@ class ClientViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if not isinstance(user, AnonymousUser) and user.role == "Gerente Geral do Cliente":
+        if user.role == "Gerente Geral do Cliente":
             queryset = Client.objects.filter(users=user)
         else:
             queryset = Client.objects.all()
