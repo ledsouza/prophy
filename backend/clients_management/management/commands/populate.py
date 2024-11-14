@@ -338,7 +338,7 @@ class Command(BaseCommand):
                     equipment_photo='./petct.jpg'
                 )
 
-    def populate_proposals(self, num_proposals=100):
+    def populate_proposals(self, num_proposals=150):
         """Populates the Proposal model with example data."""
         contract_types = ['A', 'M']
         status_choices = ['A', 'R', 'P']

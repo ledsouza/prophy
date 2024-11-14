@@ -18,18 +18,22 @@ export type ClientDTO = {
     users?: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
 };
 
-type ProposalStatus = {
-    approved: boolean;
+type Status = {
+    status: boolean;
 };
 
 const clientApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        verifyProposalStatus: builder.mutation<
-            ProposalStatus,
-            ClientDTO["cnpj"]
-        >({
+        verifyProposalStatus: builder.mutation<Status, ClientDTO["cnpj"]>({
             query: (cnpj) => ({
                 url: "proposals/status/",
+                method: "POST",
+                body: { cnpj },
+            }),
+        }),
+        verifyClientStatus: builder.mutation<Status, ClientDTO["cnpj"]>({
+            query: (cnpj) => ({
+                url: "clients/status/",
                 method: "POST",
                 body: { cnpj },
             }),
@@ -69,6 +73,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useVerifyProposalStatusMutation,
+    useVerifyClientStatusMutation,
     useCreateClientMutation,
     useGetByCnpjQuery,
     useListClientsQuery,

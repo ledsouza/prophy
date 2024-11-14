@@ -12,19 +12,19 @@ const getUserByRole = (client: ClientDTO, role: string) => {
     return client.users?.find((user) => user.role == role);
 };
 
-type ClientInfoProps = {
+type ClientDetailsProps = {
     clientOptions: SelectData[];
     selectedClient: SelectData;
     setSelectedClient: (value: SelectData) => void;
     filteredClient: ClientDTO;
 };
 
-function ClientInfo({
+function ClientDetails({
     clientOptions,
     selectedClient,
     setSelectedClient,
     filteredClient,
-}: ClientInfoProps) {
+}: ClientDetailsProps) {
     const gerenteProphy = getUserByRole(filteredClient, "Gerente Prophy");
     const fisicoMedicoInterno = getUserByRole(
         filteredClient,
@@ -199,4 +199,4 @@ function ClientInfo({
     );
 }
 
-export default ClientInfo;
+export default ClientDetails;

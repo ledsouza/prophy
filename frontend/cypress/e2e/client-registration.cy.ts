@@ -76,7 +76,7 @@ describe("Client Registration", () => {
             });
             cy.getByTestId("button-submit").click();
 
-            cy.getByTestId("validation-error").should(
+            cy.get("[role='alert']").should(
                 "contain",
                 "Este CNPJ já está cadastrado."
             );

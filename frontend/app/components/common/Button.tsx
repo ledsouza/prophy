@@ -47,7 +47,7 @@ const Button = ({
         }
     );
 
-    const content = isLoading ? <Spinner md /> : <div>{children}</div>;
+    const content = isLoading ? <Spinner md /> : <>{children}</>;
 
     if (href) {
         return (

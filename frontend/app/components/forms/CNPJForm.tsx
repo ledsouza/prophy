@@ -12,6 +12,8 @@ import { Button } from "@/components/common";
 
 import prophyIcon from "@/../public/images/prophy-icon.png";
 import { getClientByCnpj } from "@/redux/services/apiSlice";
+import { useVerifyClientStatusMutation } from "@/redux/features/clientApiSlice";
+import { toast } from "react-toastify";
 
 const cnpjSchema = z.object({
     cnpj: z
@@ -20,14 +22,14 @@ const cnpjSchema = z.object({
         .refine(isCNPJ, {
             message:
                 "CNPJ inválido. Certifique-se de que você digitou todos os 14 dígitos corretamente.",
-        })
-        .refine(
-            async (submittedCnpj) => {
-                const data = await getClientByCnpj(submittedCnpj);
-                return data.length === 0;
-            },
-            { message: "Este CNPJ já está cadastrado." }
-        ),
+        }),
+    // .refine(
+    //     async (submittedCnpj) => {
+    //         const data = await getClientByCnpj(submittedCnpj);
+    //         return data.length === 0;
+    //     },
+    //     { message: "Este CNPJ já está cadastrado." }
+    // ),
 });
 
 type CNPJFields = z.infer<typeof cnpjSchema>;
@@ -37,6 +39,8 @@ type CNPJFormProps = {
 };
 
 const CNPJForm = ({ onSubmit }: CNPJFormProps) => {
+    const [getClientStatus] = useVerifyClientStatusMutation();
+
     const {
         register,
         handleSubmit,
@@ -47,6 +51,19 @@ const CNPJForm = ({ onSubmit }: CNPJFormProps) => {
 
     const handleCNPJSubmit: SubmitHandler<CNPJFields> = async (data) => {
         const { cnpj } = data;
+
+        try {
+            const response = await getClientStatus(cnpj);
+            if (response.data?.status) {
+                return toast.info("Este CNPJ já está cadastrado.");
+            }
+        } catch (error) {
+            console.log("handleCNPJSubmit Error: ", error);
+            return toast.error(
+                "Algo deu errado. Tente novamente. Se o problem persistir, entre em contato conosco."
+            );
+        }
+
         onSubmit(cnpj);
     };
 

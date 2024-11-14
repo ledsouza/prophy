@@ -55,12 +55,28 @@ class LatestProposalStatusView(APIView):
                 latest_client = Proposal.objects.filter(
                     cnpj=cnpj
                 ).latest('date')
-                return Response({'approved': latest_client.approved_client()}, status=status.HTTP_200_OK)
+                return Response({'status': latest_client.approved_client()}, status=status.HTTP_200_OK)
 
             except Proposal.DoesNotExist:
                 return Response({'error': 'Nenhum cliente foi encontrado com esse cnpj.'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ClientStatusView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request: Request) -> Response:
+        serializer = CNPJSerializer(data=request.data)
+
+        if serializer.is_valid():
+            cnpj = serializer.validated_data['cnpj']
+
+            try:
+                _ = Client.objects.get(cnpj=cnpj)
+                return Response({'status': True}, status=status.HTTP_200_OK)
+            except Client.DoesNotExist:
+                return Response({'status': False}, status=status.HTTP_200_OK)
 
 
 class ClientViewSet(viewsets.ViewSet):

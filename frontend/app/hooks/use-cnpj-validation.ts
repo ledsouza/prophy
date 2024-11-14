@@ -9,7 +9,7 @@ const useCNPJValidation = (setIsModalOpen: (value: boolean) => void) => {
     const validateCNPJ = async (cnpj: string) => {
         try {
             const response = await verifyProposalStatus(cnpj).unwrap();
-            if (response.approved) {
+            if (response.status) {
                 toast.success("CNPJ Válido! Prossiga com o cadastro.");
                 setValidatedCNPJ(cnpj);
                 setIsModalOpen(true);

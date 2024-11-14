@@ -8,6 +8,7 @@ type UnitCardProps = {
     status: string;
     equipmentsCount: Number;
     dataTestId?: string | undefined;
+    onClick?: () => void;
 };
 
 function UnitCard({
@@ -15,11 +16,13 @@ function UnitCard({
     status,
     equipmentsCount,
     dataTestId,
+    onClick,
 }: UnitCardProps) {
     return (
         <div
             className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary"
             data-testid={dataTestId}
+            onClick={onClick}
         >
             <div className="flex justify-between pb-4">
                 <Typography element="h3" size="title3">

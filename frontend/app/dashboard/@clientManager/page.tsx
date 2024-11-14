@@ -1,17 +1,20 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+import { UnitDTO } from "@/redux/features/unitApiSlice";
+
 import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 
+import { Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
-import { ClientInfo, UnitCard } from "@/components/client";
-import { Input } from "@/components/forms";
-import { useEffect, useState } from "react";
-import { UnitDTO } from "@/redux/features/unitApiSlice";
+import { ClientDetails, UnitCard } from "@/components/client";
 
 function ClientPage() {
     const router = useRouter();
+
     const {
         isLoading,
         hasNoData,
@@ -50,8 +53,6 @@ function ClientPage() {
         }
     }, [filteredUnits, searchTerm]);
 
-    console.log(filteredUnits);
-
     if (isLoading) {
         return <Spinner fullscreen />;
     }
@@ -72,7 +73,7 @@ function ClientPage() {
                     favor, entre em contato conosco.
                 </Typography>
                 <Button
-                    onClick={() => router.refresh()} // TODO: Needs to deal with cache
+                    onClick={() => router.refresh()}
                     data-testid="btn-refresh"
                 >
                     Tentar novamente
@@ -84,7 +85,7 @@ function ClientPage() {
     return (
         <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
             {clientOptions && selectedClient && filteredClient && (
-                <ClientInfo
+                <ClientDetails
                     clientOptions={clientOptions}
                     selectedClient={selectedClient}
                     setSelectedClient={setSelectedClient}
@@ -117,6 +118,9 @@ function ClientPage() {
                                         (equipment) =>
                                             equipment.unit === unit.id
                                     ).length
+                                }
+                                onClick={() =>
+                                    router.push(`/dashboard/unit/${unit.id}`)
                                 }
                                 dataTestId={`unit-card-${unit.id}`}
                             />
