@@ -11,7 +11,6 @@ import { Form, HeaderForm, Input } from "@/components/forms";
 import { Button } from "@/components/common";
 
 import prophyIcon from "@/../public/images/prophy-icon.png";
-import { getClientByCnpj } from "@/redux/services/apiSlice";
 import { useVerifyClientStatusMutation } from "@/redux/features/clientApiSlice";
 import { toast } from "react-toastify";
 
@@ -23,13 +22,6 @@ const cnpjSchema = z.object({
             message:
                 "CNPJ inválido. Certifique-se de que você digitou todos os 14 dígitos corretamente.",
         }),
-    // .refine(
-    //     async (submittedCnpj) => {
-    //         const data = await getClientByCnpj(submittedCnpj);
-    //         return data.length === 0;
-    //     },
-    //     { message: "Este CNPJ já está cadastrado." }
-    // ),
 });
 
 type CNPJFields = z.infer<typeof cnpjSchema>;
