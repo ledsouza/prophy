@@ -33,7 +33,7 @@ describe("Client Login", () => {
             });
 
             cy.url().should("include", "/dashboard/");
-            cy.getByTestId("dashboard-title").should(
+            cy.getByTestId("dashboard-nav").should(
                 "contain",
                 "Painel de Gerenciamento"
             );
@@ -51,7 +51,7 @@ describe("Client Login", () => {
 
             cy.wait(500);
             cy.url().should("include", "/dashboard/");
-            cy.getByTestId("dashboard-title").should(
+            cy.getByTestId("dashboard-nav").should(
                 "contain",
                 "Painel de Gerenciamento"
             );

@@ -330,6 +330,9 @@ describe("Client Registration", () => {
             cy.intercept("POST", "http://localhost:8000/api/clients/").as(
                 "createClient"
             );
+            cy.intercept("POST", "http://localhost:8000/api/units/").as(
+                "createUnit"
+            );
 
             const cpf = fakeCPF();
             const password = "StrongPassword123!";
@@ -406,7 +409,23 @@ describe("Client Registration", () => {
                 cy.setCookie("refresh", refresh);
             });
 
+            let clientCreatedId = 0;
             cy.wait("@createClient").then((interception) => {
+                expect(interception.response?.statusCode).to.eq(201);
+                clientCreatedId = interception.response?.body.id;
+
+                expect(interception.request.body).to.deep.equal({
+                    cnpj: validCnpj,
+                    name: fakeCompany,
+                    email: fakeEmailCompany,
+                    phone: fakePhone,
+                    address: fakeStreet,
+                    state: fakeUF,
+                    city: fakeCity,
+                });
+            });
+
+            cy.wait("@createUnit").then((interception) => {
                 expect(interception.response?.statusCode).to.eq(201);
 
                 expect(interception.request.body).to.deep.equal({
@@ -417,6 +436,7 @@ describe("Client Registration", () => {
                     address: fakeStreet,
                     state: fakeUF,
                     city: fakeCity,
+                    client: clientCreatedId,
                 });
             });
 

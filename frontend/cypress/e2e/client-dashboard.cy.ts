@@ -35,7 +35,9 @@ describe("Client dashboard", () => {
                     .and("contain", "Quantidade de Equipamentos: 1");
             });
             cy.getByTestId("btn-add-equipment").should("be.visible");
-            cy.getByTestId("btn-add-unit").should("be.visible");
+            cy.getByTestId("btn-add-unit")
+                .scrollIntoView()
+                .should("be.visible");
         });
 
         context("API Retuns Empty Data", () => {

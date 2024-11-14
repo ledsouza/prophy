@@ -9,7 +9,7 @@ type Props = {
     className?: string;
     onClick?: () => void;
     children: React.ReactNode;
-    "data-testid"?: string;
+    dataTestId?: string;
 };
 
 const NavLink = ({
@@ -20,7 +20,7 @@ const NavLink = ({
     className,
     onClick,
     children,
-    "data-testid": dataTestId,
+    dataTestId,
 }: Props) => {
     const computedClassName = cn(
         "rounded-md px-3 py-2 font-medium",

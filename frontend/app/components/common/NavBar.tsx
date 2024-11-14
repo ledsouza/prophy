@@ -39,13 +39,14 @@ export default function Navbar() {
                 isSelected={isSelected("/dashboard/")}
                 isMobile={isMobile}
                 href="/dashboard"
+                dataTestId="dashboard-nav"
             >
                 Painel de Gerenciamento
             </NavLink>
             <NavLink
                 isMobile={isMobile}
                 onClick={handleLogout}
-                data-testid="logout-btn"
+                dataTestId="logout-btn"
             >
                 Sair
             </NavLink>
