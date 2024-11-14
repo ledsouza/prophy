@@ -3,6 +3,7 @@ import {
     ListQueryParams,
     PaginatedResponse,
 } from "../services/apiSlice";
+import { UserDTO } from "./authApiSlice";
 
 export type UnitDTO = {
     id: number;
@@ -13,7 +14,7 @@ export type UnitDTO = {
     address: string;
     state: string;
     city: string;
-    user: number;
+    user: Pick<UserDTO, "name" | "role" | "email" | "phone">;
     client: number;
 };
 

@@ -31,6 +31,8 @@ class ClientSerializer(serializers.ModelSerializer):
 
 
 class UnitSerializer(serializers.ModelSerializer):
+    user = UserNameSerializer(read_only=True)
+
     class Meta:
         model = Unit
         fields = "__all__"
