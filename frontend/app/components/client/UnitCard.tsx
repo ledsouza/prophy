@@ -1,5 +1,6 @@
 import React from "react";
 
+import { PencilLine, Trash } from "@phosphor-icons/react";
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 
@@ -42,9 +43,15 @@ function UnitCard({
                         {String(equipmentsCount)}
                     </Typography>
                 </Typography>
-                <Button variant="secondary" data-testid="btn-add-equipment">
-                    Adicionar Equipamento
-                </Button>
+
+                <div className="flex flex-row gap-2">
+                    <Button variant="secondary" data-testid="btn-edit">
+                        <PencilLine size={20} />
+                    </Button>
+                    <Button variant="danger" data-testid="btn-delete">
+                        <Trash size={20} />
+                    </Button>
+                </div>
             </div>
         </div>
     );

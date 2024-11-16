@@ -42,7 +42,7 @@ const Button = ({
                 variant === "primary",
             "bg-quaternary text-gray-primary hover:bg-opacity-50 focus-visible:outline-quaternary":
                 variant === "secondary",
-            "bg-danger text-white hover:bg-danger focus-visible:outline-danger":
+            "bg-danger text-white hover:bg-danger hover:bg-opacity-80 focus-visible:outline-danger":
                 variant === "danger",
         }
     );

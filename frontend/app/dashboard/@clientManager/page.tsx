@@ -139,7 +139,7 @@ function ClientPage() {
                     )}
                 </div>
 
-                <Button data-testid="btn-add-unit">Adicionar Unidade</Button>
+                <Button data-testid="btn-add-unit">Adicionar unidade</Button>
             </div>
         </main>
     );

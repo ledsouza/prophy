@@ -1,12 +1,13 @@
 import React from "react";
 
+import { formatPhoneNumber } from "@/utils/format";
+import { mask as cnpjMask } from "validation-br/dist/cnpj";
+
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
 import { ClientDTO } from "@/redux/features/clientApiSlice";
-
-import { formatPhoneNumber } from "@/utils/format";
 
 const getUserByRole = (client: ClientDTO, role: string) => {
     return client.users?.find((user) => user.role == role);
@@ -56,9 +57,11 @@ function ClientDetails({
                     dataTestId="client-options"
                 />
                 <Typography element="p" size="md" dataTestId="client-details">
-                    {formatPhoneNumber(filteredClient?.phone)}
+                    <b>CNPJ:</b> {cnpjMask(filteredClient?.cnpj)}
                     <br />
-                    {filteredClient?.email}
+                    <b>Telefone:</b> {formatPhoneNumber(filteredClient?.phone)}
+                    <br />
+                    <b>E-mail:</b> {filteredClient?.email}
                 </Typography>
                 <Typography
                     element="p"
@@ -66,8 +69,25 @@ function ClientDetails({
                     className="leading-2"
                     dataTestId="client-details-address"
                 >
-                    {filteredClient?.address}
+                    <b>Endereço:</b> {filteredClient?.address}
                 </Typography>
+
+                <div className="flex flex-row gap-2 w-full mt-2">
+                    <Button
+                        variant="secondary"
+                        className="flex-grow"
+                        data-testid="btn-edit"
+                    >
+                        Editar
+                    </Button>
+                    <Button
+                        variant="danger"
+                        className="flex-grow"
+                        data-testid="btn-delete"
+                    >
+                        Deletar
+                    </Button>
+                </div>
             </div>
 
             <div>

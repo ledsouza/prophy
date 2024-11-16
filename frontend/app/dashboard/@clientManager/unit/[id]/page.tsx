@@ -8,7 +8,7 @@ import useGetAllEquipments from "@/hooks/use-get-all-equipments";
 import { useEffect, useState } from "react";
 import { UnitDTO } from "@/redux/features/unitApiSlice";
 import UnitDetails from "@/components/client/UnitDetails";
-import { Spinner } from "@/components/common";
+import { Button, Spinner } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 import { Input } from "@/components/forms";
@@ -130,6 +130,10 @@ function UnitPage() {
                             </Typography>
                         )}
                     </div>
+
+                    <Button data-testid="btn-add-equipment">
+                        Adicionar equipamento
+                    </Button>
                 </div>
             </main>
         );

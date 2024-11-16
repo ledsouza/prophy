@@ -1,6 +1,7 @@
 import { UnitDTO } from "@/redux/features/unitApiSlice";
 
 import { formatPhoneNumber } from "@/utils/format";
+import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
 import { ArrowFatLineLeft } from "@phosphor-icons/react";
 
@@ -34,18 +35,31 @@ function UnitDetails({ selectedUnit }: UnitDetailsProps) {
                 <Typography element="p" size="md" dataTestId="unit-details">
                     <b>Nome:</b> {selectedUnit.name}
                     <br />
-                    <b>CNPJ:</b> {selectedUnit.cnpj}
+                    <b>CNPJ:</b> {cnpjMask(selectedUnit.cnpj)}
                     <br />
                     <b>Telefone:</b> {formatPhoneNumber(selectedUnit.phone)}
                     <br />
                     <b>E-mail:</b> {selectedUnit.email}
                     <br />
-                    <b>Estado:</b> {selectedUnit.state}
-                    <br />
-                    <b>Cidade:</b> {selectedUnit.city}
-                    <br />
                     <b>Endereço:</b> {selectedUnit.address}
                 </Typography>
+
+                <div className="flex flex-row gap-2 w-full mt-2">
+                    <Button
+                        variant="secondary"
+                        className="flex-grow"
+                        data-testid="btn-edit"
+                    >
+                        Editar
+                    </Button>
+                    <Button
+                        variant="danger"
+                        className="flex-grow"
+                        data-testid="btn-delete"
+                    >
+                        Deletar
+                    </Button>
+                </div>
             </div>
 
             <div>
