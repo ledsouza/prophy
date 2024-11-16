@@ -12,12 +12,25 @@ import useGetAllEquipments from "@/hooks/use-get-all-equipments";
 
 import { Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Button, Spinner } from "@/components/common";
-import { UnitDetails, EquipmentCard } from "@/components/client";
+import { Button, Modal, Spinner } from "@/components/common";
+import {
+    UnitDetails,
+    EquipmentCard,
+    EquipmentDetails,
+} from "@/components/client";
 
 function UnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedEquipment, setSelectedEquipment] =
+        useState<EquipmentDTO | null>(null);
+
+    function handleClickEquipmentCard(equipment: EquipmentDTO) {
+        setSelectedEquipment(equipment);
+        setIsModalOpen(true);
+    }
 
     const { units, isLoadingUnits, isPaginatingUnits, errorUnits } =
         useGetAllUnits();
@@ -110,11 +123,9 @@ function UnitPage() {
                                     key={equipment.id}
                                     equipment={equipment}
                                     status="Aceito"
-                                    // onClick={() =>
-                                    //     router.push(
-                                    //         `/dashboard/equipment/${equipment.id}`
-                                    //     )
-                                    // }
+                                    onClick={() =>
+                                        handleClickEquipmentCard(equipment)
+                                    }
                                     dataTestId={`equipment-card-${equipment.id}`}
                                 />
                             ))
@@ -136,6 +147,16 @@ function UnitPage() {
                         Adicionar equipamento
                     </Button>
                 </div>
+
+                {selectedEquipment && (
+                    <Modal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        className="max-w-6xl"
+                    >
+                        <EquipmentDetails equipment={selectedEquipment} />
+                    </Modal>
+                )}
             </main>
         );
     }
