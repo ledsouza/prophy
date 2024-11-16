@@ -1,35 +1,33 @@
 import { useEffect, useState } from "react";
-import { UnitDTO, useListUnitsQuery } from "@/redux/features/unitApiSlice";
+import { useListUnitsQuery } from "@/redux/features/unitApiSlice";
 import { getPageNumber } from "@/utils/pagination";
 
 function useGetAllUnits() {
     const [page, setPage] = useState(1);
-    const [units, setUnits] = useState<UnitDTO[]>([]);
+    const [isPaginatingUnits, setIsPaginatingUnits] = useState(true);
     const {
-        data: paginatedUnitsData,
+        data,
         isLoading: isLoadingUnits,
         error: errorUnits,
     } = useListUnitsQuery({ page });
 
     useEffect(() => {
-        if (paginatedUnitsData?.results) {
-            setUnits((prevState) => [
-                ...prevState,
-                ...paginatedUnitsData.results,
-            ]);
-
-            if (paginatedUnitsData.next) {
-                const nextPage = getPageNumber(paginatedUnitsData.next);
-                if (nextPage) {
+        if (data && isPaginatingUnits) {
+            if (data.next) {
+                const nextPage = getPageNumber(data.next);
+                if (nextPage && nextPage > page) {
                     setPage(nextPage);
                 }
+            } else {
+                setIsPaginatingUnits(false);
             }
         }
-    }, [paginatedUnitsData]);
+    }, [data, page, isPaginatingUnits]);
 
     return {
-        units,
+        units: data?.results || [],
         isLoadingUnits,
+        isPaginatingUnits,
         errorUnits,
     };
 }

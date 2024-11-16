@@ -18,9 +18,26 @@ function UnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
 
-    const { units, isLoadingUnits, errorUnits } = useGetAllUnits();
-    const { equipments, isLoadingEquipments, errorEquipments } =
-        useGetAllEquipments();
+    console.log("Component rendered with unitId:", unitId);
+
+    const { units, isLoadingUnits, isPaginatingUnits, errorUnits } =
+        useGetAllUnits();
+    const {
+        equipments,
+        isLoadingEquipments,
+        isPaginatingEquipments,
+        errorEquipments,
+    } = useGetAllEquipments();
+
+    console.log("Custom hooks data:", {
+        unitsLength: units.length,
+        equipmentsLength: equipments.length,
+        equipments: equipments,
+        isLoadingUnits,
+        isLoadingEquipments,
+        isPaginatingUnits,
+        isPaginatingEquipments,
+    });
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | undefined>(
         undefined
@@ -29,51 +46,57 @@ function UnitPage() {
         EquipmentDTO[]
     >([]);
 
-    const [searchedEquipments, setSearchedEquipments] = useState<
-        EquipmentDTO[]
-    >([]);
-    const [searchTerm, setSearchTerm] = useState("");
+    // const [searchedEquipments, setSearchedEquipments] = useState<
+    //     EquipmentDTO[]
+    // >([]);
+    // const [searchTerm, setSearchTerm] = useState("");
 
-    const handleSearchInputChange = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        setSearchTerm(event.target.value);
-    };
-
-    useEffect(() => {
-        if (units.length > 0 && equipments.length > 0) {
-            setSelectedUnit(units.find((unit) => unit.id === unitId));
-            setFilteredEquipments(
-                equipments.filter((equipment) => equipment.unit === unitId)
-            );
-        }
-    }, [units, equipments]);
+    // const handleSearchInputChange = (
+    //     event: React.ChangeEvent<HTMLInputElement>
+    // ) => {
+    //     setSearchTerm(event.target.value);
+    // };
 
     useEffect(() => {
-        if (filteredEquipments && filteredEquipments.length > 0) {
-            if (searchTerm.length > 0) {
-                setSearchedEquipments(
-                    filteredEquipments.filter((equipment) =>
-                        equipment.model
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase())
-                    )
-                );
-            } else {
-                setSearchedEquipments(filteredEquipments);
-            }
-        } else {
-            setSearchedEquipments([]);
-        }
-    }, [filteredEquipments, searchTerm]);
+        // Only run when both data finished paginating
+        if (isPaginatingUnits || isPaginatingEquipments) return;
 
-    console.log(filteredEquipments);
+        // Add null checks to prevent unnecessary renders
+        if (!units?.length || !equipments?.length || !unitId) return;
+
+        setSelectedUnit(units.find((unit) => unit.id === unitId));
+        setFilteredEquipments(
+            equipments.filter((equipment) => equipment.unit === unitId)
+        );
+    }, [units, equipments, unitId, isPaginatingUnits, isPaginatingEquipments]);
+
+    // useEffect(() => {
+    //     if (filteredEquipments.length > 0) {
+    //         if (searchTerm.length > 0) {
+    //             setSearchedEquipments(
+    //                 filteredEquipments.filter((equipment) =>
+    //                     equipment.model
+    //                         .toLowerCase()
+    //                         .includes(searchTerm.toLowerCase())
+    //                 )
+    //             );
+    //         } else {
+    //             setSearchedEquipments(filteredEquipments);
+    //         }
+    //     } else {
+    //         setSearchedEquipments([]);
+    //     }
+    // }, [filteredEquipments, searchTerm]);
 
     if (isLoadingUnits || isLoadingEquipments) {
         return <Spinner fullscreen />;
     }
 
     if (selectedUnit) {
+        console.log(
+            "Rendering with filteredEquipments:",
+            filteredEquipments.map((e) => e.id)
+        );
         return (
             <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
                 <UnitDetails selectedUnit={selectedUnit} />
@@ -87,17 +110,17 @@ function UnitPage() {
                         Equipamentos
                     </Typography>
 
-                    {filteredEquipments?.length !== 0 && (
+                    {/* {filteredEquipments?.length !== 0 && (
                         <Input
                             placeholder="Buscar equipamentos por modelo"
                             value={searchTerm}
                             onChange={handleSearchInputChange}
                         />
-                    )}
+                    )} */}
 
                     <div className="flex flex-col gap-6">
-                        {searchedEquipments && searchedEquipments.length > 0 ? (
-                            searchedEquipments?.map((equipment) => (
+                        {filteredEquipments.length > 0 ? (
+                            filteredEquipments.map((equipment) => (
                                 <EquipmentCard
                                     key={equipment.id}
                                     equipment={equipment}

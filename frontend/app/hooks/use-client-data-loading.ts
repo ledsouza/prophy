@@ -13,10 +13,11 @@ import {
 import { SelectData } from "@/components/forms/Select";
 import { toast } from "react-toastify";
 import { getPageNumber } from "@/utils/pagination";
+import useGetAllClients from "./use-get-all-clients";
+import useGetAllEquipments from "./use-get-all-equipments";
+import useGetAllUnits from "./use-get-all-units";
 
 export function useClientDataLoading() {
-    const [page, setPage] = useState(1);
-    const [equipments, setEquipments] = useState<EquipmentDTO[]>([]);
     const [clientOptions, setClientOptions] = useState<SelectData[]>([]);
     const [selectedClient, setSelectedClient] = useState<SelectData | null>(
         null
@@ -26,23 +27,10 @@ export function useClientDataLoading() {
     );
     const [filteredUnits, setFilteredUnits] = useState<UnitDTO[] | null>(null);
 
-    const {
-        data: paginatedClientsData,
-        isLoading: isLoadingClients,
-        error: errorClients,
-    } = useListClientsQuery({ page: 1 });
-
-    const {
-        data: paginatedUnitsData,
-        isLoading: isLoadingUnits,
-        error: errorUnits,
-    } = useListUnitsQuery({ page: 1 });
-
-    const {
-        data: paginatedEquipmentsData,
-        isLoading: isLoadingEquipments,
-        error: errorEquipments,
-    } = useListEquipmentsQuery({ page });
+    const { clients, isPaginatingClients, errorClients } = useGetAllClients();
+    const { units, isPaginatingUnits, errorUnits } = useGetAllUnits();
+    const { equipments, isPaginatingEquipments, errorEquipments } =
+        useGetAllEquipments();
 
     // Handle errors
     useEffect(() => {
@@ -68,63 +56,38 @@ export function useClientDataLoading() {
     // Those options will be used in an select input.
     // Default select option will be the first result in the array.
     useEffect(() => {
-        if (paginatedClientsData?.results) {
-            const clientOptions = paginatedClientsData.results.map(
-                (client) => ({
-                    id: client.id,
-                    value: client.name,
-                })
-            );
+        if (clients && !isPaginatingClients) {
+            const clientOptions = clients.map((client) => ({
+                id: client.id,
+                value: client.name,
+            }));
 
             setClientOptions(clientOptions);
             setSelectedClient(clientOptions[0]);
         }
-    }, [paginatedClientsData]);
-
-    // Handle equipment pagination
-    useEffect(() => {
-        if (paginatedEquipmentsData?.results) {
-            setEquipments((prevState) => [
-                ...prevState,
-                ...paginatedEquipmentsData.results,
-            ]);
-
-            if (paginatedEquipmentsData.next) {
-                const nextPage = getPageNumber(paginatedEquipmentsData.next);
-                if (nextPage) {
-                    setPage(nextPage);
-                }
-            }
-        }
-    }, [paginatedEquipmentsData]);
+    }, [clients, isPaginatingClients]);
 
     // Filter units based on selected client
     useEffect(() => {
         // It only runs when all data is ready.
-        if (
-            !selectedClient ||
-            !paginatedClientsData?.results ||
-            !paginatedUnitsData?.results
-        )
-            return;
+        if (isPaginatingClients || isPaginatingUnits) return;
 
-        const newFilteredClient = paginatedClientsData.results.find(
-            (client) => client.id === selectedClient.id
+        const newFilteredClient = clients.find(
+            (client) => client.id === selectedClient?.id
         );
 
         if (newFilteredClient) {
             setFilteredClient(newFilteredClient);
             setFilteredUnits(
-                paginatedUnitsData.results.filter(
-                    (unit) => unit.client === selectedClient.id
-                )
+                units.filter((unit) => unit.client === selectedClient?.id)
             );
         }
-    }, [selectedClient, paginatedClientsData, paginatedUnitsData]);
+    }, [selectedClient, isPaginatingClients, isPaginatingUnits]);
 
     return {
-        isLoading: isLoadingClients || isLoadingUnits || isLoadingEquipments,
-        hasNoData: paginatedClientsData?.count === 0,
+        isLoading:
+            isPaginatingClients || isPaginatingUnits || isPaginatingEquipments,
+        hasNoData: clients.length === 0,
         clientOptions,
         selectedClient,
         filteredClient,

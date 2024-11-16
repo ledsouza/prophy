@@ -1,39 +1,34 @@
 import { useEffect, useState } from "react";
 
 import { getPageNumber } from "@/utils/pagination";
-import {
-    ClientDTO,
-    useListClientsQuery,
-} from "@/redux/features/clientApiSlice";
+import { useListClientsQuery } from "@/redux/features/clientApiSlice";
 
 function useGetAllClients() {
     const [page, setPage] = useState(1);
-    const [clients, setClients] = useState<ClientDTO[]>([]);
+    const [isPaginatingClients, setIsPaginatingClients] = useState(true);
     const {
-        data: paginatedClientsData,
+        data,
         isLoading: isLoadingClients,
         error: errorClients,
     } = useListClientsQuery({ page });
 
     useEffect(() => {
-        if (paginatedClientsData?.results) {
-            setClients((prevState) => [
-                ...prevState,
-                ...paginatedClientsData.results,
-            ]);
-
-            if (paginatedClientsData.next) {
-                const nextPage = getPageNumber(paginatedClientsData.next);
-                if (nextPage) {
+        if (data && isPaginatingClients) {
+            if (data.next) {
+                const nextPage = getPageNumber(data.next);
+                if (nextPage && nextPage > page) {
                     setPage(nextPage);
                 }
+            } else {
+                setIsPaginatingClients(false);
             }
         }
-    }, [paginatedClientsData]);
+    }, [data, page, isPaginatingClients]);
 
     return {
-        clients,
+        clients: data?.results || [],
         isLoadingClients,
+        isPaginatingClients,
         errorClients,
     };
 }

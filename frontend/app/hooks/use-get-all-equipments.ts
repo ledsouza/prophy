@@ -1,38 +1,33 @@
 import { useEffect, useState } from "react";
-import {
-    EquipmentDTO,
-    useListEquipmentsQuery,
-} from "@/redux/features/equipmentApiSlice";
+import { useListEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 import { getPageNumber } from "@/utils/pagination";
 
 function useGetAllEquipments() {
     const [page, setPage] = useState(1);
-    const [equipments, setEquipments] = useState<EquipmentDTO[]>([]);
+    const [isPaginatingEquipments, setIsPaginatingEquipments] = useState(true);
     const {
-        data: paginatedEquipmentsData,
+        data,
         isLoading: isLoadingEquipments,
         error: errorEquipments,
     } = useListEquipmentsQuery({ page });
 
     useEffect(() => {
-        if (paginatedEquipmentsData?.results) {
-            setEquipments((prevState) => [
-                ...prevState,
-                ...paginatedEquipmentsData.results,
-            ]);
-
-            if (paginatedEquipmentsData.next) {
-                const nextPage = getPageNumber(paginatedEquipmentsData.next);
-                if (nextPage) {
+        if (data && isPaginatingEquipments) {
+            if (data.next) {
+                const nextPage = getPageNumber(data.next);
+                if (nextPage && nextPage > page) {
                     setPage(nextPage);
                 }
+            } else {
+                setIsPaginatingEquipments(false);
             }
         }
-    }, [paginatedEquipmentsData]);
+    }, [data, page, isPaginatingEquipments]);
 
     return {
-        equipments,
+        equipments: data?.results || [],
         isLoadingEquipments,
+        isPaginatingEquipments,
         errorEquipments,
     };
 }

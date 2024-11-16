@@ -30,6 +30,32 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 method: "GET",
                 params: { page },
             }),
+            serializeQueryArgs: ({ endpointName }) => {
+                return endpointName;
+            },
+            merge: (currentCache, newItems) => {
+                if (!currentCache) return newItems;
+
+                // Merge current cache with new results, ensuring no duplicates
+                return {
+                    count: newItems.count,
+                    next: newItems.next,
+                    previous: newItems.previous,
+                    results: [
+                        ...currentCache.results,
+                        ...newItems.results.filter(
+                            (newItem) =>
+                                !currentCache.results.some(
+                                    (existingItem) =>
+                                        existingItem.id === newItem.id
+                                )
+                        ),
+                    ],
+                };
+            },
+            forceRefetch: ({ currentArg, previousArg }) => {
+                return currentArg?.page !== previousArg?.page;
+            },
         }),
     }),
 });
