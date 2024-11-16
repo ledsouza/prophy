@@ -20,7 +20,7 @@ function UnitCard({
 }: UnitCardProps) {
     return (
         <div
-            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary"
+            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary cursor-pointer"
             data-testid={dataTestId}
             onClick={onClick}
         >
