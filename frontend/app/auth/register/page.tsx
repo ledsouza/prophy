@@ -18,8 +18,12 @@ const RegisterPage = () => {
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <CNPJForm onSubmit={validateCNPJ} />
             </div>
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                <div className="m-6 sm:mx-auto sm:w-full sm:max-w-sm">
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                className="max-w-lg"
+            >
+                <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-sm">
                     <RegisterForm
                         onSubmit={onSubmit}
                         setIsModalOpen={setIsModalOpen}
