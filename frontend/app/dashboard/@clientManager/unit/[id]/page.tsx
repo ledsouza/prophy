@@ -1,18 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { getIdFromUrl } from "@/utils/url";
+import { UnitDTO } from "@/redux/features/unitApiSlice";
+import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
+
 import useGetAllUnits from "@/hooks/use-get-all-units";
 import useGetAllEquipments from "@/hooks/use-get-all-equipments";
-import { useEffect, useState } from "react";
-import { UnitDTO } from "@/redux/features/unitApiSlice";
-import UnitDetails from "@/components/client/UnitDetails";
-import { Button, Spinner } from "@/components/common";
-import { Typography } from "@/components/foundation";
-import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
+
 import { Input } from "@/components/forms";
-import EquipmentCard from "@/components/client/EquipmentCard";
+import { Typography } from "@/components/foundation";
+import { Button, Spinner } from "@/components/common";
+import { UnitDetails, EquipmentCard } from "@/components/client";
 
 function UnitPage() {
     const pathname = usePathname();
