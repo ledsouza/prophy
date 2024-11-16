@@ -18,8 +18,6 @@ function UnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
 
-    console.log("Component rendered with unitId:", unitId);
-
     const { units, isLoadingUnits, isPaginatingUnits, errorUnits } =
         useGetAllUnits();
     const {
@@ -29,16 +27,6 @@ function UnitPage() {
         errorEquipments,
     } = useGetAllEquipments();
 
-    console.log("Custom hooks data:", {
-        unitsLength: units.length,
-        equipmentsLength: equipments.length,
-        equipments: equipments,
-        isLoadingUnits,
-        isLoadingEquipments,
-        isPaginatingUnits,
-        isPaginatingEquipments,
-    });
-
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | undefined>(
         undefined
     );
@@ -46,16 +34,16 @@ function UnitPage() {
         EquipmentDTO[]
     >([]);
 
-    // const [searchedEquipments, setSearchedEquipments] = useState<
-    //     EquipmentDTO[]
-    // >([]);
-    // const [searchTerm, setSearchTerm] = useState("");
+    const [searchedEquipments, setSearchedEquipments] = useState<
+        EquipmentDTO[]
+    >([]);
+    const [searchTerm, setSearchTerm] = useState("");
 
-    // const handleSearchInputChange = (
-    //     event: React.ChangeEvent<HTMLInputElement>
-    // ) => {
-    //     setSearchTerm(event.target.value);
-    // };
+    const handleSearchInputChange = (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setSearchTerm(event.target.value);
+    };
 
     useEffect(() => {
         // Only run when both data finished paginating
@@ -70,33 +58,29 @@ function UnitPage() {
         );
     }, [units, equipments, unitId, isPaginatingUnits, isPaginatingEquipments]);
 
-    // useEffect(() => {
-    //     if (filteredEquipments.length > 0) {
-    //         if (searchTerm.length > 0) {
-    //             setSearchedEquipments(
-    //                 filteredEquipments.filter((equipment) =>
-    //                     equipment.model
-    //                         .toLowerCase()
-    //                         .includes(searchTerm.toLowerCase())
-    //                 )
-    //             );
-    //         } else {
-    //             setSearchedEquipments(filteredEquipments);
-    //         }
-    //     } else {
-    //         setSearchedEquipments([]);
-    //     }
-    // }, [filteredEquipments, searchTerm]);
+    useEffect(() => {
+        if (filteredEquipments.length > 0) {
+            if (searchTerm.length > 0) {
+                setSearchedEquipments(
+                    filteredEquipments.filter((equipment) =>
+                        equipment.model
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase())
+                    )
+                );
+            } else {
+                setSearchedEquipments(filteredEquipments);
+            }
+        } else {
+            setSearchedEquipments([]);
+        }
+    }, [filteredEquipments, searchTerm]);
 
     if (isLoadingUnits || isLoadingEquipments) {
         return <Spinner fullscreen />;
     }
 
     if (selectedUnit) {
-        console.log(
-            "Rendering with filteredEquipments:",
-            filteredEquipments.map((e) => e.id)
-        );
         return (
             <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
                 <UnitDetails selectedUnit={selectedUnit} />
@@ -110,17 +94,17 @@ function UnitPage() {
                         Equipamentos
                     </Typography>
 
-                    {/* {filteredEquipments?.length !== 0 && (
+                    {filteredEquipments?.length !== 0 && (
                         <Input
                             placeholder="Buscar equipamentos por modelo"
                             value={searchTerm}
                             onChange={handleSearchInputChange}
                         />
-                    )} */}
+                    )}
 
                     <div className="flex flex-col gap-6">
-                        {filteredEquipments.length > 0 ? (
-                            filteredEquipments.map((equipment) => (
+                        {searchedEquipments.length > 0 ? (
+                            searchedEquipments.map((equipment) => (
                                 <EquipmentCard
                                     key={equipment.id}
                                     equipment={equipment}
