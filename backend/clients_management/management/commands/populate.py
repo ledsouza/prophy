@@ -19,7 +19,10 @@ project_root = os.path.abspath(
 
 
 CPF_ADMIN = "03446254005"
-CPF_GERENTE_CLIENTE = "82484874073"
+CPF_CLIENT_MANAGER = "82484874073"
+CPF_UNIT_MANAGER = "51407390031"
+CPF_COMERCIAL = "85866936003"
+CPF_EXTERNAL_PHYSICIST = "50283042036"
 PASSWORD = "passwordtest"
 
 REJECTED_PROPOSAL_CNPJ = "09352176000187"
@@ -66,13 +69,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.create_groups()
-        admin_user, client_user = self.populate_users()
+        users = self.populate_users()
         default_clients = self.populate_clients()
         default_units = self.populate_units()
         self.populate_equipaments()
         approved_cnpjs = self.populate_proposals()
         self.create_json_fixture(
-            approved_cnpjs, admin_user, client_user, default_clients, default_units)
+            approved_cnpjs, users, default_clients, default_units)
         self.stdout.write(self.style.SUCCESS(
             'Database populated and fixture created successfully!'))
 
@@ -86,8 +89,21 @@ class Command(BaseCommand):
                 group.permissions.set(permissions)
 
             if role == "Gerente Geral do Client":
-                group.permissions.set([permissions.get(name__contains="view client"), permissions.get(
-                    name__contains="view unit"), permissions.get(name__contains="view equipment")])
+                group.permissions.set([permissions.get(name__contains="view Cliente"), permissions.get(
+                    name__contains="view Unidade"), permissions.get(name__contains="view Equipamento")])
+
+            if role == "Gerente de Unidade":
+                group.permissions.set([permissions.get(
+                    name__contains="view Unidade"), permissions.get(name__contains="view Equipamento")])
+
+            if role == "Comercial":
+                group.permissions.set([permissions.get(
+                    name__contains="view Cliente"), permissions.get(name__contains="view Proposta"),
+                    permissions.get(name__contains="change Proposta"), permissions.get(name__contains="add Proposta")])
+
+            if role == "Físico Médico Externo":
+                group.permissions.set([permissions.get(name__contains="view Cliente"), permissions.get(
+                    name__contains="view Unidade"), permissions.get(name__contains="view Equipamento")])
 
     def populate_users(self, num_users=20):
         """Populates the User model with example data."""
@@ -98,18 +114,87 @@ class Command(BaseCommand):
             email="leandro.souza.159@gmail.com",
             phone=fake_phone_number(),
             password=PASSWORD,
-            name="Alexandre Ferret"
+            name="Alexandre Ferret",
+            id=1000
         )
 
         client_user = UserAccount.objects.create_user(
-            cpf=CPF_GERENTE_CLIENTE,
+            cpf=CPF_CLIENT_MANAGER,
             email=fake.email(),
             phone=fake_phone_number(),
             password=PASSWORD,
-            name="Cliente",
+            name="Gerente Geral do Cliente",
             role="Gerente Geral do Cliente",
-            id=999
+            id=1001
         )
+
+        unit_manager_user = UserAccount.objects.create_user(
+            cpf=CPF_UNIT_MANAGER,
+            email=fake.email(),
+            phone=fake_phone_number(),
+            password=PASSWORD,
+            name="Gerente de Unidade",
+            role="Gerente de Unidade",
+            id=1002
+        )
+
+        comercial_user = UserAccount.objects.create_user(
+            cpf=CPF_COMERCIAL,
+            email=fake.email(),
+            phone=fake_phone_number(),
+            password=PASSWORD,
+            name="Comercial",
+            role="Comercial",
+            id=1003
+        )
+
+        external_physicist_user = UserAccount.objects.create_user(
+            cpf=CPF_EXTERNAL_PHYSICIST,
+            email=fake.email(),
+            phone=fake_phone_number(),
+            password=PASSWORD,
+            name="Físico Médico Externo",
+            role="Físico Médico Externo",
+            id=1004
+        )
+
+        users = {
+            "admin_user": {
+                "cpf": admin_user.cpf,
+                "password": PASSWORD,
+                "name": admin_user.name,
+                "email": admin_user.email,
+                "phone": admin_user.phone
+            },
+            "client_user": {
+                "cpf": client_user.cpf,
+                "password": PASSWORD,
+                "name": client_user.name,
+                "email": client_user.email,
+                "phone": client_user.phone
+            },
+            "unit_manager_user": {
+                "cpf": unit_manager_user.cpf,
+                "password": PASSWORD,
+                "name": unit_manager_user.name,
+                "email": unit_manager_user.email,
+                "phone": unit_manager_user.phone
+            },
+            "comercial_user": {
+                "cpf": comercial_user.cpf,
+                "password": PASSWORD,
+                "name": comercial_user.name,
+                "email": comercial_user.email,
+                "phone": comercial_user.phone
+            },
+            "external_physicist_user": {
+                "cpf": external_physicist_user.cpf,
+                "password": PASSWORD,
+                "name": external_physicist_user.name,
+                "email": external_physicist_user.email,
+                "phone": external_physicist_user.phone
+            }
+        }
 
         # Random users for automated testing
         for _ in range(num_users):
@@ -121,7 +206,7 @@ class Command(BaseCommand):
                 name=fake.name()
             )
 
-        return admin_user, client_user
+        return users
 
     def populate_clients(self, num_clients=20):
         """Populates the Client model with example data."""
@@ -139,7 +224,7 @@ class Command(BaseCommand):
             status=choice(['A', 'I']),
             id=1000
         )
-        client1.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
+        client1.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
         client1.users.add(users.get(cpf=CPF_ADMIN))
 
         client2 = Client.objects.create(
@@ -153,8 +238,10 @@ class Command(BaseCommand):
             status=choice(['A', 'I']),
             id=1001
         )
-        client2.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
+        client2.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
         client2.users.add(users.get(cpf=CPF_ADMIN))
+        client2.users.add(users.get(cpf=CPF_COMERCIAL))
+        client2.users.add(users.get(cpf=CPF_EXTERNAL_PHYSICIST))
 
         client_empty = Client.objects.create(
             cnpj="57428412000144",
@@ -167,7 +254,7 @@ class Command(BaseCommand):
             status=choice(['A', 'I']),
             id=1002
         )
-        client_empty.users.add(users.get(cpf=CPF_GERENTE_CLIENTE))
+        client_empty.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
 
         # Random clients for automated testing
         for _ in range(num_clients + randint(0, 4)):
@@ -181,7 +268,7 @@ class Command(BaseCommand):
                 city=fake.city(),
                 status=choice(['A', 'I'])
             )
-            client.users.add(choice(users.exclude(cpf=CPF_GERENTE_CLIENTE)))
+            client.users.add(choice(users.exclude(cpf=CPF_CLIENT_MANAGER)))
             client.users.add(users.get(cpf=CPF_ADMIN))
 
         default_clients = {
@@ -224,12 +311,13 @@ class Command(BaseCommand):
     def populate_units(self, num_units_per_client=4):
         """Populates the Units model with example data."""
         all_users = UserAccount.objects.all()
-        user_client = UserAccount.objects.get(cpf=CPF_GERENTE_CLIENTE)
+        user_client = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
+        user_unit_manager = UserAccount.objects.get(cpf=CPF_UNIT_MANAGER)
         clients = Client.objects.filter(users=user_client)
 
         # Default units for automated testing
         unit1 = Unit.objects.create(
-            user=user_client,
+            user=user_unit_manager,
             client=clients[0],
             name="Cardiologia",
             cnpj=fake_cnpj(),
@@ -241,7 +329,6 @@ class Command(BaseCommand):
             id=1000
         )
         unit2 = Unit.objects.create(
-            user=user_client,
             client=clients[1],
             name="Santa Rita",
             cnpj=fake_cnpj(),
@@ -267,7 +354,7 @@ class Command(BaseCommand):
                 "id": unit1.id
             },
             "unit2": {
-                "user": unit2.user.id,
+                "user": None,
                 "client": unit2.client.id,
                 "name": unit2.name,
                 "cnpj": unit2.cnpj,
@@ -303,7 +390,7 @@ class Command(BaseCommand):
                       'Ultrassom', 'Ressonância Magnética']
         manufactures = ['GE', 'Philips', 'Siemens', 'Toshiba']
 
-        user_client = UserAccount.objects.get(cpf=CPF_GERENTE_CLIENTE)
+        user_client = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
 
         # Default equipments for automated testing
         Equipment.objects.create(
@@ -316,7 +403,7 @@ class Command(BaseCommand):
             equipment_photo='./petct.jpg'
         )
         Equipment.objects.create(
-            unit=Unit.objects.filter(client__users=user_client)[1],
+            unit=Unit.objects.filter(client__users=user_client)[0],
             modality=choice(modalities),
             manufacturer=choice(manufactures),
             model=fake.word().upper() + "-" + str(randint(100, 999)),
@@ -407,25 +494,12 @@ class Command(BaseCommand):
 
         return approved_cnpjs
 
-    def create_json_fixture(self, approved_cnpjs, admin_user, client_user, default_clients, default_units):
+    def create_json_fixture(self, approved_cnpjs, users, default_clients, default_units):
         fixture_proposals = {
             "approved_cnpjs": approved_cnpjs,
             "rejected_cnpj": REJECTED_PROPOSAL_CNPJ
         }
-        fixture_users = {"admin_user": {
-            "cpf": admin_user.cpf,
-            "password": PASSWORD,
-            "name": admin_user.name,
-            "email": admin_user.email,
-            "phone": admin_user.phone
-        },
-            "client_user": {
-                "cpf": client_user.cpf,
-                "password": PASSWORD,
-                "name": client_user.name,
-                "email": client_user.email,
-                "phone": client_user.phone
-        }}
+        fixture_users = users
         fixture_registered_client = {
             "registered_cnpj": REGISTERED_CNPJ
         }

@@ -160,8 +160,8 @@ function UnitPage() {
                                 className="justify-center text-center"
                             >
                                 {filteredEquipments?.length === 0
-                                    ? "Nenhuma unidade registrada"
-                                    : "Nenhuma unidade encontrada para o termo pesquisado"}
+                                    ? "Nenhum equipamento registrado"
+                                    : "Nenhum equipamento encontrado para o termo pesquisado"}
                             </Typography>
                         )}
                     </div>
