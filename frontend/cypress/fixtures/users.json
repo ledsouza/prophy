@@ -4,34 +4,34 @@
     "password": "passwordtest",
     "name": "Alexandre Ferret",
     "email": "leandro.souza.159@gmail.com",
-    "phone": "11960468723"
+    "phone": "84967110405"
   },
   "client_user": {
     "cpf": "82484874073",
     "password": "passwordtest",
     "name": "Gerente Geral do Cliente",
-    "email": "alexiaborges@example.com",
-    "phone": "61979030594"
+    "email": "oda-rosa@example.org",
+    "phone": "81952769428"
   },
   "unit_manager_user": {
     "cpf": "51407390031",
     "password": "passwordtest",
     "name": "Gerente de Unidade",
-    "email": "wmontenegro@example.net",
-    "phone": "71903198069"
+    "email": "silveiraheloisa@example.org",
+    "phone": "21942270251"
   },
   "comercial_user": {
     "cpf": "85866936003",
     "password": "passwordtest",
     "name": "Comercial",
-    "email": "gustavo-henrique25@example.org",
-    "phone": "61953556161"
+    "email": "nda-conceicao@example.org",
+    "phone": "31908596348"
   },
   "external_physicist_user": {
     "cpf": "50283042036",
     "password": "passwordtest",
     "name": "F\u00edsico M\u00e9dico Externo",
-    "email": "yaparecida@example.com",
-    "phone": "21954877240"
+    "email": "uaparecida@example.net",
+    "phone": "84953899895"
   }
 }

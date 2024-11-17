@@ -62,13 +62,7 @@ function ClientDetails({
                     <b>Telefone:</b> {formatPhoneNumber(filteredClient?.phone)}
                     <br />
                     <b>E-mail:</b> {filteredClient?.email}
-                </Typography>
-                <Typography
-                    element="p"
-                    size="md"
-                    className="leading-2"
-                    dataTestId="client-details-address"
-                >
+                    <br />
                     <b>Endereço:</b> {filteredClient?.address}
                 </Typography>
 
@@ -76,14 +70,14 @@ function ClientDetails({
                     <Button
                         variant="secondary"
                         className="flex-grow"
-                        data-testid="btn-edit"
+                        data-testid="btn-edit-client"
                     >
                         Editar
                     </Button>
                     <Button
                         variant="danger"
                         className="flex-grow"
-                        data-testid="btn-delete"
+                        data-testid="btn-delete-client"
                     >
                         Deletar
                     </Button>
@@ -95,7 +89,7 @@ function ClientDetails({
                     element="h3"
                     size="title3"
                     className="font-semibold"
-                    dataTestId="prophy-header"
+                    dataTestId="responsable-medical-physicist-header"
                 >
                     Físico Médico Responsável
                 </Typography>
@@ -143,7 +137,7 @@ function ClientDetails({
                         )}
                     </div>
                 ) : (
-                    <Typography>
+                    <Typography dataTestId="empty-responsable-medical-physicist">
                         Designaremos um físico médico para esta instituição e,
                         em breve, disponibilizaremos os dados de contato do
                         profissional responsável.
@@ -171,7 +165,7 @@ function ClientDetails({
                         {comercial?.email || gerenteProphy?.email}
                     </Typography>
                 ) : (
-                    <Typography>
+                    <Typography dataTestId="empty-comercial">
                         Designaremos um gerente comercial para esta instituição
                         e, em breve, disponibilizaremos os dados de contato do
                         profissional responsável.

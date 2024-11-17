@@ -14,4 +14,8 @@ export default defineConfig({
             // implement node event listeners here
         },
     },
+
+    env: {
+        apiUrl: "http://localhost:8000/api",
+    },
 });

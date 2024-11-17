@@ -45,10 +45,10 @@ function UnitCard({
                 </Typography>
 
                 <div className="flex flex-row gap-2">
-                    <Button variant="secondary" data-testid="btn-edit">
+                    <Button variant="secondary" data-testid="btn-edit-unit">
                         <PencilLine size={20} />
                     </Button>
-                    <Button variant="danger" data-testid="btn-delete">
+                    <Button variant="danger" data-testid="btn-delete-unit">
                         <Trash size={20} />
                     </Button>
                 </div>

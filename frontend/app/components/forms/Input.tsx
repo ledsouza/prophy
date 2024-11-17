@@ -4,11 +4,18 @@ import cn from "classnames";
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
     disabled?: boolean;
     errorMessage?: string;
+    dataTestId?: string;
 };
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
     (
-        { disabled = false, errorMessage, children, ...props }: InputProps,
+        {
+            disabled = false,
+            errorMessage,
+            dataTestId,
+            children,
+            ...props
+        }: InputProps,
         ref
     ) => {
         const inputClassName = cn(
@@ -34,6 +41,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         ref={ref}
                         disabled={disabled}
                         className={inputClassName}
+                        data-testid={dataTestId}
                         {...props}
                     />
                 </div>

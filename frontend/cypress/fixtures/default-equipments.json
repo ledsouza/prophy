@@ -1,0 +1,20 @@
+{
+  "equipment1": {
+    "unit": 1000,
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Toshiba",
+    "model": "NEMO-757",
+    "series_number": "eaIs-445772",
+    "anvisa_registry": "RNSfWiGYFKnIb",
+    "id": 1
+  },
+  "equipment2": {
+    "unit": 1000,
+    "modality": "Ultrassom",
+    "manufacturer": "Toshiba",
+    "model": "EA-769",
+    "series_number": "reFp-816014",
+    "anvisa_registry": "aeaWHlMvpLjEK",
+    "id": 2
+  }
+}

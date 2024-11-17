@@ -136,6 +136,7 @@ function UnitPage() {
                             placeholder="Buscar equipamentos por modelo"
                             value={searchTerm}
                             onChange={handleSearchInputChange}
+                            dataTestId="input-search-equipments"
                         />
                     )}
 
@@ -156,7 +157,7 @@ function UnitPage() {
                             <Typography
                                 element="p"
                                 size="lg"
-                                dataTestId="unit-not-found"
+                                dataTestId="equipment-not-found"
                                 className="justify-center text-center"
                             >
                                 {filteredEquipments?.length === 0

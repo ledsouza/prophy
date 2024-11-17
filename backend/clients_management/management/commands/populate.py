@@ -72,10 +72,10 @@ class Command(BaseCommand):
         users = self.populate_users()
         default_clients = self.populate_clients()
         default_units = self.populate_units()
-        self.populate_equipaments()
+        default_equipments = self.populate_equipaments()
         approved_cnpjs = self.populate_proposals()
         self.create_json_fixture(
-            approved_cnpjs, users, default_clients, default_units)
+            approved_cnpjs, users, default_clients, default_units, default_equipments)
         self.stdout.write(self.style.SUCCESS(
             'Database populated and fixture created successfully!'))
 
@@ -329,6 +329,28 @@ class Command(BaseCommand):
             id=1000
         )
         unit2 = Unit.objects.create(
+            client=clients[0],
+            name="Radiologia",
+            cnpj=fake_cnpj(),
+            email=fake.email(),
+            phone=fake_phone_number(),
+            address=fake.address(),
+            state=clients[1].state,
+            city=clients[1].city,
+            id=1001
+        )
+        unit3 = Unit.objects.create(
+            client=clients[0],
+            name="Hemodinâmica",
+            cnpj=fake_cnpj(),
+            email=fake.email(),
+            phone=fake_phone_number(),
+            address=fake.address(),
+            state=clients[1].state,
+            city=clients[1].city,
+            id=1002
+        )
+        unit4 = Unit.objects.create(
             client=clients[1],
             name="Santa Rita",
             cnpj=fake_cnpj(),
@@ -337,7 +359,7 @@ class Command(BaseCommand):
             address=fake.address(),
             state=clients[1].state,
             city=clients[1].city,
-            id=1001
+            id=1003
         )
 
         default_units = {
@@ -364,6 +386,30 @@ class Command(BaseCommand):
                 "state": unit2.state,
                 "city": unit2.city,
                 "id": unit2.id
+            },
+            "unit3": {
+                "user": None,
+                "client": unit3.client.id,
+                "name": unit3.name,
+                "cnpj": unit3.cnpj,
+                "email": unit3.email,
+                "phone": unit3.phone,
+                "address": unit3.address,
+                "state": unit3.state,
+                "city": unit3.city,
+                "id": unit3.id
+            },
+            "unit4": {
+                "user": None,
+                "client": unit4.client.id,
+                "name": unit4.name,
+                "cnpj": unit4.cnpj,
+                "email": unit4.email,
+                "phone": unit4.phone,
+                "address": unit4.address,
+                "state": unit4.state,
+                "city": unit4.city,
+                "id": unit4.id
             }
         }
 
@@ -393,7 +439,7 @@ class Command(BaseCommand):
         user_client = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
 
         # Default equipments for automated testing
-        Equipment.objects.create(
+        equipment1 = Equipment.objects.create(
             unit=Unit.objects.filter(client__users=user_client)[0],
             modality=choice(modalities),
             manufacturer=choice(manufactures),
@@ -402,7 +448,7 @@ class Command(BaseCommand):
             anvisa_registry=fake.bothify(text='?????????????'),
             equipment_photo='./petct.jpg'
         )
-        Equipment.objects.create(
+        equipment2 = Equipment.objects.create(
             unit=Unit.objects.filter(client__users=user_client)[0],
             modality=choice(modalities),
             manufacturer=choice(manufactures),
@@ -411,6 +457,27 @@ class Command(BaseCommand):
             anvisa_registry=fake.bothify(text='?????????????'),
             equipment_photo='./petct.jpg'
         )
+
+        equipments = {
+            "equipment1": {
+                "unit": equipment1.unit.id,
+                "modality": equipment1.modality,
+                "manufacturer": equipment1.manufacturer,
+                "model": equipment1.model,
+                "series_number": equipment1.series_number,
+                "anvisa_registry": equipment1.anvisa_registry,
+                "id": equipment1.id
+            },
+            "equipment2": {
+                "unit": equipment2.unit.id,
+                "modality": equipment2.modality,
+                "manufacturer": equipment2.manufacturer,
+                "model": equipment2.model,
+                "series_number": equipment2.series_number,
+                "anvisa_registry": equipment2.anvisa_registry,
+                "id": equipment2.id
+            }
+        }
 
         # Random equipments for automated testing
         for units in Unit.objects.all().exclude(client__users=user_client):
@@ -424,6 +491,8 @@ class Command(BaseCommand):
                     anvisa_registry=fake.bothify(text='?????????????'),
                     equipment_photo='./petct.jpg'
                 )
+
+        return equipments
 
     def populate_proposals(self, num_proposals=150):
         """Populates the Proposal model with example data."""
@@ -494,7 +563,7 @@ class Command(BaseCommand):
 
         return approved_cnpjs
 
-    def create_json_fixture(self, approved_cnpjs, users, default_clients, default_units):
+    def create_json_fixture(self, approved_cnpjs, users, default_clients, default_units, default_equipments):
         fixture_proposals = {
             "approved_cnpjs": approved_cnpjs,
             "rejected_cnpj": REJECTED_PROPOSAL_CNPJ
@@ -505,6 +574,7 @@ class Command(BaseCommand):
         }
         fixture_default_clients = default_clients
         fixture_default_units = default_units
+        fixture_default_equipments = default_equipments
 
         # Construct the correct path for the fixture files
         fixture_path_proposal = create_fixture_path("proposals.json")
@@ -515,6 +585,8 @@ class Command(BaseCommand):
             "default-clients.json")
         fixture_default_units_path = create_fixture_path(
             "default-units.json")
+        fixture_default_equipments_path = create_fixture_path(
+            "default-equipments.json")
 
         # Ensure the directory exists
         os.makedirs(os.path.dirname(FIXTURE_PATH), exist_ok=True)
@@ -528,6 +600,8 @@ class Command(BaseCommand):
                         file_path=fixture_default_clients_path)
         write_json_file(data=fixture_default_units,
                         file_path=fixture_default_units_path)
+        write_json_file(data=fixture_default_equipments,
+                        file_path=fixture_default_equipments_path)
 
         self.stdout.write(self.style.SUCCESS(
             f'Created {fixture_path_proposal}'))
@@ -543,3 +617,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f'Created {fixture_default_units_path}'))
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Created {fixture_default_equipments_path}'))

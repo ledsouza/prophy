@@ -103,6 +103,7 @@ function ClientPage() {
                         placeholder="Buscar unidades por nome"
                         value={searchTerm}
                         onChange={handleSearchInputChange}
+                        dataTestId="input-search-unit"
                     />
                 )}
 

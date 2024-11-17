@@ -15,7 +15,11 @@ type UnitDetailsProps = {
 function UnitDetails({ selectedUnit }: UnitDetailsProps) {
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
-            <Button href="/dashboard" variant="secondary">
+            <Button
+                href="/dashboard"
+                variant="secondary"
+                dataTestId="btn-go-back"
+            >
                 <div className="flex flex-row gap-2 justify-center align-middle text-center">
                     <ArrowFatLineLeft size="1.8em" />
                     <Typography size="md">Voltar</Typography>
@@ -48,14 +52,14 @@ function UnitDetails({ selectedUnit }: UnitDetailsProps) {
                     <Button
                         variant="secondary"
                         className="flex-grow"
-                        data-testid="btn-edit"
+                        data-testid="btn-edit-unit"
                     >
                         Editar
                     </Button>
                     <Button
                         variant="danger"
                         className="flex-grow"
-                        data-testid="btn-delete"
+                        data-testid="btn-delete-unit"
                     >
                         Deletar
                     </Button>
@@ -73,7 +77,11 @@ function UnitDetails({ selectedUnit }: UnitDetailsProps) {
                 </Typography>
 
                 {selectedUnit.user ? (
-                    <Typography element="p" size="md">
+                    <Typography
+                        element="p"
+                        size="md"
+                        dataTestId="unit-manager-user"
+                    >
                         {selectedUnit.user.name}
                         <br />
                         {formatPhoneNumber(selectedUnit.user.phone)}
@@ -82,11 +90,17 @@ function UnitDetails({ selectedUnit }: UnitDetailsProps) {
                     </Typography>
                 ) : (
                     <div className="flex flex-col gap-2">
-                        <Typography element="p" size="md">
+                        <Typography
+                            element="p"
+                            size="md"
+                            dataTestId="empty-unit-manager-user"
+                        >
                             Nenhum gerente de unidade foi designado. Deseja
                             atribuir um agora?
                         </Typography>
-                        <Button>Atribuir gerente de unidade</Button>
+                        <Button dataTestId="btn-add-unit-manager">
+                            Atribuir gerente de unidade
+                        </Button>
                     </div>
                 )}
             </div>
