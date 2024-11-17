@@ -14,7 +14,7 @@ function useGetAllClients() {
 
     useEffect(() => {
         if (data && isPaginatingClients) {
-            if (data.next) {
+            if (data.next && !isLoadingClients) {
                 const nextPage = getPageNumber(data.next);
                 if (nextPage && nextPage > page) {
                     setPage(nextPage);

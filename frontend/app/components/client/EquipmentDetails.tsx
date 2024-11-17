@@ -2,9 +2,9 @@ import Image from "next/image";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 
 import placeholderImage from "@/assets/placeholder-image.jpg";
-import { Typography } from "../foundation";
-import { Button } from "../common";
-import { PencilLine, Trash } from "@phosphor-icons/react";
+
+import { Button } from "@/components/common";
+import { Typography } from "@/components/foundation";
 
 type EquipmentDetailsProps = {
     equipment: EquipmentDTO;
@@ -21,7 +21,7 @@ function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 }}
             />
             <div className="m-6 flex flex-row justify-around">
-                <Typography>
+                <Typography size="md">
                     <b>Modelo:</b> {equipment.model}
                     <br />
                     <b>Fabricante:</b> {equipment.manufacturer}
@@ -29,7 +29,7 @@ function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     <b>Modalidade:</b> {equipment.modality}
                 </Typography>
 
-                <Typography>
+                <Typography size="md">
                     <b>Número de Série:</b> {equipment.series_number}
                     <br />
                     <b>Registro da Anvisa:</b> {equipment.anvisa_registry}

@@ -13,7 +13,7 @@ function useGetAllUnits() {
 
     useEffect(() => {
         if (data && isPaginatingUnits) {
-            if (data.next) {
+            if (data.next && !isLoadingUnits) {
                 const nextPage = getPageNumber(data.next);
                 if (nextPage && nextPage > page) {
                     setPage(nextPage);

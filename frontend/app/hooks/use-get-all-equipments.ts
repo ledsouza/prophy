@@ -13,7 +13,7 @@ function useGetAllEquipments() {
 
     useEffect(() => {
         if (data && isPaginatingEquipments) {
-            if (data.next) {
+            if (data.next && !isLoadingEquipments) {
                 const nextPage = getPageNumber(data.next);
                 if (nextPage && nextPage > page) {
                     setPage(nextPage);

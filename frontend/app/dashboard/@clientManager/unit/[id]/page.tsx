@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { getIdFromUrl } from "@/utils/url";
 import { UnitDTO } from "@/redux/features/unitApiSlice";
@@ -22,15 +22,11 @@ import {
 function UnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
+    const router = useRouter();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEquipment, setSelectedEquipment] =
         useState<EquipmentDTO | null>(null);
-
-    function handleClickEquipmentCard(equipment: EquipmentDTO) {
-        setSelectedEquipment(equipment);
-        setIsModalOpen(true);
-    }
 
     const { units, isLoadingUnits, isPaginatingUnits, errorUnits } =
         useGetAllUnits();
@@ -52,6 +48,11 @@ function UnitPage() {
         EquipmentDTO[]
     >([]);
     const [searchTerm, setSearchTerm] = useState("");
+
+    function handleClickEquipmentCard(equipment: EquipmentDTO) {
+        setSelectedEquipment(equipment);
+        setIsModalOpen(true);
+    }
 
     const handleSearchInputChange = (
         event: React.ChangeEvent<HTMLInputElement>
@@ -92,6 +93,28 @@ function UnitPage() {
 
     if (isLoadingUnits || isLoadingEquipments) {
         return <Spinner fullscreen />;
+    }
+
+    if (errorUnits || errorEquipments) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen gap-8">
+                <Typography
+                    element="h2"
+                    size="title2"
+                    className="font-bold"
+                    dataTestId="data-not-found"
+                >
+                    Ocorreu um problema ao carregar os dados.
+                </Typography>
+                <Typography element="p" size="lg">
+                    Aguarde alguns minutos e tente novamente. Se o problema
+                    persistir, entre em contato conosco.
+                </Typography>
+                <Button onClick={() => router.back()} data-testid="btn-back">
+                    Voltar
+                </Button>
+            </div>
+        );
     }
 
     if (selectedUnit) {
