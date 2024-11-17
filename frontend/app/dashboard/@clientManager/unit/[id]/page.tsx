@@ -176,7 +176,7 @@ function UnitPage() {
                     <Modal
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
-                        className="max-w-6xl"
+                        className="max-w-6xl mx-6"
                     >
                         <EquipmentDetails equipment={selectedEquipment} />
                     </Modal>

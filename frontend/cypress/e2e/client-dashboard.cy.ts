@@ -428,5 +428,25 @@ describe("Unit dashboard", () => {
                 ).should("not.exist");
             });
         });
+
+        it("should display a modal when unit card clicked", () => {
+            cy.fixture("default-equipments.json").then((equipments) => {
+                cy.getByTestId(
+                    `equipment-card-${equipments.equipment1.id}`
+                ).click();
+
+                cy.getByTestId("equipment-details")
+                    .should("contain", equipments.equipment1.model)
+                    .should("contain", equipments.equipment1.manufacturer)
+                    .should("contain", equipments.equipment1.modality)
+                    .should("contain", equipments.equipment1.series_number)
+                    .should("contain", equipments.equipment1.anvisa_registry);
+
+                cy.get("img").should("be.visible");
+            });
+
+            cy.getByTestId("btn-edit-equipment").should("be.visible");
+            cy.getByTestId("btn-delete-equipment").should("be.visible");
+        });
     });
 });

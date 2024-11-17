@@ -12,7 +12,7 @@ type EquipmentDetailsProps = {
 
 function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
     return (
-        <div>
+        <div data-testid="equipment-details">
             <Image
                 src={placeholderImage}
                 alt="Imagem do equipamento"
@@ -20,7 +20,7 @@ function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                     objectFit: "cover",
                 }}
             />
-            <div className="m-6 flex flex-row justify-around">
+            <div className="m-6 flex flex-col gap-2 sm:flex-row justify-around">
                 <Typography size="md">
                     <b>Modelo:</b> {equipment.model}
                     <br />
@@ -36,10 +36,13 @@ function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
                 </Typography>
 
                 <div className="flex flex-col gap-2">
-                    <Button variant="secondary" data-testid="btn-edit">
+                    <Button
+                        variant="secondary"
+                        data-testid="btn-edit-equipment"
+                    >
                         Editar
                     </Button>
-                    <Button variant="danger" data-testid="btn-delete">
+                    <Button variant="danger" data-testid="btn-delete-equipment">
                         Deletar
                     </Button>
                 </div>
