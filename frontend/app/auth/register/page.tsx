@@ -23,7 +23,7 @@ const RegisterPage = () => {
                 onClose={() => setIsModalOpen(false)}
                 className="max-w-lg"
             >
-                <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-sm">
+                <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
                     <RegisterForm
                         onSubmit={onSubmit}
                         setIsModalOpen={setIsModalOpen}
