@@ -29,7 +29,7 @@ class Client(models.Model):
     state = models.CharField(
         "Estado da instituição", max_length=2, choices=STATE_CHOICES)
     city = models.CharField(
-        "Cidade da instituição", max_length=50)
+        "Cidade da instituição", max_length=50, validators=[AlphaOnly()])
     status = models.CharField("Status", max_length=1, choices=(
         ("A", "Ativo"), ("I", "Inativo")), default="A")
 
@@ -53,7 +53,7 @@ class Unit(models.Model):
     Model representing a unit of a client.
     """
     user = models.ForeignKey(UserAccount, on_delete=models.SET_NULL,
-                             related_name="users", blank=True, null=True, verbose_name="Responsável")
+                             related_name="unit", blank=True, null=True, verbose_name="Gerente de Unidade")
     client = models.ForeignKey(
         Client, on_delete=models.SET_NULL, related_name="units", blank=True, null=True, verbose_name="Cliente")
     name = models.CharField("Nome", max_length=50)

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     "users",
     "clients_management",
+    "requisitions",
 ]
 
 MIDDLEWARE = [
