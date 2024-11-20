@@ -45,7 +45,7 @@ function ClientDetails({
                 className="font-bold"
                 dataTestId="client-header"
             >
-                Detalhes do Cliente
+                Detalhes da instituição
             </Typography>
 
             <div>
