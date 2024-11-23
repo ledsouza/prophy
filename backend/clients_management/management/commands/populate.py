@@ -4,6 +4,7 @@ from django.contrib.auth.models import Group
 from django.conf import settings
 
 from clients_management.models import Client, Unit, Equipment, Proposal
+from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 from users.models import UserAccount
 
 import json
@@ -32,6 +33,17 @@ REGISTERED_CNPJ = "78187773000116"
 
 FIXTURE_PATH = os.path.join(
     project_root, 'frontend', 'cypress', 'fixtures')
+
+OperationType = {
+    "ADD": "A",
+    "EDIT": "E",
+    "DELETE": "D"
+}
+OperationStatus = {
+    "REVIEW": "REV",
+    "ACCEPTED": "A",
+    "REJECTED": "R"
+}
 
 
 def fake_phone_number():
@@ -213,7 +225,10 @@ class Command(BaseCommand):
         users = UserAccount.objects.all()
 
         # Default clients for automated testing
-        client1 = Client.objects.create(
+        client1 = ClientOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=users.get(cpf=CPF_ADMIN),
             cnpj=REGISTERED_CNPJ,
             name="Hospital de Clínicas de Porto Alegre",
             email="secretariageral@hcpa.edu.br",
@@ -221,13 +236,16 @@ class Command(BaseCommand):
             address="Rua Ramiro Barcelos, 2350 Bloco A, Av. Protásio Alves, 211 - Bloco B e C - Santa Cecília, Porto Alegre - RS, 90035-903",
             state="RS",
             city="Porto Alegre",
-            status=choice(['A', 'I']),
+            active=True,
             id=1000
         )
         client1.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
         client1.users.add(users.get(cpf=CPF_ADMIN))
 
-        client2 = Client.objects.create(
+        client2 = ClientOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=users.get(cpf=CPF_ADMIN),
             cnpj="90217758000179",
             name="Santa Casa de Porto Alegre",
             email="ouvidoria@santacasa.tche.br",
@@ -235,7 +253,7 @@ class Command(BaseCommand):
             address="Rua Professor Annes Dias, 295 - Centro Histórico, Porto Alegre - RS, 90020-090",
             state="RS",
             city="Porto Alegre",
-            status=choice(['A', 'I']),
+            active=True,
             id=1001
         )
         client2.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -243,7 +261,10 @@ class Command(BaseCommand):
         client2.users.add(users.get(cpf=CPF_COMERCIAL))
         client2.users.add(users.get(cpf=CPF_EXTERNAL_PHYSICIST))
 
-        client_empty = Client.objects.create(
+        client_empty = ClientOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=users.get(cpf=CPF_ADMIN),
             cnpj="57428412000144",
             name="Hospital Cristo Redentor",
             email="ouvidoria@ghc.br",
@@ -251,14 +272,17 @@ class Command(BaseCommand):
             address="Rua Domingos Rubbo, 20 - Cristo Redentor, Porto Alegre - RS, 91040-000",
             state="RS",
             city="Porto Alegre",
-            status=choice(['A', 'I']),
+            active=True,
             id=1002
         )
         client_empty.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
 
         # Random clients for automated testing
         for _ in range(num_clients + randint(0, 4)):
-            client = Client.objects.create(
+            client = ClientOperation.objects.create(
+                operation_type=OperationType["ADD"],
+                operation_status=OperationStatus["ACCEPTED"],
+                created_by=choice(users.exclude(cpf=CPF_CLIENT_MANAGER)),
                 cnpj=fake_cnpj(),
                 name=fake.company(),
                 email=fake.company_email(),
@@ -266,7 +290,7 @@ class Command(BaseCommand):
                 address=fake.address(),
                 state=choice(STATE_CHOICES)[0],
                 city=fake.city(),
-                status=choice(['A', 'I'])
+                active=True
             )
             client.users.add(choice(users.exclude(cpf=CPF_CLIENT_MANAGER)))
             client.users.add(users.get(cpf=CPF_ADMIN))
@@ -280,7 +304,7 @@ class Command(BaseCommand):
                 "address": client1.address,
                 "state": client1.state,
                 "city": client1.city,
-                "status": client1.status,
+                "active": client1.active,
                 "id": client1.id
             },
             "client2": {
@@ -291,7 +315,7 @@ class Command(BaseCommand):
                 "address": client2.address,
                 "state": client2.state,
                 "city": client2.city,
-                "status": client2.status,
+                "active": client2.active,
                 "id": client2.id
             },
             "client_empty": {
@@ -302,7 +326,7 @@ class Command(BaseCommand):
                 "address": client_empty.address,
                 "state": client_empty.state,
                 "city": client_empty.city,
-                "status": client_empty.status,
+                "active": client_empty.active,
                 "id": client_empty.id
             }
         }
@@ -316,7 +340,10 @@ class Command(BaseCommand):
         clients = Client.objects.filter(users=user_client)
 
         # Default units for automated testing
-        unit1 = Unit.objects.create(
+        unit1 = UnitOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=all_users.get(cpf=CPF_ADMIN),
             user=user_unit_manager,
             client=clients[0],
             name="Cardiologia",
@@ -328,7 +355,10 @@ class Command(BaseCommand):
             city=clients[0].city,
             id=1000
         )
-        unit2 = Unit.objects.create(
+        unit2 = UnitOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=all_users.get(cpf=CPF_ADMIN),
             client=clients[0],
             name="Radiologia",
             cnpj=fake_cnpj(),
@@ -339,7 +369,10 @@ class Command(BaseCommand):
             city=clients[1].city,
             id=1001
         )
-        unit3 = Unit.objects.create(
+        unit3 = UnitOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=all_users.get(cpf=CPF_ADMIN),
             client=clients[0],
             name="Hemodinâmica",
             cnpj=fake_cnpj(),
@@ -350,7 +383,10 @@ class Command(BaseCommand):
             city=clients[1].city,
             id=1002
         )
-        unit4 = Unit.objects.create(
+        unit4 = UnitOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=all_users.get(cpf=CPF_ADMIN),
             client=clients[1],
             name="Santa Rita",
             cnpj=fake_cnpj(),
@@ -416,7 +452,10 @@ class Command(BaseCommand):
         # Random units for automated testing
         for client in Client.objects.all().exclude(users=user_client):
             for _ in range(num_units_per_client + randint(0, 4)):
-                Unit.objects.create(
+                UnitOperation.objects.create(
+                    operation_type=OperationType["ADD"],
+                    operation_status=OperationStatus["ACCEPTED"],
+                    created_by=all_users.get(cpf=CPF_ADMIN),
                     user=choice(all_users),
                     client=client,
                     name=fake.company_suffix() + " " + fake.company(),
@@ -439,7 +478,10 @@ class Command(BaseCommand):
         user_client = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
 
         # Default equipments for automated testing
-        equipment1 = Equipment.objects.create(
+        equipment1 = EquipmentOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=user_client,
             unit=Unit.objects.filter(client__users=user_client)[0],
             modality=choice(modalities),
             manufacturer=choice(manufactures),
@@ -448,7 +490,10 @@ class Command(BaseCommand):
             anvisa_registry=fake.bothify(text='?????????????'),
             equipment_photo='./petct.jpg'
         )
-        equipment2 = Equipment.objects.create(
+        equipment2 = EquipmentOperation.objects.create(
+            operation_type=OperationType["ADD"],
+            operation_status=OperationStatus["ACCEPTED"],
+            created_by=user_client,
             unit=Unit.objects.filter(client__users=user_client)[0],
             modality=choice(modalities),
             manufacturer=choice(manufactures),
@@ -482,7 +527,10 @@ class Command(BaseCommand):
         # Random equipments for automated testing
         for units in Unit.objects.all().exclude(client__users=user_client):
             for _ in range(num_equipments_per_units + randint(0, 4)):
-                Equipment.objects.create(
+                EquipmentOperation.objects.create(
+                    operation_type=OperationType["ADD"],
+                    operation_status=OperationStatus["ACCEPTED"],
+                    created_by=user_client,
                     unit=units,
                     modality=choice(modalities),
                     manufacturer=choice(manufactures),

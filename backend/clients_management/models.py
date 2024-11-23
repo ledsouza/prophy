@@ -19,19 +19,18 @@ class Client(models.Model):
     users = models.ManyToManyField(
         UserAccount, related_name="clients", blank=True, verbose_name="Responsáveis")
     cnpj = models.CharField("CNPJ", max_length=14,
-                            unique=True, validators=[CNPJValidator()])
+                            validators=[CNPJValidator()])
     name = models.CharField("Nome da instituição", max_length=50)
     email = models.EmailField("E-mail da instituição")
     phone = models.CharField(
         "Telefone da instituição", max_length=13)
     address = models.CharField(
-        "Endereço da instituição", max_length=100)
+        "Endereço da instituição", max_length=150)
     state = models.CharField(
         "Estado da instituição", max_length=2, choices=STATE_CHOICES)
     city = models.CharField(
         "Cidade da instituição", max_length=50, validators=[AlphaOnly()])
-    status = models.CharField("Status", max_length=1, choices=(
-        ("A", "Ativo"), ("I", "Inativo")), default="A")
+    active = models.BooleanField("Ativo", default=False)
 
     @admin.display(description="Responsáveis")
     def responsables(self):
@@ -57,11 +56,11 @@ class Unit(models.Model):
     client = models.ForeignKey(
         Client, on_delete=models.SET_NULL, related_name="units", blank=True, null=True, verbose_name="Cliente")
     name = models.CharField("Nome", max_length=50)
-    cnpj = models.CharField("CNPJ", max_length=14, validators=[
-                            CNPJValidator()])
+    cnpj = models.CharField("CNPJ", max_length=14,
+                            validators=[CNPJValidator()])
     email = models.EmailField("E-mail")
     phone = models.CharField("Telefone", max_length=13)
-    address = models.CharField("Endereço", max_length=100)
+    address = models.CharField("Endereço", max_length=150)
     state = models.CharField(
         "Estado", max_length=2, choices=STATE_CHOICES, blank=True)
     city = models.CharField("Cidade", max_length=50,
