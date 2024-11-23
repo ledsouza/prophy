@@ -25,11 +25,14 @@ function EquipmentCard({
             onClick={onClick}
         >
             <div className="flex justify-between pb-4">
-                <Typography element="h3" size="title3">
-                    <b>Modelo:</b> {equipment.model}
-                    <br />
-                    <b>Fabricante:</b> {equipment.manufacturer}
-                </Typography>
+                <div className="flex flex-col">
+                    <Typography element="h3" size="title3">
+                        {equipment.model}
+                    </Typography>
+                    <Typography element="p" size="lg">
+                        {equipment.manufacturer}
+                    </Typography>
+                </div>
                 <div className="flex flex-col gap-2">
                     <Typography element="h3" size="lg">
                         Status
@@ -39,7 +42,7 @@ function EquipmentCard({
             </div>
             <div className="flex gap-10 justify-between pt-4">
                 <Typography dataTestId="equipments-counts">
-                    <b>Modalidade:</b> {equipment.modality}
+                    {equipment.modality}
                 </Typography>
 
                 <div className="flex flex-row gap-2">
