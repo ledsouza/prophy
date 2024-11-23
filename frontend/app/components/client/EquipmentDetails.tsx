@@ -2,17 +2,27 @@ import Image from "next/image";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 
 import placeholderImage from "@/assets/placeholder-image.jpg";
+import { XCircle } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
 
 type EquipmentDetailsProps = {
     equipment: EquipmentDTO;
+    onClose: () => void;
 };
 
-function EquipmentDetails({ equipment }: EquipmentDetailsProps) {
+function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
     return (
         <div data-testid="equipment-details">
+            <button
+                onClick={onClose}
+                className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                data-testid="btn-close-modal"
+                aria-label="Fechar modal"
+            >
+                <XCircle size={32} className="text-primary" />
+            </button>
             <Image
                 src={placeholderImage}
                 alt="Imagem do equipamento"
