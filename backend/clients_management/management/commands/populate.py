@@ -34,17 +34,6 @@ REGISTERED_CNPJ = "78187773000116"
 FIXTURE_PATH = os.path.join(
     project_root, 'frontend', 'cypress', 'fixtures')
 
-OperationType = {
-    "ADD": "A",
-    "EDIT": "E",
-    "DELETE": "D"
-}
-OperationStatus = {
-    "REVIEW": "REV",
-    "ACCEPTED": "A",
-    "REJECTED": "R"
-}
-
 
 def fake_phone_number():
     return fake.msisdn()[2:]
@@ -231,8 +220,8 @@ class Command(BaseCommand):
 
         # Default clients for automated testing
         client1 = ClientOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=users.get(cpf=CPF_ADMIN),
             cnpj=REGISTERED_CNPJ,
             name="Hospital de Clínicas de Porto Alegre",
@@ -248,8 +237,8 @@ class Command(BaseCommand):
         client1.users.add(users.get(cpf=CPF_ADMIN))
 
         client2 = ClientOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=users.get(cpf=CPF_ADMIN),
             cnpj="90217758000179",
             name="Santa Casa de Porto Alegre",
@@ -267,8 +256,8 @@ class Command(BaseCommand):
         client2.users.add(users.get(cpf=CPF_EXTERNAL_PHYSICIST))
 
         client_empty = ClientOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=users.get(cpf=CPF_ADMIN),
             cnpj="57428412000144",
             name="Hospital Cristo Redentor",
@@ -285,8 +274,8 @@ class Command(BaseCommand):
         # Random clients for automated testing
         for _ in range(num_clients + randint(0, 4)):
             client = ClientOperation.objects.create(
-                operation_type=OperationType["ADD"],
-                operation_status=OperationStatus["ACCEPTED"],
+                operation_type="C",
+                operation_status="A",
                 created_by=choice(users.exclude(cpf=CPF_CLIENT_MANAGER)),
                 cnpj=fake_cnpj(),
                 name=fake.company(),
@@ -346,8 +335,8 @@ class Command(BaseCommand):
 
         # Default units for automated testing
         unit1 = UnitOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=all_users.get(cpf=CPF_ADMIN),
             user=user_unit_manager,
             client=clients[0],
@@ -361,8 +350,8 @@ class Command(BaseCommand):
             id=1000
         )
         unit2 = UnitOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=all_users.get(cpf=CPF_ADMIN),
             client=clients[0],
             name="Radiologia",
@@ -375,8 +364,8 @@ class Command(BaseCommand):
             id=1001
         )
         unit3 = UnitOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=all_users.get(cpf=CPF_ADMIN),
             client=clients[0],
             name="Hemodinâmica",
@@ -389,8 +378,8 @@ class Command(BaseCommand):
             id=1002
         )
         unit4 = UnitOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=all_users.get(cpf=CPF_ADMIN),
             client=clients[1],
             name="Santa Rita",
@@ -458,8 +447,8 @@ class Command(BaseCommand):
         for client in Client.objects.all().exclude(users=user_client):
             for _ in range(num_units_per_client + randint(0, 4)):
                 UnitOperation.objects.create(
-                    operation_type=OperationType["ADD"],
-                    operation_status=OperationStatus["ACCEPTED"],
+                    operation_type="C",
+                    operation_status="A",
                     created_by=all_users.get(cpf=CPF_ADMIN),
                     user=choice(all_users),
                     client=client,
@@ -484,8 +473,8 @@ class Command(BaseCommand):
 
         # Default equipments for automated testing
         equipment1 = EquipmentOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=user_client,
             unit=Unit.objects.filter(client__users=user_client)[0],
             modality=choice(modalities),
@@ -496,8 +485,8 @@ class Command(BaseCommand):
             equipment_photo='./petct.jpg'
         )
         equipment2 = EquipmentOperation.objects.create(
-            operation_type=OperationType["ADD"],
-            operation_status=OperationStatus["ACCEPTED"],
+            operation_type="C",
+            operation_status="A",
             created_by=user_client,
             unit=Unit.objects.filter(client__users=user_client)[0],
             modality=choice(modalities),
@@ -533,8 +522,8 @@ class Command(BaseCommand):
         for units in Unit.objects.all().exclude(client__users=user_client):
             for _ in range(num_equipments_per_units + randint(0, 4)):
                 EquipmentOperation.objects.create(
-                    operation_type=OperationType["ADD"],
-                    operation_status=OperationStatus["ACCEPTED"],
+                    operation_type="C",
+                    operation_status="A",
                     created_by=user_client,
                     unit=units,
                     modality=choice(modalities),

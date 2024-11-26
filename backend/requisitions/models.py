@@ -10,7 +10,8 @@ User = get_user_model()
 OperationType = {
     "ADD": "A",
     "EDIT": "E",
-    "DELETE": "D"
+    "DELETE": "D",
+    "CLOSED": "C"
 }
 OperationStatus = {
     "REVIEW": "REV",
@@ -26,7 +27,8 @@ class BaseOperation(models.Model):
     OPERATION_TYPES = (
         (OperationType["ADD"], "Adicionar"),
         (OperationType["EDIT"], "Editar"),
-        (OperationType["DELETE"], "Deletar")
+        (OperationType["DELETE"], "Deletar"),
+        (OperationType["CLOSED"], "-"),
     )
 
     OPERATION_STATUS = (
@@ -97,6 +99,11 @@ class BaseOperation(models.Model):
         """
         self.full_clean()
 
+        # The first operation will always be ADD
+        if (self.operation_type == OperationType["ADD"] and self.operation_status == OperationStatus["ACCEPTED"]):
+            self.operation_type == OperationType["CLOSED"]
+
+        # All other operations will be EDIT or DELETE. Those ones are needed only to temporary hold data
         if ((self.operation_type == OperationType["EDIT"] or self.operation_type == OperationType["DELETE"])
                 and self.operation_status == OperationStatus["ACCEPTED"]):
             return self.delete()
@@ -121,7 +128,8 @@ class ClientOperation(BaseOperation, Client):
 
         self.active = False
 
-        if self.operation_type == OperationType["ADD"] and self.operation_status == OperationStatus["ACCEPTED"]:
+        if ((self.operation_type == OperationType["ADD"] or self.operation_type == OperationType["CLOSED"])
+                and self.operation_status == OperationStatus["ACCEPTED"]):
             self.active = True
 
         if self.operation_type == OperationType["EDIT"] and self.operation_status == OperationStatus["ACCEPTED"]:

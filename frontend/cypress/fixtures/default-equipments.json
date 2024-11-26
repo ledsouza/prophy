@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Toshiba",
-    "model": "MINUS-375",
-    "series_number": "pENv-440613",
-    "anvisa_registry": "CGUEtsVNgUuNO",
+    "modality": "Ultrassom",
+    "manufacturer": "Siemens",
+    "model": "QUAM-354",
+    "series_number": "TEcB-414036",
+    "anvisa_registry": "lyLgTWnBYmRiw",
     "id": 1
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Ultrassom",
-    "manufacturer": "Philips",
-    "model": "LABORE-408",
-    "series_number": "qWAW-176290",
-    "anvisa_registry": "qZDixZCUYGkLl",
+    "modality": "Raio-X",
+    "manufacturer": "Siemens",
+    "model": "REPELLENDUS-228",
+    "series_number": "KOQQ-580103",
+    "anvisa_registry": "WdYhQmvrLViYW",
     "id": 2
   }
 }
