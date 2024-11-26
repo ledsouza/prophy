@@ -68,7 +68,7 @@ class UserAccountTests(TestCase):
             name='Test User'
         )
         self.assertEqual(user.name, 'Test User')
-        self.assertEqual(user.role, 'Gerente Geral do Cliente')
+        self.assertEqual(user.role, 'Gerente Geral de Cliente')
 
     def test_cpf_validator(self):
         with self.assertRaises(ValidationError):

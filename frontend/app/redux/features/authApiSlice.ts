@@ -19,7 +19,7 @@ export type UserDTO = {
         | "Físico Médico Interno"
         | "Físico Médico Externo"
         | "Gerente Prophy"
-        | "Gerente Geral do Cliente"
+        | "Gerente Geral de Cliente"
         | "Gerente de Unidade"
         | "Comercial";
 };

@@ -39,6 +39,16 @@ class Client(models.Model):
             user.name}" for user in associated_users]
         return format_html("<br>".join(associated_users))
 
+    @admin.display(description="Status")
+    def status(self):
+        operation = self.operation
+        if operation.operation_status == "A":
+            return operation.get_operation_status_display()
+        if operation.operation_type == "E":
+            return format_html(f"<b>{operation.get_operation_status_display()}</b><br>Requisição para editar")
+        if operation.operation_type == "D":
+            return format_html(f"<b>{operation.get_operation_status_display()}</b><br>Requisição para deletar")
+
     def __str__(self) -> str:
         return self.name
 

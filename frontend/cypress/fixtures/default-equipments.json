@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Ultrassom",
-    "manufacturer": "Philips",
-    "model": "REPELLENDUS-459",
-    "series_number": "qGdN-083951",
-    "anvisa_registry": "exsrAtuLLxpmh",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
+    "manufacturer": "Toshiba",
+    "model": "MINUS-375",
+    "series_number": "pENv-440613",
+    "anvisa_registry": "CGUEtsVNgUuNO",
     "id": 1
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Ultrassom",
-    "manufacturer": "Siemens",
-    "model": "ALIQUID-606",
-    "series_number": "iRzy-330879",
-    "anvisa_registry": "DJMSpwRmirYtp",
+    "manufacturer": "Philips",
+    "model": "LABORE-408",
+    "series_number": "qWAW-176290",
+    "anvisa_registry": "qZDixZCUYGkLl",
     "id": 2
   }
 }

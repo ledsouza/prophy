@@ -202,7 +202,7 @@ class CustomUserViewSet(DjoserUserViewSet):
         """
         Custom endpoint for creating a 'Gerente de Unidade' (Unit Manager) user.
 
-        This endpoint allows only users with the roles 'Gerente Geral do Cliente' or 'Gerente Prophy' 
+        This endpoint allows only users with the roles 'Gerente Geral de Cliente' or 'Gerente Prophy' 
         to create a new 'Gerente de Unidade' user. A password reset email is sent to the newly created 
         user's email address upon successful creation.
 
@@ -217,12 +217,12 @@ class CustomUserViewSet(DjoserUserViewSet):
         Raises:
             HTTP_403_FORBIDDEN: If the request user does not have permission to create a 'Gerente de Unidade'.
         """
-        # Ensure only Gerente Geral do Cliente and Gerente Prophy can create this user
-        if (request.user.role != "Gerente Geral do Cliente" or
+        # Ensure only Gerente Geral de Cliente and Gerente Prophy can create this user
+        if (request.user.role != "Gerente Geral de Cliente" or
                     request.user.role != "Gerente Prophy"
                 ):
             return Response(
-                {"detail": "Only Gerente Geral do Cliente or Gerente Prophy can create Gerente de Unidade users"},
+                {"detail": "Only Gerente Geral de Cliente or Gerente Prophy can create Gerente de Unidade users"},
                 status=status.HTTP_403_FORBIDDEN
             )
 

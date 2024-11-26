@@ -93,6 +93,9 @@ class Command(BaseCommand):
 
     def create_groups(self):
         permissions = Permission.objects.all()
+        permissions = permissions.exclude(name__contains="add Cliente")
+        permissions = permissions.exclude(name__contains="add Unidade")
+        permissions = permissions.exclude(name__contains="add Equipamento")
 
         for role in settings.ROLES:
             group, _ = Group.objects.get_or_create(name=role)
@@ -121,12 +124,14 @@ class Command(BaseCommand):
         """Populates the User model with example data."""
 
         # Default users for automated testing
-        admin_user = UserAccount.objects.create_superuser(
+        admin_user = UserAccount.objects.create_user(
             cpf=CPF_ADMIN,
             email="leandro.souza.159@gmail.com",
             phone=fake_phone_number(),
             password=PASSWORD,
             name="Alexandre Ferret",
+            role="Gerente Prophy",
+            is_staff=True,
             id=1000
         )
 
@@ -135,8 +140,8 @@ class Command(BaseCommand):
             email=fake.email(),
             phone=fake_phone_number(),
             password=PASSWORD,
-            name="Gerente Geral do Cliente",
-            role="Gerente Geral do Cliente",
+            name="Gerente Geral de Cliente",
+            role="Gerente Geral de Cliente",
             id=1001
         )
 

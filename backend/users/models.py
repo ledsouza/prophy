@@ -11,7 +11,7 @@ from django.contrib.auth.models import (
 
 
 class UserAccountManager(BaseUserManager):
-    def create_user(self, cpf, email, password, role="Gerente Geral do Cliente", **kwargs):
+    def create_user(self, cpf, email, password, role="Gerente Geral de Cliente", **kwargs):
         if not cpf:
             raise ValueError("Usuários devem conter um nome de usuário.")
         if not email:
@@ -60,7 +60,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         ("Físico Médico Interno", "Físico Médico Interno"),
         ("Físico Médico Externo", "Físico Médico Externo"),
         ("Gerente Prophy", "Gerente Prophy"),
-        ("Gerente Geral do Cliente", "Gerente Geral do Cliente"),
+        ("Gerente Geral de Cliente", "Gerente Geral de Cliente"),
         ("Gerente de Unidade", "Gerente de Unidade"),
         ("Comercial", "Comercial"),
     ]
@@ -72,7 +72,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField("Celular", max_length=11,
                              unique=True, null=True, validators=[MobilePhoneValidator()])
     role = models.CharField(
-        "Perfil", max_length=30, choices=ROLE_CHOICES, default="Gerente Geral do Cliente")
+        "Perfil", max_length=30, choices=ROLE_CHOICES, default="Gerente Geral de Cliente")
 
     is_active = models.BooleanField(
         "Conta Ativa", default=True, help_text="Indica que o usuário será tratado como ativo. Ao invés de excluir contas de usuário, desmarque isso.")

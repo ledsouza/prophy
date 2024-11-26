@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.conf import settings
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError
 
@@ -20,7 +19,7 @@ OperationStatus = {
 }
 
 
-class BaseOperationModel(models.Model):
+class BaseOperation(models.Model):
     """
     Abstract base model for operations across different entity types
     """
@@ -105,13 +104,16 @@ class BaseOperationModel(models.Model):
         super().save(*args, **kwargs)
 
 
-class ClientOperation(BaseOperationModel, Client):
+class ClientOperation(BaseOperation, Client):
     """
     Model representing an operation on client data.
     """
+    client_ptr = models.OneToOneField(
+        Client, on_delete=models.CASCADE, parent_link=True, primary_key=True, related_name="operation")
+
     # Reference to original client (optional for add operations)
     original_client = models.ForeignKey(Client, on_delete=models.DO_NOTHING, null=True,
-                                        blank=True, related_name="client_operations",
+                                        blank=True, related_name="new_operations",
                                         verbose_name="Cliente", help_text="Cliente original associado à operação.")
 
     def clean(self):
@@ -152,17 +154,20 @@ class ClientOperation(BaseOperationModel, Client):
         verbose_name_plural = "Operações de Clientes"
 
 
-class UnitOperation(BaseOperationModel, Unit):
+class UnitOperation(BaseOperation, Unit):
     """
     Model representing an operation on unit data.
     """
+    unit_ptr = models.OneToOneField(
+        Unit, on_delete=models.CASCADE, parent_link=True, primary_key=True, related_name="operation")
+
     # Reference to original unit (optional for add operations)
     original_unit = models.ForeignKey(
         Unit,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='unit_operations',
+        related_name='new_operations',
         verbose_name="Unidade",
         help_text="Unidade original associada à operação."
     )
@@ -199,17 +204,20 @@ class UnitOperation(BaseOperationModel, Unit):
         verbose_name_plural = "Operações de Unidades"
 
 
-class EquipmentOperation(BaseOperationModel, Equipment):
+class EquipmentOperation(BaseOperation, Equipment):
     """
     Model representing an operation on equipment data.
     """
+    equipment_ptr = models.OneToOneField(
+        Equipment, on_delete=models.CASCADE, parent_link=True, primary_key=True, related_name="operation")
+
     # Reference to original equipment (optional for add operations)
     original_equipment = models.ForeignKey(
         Equipment,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='equipment_operations',
+        related_name='new_operations',
         verbose_name="Equipamento",
         help_text="Equipamento original associado à operação."
     )

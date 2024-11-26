@@ -24,7 +24,7 @@ export default function DashboardLayout({
 
     return (
         <>
-            {userData?.role === "Gerente Geral do Cliente"
+            {userData?.role === "Gerente Geral de Cliente"
                 ? clientManager
                 : children}
         </>

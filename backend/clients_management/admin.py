@@ -15,7 +15,7 @@ class EquipmentInline(admin.TabularInline):
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     list_display = ("cnpj", "name", "email",
-                    "phone", "address", "responsables", "active")
+                    "phone", "address", "responsables", "active", "status")
     list_display_links = ("cnpj",)
     autocomplete_fields = ("users",)
     search_fields = ("cnpj", "name", "users__cpf")

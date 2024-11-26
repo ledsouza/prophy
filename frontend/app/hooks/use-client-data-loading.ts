@@ -1,18 +1,10 @@
 import { useEffect, useState } from "react";
 
-import {
-    useListClientsQuery,
-    ClientDTO,
-} from "@/redux/features/clientApiSlice";
-import { useListUnitsQuery, UnitDTO } from "@/redux/features/unitApiSlice";
-import {
-    useListEquipmentsQuery,
-    EquipmentDTO,
-} from "@/redux/features/equipmentApiSlice";
+import { ClientDTO } from "@/redux/features/clientApiSlice";
+import { UnitDTO } from "@/redux/features/unitApiSlice";
 
 import { SelectData } from "@/components/forms/Select";
 import { toast } from "react-toastify";
-import { getPageNumber } from "@/utils/pagination";
 import useGetAllClients from "./use-get-all-clients";
 import useGetAllEquipments from "./use-get-all-equipments";
 import useGetAllUnits from "./use-get-all-units";

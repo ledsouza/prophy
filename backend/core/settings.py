@@ -202,7 +202,7 @@ AUTH_USER_MODEL = "users.UserAccount"
 
 ROLES = [
     "Gerente Prophy",
-    "Gerente Geral do Cliente",
+    "Gerente Geral de Cliente",
     "Gerente de Unidade",
     "Físico Médico Interno",
     "Físico Médico Externo",

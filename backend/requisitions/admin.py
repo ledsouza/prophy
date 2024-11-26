@@ -15,10 +15,12 @@ class ClientAdmin(admin.ModelAdmin):
             None,
             {
                 "fields": ["operation_type", "operation_status", "created_by", "cnpj",
-                           "name", "email", "phone", "address", "state", "city", "original_client"]
+                           "name", "email", "phone", "address", "state", "city", "original_client", "comments"]
             }
         )
     ]
+    readonly_fields = ["operation_type", "created_by", "cnpj", "name",
+                       "email", "phone", "address", "state", "city", "original_client"]
 
 
 @admin.register(UnitOperation)

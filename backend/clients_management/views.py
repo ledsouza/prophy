@@ -1,18 +1,19 @@
 from rest_framework.views import APIView
-from rest_framework import viewsets, generics
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
-from django.contrib.auth.models import AnonymousUser
 from django.db import transaction
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from .models import Proposal, Client, Unit, Equipment
-from .serializers import CNPJSerializer, ClientSerializer, UnitSerializer, EquipmentSerializer
+from clients_management.models import Proposal, Client, Unit, Equipment
+from clients_management.serializers import CNPJSerializer, ClientSerializer, UnitSerializer, EquipmentSerializer
+from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation, OperationStatus, OperationType
+from requisitions.serializers import ClientOperationSerializer, UnitOperationSerializer, EquipmentOperation
 
 
 class LatestProposalStatusView(APIView):
@@ -88,12 +89,12 @@ class ClientViewSet(viewsets.ViewSet):
 
     def list(self, request):
         """
-        List clients.
+        List active and accepted clients.
 
         ## Permissions:
 
         - Unauthenticated Users: Read-only.
-        - Authenticated Gerente Geral do Cliente: List clients associated with their user data.
+        - Authenticated Gerente Geral de Cliente: List clients associated with their user data.
 
         ## Pagination Format:
 
@@ -116,10 +117,11 @@ class ClientViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.role == "Gerente Geral do Cliente":
-            queryset = Client.objects.filter(users=user)
+        if user.role == "Gerente Geral de Cliente":
+            queryset = ClientOperation.objects.filter(
+                users=user, active=True, operation_status="A")
         else:
-            queryset = Client.objects.all()
+            queryset = ClientOperation.objects.all()
 
         cnpj = request.query_params.get('cnpj')
         if cnpj is not None:
@@ -139,11 +141,11 @@ class ClientViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         security=[{'Bearer': []}],
-        request_body=ClientSerializer,
+        request_body=ClientOperationSerializer,
         responses={
             201: openapi.Response(
                 description="Client created successfully",
-                schema=ClientSerializer()
+                schema=ClientOperationSerializer()
             ),
             400: "Invalid data provided"
         }
@@ -157,7 +159,10 @@ class ClientViewSet(viewsets.ViewSet):
 
         - Only authenticated users.
         """
-        serializer = ClientSerializer(data=request.data)
+        data = request.data
+        data["created_by"] = request.user.id
+
+        serializer = ClientOperationSerializer(data=data)
         if serializer.is_valid():
             client = serializer.save()
             client.users.add(self.request.user)
@@ -181,11 +186,11 @@ class UnitViewSet(viewsets.ViewSet):
     )
     def list(self, request):
         """
-        List units.
+        List accepted units.
 
         ## Permissions:
 
-        - Authenticated Gerente Geral do Cliente: List units associated with their user data.
+        - Authenticated Gerente Geral de Cliente: List units associated with their user data.
         - Other authenticated users: List all units.
 
         ## Pagination Format:
@@ -208,10 +213,11 @@ class UnitViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.role == "Gerente Geral do Cliente":
-            queryset = Unit.objects.filter(client__users=user)
+        if user.role == "Gerente Geral de Cliente":
+            queryset = UnitOperation.objects.filter(
+                client__users=user, client__active=True, operation_status="A")
         else:
-            queryset = Unit.objects.all()
+            queryset = UnitOperation.objects.all()
 
         queryset = queryset.order_by("client")
 
@@ -244,7 +250,9 @@ class UnitViewSet(viewsets.ViewSet):
 
         - Only authenticated users.
         """
-        serializer = UnitSerializer(data=request.data)
+        data = request.data
+        data["created_by"] = request.user.id
+        serializer = UnitOperationSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -267,11 +275,11 @@ class EquipmentViewSet(viewsets.ViewSet):
     )
     def list(self, request):
         """
-        List equipments.
+        List accepted equipments.
 
         ## Permissions:
 
-        - Authenticated Gerente Geral do Cliente: List equipments associated with their user data.
+        - Authenticated Gerente Geral de Cliente: List equipments associated with their user data.
         - Other authenticated users: List all equipments.
 
         ## Response Format:
@@ -294,10 +302,11 @@ class EquipmentViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.role == "Gerente Geral do Cliente":
-            queryset = Equipment.objects.filter(unit__client__users=user)
+        if user.role == "Gerente Geral de Cliente":
+            queryset = EquipmentOperation.objects.filter(
+                unit__client__users=user, unit__client__active=True, operation_status="A")
         else:
-            queryset = Equipment.objects.all()
+            queryset = EquipmentOperation.objects.all()
 
         queryset = queryset.order_by("unit")
 
