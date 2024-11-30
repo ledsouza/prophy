@@ -61,7 +61,7 @@ function UnitDetails({ selectedUnit }: UnitDetailsProps) {
                         className="flex-grow"
                         data-testid="btn-delete-unit"
                     >
-                        Deletar
+                        Remover
                     </Button>
                 </div>
             </div>

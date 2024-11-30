@@ -53,7 +53,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                         Editar
                     </Button>
                     <Button variant="danger" data-testid="btn-delete-equipment">
-                        Deletar
+                        Remover
                     </Button>
                 </div>
             </div>

@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Ultrassom",
-    "manufacturer": "Siemens",
-    "model": "QUAM-354",
-    "series_number": "TEcB-414036",
-    "anvisa_registry": "lyLgTWnBYmRiw",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Philips",
+    "model": "ALIAS-619",
+    "series_number": "ifvk-660403",
+    "anvisa_registry": "OAsmpWTDEZohO",
     "id": 1
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "Siemens",
-    "model": "REPELLENDUS-228",
-    "series_number": "KOQQ-580103",
-    "anvisa_registry": "WdYhQmvrLViYW",
+    "modality": "Ultrassom",
+    "manufacturer": "Toshiba",
+    "model": "REPREHENDERIT-354",
+    "series_number": "cKQT-052558",
+    "anvisa_registry": "iyPxGcijuVqEG",
     "id": 2
   }
 }

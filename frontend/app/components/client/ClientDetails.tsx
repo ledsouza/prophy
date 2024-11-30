@@ -74,13 +74,6 @@ function ClientDetails({
                     >
                         Editar
                     </Button>
-                    <Button
-                        variant="danger"
-                        className="flex-grow"
-                        data-testid="btn-delete-client"
-                    >
-                        Deletar
-                    </Button>
                 </div>
             </div>
 
