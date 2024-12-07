@@ -148,7 +148,24 @@ class ClientViewSet(viewsets.ViewSet):
                 description="Client created successfully",
                 schema=ClientOperationSerializer()
             ),
-            400: "Invalid data provided"
+            400: openapi.Response(
+                description="Invalid request body provided",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "cnpj": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(type=openapi.TYPE_STRING),
+                            description="List of validation errors for the CNPJ field"
+                        )
+                    },
+                    example={
+                        "cnpj": [
+                            "Este campo é obrigatório."
+                        ]
+                    }
+                )
+            )
         }
     )
     @transaction.atomic
@@ -240,7 +257,24 @@ class UnitViewSet(viewsets.ViewSet):
                 description="Unit created successfully",
                 schema=UnitSerializer()
             ),
-            400: "Invalid data provided"
+            400: openapi.Response(
+                description="Invalid request body provided",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "cnpj": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(type=openapi.TYPE_STRING),
+                            description="List of validation errors for the CNPJ field"
+                        )
+                    },
+                    example={
+                        "cnpj": [
+                            "Este campo é obrigatório."
+                        ]
+                    }
+                )
+            )
         }
     )
     def create(self, request):
