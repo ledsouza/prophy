@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
 from users.models import UserAccount
-from requisitions.serializers import ClientOperationSerializer, UnitOperationSerializer, EquipmentOperationSerializer
+from requisitions.serializers import ClientOperationSerializer, ClientOperationUpdateStatusSerializer, UnitOperationSerializer, EquipmentOperationSerializer
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 
 
@@ -27,6 +27,14 @@ class ClientOperationViewSet(viewsets.ViewSet):
         else:
             serializer = ClientOperationSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, pk=None):
+        instance = ClientOperation.objects.get(pk=pk)
+        serializer = ClientOperationUpdateStatusSerializer(
+            instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UnitOperationViewSet(viewsets.ViewSet):

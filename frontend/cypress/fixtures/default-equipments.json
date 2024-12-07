@@ -2,19 +2,19 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Raio-X",
-    "manufacturer": "Toshiba",
-    "model": "SIMILIQUE-626",
-    "series_number": "SCnw-392591",
-    "anvisa_registry": "qGLdSQlsELblS",
+    "manufacturer": "GE",
+    "model": "TEMPORIBUS-170",
+    "series_number": "hoYO-036086",
+    "anvisa_registry": "ldPpmiamcFPaU",
     "id": 1
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Siemens",
-    "model": "QUIS-969",
-    "series_number": "GrOE-862409",
-    "anvisa_registry": "ESwrcoHyDrWZv",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Philips",
+    "model": "CUMQUE-528",
+    "series_number": "xQAF-628038",
+    "anvisa_registry": "lVmjpKYdcNKcU",
     "id": 2
   }
 }

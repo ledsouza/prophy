@@ -8,6 +8,12 @@ class ClientOperationSerializer(serializers.ModelSerializer):
         exclude = ["active"]
 
 
+class ClientOperationUpdateStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientOperation
+        fields = ["operation_status"]
+
+
 class UnitOperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnitOperation
