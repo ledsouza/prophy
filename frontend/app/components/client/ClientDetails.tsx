@@ -26,16 +26,10 @@ function ClientDetails({
     setSelectedClient,
     filteredClient,
 }: ClientDetailsProps) {
-    const gerenteProphy = getUserByRole(filteredClient, "Gerente Prophy");
-    const fisicoMedicoInterno = getUserByRole(
-        filteredClient,
-        "Físico Médico Interno"
-    );
-    const fisicoMedicoExterno = getUserByRole(
-        filteredClient,
-        "Físico Médico Externo"
-    );
-    const comercial = getUserByRole(filteredClient, "Comercial");
+    const gerenteProphy = getUserByRole(filteredClient, "GP");
+    const fisicoMedicoInterno = getUserByRole(filteredClient, "FMI");
+    const fisicoMedicoExterno = getUserByRole(filteredClient, "FME");
+    const comercial = getUserByRole(filteredClient, "C");
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">

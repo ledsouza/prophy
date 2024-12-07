@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 import secrets
 
+from users.models import UserAccount
+
 User = get_user_model()
 
 
@@ -33,6 +35,6 @@ class UnitManagerUserSerializer(serializers.ModelSerializer):
             email=validated_data["email"],
             phone=validated_data["phone"],
             password=secrets.token_urlsafe(16),
-            role="Gerente de Unidade"
+            role=UserAccount.Role.UNIT_MANAGER
         )
         return user

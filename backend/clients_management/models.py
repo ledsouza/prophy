@@ -35,7 +35,7 @@ class Client(models.Model):
     @admin.display(description="Responsáveis")
     def responsables(self):
         associated_users = self.users.all()
-        associated_users = [f"<strong>{user.role}:</strong> {
+        associated_users = [f"<strong>{user.get_role_display()}:</strong> {
             user.name}" for user in associated_users]
         return format_html("<br>".join(associated_users))
 

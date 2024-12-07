@@ -70,7 +70,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -199,12 +199,3 @@ DEFAULT_FROM_EMAIL = "ledevsouza@gmail.com"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.UserAccount"
-
-ROLES = [
-    "Gerente Prophy",
-    "Gerente Geral de Cliente",
-    "Gerente de Unidade",
-    "Físico Médico Interno",
-    "Físico Médico Externo",
-    "Comercial"
-]

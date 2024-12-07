@@ -1,9 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import Group
-from django.conf import settings
 
-from clients_management.models import Client, Unit, Equipment, Proposal
+from clients_management.models import Client, Unit, Proposal
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 from users.models import UserAccount
 
@@ -24,6 +23,7 @@ CPF_CLIENT_MANAGER = "82484874073"
 CPF_UNIT_MANAGER = "51407390031"
 CPF_COMERCIAL = "85866936003"
 CPF_EXTERNAL_PHYSICIST = "50283042036"
+CPF_INTERNAL_PHYSICIST = "91623042321"
 PASSWORD = "passwordtest"
 
 REJECTED_PROPOSAL_CNPJ = "09352176000187"
@@ -86,26 +86,30 @@ class Command(BaseCommand):
         permissions = permissions.exclude(name__contains="add Unidade")
         permissions = permissions.exclude(name__contains="add Equipamento")
 
-        for role in settings.ROLES:
+        for role in UserAccount.Role.values:
             group, _ = Group.objects.get_or_create(name=role)
 
-            if role == "Gerente Prophy":
+            if role == UserAccount.Role.PROPHY_MANAGER:
                 group.permissions.set(permissions)
 
-            if role == "Gerente Geral do Client":
+            if role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
                 group.permissions.set([permissions.get(name__contains="view Cliente"), permissions.get(
                     name__contains="view Unidade"), permissions.get(name__contains="view Equipamento")])
 
-            if role == "Gerente de Unidade":
+            if role == UserAccount.Role.UNIT_MANAGER:
                 group.permissions.set([permissions.get(
                     name__contains="view Unidade"), permissions.get(name__contains="view Equipamento")])
 
-            if role == "Comercial":
+            if role == UserAccount.Role.COMMERCIAL:
                 group.permissions.set([permissions.get(
                     name__contains="view Cliente"), permissions.get(name__contains="view Proposta"),
                     permissions.get(name__contains="change Proposta"), permissions.get(name__contains="add Proposta")])
 
-            if role == "Físico Médico Externo":
+            if role == UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST:
+                group.permissions.set([permissions.get(name__contains="view Cliente"), permissions.get(
+                    name__contains="view Unidade"), permissions.get(name__contains="view Equipamento")])
+
+            if role == UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST:
                 group.permissions.set([permissions.get(name__contains="view Cliente"), permissions.get(
                     name__contains="view Unidade"), permissions.get(name__contains="view Equipamento")])
 
@@ -119,7 +123,7 @@ class Command(BaseCommand):
             phone=fake_phone_number(),
             password=PASSWORD,
             name="Alexandre Ferret",
-            role="Gerente Prophy",
+            role=UserAccount.Role.PROPHY_MANAGER,
             is_staff=True,
             id=1000
         )
@@ -129,8 +133,8 @@ class Command(BaseCommand):
             email=fake.email(),
             phone=fake_phone_number(),
             password=PASSWORD,
-            name="Gerente Geral de Cliente",
-            role="Gerente Geral de Cliente",
+            name="Leandro Souza",
+            role=UserAccount.Role.CLIENT_GENERAL_MANAGER,
             id=1001
         )
 
@@ -139,8 +143,8 @@ class Command(BaseCommand):
             email=fake.email(),
             phone=fake_phone_number(),
             password=PASSWORD,
-            name="Gerente de Unidade",
-            role="Gerente de Unidade",
+            name="Fabricio Fernandes",
+            role=UserAccount.Role.UNIT_MANAGER,
             id=1002
         )
 
@@ -149,8 +153,8 @@ class Command(BaseCommand):
             email=fake.email(),
             phone=fake_phone_number(),
             password=PASSWORD,
-            name="Comercial",
-            role="Comercial",
+            name="Brenda Candeia",
+            role=UserAccount.Role.COMMERCIAL,
             id=1003
         )
 
@@ -159,9 +163,19 @@ class Command(BaseCommand):
             email=fake.email(),
             phone=fake_phone_number(),
             password=PASSWORD,
-            name="Físico Médico Externo",
-            role="Físico Médico Externo",
+            name="Gato Comunista",
+            role=UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
             id=1004
+        )
+
+        internal_physicist_user = UserAccount.objects.create_user(
+            cpf=CPF_INTERNAL_PHYSICIST,
+            email=fake.email(),
+            phone=fake_phone_number(),
+            password=PASSWORD,
+            name="Paulo Capitalista",
+            role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            id=1005
         )
 
         users = {
@@ -199,6 +213,13 @@ class Command(BaseCommand):
                 "name": external_physicist_user.name,
                 "email": external_physicist_user.email,
                 "phone": external_physicist_user.phone
+            },
+            "internal_physicist_user": {
+                "cpf": internal_physicist_user.cpf,
+                "password": PASSWORD,
+                "name": internal_physicist_user.name,
+                "email": internal_physicist_user.email,
+                "phone": internal_physicist_user.phone
             }
         }
 

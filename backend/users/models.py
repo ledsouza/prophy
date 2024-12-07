@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import TextChoices
 from django.conf import settings
 from core.validators import AlphaOnly
 from users.validators import CPFValidator, MobilePhoneValidator
@@ -11,14 +12,20 @@ from django.contrib.auth.models import (
 
 
 class UserAccountManager(BaseUserManager):
-    def create_user(self, cpf, email, password, role="Gerente Geral de Cliente", **kwargs):
+    def create_user(self, cpf, email, password, role=None, **kwargs):
         if not cpf:
             raise ValueError("Usuários devem conter um nome de usuário.")
         if not email:
             raise ValueError('Usuários devem conter um e-mail.')
-        if role not in settings.ROLES:
+
+        if role is None:
+            role = UserAccount.Role.CLIENT_GENERAL_MANAGER
+
+        if role not in UserAccount.Role.values:
             raise ValueError(
-                "Esse perfil de usuário não é valido. As opções são: ", settings.ROLES)
+                f"Invalid user role. Valid roles are: {
+                    ', '.join(UserAccount.Role.values)}"
+            )
 
         email = self.normalize_email(email)
         email = email.lower()
@@ -38,7 +45,10 @@ class UserAccountManager(BaseUserManager):
 
         return user
 
-    def create_superuser(self, cpf, email, password, role="Gerente Prophy", **kwargs):
+    def create_superuser(self, cpf, email, password, role=None, **kwargs):
+
+        if role is None:
+            role = UserAccount.Role.PROPHY_MANAGER
 
         user = self.create_user(
             cpf=cpf,
@@ -56,14 +66,13 @@ class UserAccountManager(BaseUserManager):
 
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
-    ROLE_CHOICES = [
-        ("Físico Médico Interno", "Físico Médico Interno"),
-        ("Físico Médico Externo", "Físico Médico Externo"),
-        ("Gerente Prophy", "Gerente Prophy"),
-        ("Gerente Geral de Cliente", "Gerente Geral de Cliente"),
-        ("Gerente de Unidade", "Gerente de Unidade"),
-        ("Comercial", "Comercial"),
-    ]
+    class Role(TextChoices):
+        INTERNAL_MEDICAL_PHYSICIST = "FMI", "Físico Médico Interno"
+        EXTERNAL_MEDICAL_PHYSICIST = "FME", "Físico Médico Externo"
+        PROPHY_MANAGER = "GP", "Gerente Prophy"
+        CLIENT_GENERAL_MANAGER = "GGC", "Gerente Geral de Cliente"
+        UNIT_MANAGER = "GU", "Gerente de Unidade"
+        COMMERCIAL = "C", "Comercial"
 
     cpf = models.CharField("CPF", max_length=11,
                            unique=True, validators=[CPFValidator()])
@@ -72,7 +81,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField("Celular", max_length=11,
                              unique=True, null=True, validators=[MobilePhoneValidator()])
     role = models.CharField(
-        "Perfil", max_length=30, choices=ROLE_CHOICES, default="Gerente Geral de Cliente")
+        "Perfil", max_length=30, choices=Role.choices, default=Role.CLIENT_GENERAL_MANAGER)
 
     is_active = models.BooleanField(
         "Conta Ativa", default=True, help_text="Indica que o usuário será tratado como ativo. Ao invés de excluir contas de usuário, desmarque isso.")

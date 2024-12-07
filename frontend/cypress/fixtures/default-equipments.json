@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Tom\u00f3grafo",
-    "manufacturer": "Philips",
-    "model": "ALIAS-619",
-    "series_number": "ifvk-660403",
-    "anvisa_registry": "OAsmpWTDEZohO",
+    "modality": "Raio-X",
+    "manufacturer": "Toshiba",
+    "model": "SIMILIQUE-626",
+    "series_number": "SCnw-392591",
+    "anvisa_registry": "qGLdSQlsELblS",
     "id": 1
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Ultrassom",
-    "manufacturer": "Toshiba",
-    "model": "REPREHENDERIT-354",
-    "series_number": "cKQT-052558",
-    "anvisa_registry": "iyPxGcijuVqEG",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
+    "manufacturer": "Siemens",
+    "model": "QUIS-969",
+    "series_number": "GrOE-862409",
+    "anvisa_registry": "ESwrcoHyDrWZv",
     "id": 2
   }
 }

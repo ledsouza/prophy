@@ -13,6 +13,7 @@ from rest_framework_simplejwt.views import (
 
 from users.serializers import UnitManagerUserSerializer
 from users.email import UnitManagerPasswordResetEmail
+from users.models import UserAccount
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 from drf_yasg.utils import swagger_auto_schema
@@ -218,8 +219,8 @@ class CustomUserViewSet(DjoserUserViewSet):
             HTTP_403_FORBIDDEN: If the request user does not have permission to create a 'Gerente de Unidade'.
         """
         # Ensure only Gerente Geral de Cliente and Gerente Prophy can create this user
-        if (request.user.role != "Gerente Geral de Cliente" or
-                    request.user.role != "Gerente Prophy"
+        if (request.user.role != UserAccount.Role.CLIENT_GENERAL_MANAGER or
+                    request.user.role != UserAccount.Role.PROPHY_MANAGER
                 ):
             return Response(
                 {"detail": "Only Gerente Geral de Cliente or Gerente Prophy can create Gerente de Unidade users"},

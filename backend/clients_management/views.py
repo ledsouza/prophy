@@ -10,6 +10,7 @@ from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from users.models import UserAccount
 from clients_management.models import Proposal, Client, Unit, Equipment
 from clients_management.serializers import CNPJSerializer, ClientSerializer, UnitSerializer, EquipmentSerializer
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation, OperationStatus, OperationType
@@ -117,7 +118,7 @@ class ClientViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.role == "Gerente Geral de Cliente":
+        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
             queryset = ClientOperation.objects.filter(
                 users=user, active=True, operation_status="A")
         else:
@@ -213,7 +214,7 @@ class UnitViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.role == "Gerente Geral de Cliente":
+        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
             queryset = UnitOperation.objects.filter(
                 client__users=user, client__active=True, operation_status="A")
         else:
@@ -302,7 +303,7 @@ class EquipmentViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.role == "Gerente Geral de Cliente":
+        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
             queryset = EquipmentOperation.objects.filter(
                 unit__client__users=user, unit__client__active=True, operation_status="A")
         else:

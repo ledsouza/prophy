@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
+from users.models import UserAccount
 from requisitions.serializers import ClientOperationSerializer, UnitOperationSerializer, EquipmentOperationSerializer
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 
@@ -10,7 +11,7 @@ from requisitions.models import ClientOperation, UnitOperation, EquipmentOperati
 class ClientOperationViewSet(viewsets.ViewSet):
     def list(self, request):
         user = request.user
-        if user.role == "Gerente Geral de Cliente":
+        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
             queryset = ClientOperation.objects.filter(
                 users=user, operation_status__in=["REV", "R"])
         else:
@@ -31,7 +32,7 @@ class ClientOperationViewSet(viewsets.ViewSet):
 class UnitOperationViewSet(viewsets.ViewSet):
     def list(self, request):
         user = request.user
-        if user.role == "Gerente Geral de Cliente":
+        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
             queryset = UnitOperation.objects.filter(
                 client__users=user, operation_status__in=["REV", "R"])
         else:
@@ -52,7 +53,7 @@ class UnitOperationViewSet(viewsets.ViewSet):
 class EquipmentOperationViewSet(viewsets.ViewSet):
     def list(self, request):
         user = request.user
-        if user.role == "Gerente Geral de Cliente":
+        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
             queryset = EquipmentOperation.objects.filter(
                 unit__client__users=user, operation_status__in=["REV", "R"])
         else:

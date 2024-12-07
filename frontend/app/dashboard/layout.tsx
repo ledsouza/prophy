@@ -22,11 +22,5 @@ export default function DashboardLayout({
         );
     }
 
-    return (
-        <>
-            {userData?.role === "Gerente Geral de Cliente"
-                ? clientManager
-                : children}
-        </>
-    );
+    return <>{userData?.role === "GGC" ? clientManager : children}</>;
 }

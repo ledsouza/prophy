@@ -15,13 +15,7 @@ export type UserDTO = {
     email: string;
     phone: string;
     name: string;
-    role:
-        | "Físico Médico Interno"
-        | "Físico Médico Externo"
-        | "Gerente Prophy"
-        | "Gerente Geral de Cliente"
-        | "Gerente de Unidade"
-        | "Comercial";
+    role: "FMI" | "FME" | "GP" | "GGC" | "GU" | "C";
 };
 
 const authApiSlice = apiSlice.injectEndpoints({
