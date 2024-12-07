@@ -20,6 +20,12 @@ class UnitOperationSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UnitOperationUpdateStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnitOperation
+        fields = ["operation_status"]
+
+
 class EquipmentOperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EquipmentOperation

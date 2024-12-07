@@ -12,6 +12,17 @@ from localflavor.br.br_states import STATE_CHOICES
 import calendar
 
 
+def get_status(operation):
+    if operation.operation_status == "A":
+        return operation.get_operation_status_display()
+    if operation.operation_type == "A":
+        return format_html(f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para adicionar</div>")
+    if operation.operation_type == "E":
+        return format_html(f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para editar</div>")
+    if operation.operation_type == "D":
+        return format_html(f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para deletar</div>")
+
+
 class Client(models.Model):
     """
     Model representing a client.
@@ -42,12 +53,7 @@ class Client(models.Model):
     @admin.display(description="Status")
     def status(self):
         operation = self.operation
-        if operation.operation_status == "A":
-            return operation.get_operation_status_display()
-        if operation.operation_type == "E":
-            return format_html(f"<b>{operation.get_operation_status_display()}</b><br>Requisição para editar")
-        if operation.operation_type == "D":
-            return format_html(f"<b>{operation.get_operation_status_display()}</b><br>Requisição para deletar")
+        return get_status(operation)
 
     def __str__(self) -> str:
         return self.name
@@ -76,8 +82,13 @@ class Unit(models.Model):
     city = models.CharField("Cidade", max_length=50,
                             blank=True, validators=[AlphaOnly()])
 
+    @admin.display(description="Status")
+    def status(self):
+        operation = self.operation
+        return get_status(operation)
+
     def __str__(self) -> str:
-        return f"{self.name} - {self.client.name}"
+        return f"{self.name}"
 
     class Meta:
         verbose_name = "Unidade"

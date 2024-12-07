@@ -28,7 +28,7 @@ class ClientAdmin(admin.ModelAdmin):
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
     list_display = ("cnpj", "name", "client",
-                    "email", "phone", "state", "city")
+                    "email", "phone", "state", "city", "status")
     list_display_links = ("cnpj",)
     autocomplete_fields = ("client", "user")
     search_fields = ("name", "cnpj", "state", "city")

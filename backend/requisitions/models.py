@@ -99,9 +99,11 @@ class BaseOperation(models.Model):
         """
         self.full_clean()
 
+        print("Running save method from the Base Operation Model")
+
         # The first operation will always be ADD
         if (self.operation_type == OperationType["ADD"] and self.operation_status == OperationStatus["ACCEPTED"]):
-            self.operation_type == OperationType["CLOSED"]
+            self.operation_type = OperationType["CLOSED"]
 
         # All other operations will be EDIT or DELETE. Those ones are needed only to temporary hold data
         if ((self.operation_type == OperationType["EDIT"] or self.operation_type == OperationType["DELETE"])
