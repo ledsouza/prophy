@@ -5,16 +5,15 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
-from django.db import transaction
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.models import UserAccount
-from clients_management.models import Proposal, Client, Unit, Equipment
+from clients_management.models import Proposal, Client
 from clients_management.serializers import CNPJSerializer, ClientSerializer, UnitSerializer, EquipmentSerializer
-from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation, OperationStatus, OperationType
-from requisitions.serializers import ClientOperationSerializer, UnitOperationSerializer, EquipmentOperation
+from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
+from requisitions.serializers import EquipmentOperation
 
 
 class LatestProposalStatusView(APIView):
@@ -87,42 +86,35 @@ class ClientViewSet(viewsets.ViewSet):
 
     Provides actions for listing and creating clients.
     """
-
-    def list(self, request):
-        """
-        List active and accepted clients.
-
-        ## Permissions:
-
-        - Unauthenticated Users: Read-only.
-        - Authenticated Gerente Geral de Cliente: List clients associated with their user data.
-
-        ## Pagination Format:
-
-        **Successful Response (200 OK):**
-
-        ```json
-        {
-            "count": 123,  // Total number of clients
-            "next": "http://api.example.com/clients/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
-            "results": [
-                {
-                    "id": 1,
-                    "cnpj": "12345678000190",
-                    // ... other client fields
-                },
-                // ... more clients on this page
-            ]
+    @swagger_auto_schema(
+        operation_summary="List active and accepted clients",
+        operation_description="""
+        Retrieve a paginated list of active and accepted clients.
+        """,
+        manual_parameters=[
+            openapi.Parameter(
+                name="cnpj",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter clients by CNPJ."
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of active and accepted clients",
+                schema=ClientSerializer(many=True)
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied"
         }
-        ```
-        """
+    )
+    def list(self, request):
         user = request.user
-        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            queryset = ClientOperation.objects.all()
+        else:
             queryset = ClientOperation.objects.filter(
                 users=user, active=True, operation_status="A")
-        else:
-            queryset = ClientOperation.objects.all()
 
         cnpj = request.query_params.get('cnpj')
         if cnpj is not None:
@@ -139,53 +131,6 @@ class ClientViewSet(viewsets.ViewSet):
         else:
             serializer = ClientSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @swagger_auto_schema(
-        security=[{'Bearer': []}],
-        request_body=ClientOperationSerializer,
-        responses={
-            201: openapi.Response(
-                description="Client created successfully",
-                schema=ClientOperationSerializer()
-            ),
-            400: openapi.Response(
-                description="Invalid request body provided",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "cnpj": openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=openapi.Schema(type=openapi.TYPE_STRING),
-                            description="List of validation errors for the CNPJ field"
-                        )
-                    },
-                    example={
-                        "cnpj": [
-                            "Este campo é obrigatório."
-                        ]
-                    }
-                )
-            )
-        }
-    )
-    @transaction.atomic
-    def create(self, request):
-        """
-        Create a new client.
-
-        ## Permissions:
-
-        - Only authenticated users.
-        """
-        data = request.data
-        data["created_by"] = request.user.id
-
-        serializer = ClientOperationSerializer(data=data)
-        if serializer.is_valid():
-            client = serializer.save()
-            client.users.add(self.request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UnitViewSet(viewsets.ViewSet):
@@ -231,11 +176,11 @@ class UnitViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            queryset = UnitOperation.objects.all()
+        else:
             queryset = UnitOperation.objects.filter(
                 client__users=user, client__active=True, operation_status="A")
-        else:
-            queryset = UnitOperation.objects.all()
 
         queryset = queryset.order_by("client")
 
@@ -248,50 +193,6 @@ class UnitViewSet(viewsets.ViewSet):
         else:
             serializer = UnitSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @swagger_auto_schema(
-        security=[{'Bearer': []}],
-        request_body=UnitSerializer,
-        responses={
-            201: openapi.Response(
-                description="Unit created successfully",
-                schema=UnitSerializer()
-            ),
-            400: openapi.Response(
-                description="Invalid request body provided",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "cnpj": openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=openapi.Schema(type=openapi.TYPE_STRING),
-                            description="List of validation errors for the CNPJ field"
-                        )
-                    },
-                    example={
-                        "cnpj": [
-                            "Este campo é obrigatório."
-                        ]
-                    }
-                )
-            )
-        }
-    )
-    def create(self, request):
-        """
-        Create a new unit.
-
-        ## Permissions:
-
-        - Only authenticated users.
-        """
-        data = request.data
-        data["created_by"] = request.user.id
-        serializer = UnitOperationSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EquipmentViewSet(viewsets.ViewSet):
@@ -337,11 +238,11 @@ class EquipmentViewSet(viewsets.ViewSet):
         ```
         """
         user = request.user
-        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            queryset = EquipmentOperation.objects.all()
+        else:
             queryset = EquipmentOperation.objects.filter(
                 unit__client__users=user, unit__client__active=True, operation_status="A")
-        else:
-            queryset = EquipmentOperation.objects.all()
 
         queryset = queryset.order_by("unit")
 

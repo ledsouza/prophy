@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import TextChoices
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError
@@ -7,47 +8,33 @@ from clients_management.models import Client, Unit, Equipment
 
 User = get_user_model()
 
-OperationType = {
-    "ADD": "A",
-    "EDIT": "E",
-    "DELETE": "D",
-    "CLOSED": "C"
-}
-OperationStatus = {
-    "REVIEW": "REV",
-    "ACCEPTED": "A",
-    "REJECTED": "R"
-}
-
 
 class BaseOperation(models.Model):
     """
     Abstract base model for operations across different entity types
     """
-    OPERATION_TYPES = (
-        (OperationType["ADD"], "Adicionar"),
-        (OperationType["EDIT"], "Editar"),
-        (OperationType["DELETE"], "Deletar"),
-        (OperationType["CLOSED"], "-"),
-    )
+    class OperationType(TextChoices):
+        ADD = "A", "Adicionar"
+        EDIT = "E", "Editar"
+        DELETE = "D", "Deletar"
+        CLOSED = "C", "-"
 
-    OPERATION_STATUS = (
-        (OperationStatus["REVIEW"], "Em Análise"),
-        (OperationStatus["ACCEPTED"], "Aceito"),
-        (OperationStatus["REJECTED"], "Rejeitado")
-    )
+    class OperationStatus(TextChoices):
+        REVIEW = "REV", "Em Análise"
+        ACCEPTED = "A", "Aceito"
+        REJECTED = "R", "Rejeitado"
 
     # Operation metadata
     operation_type = models.CharField(
         "Tipo de Operação",
         max_length=1,
-        choices=OPERATION_TYPES
+        choices=OperationType.choices
     )
     operation_status = models.CharField(
         "Status da Operação",
         max_length=3,
-        choices=OPERATION_STATUS,
-        default=OperationStatus["REVIEW"]
+        choices=OperationStatus.choices,
+        default=OperationStatus.REVIEW
     )
     created_by = models.ForeignKey(
         User,
@@ -72,7 +59,7 @@ class BaseOperation(models.Model):
         """
         Validate that only one operation is in "Em Análise" status for a specific entity
         """
-        if self.operation_status == OperationStatus["REVIEW"]:
+        if self.operation_status == self.OperationStatus.REVIEW:
             # Check for existing operations in analysis for the same entity
             existing_operations = self.__class__.objects.filter(
                 operation_status="A",
@@ -99,15 +86,13 @@ class BaseOperation(models.Model):
         """
         self.full_clean()
 
-        print("Running save method from the Base Operation Model")
-
         # The first operation will always be ADD
-        if (self.operation_type == OperationType["ADD"] and self.operation_status == OperationStatus["ACCEPTED"]):
-            self.operation_type = OperationType["CLOSED"]
+        if (self.operation_type == self.OperationType.ADD and self.operation_status == self.OperationStatus.ACCEPTED):
+            self.operation_type = self.OperationType.CLOSED
 
         # All other operations will be EDIT or DELETE. Those ones are needed only to temporary hold data
-        if ((self.operation_type == OperationType["EDIT"] or self.operation_type == OperationType["DELETE"])
-                and self.operation_status == OperationStatus["ACCEPTED"]):
+        if ((self.operation_type == self.OperationType.EDIT or self.operation_type == self.OperationType.DELETE)
+                and self.operation_status == self.OperationStatus.ACCEPTED):
             return self.delete()
 
         super().save(*args, **kwargs)
@@ -130,11 +115,11 @@ class ClientOperation(BaseOperation, Client):
 
         self.active = False
 
-        if ((self.operation_type == OperationType["ADD"] or self.operation_type == OperationType["CLOSED"])
-                and self.operation_status == OperationStatus["ACCEPTED"]):
+        if ((self.operation_type == self.OperationType.ADD or self.operation_type == self.OperationType.CLOSED)
+                and self.operation_status == self.OperationStatus.ACCEPTED):
             self.active = True
 
-        if self.operation_type == OperationType["EDIT"] and self.operation_status == OperationStatus["ACCEPTED"]:
+        if self.operation_type == self.OperationType.EDIT and self.operation_status == self.OperationStatus.ACCEPTED:
             self.original_client.cnpj = self.cnpj
             self.original_client.name = self.name
             self.original_client.email = self.email
@@ -144,7 +129,7 @@ class ClientOperation(BaseOperation, Client):
             self.original_client.city = self.city
             self.original_client.save()
 
-        if self.operation_type == OperationType["DELETE"] and self.operation_status == OperationStatus["ACCEPTED"]:
+        if self.operation_type == self.OperationType.DELETE and self.operation_status == self.OperationStatus.ACCEPTED:
             self.original_client.active = False
             self.original_client.save()
 
@@ -185,7 +170,7 @@ class UnitOperation(BaseOperation, Unit):
     def clean(self):
         super().clean()
 
-        if self.operation_type == OperationType["EDIT"] and self.operation_status == OperationStatus["ACCEPTED"]:
+        if self.operation_type == self.OperationType.EDIT and self.operation_status == self.OperationStatus.ACCEPTED:
             self.original_unit.cnpj = self.cnpj
             self.original_unit.name = self.name
             self.original_unit.email = self.email
@@ -195,7 +180,7 @@ class UnitOperation(BaseOperation, Unit):
             self.original_unit.city = self.city
             self.original_unit.save()
 
-        if self.operation_type == OperationType["DELETE"] and self.operation_status == OperationStatus["ACCEPTED"]:
+        if self.operation_type == self.OperationType.DELETE and self.operation_status == self.OperationStatus.ACCEPTED:
             self.original_unit.delete()
 
     def get_entity_filter(self):
@@ -235,7 +220,7 @@ class EquipmentOperation(BaseOperation, Equipment):
     def clean(self):
         super().clean()
 
-        if self.operation_type == OperationType["EDIT"] and self.operation_status == OperationStatus["ACCEPTED"]:
+        if self.operation_type == self.OperationType.EDIT and self.operation_status == self.OperationStatus.ACCEPTED:
             self.original_equipment.modality = self.modality
             self.original_equipment.manufacturer = self.manufacturer
             self.original_equipment.model = self.model
@@ -245,7 +230,7 @@ class EquipmentOperation(BaseOperation, Equipment):
             self.original_equipment.label_photo = self.label_photo
             self.original_equipment.save()
 
-        if self.operation_type == OperationType["DELETE"] and self.operation_status == OperationStatus["ACCEPTED"]:
+        if self.operation_type == self.OperationType.DELETE and self.operation_status == self.OperationStatus.ACCEPTED:
             self.original_equipment.delete()
 
     def get_entity_filter(self):

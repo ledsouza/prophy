@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Raio-X",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
     "manufacturer": "GE",
-    "model": "TEMPORIBUS-170",
-    "series_number": "hoYO-036086",
-    "anvisa_registry": "ldPpmiamcFPaU",
+    "model": "QUISQUAM-699",
+    "series_number": "AmEW-400843",
+    "anvisa_registry": "pzSApOMZovvfO",
     "id": 1
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Tom\u00f3grafo",
-    "manufacturer": "Philips",
-    "model": "CUMQUE-528",
-    "series_number": "xQAF-628038",
-    "anvisa_registry": "lVmjpKYdcNKcU",
+    "modality": "Raio-X",
+    "manufacturer": "Siemens",
+    "model": "MOLLITIA-534",
+    "series_number": "FQJr-899091",
+    "anvisa_registry": "hVCPltZUNpQhg",
     "id": 2
   }
 }

@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models import TextChoices
-from django.conf import settings
 from core.validators import AlphaOnly
 from users.validators import CPFValidator, MobilePhoneValidator
 from django.contrib.auth.models import (
