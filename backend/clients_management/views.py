@@ -23,7 +23,12 @@ class LatestProposalStatusView(APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        security=[{'Bearer': []}],
+        operation_summary="Retrieve approval status of the latest contract proposal",
+        operation_description="""
+        This endpoint allows you to retrieve the approval status of the most recent proposal 
+        associated with a specific CNPJ. It checks if the given CNPJ exists in the database 
+        and retrieves the latest proposal's approval status.
+        """,
         request_body=CNPJSerializer,
         responses={
             200: openapi.Response(
@@ -31,22 +36,41 @@ class LatestProposalStatusView(APIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'approved': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Approval status of the latest proposal')
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description="Approval status of the latest proposal"
+                        )
                     }
                 )
             ),
-            404: "Proposal not found",
-            400: "Invalid CNPJ format or missing data"
+            404: openapi.Response(
+                description="Proposal not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Error message indicating no proposals found"
+                        )
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Invalid CNPJ format or missing data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'cnpj': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Items(type=openapi.TYPE_STRING),
+                            description="Validation error details for CNPJ"
+                        )
+                    }
+                )
+            )
         }
     )
     def post(self, request: Request) -> Response:
-        """
-        Check the approval status of the latest contract proposal.
-
-        ## Permissions
-
-        - All users (authenticated or not) can check.
-        """
         serializer = CNPJSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -67,6 +91,40 @@ class LatestProposalStatusView(APIView):
 class ClientStatusView(APIView):
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        operation_summary="Check client status by CNPJ",
+        operation_description="""
+        This endpoint verifies whether a client exists in the system based on their CNPJ.
+        """,
+        request_body=CNPJSerializer,
+        responses={
+            200: openapi.Response(
+                description="Status indicating if the client exists",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'status': openapi.Schema(
+                            type=openapi.TYPE_BOOLEAN,
+                            description="Indicates whether the client exists"
+                        )
+                    }
+                )
+            ),
+            400: openapi.Response(
+                description="Invalid CNPJ format or missing data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'cnpj': openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Items(type=openapi.TYPE_STRING),
+                            description="Validation error details for CNPJ"
+                        )
+                    }
+                )
+            )
+        }
+    )
     def post(self, request: Request) -> Response:
         serializer = CNPJSerializer(data=request.data)
 
@@ -90,6 +148,21 @@ class ClientViewSet(viewsets.ViewSet):
         operation_summary="List active and accepted clients",
         operation_description="""
         Retrieve a paginated list of active and accepted clients.
+
+        ```json
+        {
+            "count": 123,  // Total number of clients
+            "next": "http://api.example.com/clients/?page=2", // Link to next page (if available)
+            "previous": null, // Link to previous page (if available)
+            "results": [
+                {
+                    "id": 1,
+                    // ... other client fields
+                },
+                // ... more clients on this page
+            ]
+        }
+        ```
         """,
         manual_parameters=[
             openapi.Parameter(
@@ -139,26 +212,9 @@ class UnitViewSet(viewsets.ViewSet):
     """
 
     @swagger_auto_schema(
-        security=[{'Bearer': []}],
-        responses={
-            200: openapi.Response(
-                description="Successful Response",
-                schema=UnitSerializer(many=True)
-            )
-        }
-    )
-    def list(self, request):
-        """
-        List accepted units.
-
-        ## Permissions:
-
-        - Authenticated Gerente Geral de Cliente: List units associated with their user data.
-        - Other authenticated users: List all units.
-
-        ## Pagination Format:
-
-        **Successful Response (200 OK):**
+        operation_summary="List accepted units",
+        operation_description="""
+        Retrieve a paginated list of accepted units.
 
         ```json
         {
@@ -174,7 +230,17 @@ class UnitViewSet(viewsets.ViewSet):
             ]
         }
         ```
-        """
+        """,
+        responses={
+            200: openapi.Response(
+                description="Paginated list of active and accepted units",
+                schema=ClientSerializer(many=True)
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def list(self, request):
         user = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = UnitOperation.objects.all()
@@ -201,26 +267,9 @@ class EquipmentViewSet(viewsets.ViewSet):
     """
 
     @swagger_auto_schema(
-        security=[{'Bearer': []}],
-        responses={
-            200: openapi.Response(
-                description="Successful Response",
-                schema=EquipmentSerializer(many=True)
-            )
-        }
-    )
-    def list(self, request):
-        """
-        List accepted equipments.
-
-        ## Permissions:
-
-        - Authenticated Gerente Geral de Cliente: List equipments associated with their user data.
-        - Other authenticated users: List all equipments.
-
-        ## Response Format:
-
-        **Successful Response (200 OK):**
+        operation_summary="List accepted equipments",
+        operation_description="""
+        Retrieve a paginated list of accepted equipments.
 
         ```json
         {
@@ -236,7 +285,17 @@ class EquipmentViewSet(viewsets.ViewSet):
             ]
         }
         ```
-        """
+        """,
+        responses={
+            200: openapi.Response(
+                description="Paginated list of accepted equipments",
+                schema=ClientSerializer(many=True)
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def list(self, request):
         user = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = EquipmentOperation.objects.all()

@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "GE",
-    "model": "QUISQUAM-699",
-    "series_number": "AmEW-400843",
-    "anvisa_registry": "pzSApOMZovvfO",
-    "id": 1
+    "modality": "Raio-X",
+    "manufacturer": "Siemens",
+    "model": "VELIT-323",
+    "series_number": "aBsJ-444339",
+    "anvisa_registry": "ryJjtQFWOLNXk",
+    "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "Siemens",
-    "model": "MOLLITIA-534",
-    "series_number": "FQJr-899091",
-    "anvisa_registry": "hVCPltZUNpQhg",
-    "id": 2
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Philips",
+    "model": "PROVIDENT-209",
+    "series_number": "zCrh-697978",
+    "anvisa_registry": "lReLvcqKjvHUI",
+    "id": 1001
   }
 }

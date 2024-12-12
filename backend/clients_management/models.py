@@ -121,11 +121,14 @@ class Equipment(models.Model):
 
     @admin.display(description="Cliente")
     def client(self):
-        client = self.unit.client
-        return client
+        try:
+            client_display = self.unit.client
+        except AttributeError:
+            client_display = "-"
+        return client_display
 
     def __str__(self) -> str:
-        return f"{self.manufacturer} - {self.model} ({self.unit.name})"
+        return f"{self.manufacturer} - {self.model}"
 
     class Meta:
         verbose_name = "Equipamento"

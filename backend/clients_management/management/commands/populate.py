@@ -503,7 +503,8 @@ class Command(BaseCommand):
             model=fake.word().upper() + "-" + str(randint(100, 999)),
             series_number=fake.bothify(text='????-######'),
             anvisa_registry=fake.bothify(text='?????????????'),
-            equipment_photo='./petct.jpg'
+            equipment_photo='./petct.jpg',
+            id=1000
         )
         equipment2 = EquipmentOperation.objects.create(
             operation_type="C",
@@ -515,7 +516,8 @@ class Command(BaseCommand):
             model=fake.word().upper() + "-" + str(randint(100, 999)),
             series_number=fake.bothify(text='????-######'),
             anvisa_registry=fake.bothify(text='?????????????'),
-            equipment_photo='./petct.jpg'
+            equipment_photo='./petct.jpg',
+            id=1001
         )
 
         equipments = {
