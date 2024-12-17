@@ -7,9 +7,9 @@ import { UnitDTO } from "@/redux/features/unitApiSlice";
 
 import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 
-import { Input } from "@/components/forms";
+import { EditClientForm, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Button, Spinner } from "@/components/common";
+import { Button, Modal, Spinner } from "@/components/common";
 import { ClientDetails, UnitCard } from "@/components/client";
 
 function ClientPage() {
@@ -34,6 +34,8 @@ function ClientPage() {
     ) => {
         setSearchTerm(event.target.value);
     };
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         if (filteredUnits && filteredUnits.length > 0) {
@@ -90,6 +92,7 @@ function ClientPage() {
                     selectedClient={selectedClient}
                     setSelectedClient={setSelectedClient}
                     filteredClient={filteredClient}
+                    handleEdit={() => setIsModalOpen(true)}
                 />
             )}
 
@@ -142,6 +145,19 @@ function ClientPage() {
 
                 <Button data-testid="btn-add-unit">Adicionar unidade</Button>
             </div>
+
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                className="max-w-lg"
+            >
+                <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                    <EditClientForm
+                        originalClient={filteredClient!}
+                        setIsModalOpen={setIsModalOpen}
+                    />
+                </div>
+            </Modal>
         </main>
     );
 }

@@ -24,7 +24,6 @@ const useCNPJValidation = (setIsModalOpen: (value: boolean) => void) => {
                 toast.error("Nenhum cliente foi encontrado com esse CNPJ.");
                 return false;
             }
-            console.error("Error verifying client status:", error);
             toast.error("Erro ao verificar CNPJ. Tente novamente mais tarde.");
             return false;
         }

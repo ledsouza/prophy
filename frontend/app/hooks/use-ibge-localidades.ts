@@ -1,7 +1,6 @@
 "use client";
 
 import { ComboboxDataProps } from "@/components/forms/ComboBox";
-import { RegisterFields } from "@/components/forms/RegisterForm";
 import {
     useGetEstadosQuery,
     useGetMunicipiosByEstadosIdQuery,
@@ -10,7 +9,7 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { useCallback, useEffect, useState } from "react";
 import { UseFormSetValue } from "react-hook-form";
 
-const useIBGELocalidades = (setValue: UseFormSetValue<RegisterFields>) => {
+const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
     const {
         data: estados,
         isSuccess: isEstadosSuccess,
@@ -65,6 +64,7 @@ const useIBGELocalidades = (setValue: UseFormSetValue<RegisterFields>) => {
         isEstadosSuccess,
         estadosError,
         selectedEstado,
+        setSelectedEstado,
         handleEstadoChange,
         municipios,
         isMunicipiosSuccess,

@@ -18,6 +18,7 @@ type ClientDetailsProps = {
     selectedClient: SelectData;
     setSelectedClient: (value: SelectData) => void;
     filteredClient: ClientDTO;
+    handleEdit: () => void;
 };
 
 function ClientDetails({
@@ -25,6 +26,7 @@ function ClientDetails({
     selectedClient,
     setSelectedClient,
     filteredClient,
+    handleEdit,
 }: ClientDetailsProps) {
     const gerenteProphy = getUserByRole(filteredClient, "GP");
     const fisicoMedicoInterno = getUserByRole(filteredClient, "FMI");
@@ -64,6 +66,7 @@ function ClientDetails({
                     <Button
                         variant="secondary"
                         className="flex-grow"
+                        onClick={handleEdit}
                         data-testid="btn-edit-client"
                     >
                         Editar
