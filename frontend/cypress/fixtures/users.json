@@ -4,41 +4,41 @@
     "password": "passwordtest",
     "name": "Alexandre Ferret",
     "email": "leandro.souza.159@gmail.com",
-    "phone": "61974499013"
+    "phone": "11977245958"
   },
   "client_user": {
     "cpf": "82484874073",
     "password": "passwordtest",
     "name": "Leandro Souza",
-    "email": "ffogaca@example.net",
-    "phone": "31981043821"
+    "email": "goncalveshenrique@example.com",
+    "phone": "51948419508"
   },
   "unit_manager_user": {
     "cpf": "51407390031",
     "password": "passwordtest",
     "name": "Fabricio Fernandes",
-    "email": "joao-vitorcassiano@example.com",
-    "phone": "11998768798"
+    "email": "giovannagarcia@example.org",
+    "phone": "51947369941"
   },
   "comercial_user": {
     "cpf": "85866936003",
     "password": "passwordtest",
     "name": "Brenda Candeia",
-    "email": "arthurgomes@example.net",
-    "phone": "81960414760"
+    "email": "tdas-neves@example.net",
+    "phone": "81987499446"
   },
   "external_physicist_user": {
     "cpf": "50283042036",
     "password": "passwordtest",
     "name": "Gato Comunista",
-    "email": "anapastor@example.com",
-    "phone": "11985677734"
+    "email": "abreuana-luiza@example.net",
+    "phone": "51963480621"
   },
   "internal_physicist_user": {
     "cpf": "91623042321",
     "password": "passwordtest",
     "name": "Paulo Capitalista",
-    "email": "renanfarias@example.org",
-    "phone": "51909903152"
+    "email": "jcavalcante@example.com",
+    "phone": "71912755653"
   }
 }

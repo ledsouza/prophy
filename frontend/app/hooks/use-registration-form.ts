@@ -14,6 +14,8 @@ import {
     RegisterFields,
     registerSchema,
 } from "@/components/forms/RegisterForm";
+import { OperationType } from "@/enums/OperationType";
+import { OperationStatus } from "@/enums/OperationStatus";
 
 type RegisterFormProps = {
     validatedCNPJ: string;
@@ -69,6 +71,8 @@ const useRegistrationForm = ({
                 address,
                 state,
                 city,
+                operation_type: OperationType.ADD,
+                operation_status: OperationStatus.ACCEPTED,
             });
 
             if (!clientResponse.error) {
@@ -81,6 +85,8 @@ const useRegistrationForm = ({
                     state,
                     city,
                     client: clientResponse.data?.id,
+                    operation_type: OperationType.ADD,
+                    operation_status: OperationStatus.ACCEPTED,
                 });
             }
 
@@ -89,11 +95,9 @@ const useRegistrationForm = ({
             router.push("/dashboard");
         } catch (error: any) {
             if (error?.status === 400) {
-                console.log("useRegistrationForm Error Status 400: ", error);
                 toast.info("Um usuário com este CPF já existe.");
                 return;
             }
-            console.error("useRegistrationForm Error:", error);
             toast.error(
                 "Algo deu errado. Por favor, tente novamente. Se o problema continuar, entre em contato conosco."
             );

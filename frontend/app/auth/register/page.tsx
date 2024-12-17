@@ -1,9 +1,11 @@
 "use client";
 
-import { CNPJForm, RegisterForm } from "@/components/forms";
 import { useState } from "react";
-import { Modal } from "@/components/common";
+
 import { useCNPJValidation, useRegistrationForm } from "@/hooks";
+
+import { Modal } from "@/components/common";
+import { CNPJForm, RegisterForm } from "@/components/forms";
 
 const RegisterPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);

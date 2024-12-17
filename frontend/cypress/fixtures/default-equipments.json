@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Tom\u00f3grafo",
-    "manufacturer": "Toshiba",
-    "model": "QUAERAT-921",
-    "series_number": "LXpf-731606",
-    "anvisa_registry": "PTFxHGmoRHPWM",
+    "modality": "Raio-X",
+    "manufacturer": "GE",
+    "model": "AB-492",
+    "series_number": "jdMO-557266",
+    "anvisa_registry": "tOkCqyBrfdSbp",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Philips",
-    "model": "NOBIS-379",
-    "series_number": "OiaC-212742",
-    "anvisa_registry": "MVoflRZjwDTRm",
+    "modality": "Raio-X",
+    "manufacturer": "GE",
+    "model": "UNDE-461",
+    "series_number": "iQrK-049605",
+    "anvisa_registry": "DLccFHaVQokAP",
     "id": 1001
   }
 }

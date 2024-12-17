@@ -1,6 +1,7 @@
 import {
     apiSlice,
     ListQueryParams,
+    Operation,
     PaginatedResponse,
 } from "../services/apiSlice";
 import { UserDTO } from "./authApiSlice";
@@ -17,6 +18,8 @@ export type UnitDTO = {
     user: Pick<UserDTO, "name" | "role" | "email" | "phone">;
     client: number;
 };
+
+type UnitOperationDTO = UnitDTO & Operation;
 
 const unitApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -53,9 +56,12 @@ const unitApiSlice = apiSlice.injectEndpoints({
                 return currentArg?.page !== previousArg?.page;
             },
         }),
-        createUnit: builder.mutation<UnitDTO, Omit<UnitDTO, "id" | "user">>({
+        createUnit: builder.mutation<
+            UnitOperationDTO,
+            Omit<UnitOperationDTO, "id" | "user">
+        >({
             query: (unitData) => ({
-                url: "units/",
+                url: "units/operations/",
                 method: "POST",
                 body: unitData,
             }),

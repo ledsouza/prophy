@@ -1,6 +1,7 @@
 import {
     apiSlice,
     ListQueryParams,
+    Operation,
     PaginatedResponse,
 } from "../services/apiSlice";
 import { UserDTO } from "./authApiSlice";
@@ -17,6 +18,8 @@ export type ClientDTO = {
     status: string;
     users?: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
 };
+
+type ClientOperationDTO = ClientDTO & Operation;
 
 type Status = {
     status: boolean;
@@ -39,11 +42,11 @@ const clientApiSlice = apiSlice.injectEndpoints({
             }),
         }),
         createClient: builder.mutation<
-            ClientDTO,
-            Omit<ClientDTO, "status" | "id">
+            ClientOperationDTO,
+            Omit<ClientOperationDTO, "id" | "status">
         >({
             query: (clientData) => ({
-                url: "clients/",
+                url: "clients/operations/",
                 method: "POST",
                 body: clientData,
             }),

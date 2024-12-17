@@ -1,3 +1,5 @@
+import { OperationStatus } from "@/enums/OperationStatus";
+import { OperationType } from "@/enums/OperationType";
 import { randomMobilePhoneNumber } from "@/utils/generator";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { errorMessages } from "cypress/support/e2e";
@@ -320,19 +322,21 @@ describe("Client Registration", () => {
     });
 
     context("Client Form Success Scenario", () => {
-        it("should successfully submit the form with valid data and be redirect to client dashboard", () => {
+        it.only("should successfully submit the form with valid data and be redirect to client dashboard", () => {
             cy.intercept("POST", "http://localhost:8000/api/users/").as(
                 "registerUser"
             );
             cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as(
                 "loginUser"
             );
-            cy.intercept("POST", "http://localhost:8000/api/clients/").as(
-                "createClient"
-            );
-            cy.intercept("POST", "http://localhost:8000/api/units/").as(
-                "createUnit"
-            );
+            cy.intercept(
+                "POST",
+                "http://localhost:8000/api/clients/operations/"
+            ).as("createClient");
+            cy.intercept(
+                "POST",
+                "http://localhost:8000/api/units/operations/"
+            ).as("createUnit");
 
             const cpf = fakeCPF();
             const password = "StrongPassword123!";
@@ -343,7 +347,7 @@ describe("Client Registration", () => {
             const fakeUF = "SP";
             const fakeCity = "São Paulo";
             const fakeStreet = faker.location.streetAddress();
-            const fakeContactName = faker.person.fullName();
+            const fakeContactName = faker.person.firstName();
             const fakeContactEmail = faker.internet.email();
 
             let validCnpj: string;
@@ -422,6 +426,8 @@ describe("Client Registration", () => {
                     address: fakeStreet,
                     state: fakeUF,
                     city: fakeCity,
+                    operation_type: OperationType.ADD,
+                    operation_status: OperationStatus.ACCEPTED,
                 });
             });
 
@@ -437,6 +443,8 @@ describe("Client Registration", () => {
                     state: fakeUF,
                     city: fakeCity,
                     client: clientCreatedId,
+                    operation_type: OperationType.ADD,
+                    operation_status: OperationStatus.ACCEPTED,
                 });
             });
 

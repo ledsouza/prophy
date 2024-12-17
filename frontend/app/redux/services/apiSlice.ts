@@ -18,6 +18,13 @@ export type ListQueryParams = {
     page?: number;
 };
 
+export type Operation = {
+    operation_type: string;
+    operation_status: string;
+    original_entity?: number;
+    note?: string;
+};
+
 const baseUrl = `${process.env.NEXT_PUBLIC_HOST}/api/`;
 
 const mutex = new Mutex();
