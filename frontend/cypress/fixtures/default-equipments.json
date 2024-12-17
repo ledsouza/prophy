@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "Siemens",
-    "model": "VELIT-323",
-    "series_number": "aBsJ-444339",
-    "anvisa_registry": "ryJjtQFWOLNXk",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Toshiba",
+    "model": "QUAERAT-921",
+    "series_number": "LXpf-731606",
+    "anvisa_registry": "PTFxHGmoRHPWM",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Tom\u00f3grafo",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
     "manufacturer": "Philips",
-    "model": "PROVIDENT-209",
-    "series_number": "zCrh-697978",
-    "anvisa_registry": "lReLvcqKjvHUI",
+    "model": "NOBIS-379",
+    "series_number": "OiaC-212742",
+    "anvisa_registry": "MVoflRZjwDTRm",
     "id": 1001
   }
 }

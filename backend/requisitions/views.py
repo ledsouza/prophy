@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.response import Response
@@ -104,7 +105,11 @@ class ClientOperationViewSet(viewsets.ViewSet):
 
         serializer = ClientOperationSerializer(data=data)
         if serializer.is_valid():
-            client = serializer.save()
+            try:
+                client = serializer.save()
+            except ValidationError as error:
+                return Response({"message": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+
             client.users.add(self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -265,7 +270,11 @@ class UnitOperationViewSet(viewsets.ViewSet):
             serializer = UnitOperationSerializer(data=data)
 
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save()
+            except ValidationError as error:
+                return Response({"message": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -426,7 +435,11 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
             serializer = EquipmentOperationSerializer(data=data)
 
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save()
+            except ValidationError as error:
+                return Response({"message": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

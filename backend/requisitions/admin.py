@@ -15,7 +15,7 @@ class ClientAdmin(admin.ModelAdmin):
             None,
             {
                 "fields": ["operation_type", "operation_status", "created_by", "cnpj",
-                           "name", "email", "phone", "address", "state", "city", "original_client", "comments"]
+                           "name", "email", "phone", "address", "state", "city", "original_client", "note"]
             }
         )
     ]
@@ -37,7 +37,7 @@ class UnitAdmin(admin.ModelAdmin):
             None,
             {
                 "fields": ["operation_type", "operation_status", "created_by", "cnpj",
-                           "name", "email", "phone", "address", "state", "city", "original_unit", "comments"]
+                           "name", "email", "phone", "address", "state", "city", "original_unit", "note"]
             }
         )
     ]
@@ -59,7 +59,7 @@ class EquipmentAdmin(admin.ModelAdmin):
             {
                 "fields": ["operation_type", "operation_status", "created_by", "modality",
                            "manufacturer", "model", "series_number", "anvisa_registry", "equipment_photo",
-                           "label_photo", "original_equipment", "comments"]
+                           "label_photo", "original_equipment", "note"]
             }
         )
     ]
