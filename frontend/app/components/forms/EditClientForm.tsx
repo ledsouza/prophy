@@ -9,7 +9,18 @@ import { useIBGELocalidades } from "@/hooks";
 import { ComboBox, Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
-import { ClientDTO } from "@/redux/features/clientApiSlice";
+import {
+    ClientDTO,
+    useCreateClientMutation,
+} from "@/redux/features/clientApiSlice";
+import { useEffect, useState } from "react";
+import { OperationStatus } from "@/enums/OperationStatus";
+import { OperationType } from "@/enums/OperationType";
+import { toast } from "react-toastify";
+import {
+    isErrorWithMessage,
+    isFetchBaseQueryError,
+} from "@/redux/services/helpers";
 
 const editClientSchema = z.object({
     name: z
@@ -56,13 +67,18 @@ const EditClientForm = ({
         setValue,
     } = useForm<EditClientFields>({
         resolver: zodResolver(editClientSchema),
+        defaultValues: {
+            name: originalClient.name,
+            email: originalClient.email,
+            phone: originalClient.phone,
+            address: originalClient.address,
+        },
     });
 
     const {
         estados,
         isEstadosSuccess,
         selectedEstado,
-        setSelectedEstado,
         handleEstadoChange,
         municipios,
         isMunicipiosSuccess,
@@ -70,12 +86,89 @@ const EditClientForm = ({
         handleMunicipioChange,
     } = useIBGELocalidades(setValue);
 
-    function onSubmit() {}
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+    const [requestEditClient] = useCreateClientMutation();
+
+    const onSubmit: SubmitHandler<EditClientFields> = async ({
+        name,
+        email,
+        phone,
+        state,
+        city,
+        address,
+    }) => {
+        try {
+            const response = await requestEditClient({
+                cnpj: originalClient.cnpj,
+                name,
+                email,
+                phone,
+                state,
+                city,
+                address,
+                operation_status: OperationStatus.REVIEW,
+                operation_type: OperationType.EDIT,
+            });
+
+            if (response.error) {
+                if (isErrorWithMessage(response.error)) {
+                    const message = response.error.data.message[0];
+                    return toast.error(message);
+                }
+            }
+
+            toast.success("Requisição enviada com sucesso!");
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+    };
+
+    useEffect(() => {
+        if (isInitialLoad) {
+            const estado = estados?.find(
+                (estado) =>
+                    estado.sigla?.toLowerCase() ===
+                    originalClient.state.toLowerCase()
+            );
+
+            const municipio = municipios?.find(
+                (municipio) =>
+                    municipio.nome.toLowerCase() ===
+                    originalClient.city.toLowerCase()
+            );
+
+            if (estado) {
+                handleEstadoChange({
+                    id: estado.id,
+                    name: estado.nome,
+                    sigla: estado.sigla,
+                });
+            }
+            if (municipio) {
+                handleMunicipioChange({
+                    id: municipio.id,
+                    name: municipio.nome,
+                });
+            }
+        }
+
+        if (estados && municipios) {
+            setIsInitialLoad(false);
+        }
+    }, [estados, municipios]);
 
     return (
         <Form onSubmit={handleSubmit(onSubmit)}>
-            <Typography element="h3" size="title3">
-                Edite os dados de interesse
+            <Typography element="h3" size="title3" className="font-semibold">
+                Atualização de dados
+            </Typography>
+            <Typography element="p" size="md" className="text-justify">
+                Por favor, edite os campos que deseja atualizar, certificando-se
+                de preencher as informações corretamente. Após a submissão, o
+                formulário será enviado para análise de um físico médico
+                responsável, que fará a revisão e validação das informações
+                fornecidas.
             </Typography>
             <Input
                 {...register("name")}

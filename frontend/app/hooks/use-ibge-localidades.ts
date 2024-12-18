@@ -64,7 +64,6 @@ const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
         isEstadosSuccess,
         estadosError,
         selectedEstado,
-        setSelectedEstado,
         handleEstadoChange,
         municipios,
         isMunicipiosSuccess,
