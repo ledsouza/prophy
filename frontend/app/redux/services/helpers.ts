@@ -22,3 +22,16 @@ export function isErrorWithMessage(
         typeof (error as any).data === "object"
     );
 }
+
+export function isResponseError(
+    error: unknown
+): error is { error: { data: { message: string }; status: number } } {
+    return (
+        typeof error === "object" &&
+        error != null &&
+        "error" in error &&
+        typeof (error as any).error === "object" &&
+        "data" in (error as any).error &&
+        "status" in (error as any).error
+    );
+}

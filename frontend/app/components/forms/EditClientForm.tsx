@@ -17,10 +17,7 @@ import { useEffect, useState } from "react";
 import { OperationStatus } from "@/enums/OperationStatus";
 import { OperationType } from "@/enums/OperationType";
 import { toast } from "react-toastify";
-import {
-    isErrorWithMessage,
-    isFetchBaseQueryError,
-} from "@/redux/services/helpers";
+import { isErrorWithMessage } from "@/redux/services/helpers";
 
 const editClientSchema = z.object({
     name: z

@@ -166,7 +166,14 @@ class ClientOperationViewSet(viewsets.ViewSet):
         }
     )
     def destroy(self, request, pk=None):
-        instance = ClientOperation.objects.get(pk=pk)
+        try:
+            instance = ClientOperation.objects.get(pk=pk)
+        except ClientOperation.DoesNotExist:
+            return Response(
+                {"message": "Operação não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         instance.delete()
         return Response(
             {

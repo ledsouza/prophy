@@ -47,6 +47,8 @@ const Button = ({
                 variant === "secondary",
             "bg-danger text-white hover:bg-danger hover:bg-opacity-80 focus-visible:outline-danger":
                 variant === "danger",
+            "bg-opacity-70 text-white hover:bg-opacity-80 focus-visible:outline-secondary cursor-wait":
+                disabled,
         }
     );
 

@@ -15,6 +15,7 @@ import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
+import { isResponseError } from "@/redux/services/helpers";
 
 const getUserByRole = (client: ClientDTO, role: string) => {
     return client.users?.find((user) => user.role == role);
@@ -40,14 +41,13 @@ function ClientDetails({
     const fisicoMedicoExterno = getUserByRole(filteredClient, "FME");
     const comercial = getUserByRole(filteredClient, "C");
 
+    const [loadingCancel, setLoadingCancel] = useState(false);
+
     const [selectedClientInOperation, setSelectedClientInOperation] =
         useState<ClientOperationDTO | null>(null);
 
-    const {
-        data: clientsOperations,
-        isLoading: isLoadingClientsOperations,
-        error: errorClientsOperation,
-    } = useListAllClientsOperationsQuery();
+    const { data: clientsOperations, isLoading: isLoadingClientsOperations } =
+        useListAllClientsOperationsQuery();
 
     const [deleteClientOperation] = useDeleteClientOperationMutation();
 
@@ -56,18 +56,29 @@ function ClientDetails({
             return;
         }
 
+        setLoadingCancel(true);
+
         try {
             const response = await deleteClientOperation(
                 selectedClientInOperation.id
             );
-            if (response.error) {
-                return toast.error(
-                    "Algo deu errado. Tente novamente mais tarde."
-                );
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada. É possível que ela já tenha sido revisada por um físico médico. 
+                        Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 6000,
+                        }
+                    );
+                }
             }
             toast.success("Requisição cancelada com sucesso!");
         } catch (error) {
+            console.log(error);
             toast.error("Algo deu errado. Tente novamente mais tarde.");
+        } finally {
+            setLoadingCancel(false);
         }
     };
 
@@ -123,6 +134,7 @@ function ClientDetails({
                                 variant="danger"
                                 className="flex-grow"
                                 onClick={handleCancel}
+                                disabled={loadingCancel}
                                 data-testid="btn-cancel-edit-client"
                             >
                                 Cancelar requisição
