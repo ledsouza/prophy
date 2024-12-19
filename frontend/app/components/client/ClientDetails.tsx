@@ -8,6 +8,7 @@ import {
     ClientDTO,
     ClientOperationDTO,
     useDeleteClientOperationMutation,
+    useListAllClientsOperationsQuery,
     useListClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
 
@@ -45,11 +46,17 @@ function ClientDetails({
     const [selectedClientInOperation, setSelectedClientInOperation] =
         useState<ClientOperationDTO | null>(null);
 
+    // const {
+    //     items: clientsOperations,
+    //     isLoading: isLoadingClientsOperations,
+    //     error,
+    // } = useGetAll(useListClientsOperationsQuery);
+
     const {
-        items: clientsOperations,
+        data: clientsOperations,
         isLoading: isLoadingClientsOperations,
-        error,
-    } = useGetAll(useListClientsOperationsQuery);
+        error: errorClientsOperation,
+    } = useListAllClientsOperationsQuery();
 
     const [deleteClientOperation] = useDeleteClientOperationMutation();
 
@@ -75,15 +82,17 @@ function ClientDetails({
 
     // Check if the selected client has an operation in progress
     useEffect(() => {
-        if (!isLoadingClientsOperations) {
-            const operation = clientsOperations.find(
-                (operation) => operation.original_client === selectedClient.id
-            );
-            operation
-                ? setSelectedClientInOperation(operation)
-                : setSelectedClientInOperation(null);
+        if (isLoadingClientsOperations) {
+            return;
         }
-    }, [isLoadingClientsOperations, selectedClient]);
+
+        const operation = clientsOperations?.find(
+            (operation) => operation.original_client === selectedClient.id
+        );
+        operation
+            ? setSelectedClientInOperation(operation)
+            : setSelectedClientInOperation(null);
+    }, [isLoadingClientsOperations, clientsOperations, selectedClient]);
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">

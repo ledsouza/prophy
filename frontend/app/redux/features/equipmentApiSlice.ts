@@ -30,8 +30,45 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 method: "GET",
                 params: { page },
             }),
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.results.map(({ id }) => ({
+                              type: "Equipment" as const,
+                              id,
+                          })),
+                          { type: "Equipment", id: "LIST" },
+                      ]
+                    : [{ type: "Equipment", id: "LIST" }],
+        }),
+        listAllEquipments: builder.query<EquipmentDTO[], void>({
+            async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
+                let allEquipments: EquipmentDTO[] = [];
+                let currentPage = 1;
+                let hasNextPage = true;
+
+                while (hasNextPage) {
+                    const response = await baseQuery({
+                        url: "equipments/",
+                        method: "GET",
+                        params: { page: currentPage },
+                    });
+
+                    if (response.error) return { error: response.error };
+
+                    const data =
+                        response.data as PaginatedResponse<EquipmentDTO>;
+                    allEquipments = [...allEquipments, ...data.results];
+                    hasNextPage = data.next !== null;
+                    currentPage++;
+                }
+
+                return { data: allEquipments };
+            },
+            providesTags: [{ type: "Equipment", id: "LIST" }],
         }),
     }),
 });
 
-export const { useListEquipmentsQuery } = equipmentApiSlice;
+export const { useListEquipmentsQuery, useListAllEquipmentsQuery } =
+    equipmentApiSlice;

@@ -91,6 +91,13 @@ export const getClientByCnpj = async (cnpj: string) => {
 export const apiSlice = createApi({
     reducerPath: "api",
     baseQuery: baseQueryWithReauth,
-    tagTypes: ["Client", "ClientOperation"],
+    tagTypes: [
+        "Client",
+        "ClientOperation",
+        "Unit",
+        "UnitOperation",
+        "Equipment",
+        "EquipmentOperation",
+    ],
     endpoints: (builder) => ({}),
 });

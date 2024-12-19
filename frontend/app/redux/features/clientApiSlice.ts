@@ -92,6 +92,31 @@ const clientApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: "Client", id: "LIST" }],
         }),
+        listAllClients: builder.query<ClientDTO[], void>({
+            async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
+                let allClients: ClientDTO[] = [];
+                let currentPage = 1;
+                let hasNextPage = true;
+
+                while (hasNextPage) {
+                    const response = await baseQuery({
+                        url: "clients/",
+                        method: "GET",
+                        params: { page: currentPage },
+                    });
+
+                    if (response.error) return { error: response.error };
+
+                    const data = response.data as PaginatedResponse<ClientDTO>;
+                    allClients = [...allClients, ...data.results];
+                    hasNextPage = data.next !== null;
+                    currentPage++;
+                }
+
+                return { data: allClients };
+            },
+            providesTags: [{ type: "Client", id: "LIST" }],
+        }),
         listClientsOperations: builder.query<
             PaginatedResponse<ClientOperationDTO>,
             ListQueryParams
@@ -112,6 +137,35 @@ const clientApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: "ClientOperation", id: "LIST" }],
         }),
+        listAllClientsOperations: builder.query<ClientOperationDTO[], void>({
+            async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
+                let allClientsOperations: ClientOperationDTO[] = [];
+                let currentPage = 1;
+                let hasNextPage = true;
+
+                while (hasNextPage) {
+                    const response = await baseQuery({
+                        url: "clients/operations/",
+                        method: "GET",
+                        params: { page: currentPage },
+                    });
+
+                    if (response.error) return { error: response.error };
+
+                    const data =
+                        response.data as PaginatedResponse<ClientOperationDTO>;
+                    allClientsOperations = [
+                        ...allClientsOperations,
+                        ...data.results,
+                    ];
+                    hasNextPage = data.next !== null;
+                    currentPage++;
+                }
+
+                return { data: allClientsOperations };
+            },
+            providesTags: [{ type: "ClientOperation", id: "LIST" }],
+        }),
     }),
 });
 
@@ -122,5 +176,7 @@ export const {
     useDeleteClientOperationMutation,
     useGetByCnpjQuery,
     useListClientsQuery,
+    useListAllClientsQuery,
     useListClientsOperationsQuery,
+    useListAllClientsOperationsQuery,
 } = clientApiSlice;

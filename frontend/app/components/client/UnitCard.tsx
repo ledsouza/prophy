@@ -7,7 +7,7 @@ import { Button } from "@/components/common";
 type UnitCardProps = {
     title: string;
     status: string;
-    equipmentsCount: Number;
+    equipmentsCount: number;
     dataTestId?: string | undefined;
     onClick?: () => void;
 };

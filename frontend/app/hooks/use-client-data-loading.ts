@@ -2,14 +2,18 @@ import { useEffect, useState } from "react";
 
 import {
     ClientDTO,
-    useListClientsQuery,
+    useListAllClientsQuery,
 } from "@/redux/features/clientApiSlice";
-import { UnitDTO, useListUnitsQuery } from "@/redux/features/unitApiSlice";
+import {
+    UnitDTO,
+    useListAllUnitsQuery,
+    useListUnitsQuery,
+} from "@/redux/features/unitApiSlice";
 
 import { SelectData } from "@/components/forms/Select";
 import { toast } from "react-toastify";
 import useGetAll from "./use-get-all";
-import { useListEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
+import { useListAllEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 
 export function useClientDataLoading() {
     const [clientOptions, setClientOptions] = useState<SelectData[]>([]);
@@ -19,23 +23,25 @@ export function useClientDataLoading() {
     const [filteredClient, setFilteredClient] = useState<ClientDTO | null>(
         null
     );
-    const [filteredUnits, setFilteredUnits] = useState<UnitDTO[] | null>(null);
+    const [filteredUnits, setFilteredUnits] = useState<UnitDTO[]>([]);
 
     const {
-        items: clients,
+        data: clients,
         isLoading: isPaginatingClients,
         error: errorClients,
-    } = useGetAll(useListClientsQuery);
+    } = useListAllClientsQuery();
+
     const {
-        items: units,
+        data: units,
         isLoading: isPaginatingUnits,
         error: errorUnits,
-    } = useGetAll(useListUnitsQuery);
+    } = useListAllUnitsQuery();
+
     const {
-        items: equipments,
+        data: equipments,
         isLoading: isPaginatingEquipments,
         error: errorEquipments,
-    } = useGetAll(useListEquipmentsQuery);
+    } = useListAllEquipmentsQuery();
 
     // Handle errors
     useEffect(() => {
@@ -48,7 +54,6 @@ export function useClientDataLoading() {
 
         Object.entries(errors).forEach(([key, message]) => {
             if (message) {
-                console.error(`Error in ${key}:`, message);
                 toast.error(
                     `${message} Por favor, tente novamente mais tarde.`
                 );
@@ -72,27 +77,36 @@ export function useClientDataLoading() {
         }
     }, [clients, isPaginatingClients]);
 
-    // Filter units based on selected client
+    // Filter clients based on selected client
     useEffect(() => {
         // It only runs when all data is ready.
-        if (isPaginatingClients || isPaginatingUnits) return;
+        if (isPaginatingClients || !selectedClient) return;
 
-        const newFilteredClient = clients.find(
+        const newFilteredClient = clients?.find(
             (client) => client.id === selectedClient?.id
         );
 
         if (newFilteredClient) {
             setFilteredClient(newFilteredClient);
-            setFilteredUnits(
-                units.filter((unit) => unit.client === selectedClient?.id)
-            );
         }
-    }, [selectedClient, isPaginatingClients, isPaginatingUnits]);
+    }, [selectedClient, isPaginatingClients, clients]);
+
+    // Filter units based on selected client
+    useEffect(() => {
+        // It only runs when all data is ready.
+        if (isPaginatingUnits || !selectedClient) return;
+
+        setFilteredUnits(
+            units
+                ? units.filter((unit) => unit.client === selectedClient?.id)
+                : []
+        );
+    }, [selectedClient, isPaginatingUnits, units]);
 
     return {
         isLoading:
             isPaginatingClients || isPaginatingUnits || isPaginatingEquipments,
-        hasNoData: clients.length === 0,
+        hasNoData: clients ? false : true,
         clientOptions,
         selectedClient,
         filteredClient,

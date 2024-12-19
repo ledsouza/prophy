@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getPageNumber } from "@/utils/pagination";
 import { QueryActionCreatorResult } from "@reduxjs/toolkit/query";
+import { ListQueryParams } from "@/redux/services/apiSlice";
 
 // Generic type for paginated response
 type PaginatedResponse<T> = {
@@ -38,23 +39,42 @@ function useGetAll<T>(queryHook: UseGetAllHookProps<T>["queryHook"]) {
     const [page, setPage] = useState(1);
     const [processedPages, setProcessedPages] = useState<number[]>([]);
     const [isPaginating, setIsPaginating] = useState(true);
-    const { data, error, isLoading, isSuccess, isFetching, refetch } =
-        queryHook({ page });
-
     const [allData, setAllData] = useState<T[]>([]);
+    const {
+        data,
+        error,
+        isLoading,
+        isSuccess,
+        isFetching,
+        refetch,
+        originalArgs,
+        requestId,
+        endpointName,
+    } = queryHook({ page });
 
-    // Reset data when refetching
+    const prevCompletedRef = useRef<boolean>(false);
+    const prevRequestIdRef = useRef<string | undefined>(undefined);
+    const prevOriginalArgsRef = useRef<ListQueryParams | undefined>(undefined);
+
+    // Detect when to reset the state due to tag invalidation
     useEffect(() => {
-        if (isFetching && !isPaginating) {
-            setAllData([]);
-            setProcessedPages([]);
+        if (
+            prevCompletedRef.current &&
+            (prevRequestIdRef.current !== requestId ||
+                prevOriginalArgsRef.current !== originalArgs)
+        ) {
+            // Reset state and restart pagination only if a completed cycle was invalidated
+            // console.log("Tag invalidation detected, resetting pagination.");
             setPage(1);
+            setProcessedPages([]);
+            setAllData([]);
             setIsPaginating(true);
         }
-        if (!isFetching && !data?.next) {
-            setIsPaginating(false);
-        }
-    }, [isFetching, isPaginating, data?.next]);
+
+        prevRequestIdRef.current = requestId;
+        prevOriginalArgsRef.current = originalArgs as ListQueryParams;
+        prevCompletedRef.current = !isPaginating; // Track whether the cycle is complete
+    }, [requestId, originalArgs, isPaginating]);
 
     // Fetch all data from all pages
     useEffect(() => {
@@ -69,43 +89,26 @@ function useGetAll<T>(queryHook: UseGetAllHookProps<T>["queryHook"]) {
         }
         const nextPage = data.next ? getPageNumber(data.next) : null;
 
+        setProcessedPages((prevPages) => {
+            if (prevPages.includes(page)) {
+                return prevPages;
+            }
+            return [...prevPages, page];
+        });
+
+        setAllData((prevData) => {
+            const existingIds = new Set(
+                prevData.map((item) => (item as any).id)
+            );
+            const newItems = data.results.filter(
+                (item) => !existingIds.has((item as any).id)
+            );
+            return [...prevData, ...newItems];
+        });
+
         if (nextPage && nextPage > page) {
-            setProcessedPages((prevPages) => {
-                if (prevPages.includes(page)) {
-                    return prevPages;
-                }
-                return [...prevPages, page];
-            });
-
-            setAllData((prevData) => {
-                const existingIds = new Set(
-                    prevData.map((item) => (item as any).id)
-                );
-                const newItems = data.results.filter(
-                    (item) => !existingIds.has((item as any).id)
-                );
-                return [...prevData, ...newItems];
-            });
-
             setPage(nextPage);
         } else {
-            setProcessedPages((prevPages) => {
-                if (prevPages.includes(page)) {
-                    return prevPages;
-                }
-                return [...prevPages, page];
-            });
-
-            setAllData((prevData) => {
-                const existingIds = new Set(
-                    prevData.map((item) => (item as any).id)
-                );
-                const newItems = data.results.filter(
-                    (item) => !existingIds.has((item as any).id)
-                );
-                return [...prevData, ...newItems];
-            });
-
             setIsPaginating(false);
         }
     }, [data, isSuccess, isLoading, page, processedPages, isPaginating]);

@@ -26,6 +26,8 @@ function ClientPage() {
         setSelectedClient,
     } = useClientDataLoading();
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const [searchedUnits, setSearchedUnits] = useState<UnitDTO[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -35,7 +37,14 @@ function ClientPage() {
         setSearchTerm(event.target.value);
     };
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const getEquipmentsCount = (unit: UnitDTO) => {
+        if (equipments) {
+            return equipments.filter((equipment) => equipment.unit === unit.id)
+                .length;
+        } else {
+            return 0;
+        }
+    };
 
     useEffect(() => {
         if (filteredUnits && filteredUnits.length > 0) {
@@ -117,12 +126,7 @@ function ClientPage() {
                                 key={unit.id}
                                 title={unit.name}
                                 status="Aceito"
-                                equipmentsCount={
-                                    equipments.filter(
-                                        (equipment) =>
-                                            equipment.unit === unit.id
-                                    ).length
-                                }
+                                equipmentsCount={getEquipmentsCount(unit)}
                                 onClick={() =>
                                     router.push(`/dashboard/unit/${unit.id}`)
                                 }
