@@ -4,15 +4,10 @@ import {
     ClientDTO,
     useListAllClientsQuery,
 } from "@/redux/features/clientApiSlice";
-import {
-    UnitDTO,
-    useListAllUnitsQuery,
-    useListUnitsQuery,
-} from "@/redux/features/unitApiSlice";
+import { UnitDTO, useListAllUnitsQuery } from "@/redux/features/unitApiSlice";
 
 import { SelectData } from "@/components/forms/Select";
 import { toast } from "react-toastify";
-import useGetAll from "./use-get-all";
 import { useListAllEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 
 export function useClientDataLoading() {

@@ -9,15 +9,12 @@ import {
     ClientOperationDTO,
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
-    useListClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
 
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
-
-import useGetAll from "@/hooks/use-get-all";
 
 const getUserByRole = (client: ClientDTO, role: string) => {
     return client.users?.find((user) => user.role == role);
@@ -45,12 +42,6 @@ function ClientDetails({
 
     const [selectedClientInOperation, setSelectedClientInOperation] =
         useState<ClientOperationDTO | null>(null);
-
-    // const {
-    //     items: clientsOperations,
-    //     isLoading: isLoadingClientsOperations,
-    //     error,
-    // } = useGetAll(useListClientsOperationsQuery);
 
     const {
         data: clientsOperations,

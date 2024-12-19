@@ -4,10 +4,14 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { getIdFromUrl } from "@/utils/url";
-import { UnitDTO, useListUnitsQuery } from "@/redux/features/unitApiSlice";
+import {
+    UnitDTO,
+    useListAllUnitsQuery,
+    useListUnitsQuery,
+} from "@/redux/features/unitApiSlice";
 import {
     EquipmentDTO,
-    useListEquipmentsQuery,
+    useListAllEquipmentsQuery,
 } from "@/redux/features/equipmentApiSlice";
 
 import { Input } from "@/components/forms";
@@ -18,7 +22,6 @@ import {
     EquipmentCard,
     EquipmentDetails,
 } from "@/components/client";
-import useGetAll from "@/hooks/use-get-all";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -30,15 +33,15 @@ function UnitPage() {
         useState<EquipmentDTO | null>(null);
 
     const {
-        items: units,
+        data: units,
         isLoading: isPaginatingUnits,
         error: errorUnits,
-    } = useGetAll(useListUnitsQuery);
+    } = useListAllUnitsQuery();
     const {
-        items: equipments,
+        data: equipments,
         isLoading: isPaginatingEquipments,
         error: errorEquipments,
-    } = useGetAll(useListEquipmentsQuery);
+    } = useListAllEquipmentsQuery();
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | undefined>(
         undefined
