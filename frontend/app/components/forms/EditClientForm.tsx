@@ -95,6 +95,18 @@ const EditClientForm = ({
         city,
         address,
     }) => {
+        if (
+            name.toLowerCase() === originalClient.name.toLowerCase() &&
+            email.toLowerCase() === originalClient.email.toLowerCase() &&
+            phone.toLowerCase() === originalClient.phone.toLowerCase() &&
+            state.toLowerCase() === originalClient.state.toLowerCase() &&
+            city.toLowerCase() === originalClient.city.toLowerCase() &&
+            address.toLowerCase() === originalClient.address.toLowerCase()
+        ) {
+            toast.warning("Nenhuma alteração foi detectada nos dados.");
+            return;
+        }
+
         try {
             const response = await requestEditClient({
                 cnpj: originalClient.cnpj,
