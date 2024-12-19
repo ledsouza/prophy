@@ -21,8 +21,16 @@ export type ListQueryParams = {
 export type Operation = {
     operation_type: string;
     operation_status: string;
-    original_entity?: number;
+    original_client?: number;
+    original_unit?: number;
+    original_equipment?: number;
     note?: string;
+};
+
+export type APIDeleteResponse = {
+    message: string;
+    id: number;
+    operation_type: string;
 };
 
 const baseUrl = `${process.env.NEXT_PUBLIC_HOST}/api/`;
@@ -83,5 +91,6 @@ export const getClientByCnpj = async (cnpj: string) => {
 export const apiSlice = createApi({
     reducerPath: "api",
     baseQuery: baseQueryWithReauth,
+    tagTypes: ["Client", "ClientOperation"],
     endpoints: (builder) => ({}),
 });

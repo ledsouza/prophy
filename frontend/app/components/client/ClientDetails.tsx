@@ -1,13 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { formatPhoneNumber } from "@/utils/format";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
+import { toast } from "react-toastify";
+
+import {
+    ClientDTO,
+    ClientOperationDTO,
+    useDeleteClientOperationMutation,
+    useListClientsOperationsQuery,
+} from "@/redux/features/clientApiSlice";
 
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
-import { ClientDTO } from "@/redux/features/clientApiSlice";
+
+import useGetAll from "@/hooks/use-get-all";
 
 const getUserByRole = (client: ClientDTO, role: string) => {
     return client.users?.find((user) => user.role == role);
@@ -32,6 +41,49 @@ function ClientDetails({
     const fisicoMedicoInterno = getUserByRole(filteredClient, "FMI");
     const fisicoMedicoExterno = getUserByRole(filteredClient, "FME");
     const comercial = getUserByRole(filteredClient, "C");
+
+    const [selectedClientInOperation, setSelectedClientInOperation] =
+        useState<ClientOperationDTO | null>(null);
+
+    const {
+        items: clientsOperations,
+        isLoading: isLoadingClientsOperations,
+        error,
+    } = useGetAll(useListClientsOperationsQuery);
+
+    const [deleteClientOperation] = useDeleteClientOperationMutation();
+
+    const handleCancel = async () => {
+        if (!selectedClientInOperation) {
+            return;
+        }
+
+        try {
+            const response = await deleteClientOperation(
+                selectedClientInOperation.id
+            );
+            if (response.error) {
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
+            }
+            toast.success("Requisição cancelada com sucesso!");
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+    };
+
+    // Check if the selected client has an operation in progress
+    useEffect(() => {
+        if (!isLoadingClientsOperations) {
+            const operation = clientsOperations.find(
+                (operation) => operation.original_client === selectedClient.id
+            );
+            operation
+                ? setSelectedClientInOperation(operation)
+                : setSelectedClientInOperation(null);
+        }
+    }, [isLoadingClientsOperations, selectedClient]);
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
@@ -61,16 +113,31 @@ function ClientDetails({
                     <br />
                     <b>Endereço:</b> {filteredClient?.address}
                 </Typography>
-
-                <div className="flex flex-row gap-2 w-full mt-2">
-                    <Button
-                        variant="secondary"
-                        className="flex-grow"
-                        onClick={handleEdit}
-                        data-testid="btn-edit-client"
-                    >
-                        Editar
-                    </Button>
+                <div className="flex flex-col gap-2 w-full mt-2">
+                    {selectedClientInOperation ? (
+                        <>
+                            <Typography variant="secondary">
+                                Requisição de alteração em análise
+                            </Typography>
+                            <Button
+                                variant="danger"
+                                className="flex-grow"
+                                onClick={handleCancel}
+                                data-testid="btn-cancel-edit-client"
+                            >
+                                Cancelar requisição
+                            </Button>
+                        </>
+                    ) : (
+                        <Button
+                            variant="secondary"
+                            className="flex-grow"
+                            onClick={handleEdit}
+                            data-testid="btn-edit-client"
+                        >
+                            Editar
+                        </Button>
+                    )}
                 </div>
             </div>
 

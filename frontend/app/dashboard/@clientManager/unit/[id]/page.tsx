@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { getIdFromUrl } from "@/utils/url";
-import { UnitDTO } from "@/redux/features/unitApiSlice";
-import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
-
-import useGetAllUnits from "@/hooks/use-get-all-units";
-import useGetAllEquipments from "@/hooks/use-get-all-equipments";
+import { UnitDTO, useListUnitsQuery } from "@/redux/features/unitApiSlice";
+import {
+    EquipmentDTO,
+    useListEquipmentsQuery,
+} from "@/redux/features/equipmentApiSlice";
 
 import { Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
@@ -18,6 +18,7 @@ import {
     EquipmentCard,
     EquipmentDetails,
 } from "@/components/client";
+import useGetAll from "@/hooks/use-get-all";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -28,14 +29,16 @@ function UnitPage() {
     const [selectedEquipment, setSelectedEquipment] =
         useState<EquipmentDTO | null>(null);
 
-    const { units, isLoadingUnits, isPaginatingUnits, errorUnits } =
-        useGetAllUnits();
     const {
-        equipments,
-        isLoadingEquipments,
-        isPaginatingEquipments,
-        errorEquipments,
-    } = useGetAllEquipments();
+        items: units,
+        isLoading: isPaginatingUnits,
+        error: errorUnits,
+    } = useGetAll(useListUnitsQuery);
+    const {
+        items: equipments,
+        isLoading: isPaginatingEquipments,
+        error: errorEquipments,
+    } = useGetAll(useListEquipmentsQuery);
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | undefined>(
         undefined
@@ -91,7 +94,7 @@ function UnitPage() {
         }
     }, [filteredEquipments, searchTerm]);
 
-    if (isLoadingUnits || isLoadingEquipments) {
+    if (isPaginatingUnits || isPaginatingEquipments) {
         return <Spinner fullscreen />;
     }
 

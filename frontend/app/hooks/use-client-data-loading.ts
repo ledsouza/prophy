@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 
-import { ClientDTO } from "@/redux/features/clientApiSlice";
-import { UnitDTO } from "@/redux/features/unitApiSlice";
+import {
+    ClientDTO,
+    useListClientsQuery,
+} from "@/redux/features/clientApiSlice";
+import { UnitDTO, useListUnitsQuery } from "@/redux/features/unitApiSlice";
 
 import { SelectData } from "@/components/forms/Select";
 import { toast } from "react-toastify";
-import useGetAllClients from "./use-get-all-clients";
-import useGetAllEquipments from "./use-get-all-equipments";
-import useGetAllUnits from "./use-get-all-units";
+import useGetAll from "./use-get-all";
+import { useListEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 
 export function useClientDataLoading() {
     const [clientOptions, setClientOptions] = useState<SelectData[]>([]);
@@ -19,10 +21,21 @@ export function useClientDataLoading() {
     );
     const [filteredUnits, setFilteredUnits] = useState<UnitDTO[] | null>(null);
 
-    const { clients, isPaginatingClients, errorClients } = useGetAllClients();
-    const { units, isPaginatingUnits, errorUnits } = useGetAllUnits();
-    const { equipments, isPaginatingEquipments, errorEquipments } =
-        useGetAllEquipments();
+    const {
+        items: clients,
+        isLoading: isPaginatingClients,
+        error: errorClients,
+    } = useGetAll(useListClientsQuery);
+    const {
+        items: units,
+        isLoading: isPaginatingUnits,
+        error: errorUnits,
+    } = useGetAll(useListUnitsQuery);
+    const {
+        items: equipments,
+        isLoading: isPaginatingEquipments,
+        error: errorEquipments,
+    } = useGetAll(useListEquipmentsQuery);
 
     // Handle errors
     useEffect(() => {

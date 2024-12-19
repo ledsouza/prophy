@@ -19,7 +19,7 @@ export type ClientDTO = {
     users?: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
 };
 
-type ClientOperationDTO = ClientDTO & Operation;
+export type ClientOperationDTO = ClientDTO & Operation;
 
 type Status = {
     status: boolean;
@@ -50,6 +50,17 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: clientData,
             }),
+            invalidatesTags: [
+                { type: "ClientOperation", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
+        }),
+        deleteClientOperation: builder.mutation<void, number>({
+            query: (clientId) => ({
+                url: `clients/operations/${clientId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [{ type: "ClientOperation", id: "LIST" }],
         }),
         getByCnpj: builder.query<
             PaginatedResponse<ClientDTO>,
@@ -70,32 +81,36 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 method: "GET",
                 params: { page },
             }),
-            serializeQueryArgs: ({ endpointName }) => {
-                return endpointName;
-            },
-            merge: (currentCache, newItems) => {
-                if (!currentCache) return newItems;
-
-                // Merge current cache with new results, ensuring no duplicates
-                return {
-                    count: newItems.count,
-                    next: newItems.next,
-                    previous: newItems.previous,
-                    results: [
-                        ...currentCache.results,
-                        ...newItems.results.filter(
-                            (newItem) =>
-                                !currentCache.results.some(
-                                    (existingItem) =>
-                                        existingItem.id === newItem.id
-                                )
-                        ),
-                    ],
-                };
-            },
-            forceRefetch: ({ currentArg, previousArg }) => {
-                return currentArg?.page !== previousArg?.page;
-            },
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.results.map(({ id }) => ({
+                              type: "Client" as const,
+                              id,
+                          })),
+                          { type: "Client", id: "LIST" },
+                      ]
+                    : [{ type: "Client", id: "LIST" }],
+        }),
+        listClientsOperations: builder.query<
+            PaginatedResponse<ClientOperationDTO>,
+            ListQueryParams
+        >({
+            query: ({ page = 1 }) => ({
+                url: "clients/operations/",
+                method: "GET",
+                params: { page },
+            }),
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.results.map(({ id }) => ({
+                              type: "ClientOperation" as const,
+                              id,
+                          })),
+                          { type: "ClientOperation", id: "LIST" },
+                      ]
+                    : [{ type: "ClientOperation", id: "LIST" }],
         }),
     }),
 });
@@ -104,6 +119,8 @@ export const {
     useVerifyProposalStatusMutation,
     useVerifyClientStatusMutation,
     useCreateClientMutation,
+    useDeleteClientOperationMutation,
     useGetByCnpjQuery,
     useListClientsQuery,
+    useListClientsOperationsQuery,
 } = clientApiSlice;

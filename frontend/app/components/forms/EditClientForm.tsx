@@ -107,6 +107,7 @@ const EditClientForm = ({
                 state,
                 city,
                 address,
+                original_client: originalClient.id,
                 operation_status: OperationStatus.REVIEW,
                 operation_type: OperationType.EDIT,
             });
@@ -119,6 +120,7 @@ const EditClientForm = ({
             }
 
             toast.success("Requisição enviada com sucesso!");
+            setIsModalOpen(false);
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
