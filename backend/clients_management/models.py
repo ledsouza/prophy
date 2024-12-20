@@ -61,7 +61,6 @@ class Client(models.Model):
     class Meta:
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"
-        ordering = ["name"]
 
 
 class Unit(models.Model):
@@ -94,7 +93,6 @@ class Unit(models.Model):
     class Meta:
         verbose_name = "Unidade"
         verbose_name_plural = "Unidades"
-        ordering = ["name"]
 
 
 class Equipment(models.Model):
@@ -135,7 +133,6 @@ class Equipment(models.Model):
     class Meta:
         verbose_name = "Equipamento"
         verbose_name_plural = "Equipamentos"
-        ordering = ["manufacturer", "model"]
 
 
 class Proposal(models.Model):

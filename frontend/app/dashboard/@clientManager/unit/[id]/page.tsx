@@ -115,7 +115,7 @@ function UnitPage() {
         if (isPaginatingUnits || isPaginatingEquipments) return;
 
         // Add null checks to prevent unnecessary renders
-        if (!units?.length || !equipments?.length || !unitId) return;
+        if (!units || !equipments || !unitId) return;
 
         setSelectedUnit(units.find((unit) => unit.id === unitId));
         setFilteredEquipments(

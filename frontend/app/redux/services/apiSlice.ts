@@ -20,7 +20,7 @@ export type ListQueryParams = {
 
 export type Operation = {
     operation_type: string;
-    operation_status: string;
+    operation_status?: string;
     original_client?: number;
     original_unit?: number;
     original_equipment?: number;

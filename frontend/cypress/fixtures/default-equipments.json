@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Ultrassom",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
     "manufacturer": "Philips",
-    "model": "QUO-667",
-    "series_number": "gvWR-052571",
-    "anvisa_registry": "CogdhppcNGntJ",
+    "model": "CUPIDITATE-805",
+    "series_number": "LsJo-976146",
+    "anvisa_registry": "YWKQiocDkYqpl",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Siemens",
-    "model": "EXPLICABO-680",
-    "series_number": "Agys-766968",
-    "anvisa_registry": "EMmALSbcWqnlm",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "GE",
+    "model": "DUCIMUS-778",
+    "series_number": "GEMI-559497",
+    "anvisa_registry": "UiwKxQEGVLkmo",
     "id": 1001
   }
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import {
     UnitDTO,
+    useCreateUnitMutation,
     useDeleteUnitOperationMutation,
     useListAllUnitsOperationsQuery,
 } from "@/redux/features/unitApiSlice";
@@ -29,6 +30,7 @@ import { toast } from "react-toastify";
 import EditUnitForm from "@/components/forms/EditUnitForm";
 import { OperationStatus } from "@/enums/OperationStatus";
 import { handleCloseModal, Modals } from "@/utils/modal";
+import { OperationType } from "@/enums/OperationType";
 
 function ClientPage() {
     const router = useRouter();
@@ -50,6 +52,7 @@ function ClientPage() {
         useListAllUnitsOperationsQuery();
 
     const [deleteClientOperation] = useDeleteClientOperationMutation();
+    const [createUnitOperation] = useCreateUnitMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
     const [selectedClientInOperation, setSelectedClientInOperation] =
@@ -135,6 +138,40 @@ function ClientPage() {
             }
 
             toast.success("Requisição cancelada com sucesso.");
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+    };
+
+    const handleModalDeleteUnit = (selectedUnit: UnitDTO) => {
+        setSelectedUnit(selectedUnit);
+        setCurrentModal(Modals.DELETE_UNIT);
+        setIsModalOpen(true);
+    };
+
+    const handleDeleteUnit = async (selectedUnit: UnitDTO) => {
+        try {
+            const response = await createUnitOperation({
+                name: selectedUnit.name,
+                address: selectedUnit.address,
+                cnpj: selectedUnit.cnpj,
+                phone: selectedUnit.phone,
+                email: selectedUnit.email,
+                state: selectedUnit.state,
+                city: selectedUnit.city,
+                client: selectedUnit.client,
+                original_unit: selectedUnit.id,
+                operation_type: OperationType.DELETE,
+            });
+            if (isResponseError(response)) {
+                return toast.error(response.error.data.message);
+            }
+
+            toast.success(
+                "Requisição para deletar unidade enviada com sucesso."
+            );
+            setIsModalOpen(false);
+            setCurrentModal(null);
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
@@ -311,6 +348,7 @@ function ClientPage() {
                                     onCancelEdit={() =>
                                         handleCancelEditUnit(unit)
                                     }
+                                    onDelete={() => handleModalDeleteUnit(unit)}
                                     onReject={() => handleRejectUnit(unit)}
                                     handleDetails={() =>
                                         router.push(
@@ -371,11 +409,27 @@ function ClientPage() {
                     </div>
                 )}
 
-                {currentModal === Modals.EDIT_UNIT && (
+                {currentModal === Modals.EDIT_UNIT && selectedUnit && (
                     <EditUnitForm
-                        originalUnit={selectedUnit!}
+                        originalUnit={selectedUnit}
                         setIsModalOpen={setIsModalOpen}
                     />
+                )}
+
+                {currentModal === Modals.DELETE_UNIT && selectedUnit && (
+                    <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                        <Typography element="h2" size="title2" className="mb-6">
+                            Tem certeza que deseja excluir esta unidade?
+                        </Typography>
+
+                        <Button
+                            onClick={() => handleDeleteUnit(selectedUnit)}
+                            className="w-full mt-6"
+                            data-testid="btn-confirm-delete-unit"
+                        >
+                            Confirmar
+                        </Button>
+                    </div>
                 )}
 
                 {currentModal === Modals.REJECT_UNIT &&

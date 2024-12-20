@@ -12,6 +12,7 @@ type UnitCardProps = {
     equipmentsCount: number;
     onEdit: () => void;
     onCancelEdit: () => void;
+    onDelete: () => void;
     onReject: () => void;
     handleDetails: () => void;
     dataTestId?: string | undefined;
@@ -23,9 +24,10 @@ function UnitCard({
     equipmentsCount,
     onEdit,
     onCancelEdit,
+    onDelete,
     onReject,
-    dataTestId,
     handleDetails,
+    dataTestId,
 }: UnitCardProps) {
     return (
         <div
@@ -63,7 +65,7 @@ function UnitCard({
                     )}
                     {status === OperationStatus.REVIEW && (
                         <Typography className="text-primary">
-                            Atualização em análise
+                            Requisição em análise
                         </Typography>
                     )}
                 </div>
@@ -71,8 +73,8 @@ function UnitCard({
             <div className="flex gap-10 justify-between pt-4">
                 <Button
                     variant="secondary"
-                    data-testid="btn-unit-detail"
                     onClick={handleDetails}
+                    data-testid="btn-unit-detail"
                 >
                     Acessar detalhes
                 </Button>
@@ -89,6 +91,7 @@ function UnitCard({
                             </Button>
                             <Button
                                 variant="danger"
+                                onClick={onDelete}
                                 data-testid="btn-delete-unit"
                             >
                                 <Trash size={20} />
