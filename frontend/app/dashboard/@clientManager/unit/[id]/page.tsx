@@ -6,8 +6,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { getIdFromUrl } from "@/utils/url";
 import {
     UnitDTO,
+    useDeleteUnitOperationMutation,
+    useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
-    useListUnitsQuery,
 } from "@/redux/features/unitApiSlice";
 import {
     EquipmentDTO,
@@ -22,6 +23,10 @@ import {
     EquipmentCard,
     EquipmentDetails,
 } from "@/components/client";
+import EditUnitForm from "@/components/forms/EditUnitForm";
+import { handleCloseModal, Modals } from "@/utils/modal";
+import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
+import { toast } from "react-toastify";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -29,6 +34,7 @@ function UnitPage() {
     const router = useRouter();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [currentModal, setCurrentModal] = useState<Modals | null>(null);
     const [selectedEquipment, setSelectedEquipment] =
         useState<EquipmentDTO | null>(null);
 
@@ -37,6 +43,12 @@ function UnitPage() {
         isLoading: isPaginatingUnits,
         error: errorUnits,
     } = useListAllUnitsQuery();
+
+    const { data: unitsOperations, isLoading: isLoadingUnitOperations } =
+        useListAllUnitsOperationsQuery();
+
+    const [deleteUnitOperation] = useDeleteUnitOperationMutation();
+
     const {
         data: equipments,
         isLoading: isPaginatingEquipments,
@@ -57,6 +69,7 @@ function UnitPage() {
 
     function handleClickEquipmentCard(equipment: EquipmentDTO) {
         setSelectedEquipment(equipment);
+        setCurrentModal(Modals.EQUIPMENT_DETAILS);
         setIsModalOpen(true);
     }
 
@@ -66,6 +79,37 @@ function UnitPage() {
         setSearchTerm(event.target.value);
     };
 
+    const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
+        const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
+
+        if (!unitOperation) {
+            return toast.error(
+                "Requisição não encontrada. Atualize a página e tente novamente."
+            );
+        }
+
+        try {
+            const response = await deleteUnitOperation(unitOperation.id);
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada.
+                            Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 5000,
+                        }
+                    );
+                }
+            }
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+
+        setIsModalOpen(false);
+        setCurrentModal(null);
+    };
+
+    // Set selected unit and filtered equipments
     useEffect(() => {
         // Only run when both data finished paginating
         if (isPaginatingUnits || isPaginatingEquipments) return;
@@ -79,6 +123,7 @@ function UnitPage() {
         );
     }, [units, equipments, unitId, isPaginatingUnits, isPaginatingEquipments]);
 
+    // Filter equipments by search term
     useEffect(() => {
         if (filteredEquipments.length > 0) {
             if (searchTerm.length > 0) {
@@ -178,18 +223,72 @@ function UnitPage() {
                     </Button>
                 </div>
 
-                {selectedEquipment && (
-                    <Modal
-                        isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        className="max-w-6xl mx-6"
-                    >
-                        <EquipmentDetails
-                            equipment={selectedEquipment}
-                            onClose={() => setIsModalOpen(false)}
+                <Modal
+                    isOpen={isModalOpen}
+                    onClose={() =>
+                        handleCloseModal({ setIsModalOpen, setCurrentModal })
+                    }
+                    className="max-w-lg"
+                >
+                    {currentModal === Modals.EDIT_UNIT && (
+                        <EditUnitForm
+                            originalUnit={selectedUnit}
+                            setIsModalOpen={setIsModalOpen}
                         />
-                    </Modal>
-                )}
+                    )}
+
+                    {currentModal === Modals.REJECT_UNIT && (
+                        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                            <Typography
+                                element="h2"
+                                size="title2"
+                                className="mb-6"
+                            >
+                                Notas do Físico Médico Responsável
+                            </Typography>
+
+                            <Typography element="p" size="lg">
+                                {
+                                    getUnitOperation(
+                                        selectedUnit,
+                                        unitsOperations
+                                    )?.note
+                                }
+                            </Typography>
+
+                            <Button
+                                onClick={() =>
+                                    handleConfirmRejectUnit(selectedUnit)
+                                }
+                                className="w-full mt-6"
+                                data-testid="btn-confirm-reject-client"
+                            >
+                                Confirmar
+                            </Button>
+                        </div>
+                    )}
+                </Modal>
+
+                <Modal
+                    isOpen={isModalOpen}
+                    onClose={() =>
+                        handleCloseModal({ setIsModalOpen, setCurrentModal })
+                    }
+                    className="max-w-6xl mx-6"
+                >
+                    {currentModal === Modals.EQUIPMENT_DETAILS &&
+                        selectedEquipment && (
+                            <EquipmentDetails
+                                equipment={selectedEquipment}
+                                onClose={() =>
+                                    handleCloseModal({
+                                        setIsModalOpen,
+                                        setCurrentModal,
+                                    })
+                                }
+                            />
+                        )}
+                </Modal>
             </main>
         );
     }

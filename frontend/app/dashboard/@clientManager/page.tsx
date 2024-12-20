@@ -20,17 +20,15 @@ import {
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
-import { isResponseError } from "@/redux/services/helpers";
+import {
+    getEquipmentsCount,
+    getUnitOperation,
+    isResponseError,
+} from "@/redux/services/helpers";
 import { toast } from "react-toastify";
 import EditUnitForm from "@/components/forms/EditUnitForm";
 import { OperationStatus } from "@/enums/OperationStatus";
-
-enum Modals {
-    EDIT_CLIENT = "EDIT_CLIENT",
-    REJECT_CLIENT = "REJECT_CLIENT",
-    EDIT_UNIT = "EDIT_UNIT",
-    REJECT_UNIT = "REJECT_UNIT",
-}
+import { handleCloseModal, Modals } from "@/utils/modal";
 
 function ClientPage() {
     const router = useRouter();
@@ -115,8 +113,7 @@ function ClientPage() {
     };
 
     const handleCancelEditUnit = async (selectedUnit: UnitDTO) => {
-        const unitOperation = getUnitOperation(selectedUnit);
-
+        const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
         if (!unitOperation) {
             return toast.error(
                 "Requisição não encontrada. Atualize a página e tente novamente."
@@ -150,7 +147,7 @@ function ClientPage() {
     };
 
     const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
-        const unitOperation = getUnitOperation(selectedUnit);
+        const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
 
         if (!unitOperation) {
             return toast.error(
@@ -179,33 +176,13 @@ function ClientPage() {
         setCurrentModal(null);
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setCurrentModal(null);
-    };
-
     const handleUnitStatus = (unit: UnitDTO): OperationStatus => {
-        const unitOperation = getUnitOperation(unit);
+        const unitOperation = getUnitOperation(unit, unitsOperations);
 
         if (unitOperation) {
             return unitOperation.operation_status as OperationStatus;
         } else {
             return OperationStatus.ACCEPTED;
-        }
-    };
-
-    const getUnitOperation = (unit: UnitDTO) => {
-        return unitsOperations?.find(
-            (operation) => operation.original_unit === unit.id
-        );
-    };
-
-    const getEquipmentsCount = (unit: UnitDTO) => {
-        if (equipments) {
-            return equipments.filter((equipment) => equipment.unit === unit.id)
-                .length;
-        } else {
-            return 0;
         }
     };
 
@@ -326,7 +303,10 @@ function ClientPage() {
                                     key={unit.id}
                                     title={unit.name}
                                     status={handleUnitStatus(unit)}
-                                    equipmentsCount={getEquipmentsCount(unit)}
+                                    equipmentsCount={getEquipmentsCount(
+                                        unit,
+                                        equipments
+                                    )}
                                     onEdit={() => handleEditUnit(unit)}
                                     onCancelEdit={() =>
                                         handleCancelEditUnit(unit)
@@ -359,7 +339,9 @@ function ClientPage() {
 
             <Modal
                 isOpen={isModalOpen}
-                onClose={handleCloseModal}
+                onClose={() =>
+                    handleCloseModal({ setIsModalOpen, setCurrentModal })
+                }
                 className="max-w-lg"
             >
                 {currentModal === Modals.EDIT_CLIENT && (
@@ -396,27 +378,38 @@ function ClientPage() {
                     />
                 )}
 
-                {currentModal === Modals.REJECT_UNIT && (
-                    <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-                        <Typography element="h2" size="title2" className="mb-6">
-                            Notas do Físico Médico Responsável
-                        </Typography>
+                {currentModal === Modals.REJECT_UNIT &&
+                    selectedUnit &&
+                    unitsOperations && (
+                        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                            <Typography
+                                element="h2"
+                                size="title2"
+                                className="mb-6"
+                            >
+                                Notas do Físico Médico Responsável
+                            </Typography>
 
-                        <Typography element="p" size="lg">
-                            {getUnitOperation(selectedUnit!)?.note}
-                        </Typography>
+                            <Typography element="p" size="lg">
+                                {
+                                    getUnitOperation(
+                                        selectedUnit,
+                                        unitsOperations
+                                    )?.note
+                                }
+                            </Typography>
 
-                        <Button
-                            onClick={() =>
-                                handleConfirmRejectUnit(selectedUnit!)
-                            }
-                            className="w-full mt-6"
-                            data-testid="btn-confirm-reject-client"
-                        >
-                            Confirmar
-                        </Button>
-                    </div>
-                )}
+                            <Button
+                                onClick={() =>
+                                    handleConfirmRejectUnit(selectedUnit)
+                                }
+                                className="w-full mt-6"
+                                data-testid="btn-confirm-reject-client"
+                            >
+                                Confirmar
+                            </Button>
+                        </div>
+                    )}
             </Modal>
         </main>
     );
