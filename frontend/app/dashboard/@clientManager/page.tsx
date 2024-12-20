@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { UnitDTO } from "@/redux/features/unitApiSlice";
+import {
+    UnitDTO,
+    useDeleteUnitOperationMutation,
+    useListAllUnitsOperationsQuery,
+} from "@/redux/features/unitApiSlice";
 
 import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 
@@ -19,11 +23,13 @@ import {
 import { isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
 import EditUnitForm from "@/components/forms/EditUnitForm";
+import { OperationStatus } from "@/enums/OperationStatus";
 
 enum Modals {
     EDIT_CLIENT = "EDIT_CLIENT",
     REJECT_CLIENT = "REJECT_CLIENT",
     EDIT_UNIT = "EDIT_UNIT",
+    REJECT_UNIT = "REJECT_UNIT",
 }
 
 function ClientPage() {
@@ -42,8 +48,11 @@ function ClientPage() {
 
     const { data: clientsOperations, isLoading: isLoadingClientsOperations } =
         useListAllClientsOperationsQuery();
+    const { data: unitsOperations, isLoading: isLoadingUnitsOperations } =
+        useListAllUnitsOperationsQuery();
 
     const [deleteClientOperation] = useDeleteClientOperationMutation();
+    const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
     const [selectedClientInOperation, setSelectedClientInOperation] =
         useState<ClientOperationDTO | null>(null);
@@ -105,9 +114,90 @@ function ClientPage() {
         setIsModalOpen(true);
     };
 
+    const handleCancelEditUnit = async (selectedUnit: UnitDTO) => {
+        const unitOperation = getUnitOperation(selectedUnit);
+
+        if (!unitOperation) {
+            return toast.error(
+                "Requisição não encontrada. Atualize a página e tente novamente."
+            );
+        }
+
+        try {
+            const response = await deleteUnitOperation(unitOperation.id);
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada.
+                        Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 5000,
+                        }
+                    );
+                }
+            }
+
+            toast.success("Requisição cancelada com sucesso.");
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+    };
+
+    const handleRejectUnit = (selectedUnit: UnitDTO) => {
+        setSelectedUnit(selectedUnit);
+        setCurrentModal(Modals.REJECT_UNIT);
+        setIsModalOpen(true);
+    };
+
+    const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
+        const unitOperation = getUnitOperation(selectedUnit);
+
+        if (!unitOperation) {
+            return toast.error(
+                "Requisição não encontrada. Atualize a página e tente novamente."
+            );
+        }
+
+        try {
+            const response = await deleteUnitOperation(unitOperation.id);
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada.
+                        Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 5000,
+                        }
+                    );
+                }
+            }
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+
+        setIsModalOpen(false);
+        setCurrentModal(null);
+    };
+
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setCurrentModal(null);
+    };
+
+    const handleUnitStatus = (unit: UnitDTO): OperationStatus => {
+        const unitOperation = getUnitOperation(unit);
+
+        if (unitOperation) {
+            return unitOperation.operation_status as OperationStatus;
+        } else {
+            return OperationStatus.ACCEPTED;
+        }
+    };
+
+    const getUnitOperation = (unit: UnitDTO) => {
+        return unitsOperations?.find(
+            (operation) => operation.original_unit === unit.id
+        );
     };
 
     const getEquipmentsCount = (unit: UnitDTO) => {
@@ -215,19 +305,41 @@ function ClientPage() {
 
                 <div className="flex flex-col gap-6">
                     {searchedUnits && searchedUnits.length > 0 ? (
-                        searchedUnits?.map((unit) => (
-                            <UnitCard
-                                key={unit.id}
-                                title={unit.name}
-                                status="Aceito"
-                                equipmentsCount={getEquipmentsCount(unit)}
-                                onEdit={() => handleEditUnit(unit)}
-                                handleDetails={() =>
-                                    router.push(`/dashboard/unit/${unit.id}`)
-                                }
-                                dataTestId={`unit-card-${unit.id}`}
-                            />
-                        ))
+                        [...searchedUnits]
+                            .sort((a, b) => {
+                                const statusOrder: Record<
+                                    OperationStatus,
+                                    number
+                                > = {
+                                    [OperationStatus.ACCEPTED]: 1,
+                                    [OperationStatus.REVIEW]: 2,
+                                    [OperationStatus.REJECTED]: 3,
+                                };
+                                const statusA = handleUnitStatus(a);
+                                const statusB = handleUnitStatus(b);
+                                return (
+                                    statusOrder[statusA] - statusOrder[statusB]
+                                );
+                            })
+                            .map((unit) => (
+                                <UnitCard
+                                    key={unit.id}
+                                    title={unit.name}
+                                    status={handleUnitStatus(unit)}
+                                    equipmentsCount={getEquipmentsCount(unit)}
+                                    onEdit={() => handleEditUnit(unit)}
+                                    onCancelEdit={() =>
+                                        handleCancelEditUnit(unit)
+                                    }
+                                    onReject={() => handleRejectUnit(unit)}
+                                    handleDetails={() =>
+                                        router.push(
+                                            `/dashboard/unit/${unit.id}`
+                                        )
+                                    }
+                                    dataTestId={`unit-card-${unit.id}`}
+                                />
+                            ))
                     ) : (
                         <Typography
                             element="p"
@@ -282,6 +394,28 @@ function ClientPage() {
                         originalUnit={selectedUnit!}
                         setIsModalOpen={setIsModalOpen}
                     />
+                )}
+
+                {currentModal === Modals.REJECT_UNIT && (
+                    <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                        <Typography element="h2" size="title2" className="mb-6">
+                            Notas do Físico Médico Responsável
+                        </Typography>
+
+                        <Typography element="p" size="lg">
+                            {getUnitOperation(selectedUnit!)?.note}
+                        </Typography>
+
+                        <Button
+                            onClick={() =>
+                                handleConfirmRejectUnit(selectedUnit!)
+                            }
+                            className="w-full mt-6"
+                            data-testid="btn-confirm-reject-client"
+                        >
+                            Confirmar
+                        </Button>
+                    </div>
                 )}
             </Modal>
         </main>

@@ -337,7 +337,14 @@ class UnitOperationViewSet(viewsets.ViewSet):
         }
     )
     def destroy(self, request, pk=None):
-        instance = UnitOperation.objects.get(pk=pk)
+        try:
+            instance = UnitOperation.objects.get(pk=pk)
+        except UnitOperation.DoesNotExist:
+            return Response(
+                {"message": "Operação não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         instance.delete()
         return Response(
             {
@@ -500,7 +507,14 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         }
     )
     def destroy(self, request, pk=None):
-        instance = EquipmentOperation.objects.get(pk=pk)
+        try:
+            instance = EquipmentOperation.objects.get(pk=pk)
+        except EquipmentOperation.DoesNotExist:
+            return Response(
+                {"message": "Operação não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         instance.delete()
         return Response(
             {

@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "GE",
-    "model": "AB-492",
-    "series_number": "jdMO-557266",
-    "anvisa_registry": "tOkCqyBrfdSbp",
+    "modality": "Ultrassom",
+    "manufacturer": "Philips",
+    "model": "QUO-667",
+    "series_number": "gvWR-052571",
+    "anvisa_registry": "CogdhppcNGntJ",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "GE",
-    "model": "UNDE-461",
-    "series_number": "iQrK-049605",
-    "anvisa_registry": "DLccFHaVQokAP",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
+    "manufacturer": "Siemens",
+    "model": "EXPLICABO-680",
+    "series_number": "Agys-766968",
+    "anvisa_registry": "EMmALSbcWqnlm",
     "id": 1001
   }
 }

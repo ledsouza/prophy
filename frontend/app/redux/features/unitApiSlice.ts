@@ -19,7 +19,7 @@ export type UnitDTO = {
     client: number;
 };
 
-type UnitOperationDTO = UnitDTO & Operation;
+export type UnitOperationDTO = UnitDTO & Operation;
 
 const unitApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -86,6 +86,35 @@ const unitApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Unit", id: "LIST" }],
         }),
+        listAllUnitsOperations: builder.query<UnitOperationDTO[], void>({
+            async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
+                let allUnitsOperations: UnitOperationDTO[] = [];
+                let currentPage = 1;
+                let hasNextPage = true;
+
+                while (hasNextPage) {
+                    const response = await baseQuery({
+                        url: "units/operations/",
+                        method: "GET",
+                        params: { page: currentPage },
+                    });
+
+                    if (response.error) return { error: response.error };
+
+                    const data =
+                        response.data as PaginatedResponse<UnitOperationDTO>;
+                    allUnitsOperations = [
+                        ...allUnitsOperations,
+                        ...data.results,
+                    ];
+                    hasNextPage = data.next !== null;
+                    currentPage++;
+                }
+
+                return { data: allUnitsOperations };
+            },
+            providesTags: [{ type: "UnitOperation", id: "LIST" }],
+        }),
     }),
 });
 
@@ -94,4 +123,5 @@ export const {
     useDeleteUnitOperationMutation,
     useListUnitsQuery,
     useListAllUnitsQuery,
+    useListAllUnitsOperationsQuery,
 } = unitApiSlice;
