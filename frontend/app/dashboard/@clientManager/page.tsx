@@ -18,10 +18,12 @@ import {
 } from "@/redux/features/clientApiSlice";
 import { isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
+import EditUnitForm from "@/components/forms/EditUnitForm";
 
 enum Modals {
     EDIT_CLIENT = "EDIT_CLIENT",
     REJECT_CLIENT = "REJECT_CLIENT",
+    EDIT_UNIT = "EDIT_UNIT",
 }
 
 function ClientPage() {
@@ -49,8 +51,9 @@ function ClientPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentModal, setCurrentModal] = useState<Modals | null>(null);
 
-    const [searchedUnits, setSearchedUnits] = useState<UnitDTO[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [searchedUnits, setSearchedUnits] = useState<UnitDTO[]>([]);
+    const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
 
     const handleSearchInputChange = (
         event: React.ChangeEvent<HTMLInputElement>
@@ -94,6 +97,12 @@ function ClientPage() {
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
+    };
+
+    const handleEditUnit = (selectedUnit: UnitDTO) => {
+        setSelectedUnit(selectedUnit);
+        setCurrentModal(Modals.EDIT_UNIT);
+        setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
@@ -212,6 +221,7 @@ function ClientPage() {
                                 title={unit.name}
                                 status="Aceito"
                                 equipmentsCount={getEquipmentsCount(unit)}
+                                onEdit={() => handleEditUnit(unit)}
                                 handleDetails={() =>
                                     router.push(`/dashboard/unit/${unit.id}`)
                                 }
@@ -265,6 +275,13 @@ function ClientPage() {
                             Confirmar
                         </Button>
                     </div>
+                )}
+
+                {currentModal === Modals.EDIT_UNIT && (
+                    <EditUnitForm
+                        originalUnit={selectedUnit!}
+                        setIsModalOpen={setIsModalOpen}
+                    />
                 )}
             </Modal>
         </main>

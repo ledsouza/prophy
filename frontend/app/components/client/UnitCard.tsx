@@ -1,6 +1,9 @@
 import React from "react";
 
+import { UnitDTO } from "@/redux/features/unitApiSlice";
+
 import { PencilLine, Trash } from "@phosphor-icons/react";
+
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 
@@ -8,14 +11,16 @@ type UnitCardProps = {
     title: string;
     status: string;
     equipmentsCount: number;
+    onEdit: () => void;
     dataTestId?: string | undefined;
-    handleDetails?: () => void;
+    handleDetails: () => void;
 };
 
 function UnitCard({
     title,
     status,
     equipmentsCount,
+    onEdit,
     dataTestId,
     handleDetails,
 }: UnitCardProps) {
@@ -55,7 +60,11 @@ function UnitCard({
                 </Button>
 
                 <div className="flex flex-row justify-between gap-2">
-                    <Button variant="secondary" data-testid="btn-edit-unit">
+                    <Button
+                        variant="secondary"
+                        onClick={onEdit}
+                        data-testid="btn-edit-unit"
+                    >
                         <PencilLine size={20} />
                     </Button>
                     <Button variant="danger" data-testid="btn-delete-unit">

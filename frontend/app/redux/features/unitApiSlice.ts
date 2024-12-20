@@ -23,6 +23,27 @@ type UnitOperationDTO = UnitDTO & Operation;
 
 const unitApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        createUnit: builder.mutation<
+            UnitOperationDTO,
+            Omit<UnitOperationDTO, "id" | "user">
+        >({
+            query: (unitData) => ({
+                url: "units/operations/",
+                method: "POST",
+                body: unitData,
+            }),
+            invalidatesTags: [
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+            ],
+        }),
+        deleteUnitOperation: builder.mutation<void, number>({
+            query: (unitId) => ({
+                url: `units/operations/${unitId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [{ type: "UnitOperation", id: "LIST" }],
+        }),
         listUnits: builder.query<PaginatedResponse<UnitDTO>, ListQueryParams>({
             query: ({ page = 1 }) => ({
                 url: "units/",
@@ -65,21 +86,12 @@ const unitApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Unit", id: "LIST" }],
         }),
-        createUnit: builder.mutation<
-            UnitOperationDTO,
-            Omit<UnitOperationDTO, "id" | "user">
-        >({
-            query: (unitData) => ({
-                url: "units/operations/",
-                method: "POST",
-                body: unitData,
-            }),
-        }),
     }),
 });
 
 export const {
+    useCreateUnitMutation,
+    useDeleteUnitOperationMutation,
     useListUnitsQuery,
     useListAllUnitsQuery,
-    useCreateUnitMutation,
 } = unitApiSlice;
