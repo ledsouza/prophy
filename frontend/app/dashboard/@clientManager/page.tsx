@@ -212,7 +212,7 @@ function ClientPage() {
                                 title={unit.name}
                                 status="Aceito"
                                 equipmentsCount={getEquipmentsCount(unit)}
-                                onClick={() =>
+                                handleDetails={() =>
                                     router.push(`/dashboard/unit/${unit.id}`)
                                 }
                                 dataTestId={`unit-card-${unit.id}`}

@@ -9,7 +9,7 @@ type UnitCardProps = {
     status: string;
     equipmentsCount: number;
     dataTestId?: string | undefined;
-    onClick?: () => void;
+    handleDetails?: () => void;
 };
 
 function UnitCard({
@@ -17,18 +17,27 @@ function UnitCard({
     status,
     equipmentsCount,
     dataTestId,
-    onClick,
+    handleDetails,
 }: UnitCardProps) {
     return (
         <div
-            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary cursor-pointer"
+            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary"
             data-testid={dataTestId}
-            onClick={onClick}
         >
             <div className="flex justify-between pb-4">
-                <Typography element="h3" size="title3">
-                    {title}
-                </Typography>
+                <div className="flex flex-col">
+                    <Typography element="h3" size="title3">
+                        {title}
+                    </Typography>
+
+                    <Typography dataTestId="equipments-counts">
+                        Quantidade de Equipamentos:{" "}
+                        <Typography element="span" className="font-semibold">
+                            {String(equipmentsCount)}
+                        </Typography>
+                    </Typography>
+                </div>
+
                 <div className="flex flex-col gap-2">
                     <Typography element="h3" size="lg">
                         Status
@@ -37,14 +46,15 @@ function UnitCard({
                 </div>
             </div>
             <div className="flex gap-10 justify-between pt-4">
-                <Typography dataTestId="equipments-counts">
-                    Quantidade de Equipamentos:{" "}
-                    <Typography element="span" className="font-semibold">
-                        {String(equipmentsCount)}
-                    </Typography>
-                </Typography>
+                <Button
+                    variant="secondary"
+                    data-testid="btn-unit-detail"
+                    onClick={handleDetails}
+                >
+                    Acessar detalhes
+                </Button>
 
-                <div className="flex flex-row gap-2">
+                <div className="flex flex-row justify-between gap-2">
                     <Button variant="secondary" data-testid="btn-edit-unit">
                         <PencilLine size={20} />
                     </Button>
