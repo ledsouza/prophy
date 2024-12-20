@@ -8,48 +8,54 @@ import {
     ClientDTO,
     ClientOperationDTO,
     useDeleteClientOperationMutation,
-    useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
+
+import { ArrowClockwise } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
 import { isResponseError } from "@/redux/services/helpers";
+import { OperationStatus } from "@/enums/OperationStatus";
+import { useAppDispatch } from "@/redux/hooks";
+import { apiSlice } from "@/redux/services/apiSlice";
 
 const getUserByRole = (client: ClientDTO, role: string) => {
     return client.users?.find((user) => user.role == role);
 };
 
 type ClientDetailsProps = {
+    isLoading: boolean;
     clientOptions: SelectData[];
     selectedClient: SelectData;
     setSelectedClient: (value: SelectData) => void;
     filteredClient: ClientDTO;
+    selectedClientInOperation: ClientOperationDTO | null;
     handleEdit: () => void;
+    handleReject: () => void;
 };
 
 function ClientDetails({
+    isLoading,
     clientOptions,
     selectedClient,
     setSelectedClient,
     filteredClient,
+    selectedClientInOperation,
     handleEdit,
+    handleReject,
 }: ClientDetailsProps) {
     const gerenteProphy = getUserByRole(filteredClient, "GP");
     const fisicoMedicoInterno = getUserByRole(filteredClient, "FMI");
     const fisicoMedicoExterno = getUserByRole(filteredClient, "FME");
     const comercial = getUserByRole(filteredClient, "C");
 
-    const [loadingCancel, setLoadingCancel] = useState(false);
-
-    const [selectedClientInOperation, setSelectedClientInOperation] =
-        useState<ClientOperationDTO | null>(null);
-
-    const { data: clientsOperations, isLoading: isLoadingClientsOperations } =
-        useListAllClientsOperationsQuery();
+    const dispatch = useAppDispatch();
 
     const [deleteClientOperation] = useDeleteClientOperationMutation();
+
+    const [loadingCancel, setLoadingCancel] = useState(false);
 
     const handleCancel = async () => {
         if (!selectedClientInOperation) {
@@ -73,28 +79,27 @@ function ClientDetails({
                     );
                 }
             }
+
             toast.success("Requisição cancelada com sucesso!");
         } catch (error) {
-            console.log(error);
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         } finally {
             setLoadingCancel(false);
         }
     };
 
-    // Check if the selected client has an operation in progress
-    useEffect(() => {
-        if (isLoadingClientsOperations) {
-            return;
-        }
-
-        const operation = clientsOperations?.find(
-            (operation) => operation.original_client === selectedClient.id
+    const handleUpdateData = () => {
+        dispatch(
+            apiSlice.util.invalidateTags([
+                { type: "Client", id: "LIST" },
+                { type: "ClientOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Equipment", id: "LIST" },
+                { type: "EquipmentOperation", id: "LIST" },
+            ])
         );
-        operation
-            ? setSelectedClientInOperation(operation)
-            : setSelectedClientInOperation(null);
-    }, [isLoadingClientsOperations, clientsOperations, selectedClient]);
+    };
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
@@ -125,22 +130,44 @@ function ClientDetails({
                     <b>Endereço:</b> {filteredClient?.address}
                 </Typography>
                 <div className="flex flex-col gap-2 w-full mt-2">
-                    {selectedClientInOperation ? (
-                        <>
-                            <Typography variant="secondary">
-                                Requisição de alteração em análise
-                            </Typography>
-                            <Button
-                                variant="danger"
-                                className="flex-grow"
-                                onClick={handleCancel}
-                                disabled={loadingCancel}
-                                data-testid="btn-cancel-edit-client"
-                            >
-                                Cancelar requisição
-                            </Button>
-                        </>
-                    ) : (
+                    {selectedClientInOperation &&
+                        selectedClientInOperation.operation_status ===
+                            OperationStatus.REJECTED && (
+                            <>
+                                <Typography variant="danger">
+                                    Requisição de alteração rejeitada
+                                </Typography>
+                                <Button
+                                    variant="danger"
+                                    className="flex-grow"
+                                    onClick={handleReject}
+                                    data-testid="btn-reject-edit-client"
+                                >
+                                    Verificar motivo
+                                </Button>
+                            </>
+                        )}
+
+                    {selectedClientInOperation &&
+                        selectedClientInOperation.operation_status ===
+                            OperationStatus.REVIEW && (
+                            <>
+                                <Typography variant="secondary">
+                                    Requisição de alteração em análise
+                                </Typography>
+                                <Button
+                                    variant="danger"
+                                    className="flex-grow"
+                                    onClick={handleCancel}
+                                    disabled={loadingCancel}
+                                    data-testid="btn-cancel-edit-client"
+                                >
+                                    Cancelar requisição
+                                </Button>
+                            </>
+                        )}
+
+                    {!selectedClientInOperation && (
                         <Button
                             variant="secondary"
                             className="flex-grow"
@@ -278,6 +305,17 @@ function ClientDetails({
                     Acessar detalhes
                 </Button>
             </div>
+
+            <Button
+                variant="secondary"
+                className="justify-end"
+                disabled={isLoading}
+                onClick={handleUpdateData}
+            >
+                <div className="flex items-center gap-2">
+                    <ArrowClockwise size="24" /> Atualizar
+                </div>
+            </Button>
         </div>
     );
 }
