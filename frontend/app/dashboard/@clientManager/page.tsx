@@ -356,7 +356,6 @@ function ClientPage() {
                                         unit,
                                         unitsOperations
                                     )}
-                                    status={handleUnitStatus(unit)}
                                     equipmentsCount={getEquipmentsCount(
                                         unit,
                                         equipments

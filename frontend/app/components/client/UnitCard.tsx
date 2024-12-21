@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 type UnitCardProps = {
     unit: UnitDTO;
     unitOperation: UnitOperationDTO | undefined;
-    status: OperationStatus;
     equipmentsCount: number;
     onEdit: () => void;
     onCancelEdit: () => void;
@@ -23,7 +22,6 @@ type UnitCardProps = {
 function UnitCard({
     unit,
     unitOperation,
-    status,
     equipmentsCount,
     onEdit,
     onCancelEdit,
@@ -31,6 +29,10 @@ function UnitCard({
     onReject,
     dataTestId,
 }: UnitCardProps) {
+    const status = unitOperation
+        ? unitOperation.operation_status
+        : OperationStatus.ACCEPTED;
+
     const router = useRouter();
 
     return (
