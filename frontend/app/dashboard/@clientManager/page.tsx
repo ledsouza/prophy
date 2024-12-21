@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
+import { apiSlice } from "@/redux/services/apiSlice";
+import {
+    getEquipmentsCount,
+    getUnitOperation,
+    isResponseError,
+} from "@/redux/services/helpers";
 import {
     ClientOperationDTO,
     useDeleteClientOperationMutation,
@@ -15,15 +21,13 @@ import {
     useDeleteUnitOperationMutation,
     useListAllUnitsOperationsQuery,
 } from "@/redux/features/unitApiSlice";
-import {
-    getEquipmentsCount,
-    getUnitOperation,
-    isResponseError,
-} from "@/redux/services/helpers";
 
 import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { OperationStatus, OperationType } from "@/enums";
 import { handleCloseModal, Modals } from "@/utils/modal";
+import { useAppDispatch } from "@/redux/hooks";
+
+import { ArrowClockwise } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import {
@@ -37,6 +41,7 @@ import { ClientDetails, UnitCard } from "@/components/client";
 
 function ClientPage() {
     const router = useRouter();
+    const dispatch = useAppDispatch();
 
     const {
         isLoading: isLoadingClientData,
@@ -231,6 +236,19 @@ function ClientPage() {
         }
     };
 
+    const handleUpdateData = () => {
+        dispatch(
+            apiSlice.util.invalidateTags([
+                { type: "Client", id: "LIST" },
+                { type: "ClientOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Equipment", id: "LIST" },
+                { type: "EquipmentOperation", id: "LIST" },
+            ])
+        );
+    };
+
     // Filter units by search term
     useEffect(() => {
         if (filteredUnits.length > 0) {
@@ -300,6 +318,17 @@ function ClientPage() {
 
     return (
         <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
+            <Button
+                variant="secondary"
+                className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
+                disabled={isLoadingClientData}
+                onClick={handleUpdateData}
+            >
+                <div className="flex items-center gap-2">
+                    <ArrowClockwise size="24" /> Atualizar
+                </div>
+            </Button>
+
             {clientOptions &&
                 selectedClient &&
                 filteredClient &&

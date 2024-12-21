@@ -51,8 +51,6 @@ function ClientDetails({
     const fisicoMedicoExterno = getUserByRole(filteredClient, "FME");
     const comercial = getUserByRole(filteredClient, "C");
 
-    const dispatch = useAppDispatch();
-
     const [deleteClientOperation] = useDeleteClientOperationMutation();
 
     const [loadingCancel, setLoadingCancel] = useState(false);
@@ -86,19 +84,6 @@ function ClientDetails({
         } finally {
             setLoadingCancel(false);
         }
-    };
-
-    const handleUpdateData = () => {
-        dispatch(
-            apiSlice.util.invalidateTags([
-                { type: "Client", id: "LIST" },
-                { type: "ClientOperation", id: "LIST" },
-                { type: "Unit", id: "LIST" },
-                { type: "UnitOperation", id: "LIST" },
-                { type: "Equipment", id: "LIST" },
-                { type: "EquipmentOperation", id: "LIST" },
-            ])
-        );
     };
 
     return (
@@ -305,17 +290,6 @@ function ClientDetails({
                     Acessar detalhes
                 </Button>
             </div>
-
-            <Button
-                variant="secondary"
-                className="justify-end"
-                disabled={isLoading}
-                onClick={handleUpdateData}
-            >
-                <div className="flex items-center gap-2">
-                    <ArrowClockwise size="24" /> Atualizar
-                </div>
-            </Button>
         </div>
     );
 }
