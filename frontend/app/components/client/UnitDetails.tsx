@@ -1,4 +1,10 @@
-import { UnitDTO } from "@/redux/features/unitApiSlice";
+import { useState } from "react";
+
+import {
+    UnitDTO,
+    UnitOperationDTO,
+    useDeleteUnitOperationMutation,
+} from "@/redux/features/unitApiSlice";
 
 import { formatPhoneNumber } from "@/utils/format";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -7,12 +13,58 @@ import { ArrowFatLineLeft } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
+import { OperationStatus, OperationType } from "@/enums";
+import { isResponseError } from "@/redux/services/helpers";
+import { toast } from "react-toastify";
 
 type UnitDetailsProps = {
-    selectedUnit: UnitDTO;
+    unit: UnitDTO;
+    unitOperation: UnitOperationDTO | undefined;
+    handleEdit: () => void;
+    handleDelete: () => void;
+    handleReject: () => void;
 };
 
-function UnitDetails({ selectedUnit }: UnitDetailsProps) {
+function UnitDetails({
+    unit,
+    unitOperation,
+    handleEdit,
+    handleDelete,
+    handleReject,
+}: UnitDetailsProps) {
+    const [loadingCancel, setLoadingCancel] = useState(false);
+
+    const [deleteUnitOperation] = useDeleteUnitOperationMutation();
+
+    const handleCancel = async () => {
+        if (!unitOperation) {
+            return;
+        }
+
+        setLoadingCancel(true);
+
+        try {
+            const response = await deleteUnitOperation(unitOperation.id);
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada. É possível que ela já tenha sido revisada por um físico médico. 
+                            Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 6000,
+                        }
+                    );
+                }
+            }
+
+            toast.success("Requisição cancelada com sucesso!");
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        } finally {
+            setLoadingCancel(false);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
             <Button
@@ -37,33 +89,82 @@ function UnitDetails({ selectedUnit }: UnitDetailsProps) {
                 </Typography>
 
                 <Typography element="p" size="md" dataTestId="unit-details">
-                    <b>Nome:</b> {selectedUnit.name}
+                    <b>Nome:</b> {unit.name}
                     <br />
-                    <b>CNPJ:</b> {cnpjMask(selectedUnit.cnpj)}
+                    <b>CNPJ:</b> {cnpjMask(unit.cnpj)}
                     <br />
-                    <b>Telefone:</b> {formatPhoneNumber(selectedUnit.phone)}
+                    <b>Telefone:</b> {formatPhoneNumber(unit.phone)}
                     <br />
-                    <b>E-mail:</b> {selectedUnit.email}
+                    <b>E-mail:</b> {unit.email}
                     <br />
-                    <b>Endereço:</b> {selectedUnit.address}
+                    <b>Endereço:</b> {unit.address}
                 </Typography>
 
-                <div className="flex flex-row gap-2 w-full mt-2">
-                    <Button
-                        variant="secondary"
-                        className="flex-grow"
-                        data-testid="btn-edit-unit"
-                    >
-                        Editar
-                    </Button>
-                    <Button
-                        variant="danger"
-                        className="flex-grow"
-                        data-testid="btn-delete-unit"
-                    >
-                        Remover
-                    </Button>
+                <div className="flex flex-col gap-2 w-full mt-2">
+                    {unitOperation &&
+                        unitOperation.operation_status ===
+                            OperationStatus.REVIEW && (
+                            <>
+                                <Typography variant="secondary">
+                                    {unitOperation.operation_type ===
+                                    OperationType.EDIT
+                                        ? "Requisição de alteração em análise"
+                                        : "Requisição de remoção em análise"}
+                                </Typography>
+                                <Button
+                                    variant="danger"
+                                    className="flex-grow"
+                                    onClick={handleCancel}
+                                    disabled={loadingCancel}
+                                    data-testid="btn-cancel-edit-client"
+                                >
+                                    Cancelar requisição
+                                </Button>
+                            </>
+                        )}
+
+                    {unitOperation &&
+                        unitOperation.operation_status ===
+                            OperationStatus.REJECTED && (
+                            <>
+                                <Typography variant="danger">
+                                    {unitOperation.operation_type ===
+                                    OperationType.EDIT
+                                        ? "Requisição de alteração rejeitada"
+                                        : "Requisição de remocão rejeitada"}
+                                </Typography>
+                                <Button
+                                    variant="danger"
+                                    className="flex-grow"
+                                    onClick={handleReject}
+                                    data-testid="btn-reject-edit-client"
+                                >
+                                    Verificar motivo
+                                </Button>
+                            </>
+                        )}
                 </div>
+
+                {!unitOperation && (
+                    <div className="flex flex-row gap-2 w-full mt-2">
+                        <Button
+                            variant="secondary"
+                            className="flex-grow"
+                            onClick={handleEdit}
+                            data-testid="btn-edit-unit"
+                        >
+                            Editar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={handleDelete}
+                            className="flex-grow"
+                            data-testid="btn-delete-unit"
+                        >
+                            Remover
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <div>
@@ -76,17 +177,17 @@ function UnitDetails({ selectedUnit }: UnitDetailsProps) {
                     Gerente de Unidade
                 </Typography>
 
-                {selectedUnit.user ? (
+                {unit.user ? (
                     <Typography
                         element="p"
                         size="md"
                         dataTestId="unit-manager-user"
                     >
-                        {selectedUnit.user.name}
+                        {unit.user.name}
                         <br />
-                        {formatPhoneNumber(selectedUnit.user.phone)}
+                        {formatPhoneNumber(unit.user.phone)}
                         <br />
-                        {selectedUnit.user.email}
+                        {unit.user.email}
                     </Typography>
                 ) : (
                     <div className="flex flex-col gap-2">

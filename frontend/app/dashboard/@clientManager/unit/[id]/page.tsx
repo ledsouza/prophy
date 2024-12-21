@@ -3,10 +3,15 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
+import {
+    getUnitOperation,
+    isErrorWithMessage,
+    isResponseError,
+} from "@/redux/services/helpers";
 import { apiSlice } from "@/redux/services/apiSlice";
 import {
     UnitDTO,
+    useCreateUnitMutation,
     useDeleteUnitOperationMutation,
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
@@ -30,6 +35,7 @@ import {
     EquipmentCard,
     EquipmentDetails,
 } from "@/components/client";
+import { OperationType } from "@/enums";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -51,6 +57,7 @@ function UnitPage() {
     const { data: unitsOperations, isLoading: isLoadingUnitOperations } =
         useListAllUnitsOperationsQuery();
 
+    const [createUnitOperation] = useCreateUnitMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
     const {
@@ -59,9 +66,7 @@ function UnitPage() {
         error: errorEquipments,
     } = useListAllEquipmentsQuery();
 
-    const [selectedUnit, setSelectedUnit] = useState<UnitDTO | undefined>(
-        undefined
-    );
+    const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
     const [filteredEquipments, setFilteredEquipments] = useState<
         EquipmentDTO[]
     >([]);
@@ -94,6 +99,16 @@ function UnitPage() {
         setSearchTerm(event.target.value);
     };
 
+    const handleEditUnit = () => {
+        setCurrentModal(Modals.EDIT_UNIT);
+        setIsModalOpen(true);
+    };
+
+    const handleRejectUnit = () => {
+        setCurrentModal(Modals.REJECT_UNIT);
+        setIsModalOpen(true);
+    };
+
     const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
         const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
 
@@ -124,6 +139,39 @@ function UnitPage() {
         setCurrentModal(null);
     };
 
+    const handleModalDeleteUnit = () => {
+        setCurrentModal(Modals.DELETE_UNIT);
+        setIsModalOpen(true);
+    };
+
+    const handleDeleteUnit = async (selectedUnit: UnitDTO) => {
+        try {
+            const response = await createUnitOperation({
+                name: selectedUnit.name,
+                address: selectedUnit.address,
+                cnpj: selectedUnit.cnpj,
+                phone: selectedUnit.phone,
+                email: selectedUnit.email,
+                state: selectedUnit.state,
+                city: selectedUnit.city,
+                client: selectedUnit.client,
+                original_unit: selectedUnit.id,
+                operation_type: OperationType.DELETE,
+            });
+            if (isErrorWithMessage(response.error)) {
+                return toast.error(response.error.data.messages[0]);
+            }
+
+            toast.success(
+                "Requisição para deletar unidade enviada com sucesso."
+            );
+            setIsModalOpen(false);
+            setCurrentModal(null);
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+    };
+
     // Set selected unit and filtered equipments
     useEffect(() => {
         // Only run when both data finished paginating
@@ -132,7 +180,15 @@ function UnitPage() {
         // Add null checks to prevent unnecessary renders
         if (!units || !equipments || !unitId) return;
 
-        setSelectedUnit(units.find((unit) => unit.id === unitId));
+        const unit = units.find((unit) => unit.id === unitId);
+
+        // When the user update data after unit being accepted to be deleted
+        // Since the data doesn't exist anymore, the user is redirected to the root dashboard
+        if (!unit) {
+            return router.push("/dashboard");
+        }
+
+        setSelectedUnit(unit);
         setFilteredEquipments(
             equipments.filter((equipment) => equipment.unit === unitId)
         );
@@ -197,7 +253,16 @@ function UnitPage() {
                     </div>
                 </Button>
 
-                <UnitDetails selectedUnit={selectedUnit} />
+                <UnitDetails
+                    unit={selectedUnit}
+                    unitOperation={getUnitOperation(
+                        selectedUnit,
+                        unitsOperations
+                    )}
+                    handleEdit={handleEditUnit}
+                    handleDelete={handleModalDeleteUnit}
+                    handleReject={handleRejectUnit}
+                />
 
                 <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
                     <Typography
@@ -254,7 +319,11 @@ function UnitPage() {
                     onClose={() =>
                         handleCloseModal({ setIsModalOpen, setCurrentModal })
                     }
-                    className="max-w-lg"
+                    className={
+                        currentModal === Modals.EQUIPMENT_DETAILS
+                            ? "max-w-6xl mx-6"
+                            : "max-w-lg"
+                    }
                 >
                     {currentModal === Modals.EDIT_UNIT && (
                         <EditUnitForm
@@ -293,15 +362,45 @@ function UnitPage() {
                             </Button>
                         </div>
                     )}
-                </Modal>
 
-                <Modal
-                    isOpen={isModalOpen}
-                    onClose={() =>
-                        handleCloseModal({ setIsModalOpen, setCurrentModal })
-                    }
-                    className="max-w-6xl mx-6"
-                >
+                    {currentModal === Modals.DELETE_UNIT && selectedUnit && (
+                        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                            <Typography
+                                element="h2"
+                                size="title2"
+                                className="mb-6"
+                            >
+                                Tem certeza que deseja excluir esta unidade?
+                            </Typography>
+
+                            <div className="flex flex-row gap-2">
+                                <Button
+                                    onClick={() => {
+                                        handleCloseModal({
+                                            setIsModalOpen,
+                                            setCurrentModal,
+                                        });
+                                    }}
+                                    className="w-full mt-6"
+                                    data-testid="btn-cancel-delete-unit"
+                                >
+                                    Cancelar
+                                </Button>
+
+                                <Button
+                                    variant="danger"
+                                    onClick={() =>
+                                        handleDeleteUnit(selectedUnit)
+                                    }
+                                    className="w-full mt-6"
+                                    data-testid="btn-confirm-delete-unit"
+                                >
+                                    Confirmar
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
                     {currentModal === Modals.EQUIPMENT_DETAILS &&
                         selectedEquipment && (
                             <EquipmentDetails
