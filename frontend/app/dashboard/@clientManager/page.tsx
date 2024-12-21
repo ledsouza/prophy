@@ -420,13 +420,29 @@ function ClientPage() {
                             Tem certeza que deseja excluir esta unidade?
                         </Typography>
 
-                        <Button
-                            onClick={() => handleDeleteUnit(selectedUnit)}
-                            className="w-full mt-6"
-                            data-testid="btn-confirm-delete-unit"
-                        >
-                            Confirmar
-                        </Button>
+                        <div className="flex flex-row gap-2">
+                            <Button
+                                onClick={() => {
+                                    handleCloseModal({
+                                        setIsModalOpen,
+                                        setCurrentModal,
+                                    });
+                                }}
+                                className="w-full mt-6"
+                                data-testid="btn-cancel-delete-unit"
+                            >
+                                Cancelar
+                            </Button>
+
+                            <Button
+                                variant="danger"
+                                onClick={() => handleDeleteUnit(selectedUnit)}
+                                className="w-full mt-6"
+                                data-testid="btn-confirm-delete-unit"
+                            >
+                                Confirmar
+                            </Button>
+                        </div>
                     </div>
                 )}
 

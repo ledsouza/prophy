@@ -38,7 +38,7 @@ const Button = ({
     ...props
 }: ButtonProps) => {
     const computedClassName = cn(
-        "flex justify-center align-middle items-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2",
+        "flex justify-center align-middle items-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 active:transform active:scale-95 transition-transform",
         className,
         {
             "bg-primary text-white hover:bg-secondary focus-visible:outline-primary":
