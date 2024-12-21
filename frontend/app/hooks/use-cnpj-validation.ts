@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useVerifyProposalStatusMutation } from "@/redux/features/clientApiSlice";
 import { toast } from "react-toastify";

@@ -23,7 +23,7 @@ import {
     EquipmentCard,
     EquipmentDetails,
 } from "@/components/client";
-import EditUnitForm from "@/components/forms/EditUnitForm";
+import { EditUnitForm } from "@/components/forms";
 import { handleCloseModal, Modals } from "@/utils/modal";
 import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";

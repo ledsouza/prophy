@@ -32,6 +32,9 @@ function EquipmentCard({
                     <Typography element="p" size="lg">
                         {equipment.manufacturer}
                     </Typography>
+                    <Typography dataTestId="equipments-counts">
+                        {equipment.modality}
+                    </Typography>
                 </div>
                 <div className="flex flex-col gap-2">
                     <Typography element="h3" size="lg">
@@ -41,10 +44,6 @@ function EquipmentCard({
                 </div>
             </div>
             <div className="flex gap-10 justify-between pt-4">
-                <Typography dataTestId="equipments-counts">
-                    {equipment.modality}
-                </Typography>
-
                 <div className="flex flex-row gap-2">
                     <Button
                         variant="secondary"

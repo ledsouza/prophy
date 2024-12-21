@@ -1,3 +1,5 @@
+"use client";
+
 import { useAppDispatch } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 import { SubmitHandler } from "react-hook-form";
