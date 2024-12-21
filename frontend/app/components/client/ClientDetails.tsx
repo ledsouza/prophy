@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-
+import React, { useState } from "react";
 import { formatPhoneNumber } from "@/utils/format";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { toast } from "react-toastify";
 
+import { apiSlice } from "@/redux/services/apiSlice";
+import { isResponseError } from "@/redux/services/helpers";
 import {
     ClientDTO,
     ClientOperationDTO,
@@ -16,10 +17,9 @@ import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
-import { isResponseError } from "@/redux/services/helpers";
-import { OperationStatus } from "@/enums/OperationStatus";
+
+import { OperationStatus } from "@/enums";
 import { useAppDispatch } from "@/redux/hooks";
-import { apiSlice } from "@/redux/services/apiSlice";
 
 const getUserByRole = (client: ClientDTO, role: string) => {
     return client.users?.find((user) => user.role == role);

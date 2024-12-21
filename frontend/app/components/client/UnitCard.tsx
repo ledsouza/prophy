@@ -4,7 +4,7 @@ import { PencilLine, Trash } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
-import { OperationStatus } from "@/enums/OperationStatus";
+import { OperationStatus } from "@/enums";
 
 type UnitCardProps = {
     title: string;

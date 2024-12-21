@@ -2,6 +2,8 @@ import { useAppDispatch } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 import { SubmitHandler } from "react-hook-form";
 
+import { toast } from "react-toastify";
+
 import {
     useLoginMutation,
     useRegisterMutation,
@@ -9,13 +11,11 @@ import {
 import { useCreateClientMutation } from "@/redux/features/clientApiSlice";
 import { useCreateUnitMutation } from "@/redux/features/unitApiSlice";
 import { setAuth } from "@/redux/features/authSlice";
-import { toast } from "react-toastify";
+import { OperationType, OperationStatus } from "@/enums";
 import {
     RegisterFields,
     registerSchema,
 } from "@/components/forms/RegisterForm";
-import { OperationType } from "@/enums/OperationType";
-import { OperationStatus } from "@/enums/OperationStatus";
 
 type RegisterFormProps = {
     validatedCNPJ: string;

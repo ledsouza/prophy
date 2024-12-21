@@ -2,35 +2,33 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
-import {
-    UnitDTO,
-    useCreateUnitMutation,
-    useDeleteUnitOperationMutation,
-    useListAllUnitsOperationsQuery,
-} from "@/redux/features/unitApiSlice";
-
-import { useClientDataLoading } from "@/hooks/use-client-data-loading";
-
-import { EditClientForm, Input } from "@/components/forms";
-import { Typography } from "@/components/foundation";
-import { Button, Modal, Spinner } from "@/components/common";
-import { ClientDetails, UnitCard } from "@/components/client";
 import {
     ClientOperationDTO,
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
 import {
+    UnitDTO,
+    useCreateUnitMutation,
+    useDeleteUnitOperationMutation,
+    useListAllUnitsOperationsQuery,
+} from "@/redux/features/unitApiSlice";
+import {
     getEquipmentsCount,
     getUnitOperation,
     isResponseError,
 } from "@/redux/services/helpers";
-import { toast } from "react-toastify";
-import EditUnitForm from "@/components/forms/EditUnitForm";
-import { OperationStatus } from "@/enums/OperationStatus";
+
+import { useClientDataLoading } from "@/hooks/use-client-data-loading";
+import { OperationStatus, OperationType } from "@/enums";
 import { handleCloseModal, Modals } from "@/utils/modal";
-import { OperationType } from "@/enums/OperationType";
+
+import { Typography } from "@/components/foundation";
+import { EditClientForm, EditUnitForm, Input } from "@/components/forms";
+import { Button, Modal, Spinner } from "@/components/common";
+import { ClientDetails, UnitCard } from "@/components/client";
 
 function ClientPage() {
     const router = useRouter();

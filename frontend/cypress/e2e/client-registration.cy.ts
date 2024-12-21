@@ -1,5 +1,4 @@
-import { OperationStatus } from "@/enums/OperationStatus";
-import { OperationType } from "@/enums/OperationType";
+import { OperationStatus, OperationType } from "@/enums";
 import { randomMobilePhoneNumber } from "@/utils/generator";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { errorMessages } from "cypress/support/e2e";
