@@ -152,6 +152,7 @@ function UnitCard({
                         <Button
                             variant="danger"
                             onClick={onReject}
+                            className="w-40"
                             data-testid="btn-retry-unit-operation"
                         >
                             Verificar motivo
