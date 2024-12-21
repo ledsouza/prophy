@@ -16,7 +16,7 @@ export function isFetchBaseQueryError(
  */
 export function isErrorWithMessage(
     error: unknown
-): error is { data: { message: string[] } } {
+): error is { data: { messages: string[] } } {
     return (
         typeof error === "object" &&
         error != null &&
@@ -54,6 +54,14 @@ export const getUnitOperation = (
     unit: UnitDTO,
     unitsOperations: UnitOperationDTO[] | undefined
 ) => {
+    const AddUnitOperation = unitsOperations?.find(
+        (operation) => operation.id === unit.id
+    );
+
+    if (AddUnitOperation) {
+        return AddUnitOperation;
+    }
+
     return unitsOperations?.find(
         (operation) => operation.original_unit === unit.id
     );

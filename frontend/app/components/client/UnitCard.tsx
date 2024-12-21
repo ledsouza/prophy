@@ -1,34 +1,38 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { PencilLine, Trash } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
-import { OperationStatus } from "@/enums";
+import { OperationStatus, OperationType } from "@/enums";
+import { UnitDTO, UnitOperationDTO } from "@/redux/features/unitApiSlice";
+import { useRouter } from "next/navigation";
 
 type UnitCardProps = {
-    title: string;
-    status: string;
+    unit: UnitDTO;
+    unitOperation: UnitOperationDTO | undefined;
+    status: OperationStatus;
     equipmentsCount: number;
     onEdit: () => void;
     onCancelEdit: () => void;
     onDelete: () => void;
     onReject: () => void;
-    handleDetails: () => void;
     dataTestId?: string | undefined;
 };
 
 function UnitCard({
-    title,
+    unit,
+    unitOperation,
     status,
     equipmentsCount,
     onEdit,
     onCancelEdit,
     onDelete,
     onReject,
-    handleDetails,
     dataTestId,
 }: UnitCardProps) {
+    const router = useRouter();
+
     return (
         <div
             className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary"
@@ -37,7 +41,7 @@ function UnitCard({
             <div className="flex justify-between pb-4">
                 <div className="flex flex-col">
                     <Typography element="h3" size="title3">
-                        {title}
+                        {unit.name}
                     </Typography>
 
                     <Typography dataTestId="equipments-counts">
@@ -70,16 +74,21 @@ function UnitCard({
                     )}
                 </div>
             </div>
-            <div className="flex gap-10 justify-between pt-4">
-                <Button
-                    variant="secondary"
-                    onClick={handleDetails}
-                    data-testid="btn-unit-detail"
-                >
-                    Acessar detalhes
-                </Button>
 
-                <div className="flex flex-row justify-between gap-2">
+            <div className="flex gap-10 justify-between pt-4">
+                {unitOperation?.operation_type !== OperationType.ADD && (
+                    <Button
+                        variant="secondary"
+                        onClick={() =>
+                            router.push(`/dashboard/unit/${unit.id}`)
+                        }
+                        data-testid="btn-unit-detail"
+                    >
+                        Acessar detalhes
+                    </Button>
+                )}
+
+                <div className="flex flex-grow justify-end gap-2">
                     {status === OperationStatus.ACCEPTED && (
                         <>
                             <Button
@@ -99,15 +108,43 @@ function UnitCard({
                         </>
                     )}
 
-                    {status === OperationStatus.REVIEW && (
-                        <Button
-                            variant="danger"
-                            onClick={onCancelEdit}
-                            data-testid="btn-cancel-unit-operation"
-                        >
-                            Cancelar requisição
-                        </Button>
-                    )}
+                    {status === OperationStatus.REVIEW &&
+                        unitOperation?.operation_type === OperationType.ADD && (
+                            <Button
+                                variant="danger"
+                                onClick={onCancelEdit}
+                                className="w-40"
+                                data-testid="btn-cancel-unit-operation"
+                            >
+                                Cancelar adição
+                            </Button>
+                        )}
+
+                    {status === OperationStatus.REVIEW &&
+                        unitOperation?.operation_type ===
+                            OperationType.EDIT && (
+                            <Button
+                                variant="danger"
+                                onClick={onCancelEdit}
+                                className="w-40"
+                                data-testid="btn-cancel-unit-operation"
+                            >
+                                Cancelar alteração
+                            </Button>
+                        )}
+
+                    {status === OperationStatus.REVIEW &&
+                        unitOperation?.operation_type ===
+                            OperationType.DELETE && (
+                            <Button
+                                variant="danger"
+                                onClick={onCancelEdit}
+                                className="w-40"
+                                data-testid="btn-cancel-unit-operation"
+                            >
+                                Cancelar remoção
+                            </Button>
+                        )}
 
                     {status === OperationStatus.REJECTED && (
                         <Button

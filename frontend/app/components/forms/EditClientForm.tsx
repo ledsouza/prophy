@@ -124,7 +124,7 @@ const EditClientForm = ({
 
             if (response.error) {
                 if (isErrorWithMessage(response.error)) {
-                    const message = response.error.data.message[0];
+                    const message = response.error.data.messages[0];
                     return toast.error(message);
                 }
             }
@@ -297,7 +297,7 @@ const EditClientForm = ({
                         data-testid="submit-btn"
                         className="w-full"
                     >
-                        Requisitar alteração
+                        Requisitar
                     </Button>
                 </div>
             </Form>

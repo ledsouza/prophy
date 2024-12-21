@@ -7,4 +7,5 @@ export { default as LoginForm } from "./LoginForm";
 export { default as CNPJForm } from "./CNPJForm";
 export { default as RegisterForm } from "./RegisterForm";
 export { default as EditClientForm } from "./EditClientForm";
+export { default as AddUnitForm } from "./AddUnitForm";
 export { default as EditUnitForm } from "./EditUnitForm";

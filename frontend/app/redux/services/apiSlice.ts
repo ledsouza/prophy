@@ -6,6 +6,7 @@ import type {
 } from "@reduxjs/toolkit/query";
 import { setAuth, logout } from "../features/authSlice";
 import { Mutex } from "async-mutex";
+import { OperationStatus, OperationType } from "@/enums";
 
 export type PaginatedResponse<T> = {
     count: number;
@@ -19,8 +20,8 @@ export type ListQueryParams = {
 };
 
 export type Operation = {
-    operation_type: string;
-    operation_status?: string;
+    operation_type: OperationType;
+    operation_status?: OperationStatus;
     original_client?: number;
     original_unit?: number;
     original_equipment?: number;

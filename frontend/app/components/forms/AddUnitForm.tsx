@@ -1,71 +1,36 @@
-import { useEffect, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useState } from "react";
+
+import { isErrorWithMessage } from "@/redux/services/helpers";
+import { useCreateUnitMutation } from "@/redux/features/unitApiSlice";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isCNPJ } from "validation-br";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-import { isErrorWithMessage } from "@/redux/services/helpers";
-import { UnitDTO, useCreateUnitMutation } from "@/redux/features/unitApiSlice";
-
+import { OperationType } from "@/enums";
+import { unitSchema } from "@/schemas";
 import { useIBGELocalidades } from "@/hooks";
-import { OperationStatus, OperationType } from "@/enums";
 
-import { ComboBox, Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Button, Spinner } from "@/components/common";
+import { Spinner, Button } from "@/components/common";
+import { Form, Input, ComboBox } from "@/components/forms";
 
-const editUnitSchema = z.object({
-    name: z
-        .string()
-        .nonempty({ message: "Nome é obrigatório." })
-        .max(50, { message: "Nome deve ter no máximo 50 caracteres." }),
-    cnpj: z
-        .string()
-        .nonempty({ message: "CNPJ é obrigatório." })
-        .length(14, { message: "CNPJ deve ter 14 caracteres." })
-        .refine((cnpj) => isCNPJ(cnpj), { message: "CNPJ inválido." }),
-    email: z
-        .string()
-        .nonempty({ message: "E-mail é obrigatório." })
-        .email({ message: "E-mail inválido." }),
-    phone: z
-        .string()
-        .nonempty({ message: "Telefone é obrigatório." })
-        .min(10, { message: "Telefone deve conter no mínimo 10 dígitos." })
-        .max(11, { message: "Telefone deve conter no máximo 11 dígitos." })
-        .regex(/^[0-9]+$/, { message: "Telefone deve conter apenas números." }),
-    address: z
-        .string()
-        .nonempty({ message: "Endereço é obrigatório." })
-        .max(150, { message: "Endereço deve ter no máximo 150 caracteres." }),
-    state: z.string().nonempty({ message: "Estado é obrigatório." }),
-    city: z.string().nonempty({ message: "Cidade é obrigatória." }),
-});
+export type AddUnitFields = z.infer<typeof unitSchema>;
 
-export type EditUnitFields = z.infer<typeof editUnitSchema>;
-
-type EditUnitFormProps = {
-    originalUnit: UnitDTO;
+type AddUnitFormProps = {
+    clientId: number;
     setIsModalOpen: (value: boolean) => void;
 };
 
-const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
+const AddUnitForm = ({ clientId, setIsModalOpen }: AddUnitFormProps) => {
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
         setValue,
-    } = useForm<EditUnitFields>({
-        resolver: zodResolver(editUnitSchema),
-        defaultValues: {
-            name: originalUnit.name,
-            cnpj: originalUnit.cnpj,
-            email: originalUnit.email,
-            phone: originalUnit.phone,
-            address: originalUnit.address,
-        },
+    } = useForm<AddUnitFields>({
+        resolver: zodResolver(unitSchema),
     });
 
     const {
@@ -79,28 +44,14 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
         handleMunicipioChange,
     } = useIBGELocalidades(setValue);
 
-    const [isLoadingIBGE, setIsLoadingIBGE] = useState(true);
-    const [requestEditUnit] = useCreateUnitMutation();
+    const [requestAddUnit] = useCreateUnitMutation();
 
-    const onSubmit: SubmitHandler<EditUnitFields> = async (data) => {
-        if (
-            Object.entries(data).every(
-                ([key, value]) =>
-                    value.toLowerCase() ===
-                    originalUnit[key as keyof UnitDTO]?.toString().toLowerCase()
-            )
-        ) {
-            toast.warning("Nenhuma alteração foi detectada nos dados.");
-            return;
-        }
-
+    const onSubmit: SubmitHandler<AddUnitFields> = async (data) => {
         try {
-            const response = await requestEditUnit({
+            const response = await requestAddUnit({
                 ...data,
-                original_unit: originalUnit.id,
-                client: originalUnit.client,
-                operation_status: OperationStatus.REVIEW,
-                operation_type: OperationType.EDIT,
+                client: clientId,
+                operation_type: OperationType.ADD,
             });
 
             if (response.error) {
@@ -117,40 +68,6 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
         }
     };
 
-    // Load original unit state and city from IBGE API
-    useEffect(() => {
-        if (isLoadingIBGE) {
-            const estado = estados?.find(
-                (estado) =>
-                    estado.sigla?.toLowerCase() ===
-                    originalUnit.state.toLowerCase()
-            );
-
-            const municipio = municipios?.find(
-                (municipio) =>
-                    municipio.nome.toLowerCase() ===
-                    originalUnit.city.toLowerCase()
-            );
-
-            if (estado) {
-                handleEstadoChange({
-                    id: estado.id,
-                    name: estado.nome,
-                    sigla: estado.sigla,
-                });
-            }
-            if (municipio) {
-                handleMunicipioChange({
-                    id: municipio.id,
-                    name: municipio.nome,
-                });
-            }
-        }
-        if (estados && municipios) {
-            setIsLoadingIBGE(false);
-        }
-    }, [estados, municipios]);
-
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
@@ -159,14 +76,14 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
                     size="title3"
                     className="font-semibold"
                 >
-                    Atualização de dados
+                    Informe os dados da unidade
                 </Typography>
                 <Typography element="p" size="md" className="text-justify">
-                    Por favor, edite os campos que deseja atualizar,
-                    certificando-se de preencher as informações corretamente.
-                    Após a submissão, o formulário será enviado para análise de
-                    um físico médico responsável, que fará a revisão e validação
-                    das informações fornecidas.
+                    Por favor, preencha os campos abaixo com as informações da
+                    unidade, certificando-se de preencher as informações
+                    corretamente. Após a submissão, o formulário será enviado
+                    para análise de um físico médico responsável, que fará a
+                    revisão e validação das informações fornecidas.
                 </Typography>
                 <Input
                     {...register("name")}
@@ -295,4 +212,4 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
     );
 };
 
-export default EditUnitForm;
+export default AddUnitForm;

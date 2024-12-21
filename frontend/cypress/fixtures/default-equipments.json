@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Siemens",
-    "model": "CONSECTETUR-558",
-    "series_number": "tdZj-793988",
-    "anvisa_registry": "gubJncajDuBxn",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Philips",
+    "model": "CONSEQUUNTUR-870",
+    "series_number": "iSgM-695566",
+    "anvisa_registry": "rRLBqcwgqzUnv",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Ultrassom",
-    "manufacturer": "Toshiba",
-    "model": "EAQUE-655",
-    "series_number": "RvLQ-972030",
-    "anvisa_registry": "MnKcqHCuZbiPX",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Siemens",
+    "model": "REPUDIANDAE-631",
+    "series_number": "ztUz-034589",
+    "anvisa_registry": "DlKglfolAvDIU",
     "id": 1001
   }
 }

@@ -40,7 +40,7 @@ class Client(models.Model):
     state = models.CharField(
         "Estado da instituição", max_length=2, choices=STATE_CHOICES)
     city = models.CharField(
-        "Cidade da instituição", max_length=50, validators=[AlphaOnly()])
+        "Cidade da instituição", max_length=50)
     active = models.BooleanField("Ativo", default=False)
 
     @admin.display(description="Responsáveis")
@@ -80,7 +80,7 @@ class Unit(models.Model):
     state = models.CharField(
         "Estado", max_length=2, choices=STATE_CHOICES, blank=True)
     city = models.CharField("Cidade", max_length=50,
-                            blank=True, validators=[AlphaOnly()])
+                            blank=True)
 
     @admin.display(description="Status")
     def status(self):

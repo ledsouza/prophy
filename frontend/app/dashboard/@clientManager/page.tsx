@@ -26,7 +26,12 @@ import { OperationStatus, OperationType } from "@/enums";
 import { handleCloseModal, Modals } from "@/utils/modal";
 
 import { Typography } from "@/components/foundation";
-import { EditClientForm, EditUnitForm, Input } from "@/components/forms";
+import {
+    AddUnitForm,
+    EditClientForm,
+    EditUnitForm,
+    Input,
+} from "@/components/forms";
 import { Button, Modal, Spinner } from "@/components/common";
 import { ClientDetails, UnitCard } from "@/components/client";
 
@@ -105,6 +110,11 @@ function ClientPage() {
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
+    };
+
+    const handleAddUnit = () => {
+        setCurrentModal(Modals.ADD_UNIT);
+        setIsModalOpen(true);
     };
 
     const handleEditUnit = (selectedUnit: UnitDTO) => {
@@ -223,22 +233,27 @@ function ClientPage() {
 
     // Filter units by search term
     useEffect(() => {
-        if (filteredUnits && filteredUnits.length > 0) {
+        if (filteredUnits.length > 0) {
+            const addUnitsInOperation =
+                unitsOperations?.filter(
+                    (operation) =>
+                        operation.operation_type === OperationType.ADD
+                ) ?? [];
+
+            const units = [...filteredUnits, ...addUnitsInOperation];
+
             if (searchTerm.length > 0) {
-                setSearchedUnits(
-                    filteredUnits.filter((unit) =>
-                        unit.name
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase())
-                    )
+                const searchedUnits = units.filter((unit) =>
+                    unit.name.toLowerCase().includes(searchTerm.toLowerCase())
                 );
+                setSearchedUnits(searchedUnits);
             } else {
-                setSearchedUnits(filteredUnits);
+                setSearchedUnits(units);
             }
         } else {
             setSearchedUnits([]);
         }
-    }, [filteredUnits, searchTerm]);
+    }, [filteredUnits, searchTerm, unitsOperations]);
 
     // Check if the selected client has an operation in progress
     useEffect(() => {
@@ -336,7 +351,11 @@ function ClientPage() {
                             .map((unit) => (
                                 <UnitCard
                                     key={unit.id}
-                                    title={unit.name}
+                                    unit={unit}
+                                    unitOperation={getUnitOperation(
+                                        unit,
+                                        unitsOperations
+                                    )}
                                     status={handleUnitStatus(unit)}
                                     equipmentsCount={getEquipmentsCount(
                                         unit,
@@ -348,11 +367,6 @@ function ClientPage() {
                                     }
                                     onDelete={() => handleModalDeleteUnit(unit)}
                                     onReject={() => handleRejectUnit(unit)}
-                                    handleDetails={() =>
-                                        router.push(
-                                            `/dashboard/unit/${unit.id}`
-                                        )
-                                    }
                                     dataTestId={`unit-card-${unit.id}`}
                                 />
                             ))
@@ -370,7 +384,9 @@ function ClientPage() {
                     )}
                 </div>
 
-                <Button data-testid="btn-add-unit">Adicionar unidade</Button>
+                <Button onClick={handleAddUnit} data-testid="btn-add-unit">
+                    Adicionar unidade
+                </Button>
             </div>
 
             <Modal
@@ -405,6 +421,13 @@ function ClientPage() {
                             Confirmar
                         </Button>
                     </div>
+                )}
+
+                {currentModal === Modals.ADD_UNIT && selectedClient?.id && (
+                    <AddUnitForm
+                        clientId={selectedClient.id}
+                        setIsModalOpen={setIsModalOpen}
+                    />
                 )}
 
                 {currentModal === Modals.EDIT_UNIT && selectedUnit && (
