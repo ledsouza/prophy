@@ -20,9 +20,8 @@ function EquipmentCard({
 }: EquipmentCardProps) {
     return (
         <div
-            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary cursor-pointer"
+            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary"
             data-testid={dataTestId}
-            onClick={onClick}
         >
             <div className="flex justify-between pb-4">
                 <div className="flex flex-col">
@@ -44,7 +43,14 @@ function EquipmentCard({
                 </div>
             </div>
             <div className="flex gap-10 justify-between pt-4">
-                <div className="flex flex-row gap-2">
+                <Button
+                    variant="secondary"
+                    onClick={onClick}
+                    data-testid="btn-unit-detail"
+                >
+                    Acessar detalhes
+                </Button>
+                <div className="flex flex-grow justify-end gap-2">
                     <Button
                         variant="secondary"
                         data-testid="btn-edit-equipment"

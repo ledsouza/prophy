@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { getIdFromUrl } from "@/utils/url";
+import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
+import { apiSlice } from "@/redux/services/apiSlice";
 import {
     UnitDTO,
     useDeleteUnitOperationMutation,
@@ -15,23 +16,26 @@ import {
     useListAllEquipmentsQuery,
 } from "@/redux/features/equipmentApiSlice";
 
-import { Input } from "@/components/forms";
+import { toast } from "react-toastify";
+import { getIdFromUrl } from "@/utils/url";
+import { handleCloseModal, Modals } from "@/utils/modal";
+import { useAppDispatch } from "@/redux/hooks";
+import { ArrowClockwise } from "@phosphor-icons/react";
+
 import { Typography } from "@/components/foundation";
 import { Button, Modal, Spinner } from "@/components/common";
+import { Input, EditUnitForm } from "@/components/forms";
 import {
     UnitDetails,
     EquipmentCard,
     EquipmentDetails,
 } from "@/components/client";
-import { EditUnitForm } from "@/components/forms";
-import { handleCloseModal, Modals } from "@/utils/modal";
-import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
-import { toast } from "react-toastify";
 
 function UnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
     const router = useRouter();
+    const dispatch = useAppDispatch();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentModal, setCurrentModal] = useState<Modals | null>(null);
@@ -66,6 +70,17 @@ function UnitPage() {
         EquipmentDTO[]
     >([]);
     const [searchTerm, setSearchTerm] = useState("");
+
+    const handleUpdateData = () => {
+        dispatch(
+            apiSlice.util.invalidateTags([
+                { type: "Unit", id: "LIST" },
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Equipment", id: "LIST" },
+                { type: "EquipmentOperation", id: "LIST" },
+            ])
+        );
+    };
 
     function handleClickEquipmentCard(equipment: EquipmentDTO) {
         setSelectedEquipment(equipment);
@@ -171,6 +186,17 @@ function UnitPage() {
     if (selectedUnit) {
         return (
             <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
+                <Button
+                    variant="secondary"
+                    className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
+                    disabled={isLoadingUnitOperations}
+                    onClick={handleUpdateData}
+                >
+                    <div className="flex items-center gap-2">
+                        <ArrowClockwise size="24" /> Atualizar
+                    </div>
+                </Button>
+
                 <UnitDetails selectedUnit={selectedUnit} />
 
                 <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
