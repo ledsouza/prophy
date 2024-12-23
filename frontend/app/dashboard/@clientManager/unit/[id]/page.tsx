@@ -45,18 +45,25 @@ function UnitPage() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentModal, setCurrentModal] = useState<Modals | null>(null);
+
+    const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
     const [selectedEquipment, setSelectedEquipment] =
         useState<EquipmentDTO | null>(null);
+    const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<
+        EquipmentDTO[]
+    >([]);
+    const [searchedEquipments, setSearchedEquipments] = useState<
+        EquipmentDTO[]
+    >([]);
+    const [searchTerm, setSearchTerm] = useState("");
 
     const {
         data: units,
         isLoading: isPaginatingUnits,
         error: errorUnits,
     } = useListAllUnitsQuery();
-
     const { data: unitsOperations, isLoading: isLoadingUnitOperations } =
         useListAllUnitsOperationsQuery();
-
     const [createUnitOperation] = useCreateUnitMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
@@ -65,16 +72,6 @@ function UnitPage() {
         isLoading: isPaginatingEquipments,
         error: errorEquipments,
     } = useListAllEquipmentsQuery();
-
-    const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
-    const [filteredEquipments, setFilteredEquipments] = useState<
-        EquipmentDTO[]
-    >([]);
-
-    const [searchedEquipments, setSearchedEquipments] = useState<
-        EquipmentDTO[]
-    >([]);
-    const [searchTerm, setSearchTerm] = useState("");
 
     const handleUpdateData = () => {
         dispatch(
@@ -182,36 +179,36 @@ function UnitPage() {
 
         const unit = units.find((unit) => unit.id === unitId);
 
-        // When the user update data after unit being accepted to be deleted
-        // Since the data doesn't exist anymore, the user is redirected to the root dashboard
+        // When the user update data after unit being accepted to be deleted:
+        // Since the data doesn't exist anymore, the user is redirected to the main dashboard
         if (!unit) {
             return router.push("/dashboard");
         }
 
         setSelectedUnit(unit);
-        setFilteredEquipments(
+        setFilteredEquipmentsByUnit(
             equipments.filter((equipment) => equipment.unit === unitId)
         );
     }, [units, equipments, unitId, isPaginatingUnits, isPaginatingEquipments]);
 
     // Filter equipments by search term
     useEffect(() => {
-        if (filteredEquipments.length > 0) {
+        if (filteredEquipmentsByUnit.length > 0) {
             if (searchTerm.length > 0) {
                 setSearchedEquipments(
-                    filteredEquipments.filter((equipment) =>
+                    filteredEquipmentsByUnit.filter((equipment) =>
                         equipment.model
                             .toLowerCase()
                             .includes(searchTerm.toLowerCase())
                     )
                 );
             } else {
-                setSearchedEquipments(filteredEquipments);
+                setSearchedEquipments(filteredEquipmentsByUnit);
             }
         } else {
             setSearchedEquipments([]);
         }
-    }, [filteredEquipments, searchTerm]);
+    }, [filteredEquipmentsByUnit, searchTerm]);
 
     if (isPaginatingUnits || isPaginatingEquipments) {
         return <Spinner fullscreen />;
@@ -259,9 +256,9 @@ function UnitPage() {
                         selectedUnit,
                         unitsOperations
                     )}
-                    handleEdit={handleEditUnit}
-                    handleDelete={handleModalDeleteUnit}
-                    handleReject={handleRejectUnit}
+                    onEdit={handleEditUnit}
+                    onDelete={handleModalDeleteUnit}
+                    onReject={handleRejectUnit}
                 />
 
                 <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
@@ -273,7 +270,7 @@ function UnitPage() {
                         Equipamentos
                     </Typography>
 
-                    {filteredEquipments?.length !== 0 && (
+                    {filteredEquipmentsByUnit?.length !== 0 && (
                         <Input
                             placeholder="Buscar equipamentos por modelo"
                             value={searchTerm}
@@ -302,7 +299,7 @@ function UnitPage() {
                                 dataTestId="equipment-not-found"
                                 className="justify-center text-center"
                             >
-                                {filteredEquipments?.length === 0
+                                {filteredEquipmentsByUnit?.length === 0
                                     ? "Nenhum equipamento registrado"
                                     : "Nenhum equipamento encontrado para o termo pesquisado"}
                             </Typography>

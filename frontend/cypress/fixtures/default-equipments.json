@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Tom\u00f3grafo",
-    "manufacturer": "Philips",
-    "model": "CONSEQUUNTUR-870",
-    "series_number": "iSgM-695566",
-    "anvisa_registry": "rRLBqcwgqzUnv",
+    "modality": "Ultrassom",
+    "manufacturer": "Siemens",
+    "model": "FUGIAT-679",
+    "series_number": "CzQe-713540",
+    "anvisa_registry": "bBZtyCfgvyWNd",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Tom\u00f3grafo",
-    "manufacturer": "Siemens",
-    "model": "REPUDIANDAE-631",
-    "series_number": "ztUz-034589",
-    "anvisa_registry": "DlKglfolAvDIU",
+    "manufacturer": "GE",
+    "model": "EXCEPTURI-578",
+    "series_number": "KHOE-795442",
+    "anvisa_registry": "qjdXVsHsWwqmn",
     "id": 1001
   }
 }

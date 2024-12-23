@@ -20,17 +20,17 @@ import { toast } from "react-toastify";
 type UnitDetailsProps = {
     unit: UnitDTO;
     unitOperation: UnitOperationDTO | undefined;
-    handleEdit: () => void;
-    handleDelete: () => void;
-    handleReject: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
+    onReject: () => void;
 };
 
 function UnitDetails({
     unit,
     unitOperation,
-    handleEdit,
-    handleDelete,
-    handleReject,
+    onEdit,
+    onDelete,
+    onReject,
 }: UnitDetailsProps) {
     const [loadingCancel, setLoadingCancel] = useState(false);
 
@@ -136,7 +136,7 @@ function UnitDetails({
                                 <Button
                                     variant="danger"
                                     className="flex-grow"
-                                    onClick={handleReject}
+                                    onClick={onReject}
                                     data-testid="btn-reject-edit-client"
                                 >
                                     Verificar motivo
@@ -150,14 +150,14 @@ function UnitDetails({
                         <Button
                             variant="secondary"
                             className="flex-grow"
-                            onClick={handleEdit}
+                            onClick={onEdit}
                             data-testid="btn-edit-unit"
                         >
                             Editar
                         </Button>
                         <Button
                             variant="danger"
-                            onClick={handleDelete}
+                            onClick={onDelete}
                             className="flex-grow"
                             data-testid="btn-delete-unit"
                         >
