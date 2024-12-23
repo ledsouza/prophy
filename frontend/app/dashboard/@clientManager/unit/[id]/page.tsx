@@ -29,7 +29,7 @@ import { ArrowClockwise } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Button, Modal, Spinner } from "@/components/common";
-import { Input, EditUnitForm } from "@/components/forms";
+import { Input, EditUnitForm, AddEquipmentForm } from "@/components/forms";
 import {
     UnitDetails,
     EquipmentCard,
@@ -169,6 +169,11 @@ function UnitPage() {
         }
     };
 
+    const handleAddEquipment = () => {
+        setCurrentModal(Modals.ADD_EQUIPMENT);
+        setIsModalOpen(true);
+    };
+
     // Set selected unit and filtered equipments
     useEffect(() => {
         // Only run when both data finished paginating
@@ -306,7 +311,10 @@ function UnitPage() {
                         )}
                     </div>
 
-                    <Button data-testid="btn-add-equipment">
+                    <Button
+                        onClick={handleAddEquipment}
+                        data-testid="btn-add-equipment"
+                    >
                         Adicionar equipamento
                     </Button>
                 </div>
@@ -396,6 +404,13 @@ function UnitPage() {
                                 </Button>
                             </div>
                         </div>
+                    )}
+
+                    {currentModal === Modals.ADD_EQUIPMENT && (
+                        <AddEquipmentForm
+                            unitId={unitId}
+                            setIsModalOpen={setIsModalOpen}
+                        />
                     )}
 
                     {currentModal === Modals.EQUIPMENT_DETAILS &&

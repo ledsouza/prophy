@@ -14,6 +14,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             errorMessage,
             dataTestId,
             children,
+            type,
             ...props
         }: InputProps,
         ref
@@ -24,6 +25,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 "ring-tertiary": disabled,
                 "bg-danger bg-opacity-5 ring-danger": errorMessage,
                 "ring-primary": !errorMessage && !disabled,
+                "px-2 file:border-0 file:bg-secondary file:rounded-md file:text-white hover:file:cursor-pointer hover:file:bg-opacity-80 file:active:transform file:active:scale-95 file:transition-transform":
+                    type === "file",
             }
         );
 
@@ -39,6 +42,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 <div className="mt-2">
                     <input
                         ref={ref}
+                        type={type}
                         disabled={disabled}
                         className={inputClassName}
                         data-testid={dataTestId}

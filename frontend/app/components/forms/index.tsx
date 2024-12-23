@@ -9,3 +9,4 @@ export { default as RegisterForm } from "./RegisterForm";
 export { default as EditClientForm } from "./EditClientForm";
 export { default as AddUnitForm } from "./AddUnitForm";
 export { default as EditUnitForm } from "./EditUnitForm";
+export { default as AddEquipmentForm } from "./AddEquipmentForm";
