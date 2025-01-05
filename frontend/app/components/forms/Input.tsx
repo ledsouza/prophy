@@ -20,12 +20,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         ref
     ) => {
         const inputClassName = cn(
-            "block w-full rounded-md border-0 py-1.5 text-gray-primary shadow-md ring-1 ring-inset placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
+            "block w-full rounded-md border-0 text-gray-primary shadow-md ring-1 ring-inset placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
             {
-                "ring-tertiary": disabled,
-                "bg-danger bg-opacity-5 ring-danger": errorMessage,
-                "ring-primary": !errorMessage && !disabled,
-                "px-2 file:border-0 file:bg-secondary file:rounded-md file:text-white hover:file:cursor-pointer hover:file:bg-opacity-80 file:active:transform file:active:scale-95 file:transition-transform":
+                "py-1.5 ring-tertiary": disabled,
+                "py-1.5 bg-danger bg-opacity-5 ring-danger": errorMessage,
+                "py-1.5 ring-primary":
+                    !errorMessage && !disabled && type !== "file",
+                "ring-primary file:py-1.5 file:border-0 file:bg-secondary file:rounded-md file:text-white hover:file:cursor-pointer hover:file:bg-opacity-80":
                     type === "file",
             }
         );

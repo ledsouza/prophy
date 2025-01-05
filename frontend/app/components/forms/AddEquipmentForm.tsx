@@ -27,7 +27,25 @@ const AddEquipmentForm = ({
     });
 
     const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
-        console.log(data);
+        const formData = new FormData();
+
+        // Handle text fields
+        formData.append("modality", data.modality);
+        formData.append("manufacturer", data.manufacturer);
+        formData.append("model", data.model);
+        formData.append("series_number", data.series_number);
+        formData.append("anvisa_registry", data.anvisa_registry);
+        formData.append("unit_id", unitId.toString());
+
+        // Handle file uploads - check if files exist before appending
+        if (data.equipment_photo?.[0]) {
+            formData.append("equipment_photo", data.equipment_photo[0]);
+        }
+
+        if (data.label_photo?.[0]) {
+            formData.append("label_photo", data.label_photo[0]);
+        }
+
         // API call here
     };
 
