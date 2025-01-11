@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 
-import placeholderImage from "@/assets/placeholder-image.jpg";
+import notFound from "@/assets/not-found.jpeg";
 import { XCircle } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
@@ -24,8 +24,15 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                 <XCircle size={32} className="text-primary" />
             </button>
             <Image
-                src={placeholderImage}
+                src={
+                    process.env.NEXT_PUBLIC_HOST
+                        ? process.env.NEXT_PUBLIC_HOST +
+                          equipment.equipment_photo
+                        : notFound
+                }
                 alt="Imagem do equipamento"
+                width={1200}
+                height={1200}
                 style={{
                     objectFit: "cover",
                 }}

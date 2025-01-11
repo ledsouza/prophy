@@ -1,6 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import Group
+from django.core.files import File
+from django.conf import settings
 
 from clients_management.models import Client, Unit, Proposal
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
@@ -12,7 +14,10 @@ from faker import Faker
 from random import choice, randint
 from localflavor.br.br_states import STATE_CHOICES
 
+
 fake = Faker("pt_BR")
+
+BASE_DIR = settings.BASE_DIR
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(
     os.path.join(current_dir, '..', '..', '..', '..'))
@@ -30,6 +35,8 @@ REJECTED_PROPOSAL_CNPJ = "09352176000187"
 APPROVED_PROPOSAL_CNPJ = "26661570000116"
 
 REGISTERED_CNPJ = "78187773000116"
+
+EQUIPMENT_PHOTO_PATH = BASE_DIR / "static" / "petct.jpg"
 
 FIXTURE_PATH = os.path.join(
     project_root, 'frontend', 'cypress', 'fixtures')
@@ -492,70 +499,73 @@ class Command(BaseCommand):
 
         user_client = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
 
-        # Default equipments for automated testing
-        equipment1 = EquipmentOperation.objects.create(
-            operation_type="C",
-            operation_status="A",
-            created_by=user_client,
-            unit=Unit.objects.filter(client__users=user_client)[0],
-            modality=choice(modalities),
-            manufacturer=choice(manufactures),
-            model=fake.word().upper() + "-" + str(randint(100, 999)),
-            series_number=fake.bothify(text='????-######'),
-            anvisa_registry=fake.bothify(text='?????????????'),
-            equipment_photo='./petct.jpg',
-            id=1000
-        )
-        equipment2 = EquipmentOperation.objects.create(
-            operation_type="C",
-            operation_status="A",
-            created_by=user_client,
-            unit=Unit.objects.filter(client__users=user_client)[0],
-            modality=choice(modalities),
-            manufacturer=choice(manufactures),
-            model=fake.word().upper() + "-" + str(randint(100, 999)),
-            series_number=fake.bothify(text='????-######'),
-            anvisa_registry=fake.bothify(text='?????????????'),
-            equipment_photo='./petct.jpg',
-            id=1001
-        )
+        with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
+            photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
 
-        equipments = {
-            "equipment1": {
-                "unit": equipment1.unit.id,
-                "modality": equipment1.modality,
-                "manufacturer": equipment1.manufacturer,
-                "model": equipment1.model,
-                "series_number": equipment1.series_number,
-                "anvisa_registry": equipment1.anvisa_registry,
-                "id": equipment1.id
-            },
-            "equipment2": {
-                "unit": equipment2.unit.id,
-                "modality": equipment2.modality,
-                "manufacturer": equipment2.manufacturer,
-                "model": equipment2.model,
-                "series_number": equipment2.series_number,
-                "anvisa_registry": equipment2.anvisa_registry,
-                "id": equipment2.id
+            # Default equipments for automated testing
+            equipment1 = EquipmentOperation.objects.create(
+                operation_type="C",
+                operation_status="A",
+                created_by=user_client,
+                unit=Unit.objects.filter(client__users=user_client)[0],
+                modality=choice(modalities),
+                manufacturer=choice(manufactures),
+                model=fake.word().upper() + "-" + str(randint(100, 999)),
+                series_number=fake.bothify(text='????-######'),
+                anvisa_registry=fake.bothify(text='?????????????'),
+                equipment_photo=photo_file,
+                id=1000
+            )
+            equipment2 = EquipmentOperation.objects.create(
+                operation_type="C",
+                operation_status="A",
+                created_by=user_client,
+                unit=Unit.objects.filter(client__users=user_client)[0],
+                modality=choice(modalities),
+                manufacturer=choice(manufactures),
+                model=fake.word().upper() + "-" + str(randint(100, 999)),
+                series_number=fake.bothify(text='????-######'),
+                anvisa_registry=fake.bothify(text='?????????????'),
+                equipment_photo=photo_file,
+                id=1001
+            )
+
+            equipments = {
+                "equipment1": {
+                    "unit": equipment1.unit.id,
+                    "modality": equipment1.modality,
+                    "manufacturer": equipment1.manufacturer,
+                    "model": equipment1.model,
+                    "series_number": equipment1.series_number,
+                    "anvisa_registry": equipment1.anvisa_registry,
+                    "id": equipment1.id
+                },
+                "equipment2": {
+                    "unit": equipment2.unit.id,
+                    "modality": equipment2.modality,
+                    "manufacturer": equipment2.manufacturer,
+                    "model": equipment2.model,
+                    "series_number": equipment2.series_number,
+                    "anvisa_registry": equipment2.anvisa_registry,
+                    "id": equipment2.id
+                }
             }
-        }
 
-        # Random equipments for automated testing
-        for units in Unit.objects.all().exclude(client__users=user_client):
-            for _ in range(num_equipments_per_units + randint(0, 4)):
-                EquipmentOperation.objects.create(
-                    operation_type="C",
-                    operation_status="A",
-                    created_by=user_client,
-                    unit=units,
-                    modality=choice(modalities),
-                    manufacturer=choice(manufactures),
-                    model=fake.word().upper() + "-" + str(randint(100, 999)),
-                    series_number=fake.bothify(text='????-######'),
-                    anvisa_registry=fake.bothify(text='?????????????'),
-                    equipment_photo='./petct.jpg'
-                )
+            # Random equipments for automated testing
+            for units in Unit.objects.all().exclude(client__users=user_client):
+                for _ in range(num_equipments_per_units + randint(0, 4)):
+                    EquipmentOperation.objects.create(
+                        operation_type="C",
+                        operation_status="A",
+                        created_by=user_client,
+                        unit=units,
+                        modality=choice(modalities),
+                        manufacturer=choice(manufactures),
+                        model=fake.word().upper() + "-" + str(randint(100, 999)),
+                        series_number=fake.bothify(text='????-######'),
+                        anvisa_registry=fake.bothify(text='?????????????'),
+                        equipment_photo=photo_file
+                    )
 
         return equipments
 
