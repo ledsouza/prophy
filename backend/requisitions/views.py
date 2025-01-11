@@ -70,6 +70,18 @@ class ClientOperationViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Create client operation",
+        operation_description="""
+        ### Operation Types:
+        - A: Add
+        - E: Edit
+        - D: Delete
+        - C: Closed
+
+        ### Operation Status:
+        - REV: In analysis
+        - A: Approved
+        - R: Rejected
+        """,
         request_body=ClientOperationSerializer,
         responses={
             201: openapi.Response(
@@ -239,6 +251,18 @@ class UnitOperationViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Create unit operation",
+        operation_description="""
+        ### Operation Types:
+        - A: Add
+        - E: Edit
+        - D: Delete
+        - C: Closed
+
+        ### Operation Status:
+        - REV: In analysis
+        - A: Approved
+        - R: Rejected
+        """,
         request_body=UnitOperationSerializer,
         responses={
             201: openapi.Response(
@@ -411,6 +435,18 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Create equipment operation",
+        operation_description="""
+        ### Operation Types:
+        - A: Add
+        - E: Edit
+        - D: Delete
+        - C: Closed
+
+        ### Operation Status:
+        - REV: In analysis
+        - A: Approved
+        - R: Rejected
+        """,
         request_body=EquipmentOperationSerializer,
         responses={
             201: openapi.Response(

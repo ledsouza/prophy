@@ -1,6 +1,7 @@
 import {
     apiSlice,
     ListQueryParams,
+    Operation,
     PaginatedResponse,
 } from "../services/apiSlice";
 
@@ -9,15 +10,17 @@ export type EquipmentDTO = {
     modality: string;
     manufacturer: string;
     model: string;
-    series_number: string;
-    anvisa_registry: string;
-    equipment_photo: string;
-    label_photo: string;
-    maintenance_responsable: string;
-    email_maintenance_responsable: string;
-    phone_maintenance_responsable: string;
+    series_number?: string;
+    anvisa_registry?: string;
+    equipment_photo?: string;
+    label_photo?: string;
+    maintenance_responsable?: string;
+    email_maintenance_responsable?: string;
+    phone_maintenance_responsable?: string;
     unit: number;
 };
+
+export type EquipmentOperationDTO = EquipmentDTO & Operation;
 
 const equipmentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -67,8 +70,26 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Equipment", id: "LIST" }],
         }),
+        createEquipmentOperation: builder.mutation<
+            EquipmentOperationDTO,
+            FormData
+        >({
+            query: (formData) => ({
+                url: "equipments/operations/",
+                method: "POST",
+                body: formData,
+                formData: true,
+            }),
+            invalidatesTags: [
+                { type: "EquipmentOperation", id: "LIST" },
+                { type: "Equipment", id: "LIST" },
+            ],
+        }),
     }),
 });
 
-export const { useListEquipmentsQuery, useListAllEquipmentsQuery } =
-    equipmentApiSlice;
+export const {
+    useListEquipmentsQuery,
+    useListAllEquipmentsQuery,
+    useCreateEquipmentOperationMutation,
+} = equipmentApiSlice;

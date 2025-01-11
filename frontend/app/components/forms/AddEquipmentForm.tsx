@@ -6,6 +6,10 @@ import { equipmentSchema } from "@/schemas";
 import { Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Button } from "../common";
+import { OperationType } from "@/enums";
+import { useCreateEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
+import { isErrorWithMessage, isResponseError } from "@/redux/services/helpers";
+import { toast } from "react-toastify";
 
 export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
 
@@ -26,16 +30,19 @@ const AddEquipmentForm = ({
         resolver: zodResolver(equipmentSchema),
     });
 
+    const [createEquipmentOperation] = useCreateEquipmentOperationMutation();
+
     const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
         const formData = new FormData();
 
         // Handle text fields
+        formData.append("operation_type", OperationType.ADD);
         formData.append("modality", data.modality);
         formData.append("manufacturer", data.manufacturer);
         formData.append("model", data.model);
         formData.append("series_number", data.series_number);
         formData.append("anvisa_registry", data.anvisa_registry);
-        formData.append("unit_id", unitId.toString());
+        formData.append("unit", unitId.toString());
 
         // Handle file uploads - check if files exist before appending
         if (data.equipment_photo?.[0]) {
@@ -46,7 +53,25 @@ const AddEquipmentForm = ({
             formData.append("label_photo", data.label_photo[0]);
         }
 
-        // API call here
+        try {
+            const response = await createEquipmentOperation(formData);
+
+            if (response.error) {
+                if (isErrorWithMessage(response.error)) {
+                    toast.error(response.error.data.messages[0]);
+                    return;
+                }
+                if (isResponseError(response.error)) {
+                    toast.error("Algo deu errado. Tente novamente mais tarde.");
+                    return;
+                }
+            }
+
+            toast.success("Requisição enviada com sucesso!");
+            setIsModalOpen(false);
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
     };
 
     return (
