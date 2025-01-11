@@ -70,6 +70,38 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Equipment", id: "LIST" }],
         }),
+        listAllEquipmentsOperations: builder.query<
+            EquipmentOperationDTO[],
+            void
+        >({
+            async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
+                let allEquipmentsOperations: EquipmentOperationDTO[] = [];
+                let currentPage = 1;
+                let hasNextPage = true;
+
+                while (hasNextPage) {
+                    const response = await baseQuery({
+                        url: "clients/operations/",
+                        method: "GET",
+                        params: { page: currentPage },
+                    });
+
+                    if (response.error) return { error: response.error };
+
+                    const data =
+                        response.data as PaginatedResponse<EquipmentOperationDTO>;
+                    allEquipmentsOperations = [
+                        ...allEquipmentsOperations,
+                        ...data.results,
+                    ];
+                    hasNextPage = data.next !== null;
+                    currentPage++;
+                }
+
+                return { data: allEquipmentsOperations };
+            },
+            providesTags: [{ type: "EquipmentOperation", id: "LIST" }],
+        }),
         createEquipmentOperation: builder.mutation<
             EquipmentOperationDTO,
             FormData
@@ -91,5 +123,6 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
 export const {
     useListEquipmentsQuery,
     useListAllEquipmentsQuery,
+    useListAllEquipmentsOperationsQuery,
     useCreateEquipmentOperationMutation,
 } = equipmentApiSlice;

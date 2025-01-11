@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useRouter } from "next/navigation";
 
 import { PencilLine, Trash } from "@phosphor-icons/react";
 
-import { Typography } from "@/components/foundation";
-import { Button } from "@/components/common";
 import { OperationStatus, OperationType } from "@/enums";
+
 import { UnitDTO, UnitOperationDTO } from "@/redux/features/unitApiSlice";
-import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/common";
+import { CardButtons, CardStatus } from "@/components/client";
+import { Typography } from "@/components/foundation";
 
 type UnitCardProps = {
     unit: UnitDTO;
@@ -59,106 +62,20 @@ function UnitCard({
                         Status
                     </Typography>
 
-                    {status === OperationStatus.ACCEPTED && (
-                        <Typography className="text-success">
-                            Aprovada
-                        </Typography>
-                    )}
-                    {status === OperationStatus.REJECTED && (
-                        <Typography className="text-danger">
-                            Rejeitada
-                        </Typography>
-                    )}
-                    {status === OperationStatus.REVIEW && (
-                        <Typography className="text-primary">
-                            Requisição em análise
-                        </Typography>
-                    )}
+                    <CardStatus status={status} />
                 </div>
             </div>
 
             <div className="flex gap-10 justify-between pt-4">
-                {unitOperation?.operation_type !== OperationType.ADD && (
-                    <Button
-                        variant="secondary"
-                        onClick={() =>
-                            router.push(`/dashboard/unit/${unit.id}`)
-                        }
-                        data-testid="btn-unit-detail"
-                    >
-                        Acessar detalhes
-                    </Button>
-                )}
-
-                <div className="flex flex-grow justify-end gap-2">
-                    {status === OperationStatus.ACCEPTED && (
-                        <>
-                            <Button
-                                variant="secondary"
-                                onClick={onEdit}
-                                data-testid="btn-edit-unit"
-                            >
-                                <PencilLine size={20} />
-                            </Button>
-                            <Button
-                                variant="danger"
-                                onClick={onDelete}
-                                data-testid="btn-delete-unit"
-                            >
-                                <Trash size={20} />
-                            </Button>
-                        </>
-                    )}
-
-                    {status === OperationStatus.REVIEW &&
-                        unitOperation?.operation_type === OperationType.ADD && (
-                            <Button
-                                variant="danger"
-                                onClick={onCancelEdit}
-                                className="w-40"
-                                data-testid="btn-cancel-unit-operation"
-                            >
-                                Cancelar adição
-                            </Button>
-                        )}
-
-                    {status === OperationStatus.REVIEW &&
-                        unitOperation?.operation_type ===
-                            OperationType.EDIT && (
-                            <Button
-                                variant="danger"
-                                onClick={onCancelEdit}
-                                className="w-40"
-                                data-testid="btn-cancel-unit-operation"
-                            >
-                                Cancelar alteração
-                            </Button>
-                        )}
-
-                    {status === OperationStatus.REVIEW &&
-                        unitOperation?.operation_type ===
-                            OperationType.DELETE && (
-                            <Button
-                                variant="danger"
-                                onClick={onCancelEdit}
-                                className="w-40"
-                                data-testid="btn-cancel-unit-operation"
-                            >
-                                Cancelar remoção
-                            </Button>
-                        )}
-
-                    {status === OperationStatus.REJECTED && (
-                        <Button
-                            variant="danger"
-                            onClick={onReject}
-                            className="w-40"
-                            data-testid="btn-retry-unit-operation"
-                        >
-                            Verificar motivo
-                        </Button>
-                    )}
-                </div>
+                <CardButtons
+                    operation={unitOperation}
+                    status={status}
+                    onDetails={() => router.push(`/dashboard/unit/${unit.id}`)}
+                    onCancelEdit={onCancelEdit}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    onReject={onReject}
+                />
             </div>
         </div>
     );

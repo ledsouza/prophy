@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import {
+    getEquipmentOperation,
     getUnitOperation,
     isErrorWithMessage,
     isResponseError,
@@ -18,6 +19,7 @@ import {
 } from "@/redux/features/unitApiSlice";
 import {
     EquipmentDTO,
+    useListAllEquipmentsOperationsQuery,
     useListAllEquipmentsQuery,
 } from "@/redux/features/equipmentApiSlice";
 
@@ -35,7 +37,7 @@ import {
     EquipmentCard,
     EquipmentDetails,
 } from "@/components/client";
-import { OperationType } from "@/enums";
+import { OperationStatus, OperationType } from "@/enums";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -59,17 +61,28 @@ function UnitPage() {
 
     const {
         data: units,
-        isLoading: isPaginatingUnits,
+        isLoading: isLoadingUnits,
         error: errorUnits,
     } = useListAllUnitsQuery();
-    const { data: unitsOperations, isLoading: isLoadingUnitOperations } =
-        useListAllUnitsOperationsQuery();
+
+    const {
+        data: unitsOperations,
+        isLoading: isLoadingUnitOperations,
+        error: errorUnitsOperations,
+    } = useListAllUnitsOperationsQuery();
+
+    const {
+        data: equipmentsOperations,
+        isLoading: isLoadingEquipmentsOperations,
+        error: errorEquipmentsOperations,
+    } = useListAllEquipmentsOperationsQuery();
+
     const [createUnitOperation] = useCreateUnitMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
     const {
         data: equipments,
-        isLoading: isPaginatingEquipments,
+        isLoading: isLoadingEquipments,
         error: errorEquipments,
     } = useListAllEquipmentsQuery();
 
@@ -84,7 +97,7 @@ function UnitPage() {
         );
     };
 
-    function handleClickEquipmentCard(equipment: EquipmentDTO) {
+    function handleClickEquipmentDetails(equipment: EquipmentDTO) {
         setSelectedEquipment(equipment);
         setCurrentModal(Modals.EQUIPMENT_DETAILS);
         setIsModalOpen(true);
@@ -174,10 +187,30 @@ function UnitPage() {
         setIsModalOpen(true);
     };
 
+    const handleEditEquipment = () => {
+        setCurrentModal(Modals.EDIT_EQUIPMENT);
+        setIsModalOpen(true);
+    };
+
+    const handleEquipmentStatus = (
+        equipment: EquipmentDTO
+    ): OperationStatus => {
+        const equipmentOperation = getEquipmentOperation(
+            equipment,
+            equipmentsOperations
+        );
+
+        if (equipmentOperation) {
+            return equipmentOperation.operation_status as OperationStatus;
+        } else {
+            return OperationStatus.ACCEPTED;
+        }
+    };
+
     // Set selected unit and filtered equipments
     useEffect(() => {
         // Only run when both data finished paginating
-        if (isPaginatingUnits || isPaginatingEquipments) return;
+        if (isLoadingUnits || isLoadingEquipments) return;
 
         // Add null checks to prevent unnecessary renders
         if (!units || !equipments || !unitId) return;
@@ -194,7 +227,7 @@ function UnitPage() {
         setFilteredEquipmentsByUnit(
             equipments.filter((equipment) => equipment.unit === unitId)
         );
-    }, [units, equipments, unitId, isPaginatingUnits, isPaginatingEquipments]);
+    }, [units, equipments, unitId, isLoadingUnits, isLoadingEquipments]);
 
     // Filter equipments by search term
     useEffect(() => {
@@ -215,11 +248,21 @@ function UnitPage() {
         }
     }, [filteredEquipmentsByUnit, searchTerm]);
 
-    if (isPaginatingUnits || isPaginatingEquipments) {
+    if (
+        isLoadingUnits ||
+        isLoadingUnitOperations ||
+        isLoadingEquipments ||
+        isLoadingEquipmentsOperations
+    ) {
         return <Spinner fullscreen />;
     }
 
-    if (errorUnits || errorEquipments) {
+    if (
+        errorUnits ||
+        errorUnitsOperations ||
+        errorEquipments ||
+        errorEquipmentsOperations
+    ) {
         return (
             <div className="flex flex-col items-center justify-center h-screen gap-8">
                 <Typography
@@ -286,17 +329,43 @@ function UnitPage() {
 
                     <div className="flex flex-col gap-6">
                         {searchedEquipments.length > 0 ? (
-                            searchedEquipments.map((equipment) => (
-                                <EquipmentCard
-                                    key={equipment.id}
-                                    equipment={equipment}
-                                    status="Aceito"
-                                    onClick={() =>
-                                        handleClickEquipmentCard(equipment)
-                                    }
-                                    dataTestId={`equipment-card-${equipment.id}`}
-                                />
-                            ))
+                            searchedEquipments
+                                .sort((a, b) => {
+                                    const statusOrder: Record<
+                                        OperationStatus,
+                                        number
+                                    > = {
+                                        [OperationStatus.ACCEPTED]: 1,
+                                        [OperationStatus.REVIEW]: 2,
+                                        [OperationStatus.REJECTED]: 3,
+                                    };
+                                    const statusA = handleEquipmentStatus(a);
+                                    const statusB = handleEquipmentStatus(b);
+                                    return (
+                                        statusOrder[statusA] -
+                                        statusOrder[statusB]
+                                    );
+                                })
+                                .map((equipment) => (
+                                    <EquipmentCard
+                                        key={equipment.id}
+                                        equipment={equipment}
+                                        equipmentOperation={getEquipmentOperation(
+                                            equipment,
+                                            equipmentsOperations
+                                        )}
+                                        onEdit={handleEditEquipment}
+                                        onCancelEdit={() => {}}
+                                        onDelete={() => {}}
+                                        onReject={() => {}}
+                                        onDetails={() =>
+                                            handleClickEquipmentDetails(
+                                                equipment
+                                            )
+                                        }
+                                        dataTestId={`equipment-card-${equipment.id}`}
+                                    />
+                                ))
                         ) : (
                             <Typography
                                 element="p"

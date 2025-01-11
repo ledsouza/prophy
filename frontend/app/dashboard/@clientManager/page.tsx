@@ -287,7 +287,7 @@ function ClientPage() {
             : setSelectedClientInOperation(null);
     }, [isLoadingClientsOperations, clientsOperations, selectedClient]);
 
-    if (isLoadingClientData) {
+    if (isLoadingClientData || isLoadingUnitsOperations) {
         return <Spinner fullscreen />;
     }
 
