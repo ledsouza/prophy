@@ -77,6 +77,8 @@ class ClientOperationViewSet(viewsets.ViewSet):
         - D: Delete
         - C: Closed
 
+        If operation type is delete, only original_client is required in the body of the request.
+
         ### Operation Status:
         - REV: In analysis
         - A: Approved
@@ -258,10 +260,14 @@ class UnitOperationViewSet(viewsets.ViewSet):
         - D: Delete
         - C: Closed
 
+        If operation type is delete, only original_unit is required in the body of the request.
+
         ### Operation Status:
         - REV: In analysis
         - A: Approved
         - R: Rejected
+
+
         """,
         request_body=UnitOperationSerializer,
         responses={
@@ -441,6 +447,8 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         - E: Edit
         - D: Delete
         - C: Closed
+
+        If operation type is delete, only original_equipment is required in the body of the request.
 
         ### Operation Status:
         - REV: In analysis
