@@ -91,6 +91,6 @@ export const getEquipmentOperation = (
     // Return for other types of operations
     // because they have a original entity associated with them
     return equipmentsOperations?.find(
-        (operation) => operation.original_unit === equipment.id
+        (operation) => operation.original_equipment === equipment.id
     );
 };

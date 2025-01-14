@@ -81,7 +81,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
 
                 while (hasNextPage) {
                     const response = await baseQuery({
-                        url: "clients/operations/",
+                        url: "equipments/operations/",
                         method: "GET",
                         params: { page: currentPage },
                     });
@@ -117,6 +117,13 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 { type: "Equipment", id: "LIST" },
             ],
         }),
+        deleteEquipmentOperation: builder.mutation<void, number>({
+            query: (equipmentId) => ({
+                url: `equipments/operations/${equipmentId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [{ type: "EquipmentOperation", id: "LIST" }],
+        }),
     }),
 });
 
@@ -125,4 +132,5 @@ export const {
     useListAllEquipmentsQuery,
     useListAllEquipmentsOperationsQuery,
     useCreateEquipmentOperationMutation,
+    useDeleteEquipmentOperationMutation,
 } = equipmentApiSlice;

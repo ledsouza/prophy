@@ -38,6 +38,8 @@ import {
 } from "@/components/forms";
 import { Button, Modal, Spinner } from "@/components/common";
 import { ClientDetails, UnitCard } from "@/components/client";
+import { sortByOperationStatus } from "@/utils/sorting";
+import { defaultOperationStatusOrder } from "@/constants/ordering";
 
 function ClientPage() {
     const router = useRouter();
@@ -361,43 +363,29 @@ function ClientPage() {
 
                 <div className="flex flex-col gap-6">
                     {searchedUnits && searchedUnits.length > 0 ? (
-                        [...searchedUnits]
-                            .sort((a, b) => {
-                                const statusOrder: Record<
-                                    OperationStatus,
-                                    number
-                                > = {
-                                    [OperationStatus.ACCEPTED]: 1,
-                                    [OperationStatus.REVIEW]: 2,
-                                    [OperationStatus.REJECTED]: 3,
-                                };
-                                const statusA = handleUnitStatus(a);
-                                const statusB = handleUnitStatus(b);
-                                return (
-                                    statusOrder[statusA] - statusOrder[statusB]
-                                );
-                            })
-                            .map((unit) => (
-                                <UnitCard
-                                    key={unit.id}
-                                    unit={unit}
-                                    unitOperation={getUnitOperation(
-                                        unit,
-                                        unitsOperations
-                                    )}
-                                    equipmentsCount={getEquipmentsCount(
-                                        unit,
-                                        equipments
-                                    )}
-                                    onEdit={() => handleEditUnit(unit)}
-                                    onCancelEdit={() =>
-                                        handleCancelEditUnit(unit)
-                                    }
-                                    onDelete={() => handleModalDeleteUnit(unit)}
-                                    onReject={() => handleRejectUnit(unit)}
-                                    dataTestId={`unit-card-${unit.id}`}
-                                />
-                            ))
+                        sortByOperationStatus(
+                            searchedUnits,
+                            defaultOperationStatusOrder,
+                            handleUnitStatus
+                        ).map((unit) => (
+                            <UnitCard
+                                key={unit.id}
+                                unit={unit}
+                                unitOperation={getUnitOperation(
+                                    unit,
+                                    unitsOperations
+                                )}
+                                equipmentsCount={getEquipmentsCount(
+                                    unit,
+                                    equipments
+                                )}
+                                onEdit={() => handleEditUnit(unit)}
+                                onCancelEdit={() => handleCancelEditUnit(unit)}
+                                onDelete={() => handleModalDeleteUnit(unit)}
+                                onReject={() => handleRejectUnit(unit)}
+                                dataTestId={`unit-card-${unit.id}`}
+                            />
+                        ))
                     ) : (
                         <Typography
                             element="p"

@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Tom\u00f3grafo",
-    "manufacturer": "Toshiba",
-    "model": "MOLESTIAE-808",
-    "series_number": "INkm-363078",
-    "anvisa_registry": "KWPcdNtFMaJlc",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
+    "manufacturer": "GE",
+    "model": "MOLESTIAS-547",
+    "series_number": "OVUm-758004",
+    "anvisa_registry": "eqQFFKFiRSzhz",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Philips",
-    "model": "VOLUPTATUM-471",
-    "series_number": "xEsj-050812",
-    "anvisa_registry": "IgnYarcDUBMIe",
+    "modality": "Raio-X",
+    "manufacturer": "Siemens",
+    "model": "NOSTRUM-441",
+    "series_number": "Mwiu-106187",
+    "anvisa_registry": "sXqiIKRYQzsBl",
     "id": 1001
   }
 }

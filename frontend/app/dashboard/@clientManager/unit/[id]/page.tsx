@@ -19,6 +19,9 @@ import {
 } from "@/redux/features/unitApiSlice";
 import {
     EquipmentDTO,
+    EquipmentOperationDTO,
+    useCreateEquipmentOperationMutation,
+    useDeleteEquipmentOperationMutation,
     useListAllEquipmentsOperationsQuery,
     useListAllEquipmentsQuery,
 } from "@/redux/features/equipmentApiSlice";
@@ -31,13 +34,20 @@ import { ArrowClockwise } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Button, Modal, Spinner } from "@/components/common";
-import { Input, EditUnitForm, AddEquipmentForm } from "@/components/forms";
+import {
+    Input,
+    EditUnitForm,
+    AddEquipmentForm,
+    EditEquipmentForm,
+} from "@/components/forms";
 import {
     UnitDetails,
     EquipmentCard,
     EquipmentDetails,
 } from "@/components/client";
 import { OperationStatus, OperationType } from "@/enums";
+import { sortByOperationStatus } from "@/utils/sorting";
+import { defaultOperationStatusOrder } from "@/constants/ordering";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -45,6 +55,7 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
+    const [loadingCancel, setLoadingCancel] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentModal, setCurrentModal] = useState<Modals | null>(null);
 
@@ -86,6 +97,9 @@ function UnitPage() {
         error: errorEquipments,
     } = useListAllEquipmentsQuery();
 
+    const [createEquipmentOperation] = useCreateEquipmentOperationMutation();
+    const [deleteEquipmentOperation] = useDeleteEquipmentOperationMutation();
+
     const handleUpdateData = () => {
         dispatch(
             apiSlice.util.invalidateTags([
@@ -107,6 +121,42 @@ function UnitPage() {
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         setSearchTerm(event.target.value);
+    };
+
+    const handleCancelEquipmentOperation = async (equipment: EquipmentDTO) => {
+        setLoadingCancel(true);
+
+        const operation = getEquipmentOperation(
+            equipment,
+            equipmentsOperations
+        );
+
+        if (!operation) {
+            return toast.error(
+                "Algo deu errado! Não foi possível obter a requisição associada."
+            );
+        }
+
+        try {
+            const response = await deleteEquipmentOperation(operation.id);
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada. É possível que ela já tenha sido revisada por um físico médico.
+                            Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 6000,
+                        }
+                    );
+                }
+            }
+
+            toast.success("Requisição cancelada com sucesso!");
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        } finally {
+            setLoadingCancel(false);
+        }
     };
 
     const handleEditUnit = () => {
@@ -187,9 +237,48 @@ function UnitPage() {
         setIsModalOpen(true);
     };
 
-    const handleEditEquipment = () => {
+    const handleEditEquipment = (selectedEquipment: EquipmentDTO) => {
+        setSelectedEquipment(selectedEquipment);
         setCurrentModal(Modals.EDIT_EQUIPMENT);
         setIsModalOpen(true);
+    };
+
+    const handleModalDeleteEquipment = (selectedEquipment: EquipmentDTO) => {
+        setSelectedEquipment(selectedEquipment);
+        setCurrentModal(Modals.DELETE_EQUIPMENT);
+        setIsModalOpen(true);
+    };
+
+    const handleDeleteEquipment = async (selectedEquipment: EquipmentDTO) => {
+        const formData = new FormData();
+
+        formData.append("operation_type", OperationType.DELETE);
+        formData.append("original_equipment", selectedEquipment.id.toString());
+
+        Array.from(formData.entries()).forEach(([key, value]) =>
+            console.log(key, value)
+        );
+
+        try {
+            const response = await createEquipmentOperation(formData);
+            console.log(response);
+
+            if (response.error) {
+                if (isErrorWithMessage(response.error)) {
+                    toast.error(response.error.data.messages[0]);
+                    return;
+                }
+                if (isResponseError(response.error)) {
+                    toast.error("Algo deu errado. Tente novamente mais tarde.");
+                    return;
+                }
+            }
+
+            toast.success("Requisição enviada com sucesso!");
+            setIsModalOpen(false);
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
     };
 
     const handleEquipmentStatus = (
@@ -329,43 +418,36 @@ function UnitPage() {
 
                     <div className="flex flex-col gap-6">
                         {searchedEquipments.length > 0 ? (
-                            searchedEquipments
-                                .sort((a, b) => {
-                                    const statusOrder: Record<
-                                        OperationStatus,
-                                        number
-                                    > = {
-                                        [OperationStatus.ACCEPTED]: 1,
-                                        [OperationStatus.REVIEW]: 2,
-                                        [OperationStatus.REJECTED]: 3,
-                                    };
-                                    const statusA = handleEquipmentStatus(a);
-                                    const statusB = handleEquipmentStatus(b);
-                                    return (
-                                        statusOrder[statusA] -
-                                        statusOrder[statusB]
-                                    );
-                                })
-                                .map((equipment) => (
-                                    <EquipmentCard
-                                        key={equipment.id}
-                                        equipment={equipment}
-                                        equipmentOperation={getEquipmentOperation(
-                                            equipment,
-                                            equipmentsOperations
-                                        )}
-                                        onEdit={handleEditEquipment}
-                                        onCancelEdit={() => {}}
-                                        onDelete={() => {}}
-                                        onReject={() => {}}
-                                        onDetails={() =>
-                                            handleClickEquipmentDetails(
-                                                equipment
-                                            )
-                                        }
-                                        dataTestId={`equipment-card-${equipment.id}`}
-                                    />
-                                ))
+                            sortByOperationStatus(
+                                searchedEquipments,
+                                defaultOperationStatusOrder,
+                                handleEquipmentStatus
+                            ).map((equipment) => (
+                                <EquipmentCard
+                                    key={equipment.id}
+                                    equipment={equipment}
+                                    equipmentOperation={getEquipmentOperation(
+                                        equipment,
+                                        equipmentsOperations
+                                    )}
+                                    onEdit={() =>
+                                        handleEditEquipment(equipment)
+                                    }
+                                    onCancelEdit={() =>
+                                        handleCancelEquipmentOperation(
+                                            equipment
+                                        )
+                                    }
+                                    onDelete={() =>
+                                        handleModalDeleteEquipment(equipment)
+                                    }
+                                    onReject={() => {}}
+                                    onDetails={() =>
+                                        handleClickEquipmentDetails(equipment)
+                                    }
+                                    dataTestId={`equipment-card-${equipment.id}`}
+                                />
+                            ))
                         ) : (
                             <Typography
                                 element="p"
@@ -481,6 +563,56 @@ function UnitPage() {
                             setIsModalOpen={setIsModalOpen}
                         />
                     )}
+
+                    {currentModal === Modals.EDIT_EQUIPMENT &&
+                        selectedEquipment && (
+                            <EditEquipmentForm
+                                originalEquipment={selectedEquipment}
+                                setIsModalOpen={setIsModalOpen}
+                            />
+                        )}
+
+                    {currentModal === Modals.DELETE_EQUIPMENT &&
+                        selectedEquipment && (
+                            <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                                <Typography
+                                    element="h2"
+                                    size="title2"
+                                    className="mb-6"
+                                >
+                                    Tem certeza que deseja excluir este
+                                    equipamento?
+                                </Typography>
+
+                                <div className="flex flex-row gap-2">
+                                    <Button
+                                        onClick={() => {
+                                            handleCloseModal({
+                                                setIsModalOpen,
+                                                setCurrentModal,
+                                            });
+                                        }}
+                                        className="w-full mt-6"
+                                        data-testid="btn-cancel-delete-unit"
+                                    >
+                                        Cancelar
+                                    </Button>
+
+                                    <Button
+                                        variant="danger"
+                                        onClick={() =>
+                                            handleDeleteEquipment(
+                                                selectedEquipment
+                                            )
+                                        }
+                                        className="w-full mt-6"
+                                        data-testid="btn-confirm-delete-unit"
+                                    >
+                                        Confirmar
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
 
                     {currentModal === Modals.EQUIPMENT_DETAILS &&
                         selectedEquipment && (

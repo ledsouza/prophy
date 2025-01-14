@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { OperationStatus } from "@/enums";
 
@@ -62,25 +62,17 @@ function EquipmentCard({
                     <CardStatus status={status} />
                 </div>
             </div>
+
             <div className="flex gap-10 justify-between pt-4">
-                <Button
-                    variant="secondary"
-                    onClick={onDetails}
-                    data-testid="btn-unit-detail"
-                >
-                    Acessar detalhes
-                </Button>
-                <div className="flex gap-10 justify-between pt-4">
-                    <CardButtons
-                        operation={equipmentOperation}
-                        status={status}
-                        onDetails={onDetails}
-                        onCancelEdit={onCancelEdit}
-                        onDelete={onDelete}
-                        onEdit={onEdit}
-                        onReject={onReject}
-                    />
-                </div>
+                <CardButtons
+                    operation={equipmentOperation}
+                    status={status}
+                    onDetails={onDetails}
+                    onCancelEdit={onCancelEdit}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    onReject={onReject}
+                />
             </div>
         </div>
     );

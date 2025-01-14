@@ -1,56 +1,131 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { equipmentSchema } from "@/schemas";
-
-import { Form, Input } from "@/components/forms";
-import { Typography } from "@/components/foundation";
-import { Button } from "../common";
-import { OperationType } from "@/enums";
-import { useCreateEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
-import { isErrorWithMessage, isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
 
-export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
+import { equipmentSchema } from "@/schemas";
+import { OperationType } from "@/enums";
 
-type AddEquipmentFormProps = {
-    unitId: number;
+import { isErrorWithMessage, isResponseError } from "@/redux/services/helpers";
+import {
+    EquipmentDTO,
+    useCreateEquipmentOperationMutation,
+} from "@/redux/features/equipmentApiSlice";
+
+import { Button } from "@/components/common";
+import { Typography } from "@/components/foundation";
+import { Form, Input } from "@/components/forms";
+
+export type EditEquipmentFields = z.infer<typeof equipmentSchema>;
+
+type EditEquipmentFormProps = {
+    originalEquipment: EquipmentDTO;
     setIsModalOpen: (value: boolean) => void;
 };
 
-const AddEquipmentForm = ({
-    unitId,
+const EditEquipmentForm = ({
+    originalEquipment,
     setIsModalOpen,
-}: AddEquipmentFormProps) => {
+}: EditEquipmentFormProps) => {
+    const [equipmentPhotoFile, setEquipmentPhotoFile] = useState<File | null>(
+        null
+    );
+
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
-    } = useForm<AddEquipmentFields>({
+    } = useForm<EditEquipmentFields>({
         resolver: zodResolver(equipmentSchema),
+        defaultValues: {
+            modality: originalEquipment.modality,
+            manufacturer: originalEquipment.manufacturer,
+            model: originalEquipment.model,
+            series_number: originalEquipment.series_number,
+            anvisa_registry: originalEquipment.anvisa_registry,
+        },
     });
 
     const [createEquipmentOperation] = useCreateEquipmentOperationMutation();
 
-    const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
+    const onSubmit: SubmitHandler<EditEquipmentFields> = async (data) => {
+        if (
+            Object.entries(data).every(([key, value]) => {
+                if (typeof value === "string") {
+                    return (
+                        value.toLowerCase() ===
+                        originalEquipment[key as keyof EquipmentDTO]
+                            ?.toString()
+                            .toLowerCase()
+                    );
+                } else if (value instanceof FileList) {
+                    return (
+                        value.item(0)?.name ===
+                        originalEquipment.equipment_photo?.split("/").pop()
+                    );
+                }
+            })
+        ) {
+            toast.warning("Nenhuma alteração foi detectada nos dados.");
+            return;
+        }
+
         const formData = new FormData();
 
         // Handle text fields
-        formData.append("operation_type", OperationType.ADD);
+        formData.append("original_equipment", originalEquipment.id.toString());
+        formData.append("unit", originalEquipment.unit.toString());
+        formData.append("operation_type", OperationType.EDIT);
         formData.append("modality", data.modality);
         formData.append("manufacturer", data.manufacturer);
         formData.append("model", data.model);
         formData.append("series_number", data.series_number);
         formData.append("anvisa_registry", data.anvisa_registry);
-        formData.append("unit", unitId.toString());
 
         // Handle file uploads - check if files exist before appending
         if (data.equipment_photo?.[0]) {
             formData.append("equipment_photo", data.equipment_photo[0]);
+        } else if (equipmentPhotoFile) {
+            formData.append("equipment_photo", equipmentPhotoFile);
         }
 
         if (data.label_photo?.[0]) {
             formData.append("label_photo", data.label_photo[0]);
+        }
+
+        const isSameData = Array.from(formData.entries()).every(
+            ([key, value]) => {
+                if (typeof value === "string") {
+                    if (key === "original_equipment") {
+                        return (
+                            value.toLowerCase() ===
+                            originalEquipment.id?.toString().toLowerCase()
+                        );
+                    } else if (key === "operation_type") {
+                        return true;
+                    } else {
+                        return (
+                            value.toLowerCase() ===
+                            originalEquipment[key as keyof EquipmentDTO]
+                                ?.toString()
+                                .toLowerCase()
+                        );
+                    }
+                } else if (value instanceof File) {
+                    return (
+                        value.name ===
+                        originalEquipment.equipment_photo?.split("/").pop()
+                    );
+                }
+            }
+        );
+
+        if (isSameData) {
+            return toast.warning("Nenhuma alteração foi detectada nos dados.");
         }
 
         try {
@@ -73,6 +148,24 @@ const AddEquipmentForm = ({
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
     };
+
+    useEffect(() => {
+        if (originalEquipment.equipment_photo) {
+            fetch(
+                process.env.NEXT_PUBLIC_HOST + originalEquipment.equipment_photo
+            )
+                .then((response) => response.blob())
+                .then((blob) => {
+                    const filename =
+                        originalEquipment.equipment_photo?.split("/").pop() ||
+                        "Não definido";
+                    const file = new File([blob], filename, {
+                        type: blob.type,
+                    });
+                    setEquipmentPhotoFile(file);
+                });
+        }
+    }, []);
 
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
@@ -152,6 +245,13 @@ const AddEquipmentForm = ({
                     Foto do equipamento
                 </Input>
 
+                {originalEquipment.equipment_photo && (
+                    <Typography element="p" size="sm">
+                        Nome do arquivo atual:{" "}
+                        {originalEquipment.equipment_photo.split("/").pop()}
+                    </Typography>
+                )}
+
                 <Input
                     {...register("label_photo")}
                     type="file"
@@ -187,4 +287,4 @@ const AddEquipmentForm = ({
     );
 };
 
-export default AddEquipmentForm;
+export default EditEquipmentForm;
