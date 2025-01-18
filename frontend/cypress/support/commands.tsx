@@ -24,6 +24,19 @@ declare global {
             login(cpf: string, password: string): Chainable<void>;
 
             /**
+             * Custom command to persist login sessions by validating the presence of authentication cookies.
+             * This command extends the base login command with additional validation.
+             *
+             * @example
+             * cy.loginSession('12345678900', 'password123')
+             *
+             * @remarks
+             * This command will validate that both 'access' and 'refresh' cookies exist after login.
+             * If validation fails, the test will fail.
+             */
+            loginSession(cpf: string, password: string): Chainable<void>;
+
+            /**
              * Custom command to get a random CNPJ from the proposals.json fixture.
              *
              * @example
@@ -68,6 +81,37 @@ Cypress.Commands.add("login", (cpf, password) => {
     });
 
     cy.wait(500);
+});
+
+Cypress.Commands.add("loginSession", (cpf: string, password: string) => {
+    cy.session(
+        [cpf, password],
+        () => {
+            cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as(
+                "loginRequest"
+            );
+
+            cy.visit("/auth/login");
+            cy.getByTestId("cpf-input").type(cpf);
+            cy.getByTestId("password-input").type(password);
+            cy.getByTestId("submit-button").click();
+
+            cy.wait("@loginRequest").then((interception) => {
+                expect(interception.response?.statusCode).to.eq(200);
+
+                const { access, refresh } = interception.response?.body;
+
+                cy.setCookie("access", access);
+                cy.setCookie("refresh", refresh);
+            });
+        },
+        {
+            validate: () => {
+                cy.getCookie("access").should("exist");
+                cy.getCookie("refresh").should("exist");
+            },
+        }
+    );
 });
 
 Cypress.Commands.add("getRandomCnpj", () => {

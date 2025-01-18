@@ -27,7 +27,7 @@ export const errorMessages = {
     shortPassword: "A senha deve conter no mínimo 8 caracteres.",
     emptyInstitutionName: "Nome da instituição é obrigatório.",
     invalidInstitutionEmail: "E-mail da instituição inválido.",
-    shortPhone: "Telefone deve conter no mínimo 10 dígitos.",
+    invalidPhone: "Telefone inválido.",
     emptyState: "Estado da instituição é obrigatório.",
     emptyCity: "Cidade da instituição é obrigatório.",
     emptyAddress: "Endereço da instituição é obrigatório.",

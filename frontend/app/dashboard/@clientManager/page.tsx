@@ -323,6 +323,7 @@ function ClientPage() {
                 className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
                 disabled={isLoadingClientData}
                 onClick={handleUpdateData}
+                dataTestId="update-data-btn"
             >
                 <div className="flex items-center gap-2">
                     <ArrowClockwise size="24" /> Atualizar

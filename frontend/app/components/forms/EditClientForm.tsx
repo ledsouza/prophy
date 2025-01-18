@@ -7,11 +7,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 
-import { OperationStatus, OperationType } from "@/enums";
-
 import {
     ClientDTO,
-    useCreateClientMutation,
     useCreateEditClientOperationMutation,
 } from "@/redux/features/clientApiSlice";
 import { isErrorWithMessages } from "@/redux/services/helpers";
@@ -20,6 +17,7 @@ import { useIBGELocalidades } from "@/hooks";
 import { ComboBox, Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
+import { isValidPhonePTBR } from "@/utils/validation";
 
 const editClientSchema = z.object({
     name: z
@@ -29,14 +27,9 @@ const editClientSchema = z.object({
             message: "Nome da instituição não pode exceder 50 caracteres.",
         }),
     email: z.string().email({ message: "E-mail da instituição inválido." }),
-    phone: z
-        .string()
-        .min(10, { message: "Telefone deve conter no mínimo 10 dígitos." })
-        .max(11, { message: "Telefone deve conter no máximo 11 dígitos." })
-        .regex(/^\d+$/, {
-            message:
-                "Telefone deve conter apenas números com padrão nacional (DDXXXXXXXX).",
-        }),
+    phone: z.string().refine((value) => isValidPhonePTBR(value), {
+        message: "Telefone inválido.",
+    }),
     address: z
         .string()
         .min(1, { message: "Endereço da instituição é obrigatório." }),
