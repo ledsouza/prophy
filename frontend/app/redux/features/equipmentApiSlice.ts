@@ -5,6 +5,7 @@ import {
     Operation,
     PaginatedResponse,
 } from "../services/apiSlice";
+import { forEach } from "lodash";
 
 export type EquipmentDTO = {
     id: number;
@@ -112,6 +113,27 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
         >({
             query: (formData) => {
                 formData.append("operation_type", OperationType.ADD);
+
+                let hasFile = false;
+                forEach(Array.from(formData.entries()), ([_, value]) => {
+                    if (value instanceof File) hasFile = true;
+                });
+
+                console.log(
+                    "formData transformed to object:\n",
+                    Object.fromEntries(formData)
+                );
+
+                if (!hasFile) {
+                    return {
+                        url: "equipments/operations/",
+                        method: "POST",
+                        body: Object.fromEntries(formData),
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                    };
+                }
                 return {
                     url: "equipments/operations/",
                     method: "POST",

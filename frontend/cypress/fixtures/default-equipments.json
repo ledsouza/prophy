@@ -2,19 +2,19 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Toshiba",
-    "model": "MODI-598",
-    "series_number": "YjSo-807365",
-    "anvisa_registry": "uombVNjxDoYpk",
+    "manufacturer": "GE",
+    "model": "FACILIS-985",
+    "series_number": "egMO-276900",
+    "anvisa_registry": "BoaqKhdpUzKoR",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Raio-X",
-    "manufacturer": "GE",
-    "model": "NEQUE-323",
-    "series_number": "COqO-008736",
-    "anvisa_registry": "UfaBRRAtikOiy",
+    "manufacturer": "Toshiba",
+    "model": "VITAE-891",
+    "series_number": "TcGy-808427",
+    "anvisa_registry": "sAVQvSZGTWqAq",
     "id": 1001
   }
 }

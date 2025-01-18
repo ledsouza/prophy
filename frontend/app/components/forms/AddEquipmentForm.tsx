@@ -56,6 +56,7 @@ const AddEquipmentForm = ({
 
         try {
             const response = await createAddEquipmentOperation(formData);
+            console.log("Response in AddEquipmentForm => ", response);
 
             if (response.error) {
                 if (isErrorWithMessages(response.error)) {
@@ -70,6 +71,7 @@ const AddEquipmentForm = ({
             toast.success("Requisição enviada com sucesso!");
             setIsModalOpen(false);
         } catch (error) {
+            console.log("Error in AddEquipmentForm => ", error);
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
     };

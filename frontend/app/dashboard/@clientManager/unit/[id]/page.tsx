@@ -325,13 +325,13 @@ function UnitPage() {
         }
     };
 
-    // Set selected unit and filtered equipments
+    // Set selected unit
     useEffect(() => {
-        // Only run when both data finished paginating
-        if (isLoadingUnits || isLoadingEquipments) return;
+        // Only run when data finished paginating
+        if (isLoadingUnits) return;
 
         // Add null checks to prevent unnecessary renders
-        if (!units || !equipments || !unitId) return;
+        if (!units || !unitId) return;
 
         const unit = units.find((unit) => unit.id === unitId);
 
@@ -342,10 +342,22 @@ function UnitPage() {
         }
 
         setSelectedUnit(unit);
-        setFilteredEquipmentsByUnit(
-            equipments.filter((equipment) => equipment.unit === unitId)
-        );
-    }, [units, equipments, unitId, isLoadingUnits, isLoadingEquipments]);
+    }, [units, unitId, isLoadingUnits]);
+
+    // Set filtered equipments
+    useEffect(() => {
+        if (isLoadingEquipments) return;
+        if (!equipments || !selectedUnit) return;
+
+        const AddEquipmentsInOperation =
+            equipmentsOperations?.filter(
+                (operation) => operation.operation_type === OperationType.ADD
+            ) || [];
+        setFilteredEquipmentsByUnit([
+            ...equipments.filter((equipment) => equipment.unit === unitId),
+            ...AddEquipmentsInOperation,
+        ]);
+    }, [equipmentsOperations, equipments, selectedUnit]);
 
     // Filter equipments by search term
     useEffect(() => {

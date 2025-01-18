@@ -109,7 +109,7 @@ class Equipment(models.Model):
     anvisa_registry = models.CharField(
         "Registro na ANVISA", max_length=15, blank=True, null=True)
     equipment_photo = models.ImageField(
-        "Foto do equipamento", upload_to="equipments/photos")
+        "Foto do equipamento", upload_to="equipments/photos", blank=True, null=True)
     label_photo = models.ImageField(
         "Foto da etiqueta", upload_to="equipments/labels", blank=True, null=True)
     maintenance_responsable = models.CharField(

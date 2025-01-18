@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 
-import notFound from "@/assets/not-found.jpeg";
+import notFound from "@/assets/image-not-found.png";
 import { XCircle } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
@@ -25,16 +25,17 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
             </button>
             <Image
                 src={
-                    process.env.NEXT_PUBLIC_HOST
+                    equipment.equipment_photo
                         ? process.env.NEXT_PUBLIC_HOST +
                           equipment.equipment_photo
                         : notFound
                 }
                 alt="Imagem do equipamento"
-                width={1200}
-                height={1200}
+                width={equipment.equipment_photo ? 1200 : 600}
+                height={equipment.equipment_photo ? 1200 : 600}
+                className="flex justify-self-center"
                 style={{
-                    objectFit: "cover",
+                    objectFit: "contain",
                 }}
             />
             <div className="m-6 flex flex-col gap-2 sm:flex-row justify-around">
