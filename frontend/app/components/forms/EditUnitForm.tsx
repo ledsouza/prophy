@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { isCNPJ } from "validation-br";
 import { toast } from "react-toastify";
 
 import { isErrorWithMessages } from "@/redux/services/helpers";
-import { UnitDTO, useCreateUnitMutation } from "@/redux/features/unitApiSlice";
+import {
+    UnitDTO,
+    useCreateEditUnitOperationMutation,
+} from "@/redux/features/unitApiSlice";
 
 import { useIBGELocalidades } from "@/hooks";
-import { OperationStatus, OperationType } from "@/enums";
 
 import { ComboBox, Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
@@ -82,7 +84,7 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
     } = useIBGELocalidades(setValue);
 
     const [isLoadingIBGE, setIsLoadingIBGE] = useState(true);
-    const [requestEditUnit] = useCreateUnitMutation();
+    const [createEditUnitOperation] = useCreateEditUnitOperationMutation();
 
     const onSubmit: SubmitHandler<EditUnitFields> = async (data) => {
         if (
@@ -97,12 +99,10 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
         }
 
         try {
-            const response = await requestEditUnit({
+            const response = await createEditUnitOperation({
                 ...data,
                 original_unit: originalUnit.id,
                 client: originalUnit.client,
-                operation_status: OperationStatus.REVIEW,
-                operation_type: OperationType.EDIT,
             });
 
             if (response.error) {

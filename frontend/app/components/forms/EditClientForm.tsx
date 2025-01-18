@@ -12,6 +12,7 @@ import { OperationStatus, OperationType } from "@/enums";
 import {
     ClientDTO,
     useCreateClientMutation,
+    useCreateEditClientOperationMutation,
 } from "@/redux/features/clientApiSlice";
 import { isErrorWithMessages } from "@/redux/services/helpers";
 
@@ -86,7 +87,7 @@ const EditClientForm = ({
 
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-    const [requestEditClient] = useCreateClientMutation();
+    const [createEditClientOperation] = useCreateEditClientOperationMutation();
 
     const onSubmit: SubmitHandler<EditClientFields> = async ({
         name,
@@ -109,7 +110,7 @@ const EditClientForm = ({
         }
 
         try {
-            const response = await requestEditClient({
+            const response = await createEditClientOperation({
                 cnpj: originalClient.cnpj,
                 name,
                 email,
@@ -118,8 +119,6 @@ const EditClientForm = ({
                 city,
                 address,
                 original_client: originalClient.id,
-                operation_status: OperationStatus.REVIEW,
-                operation_type: OperationType.EDIT,
             });
 
             if (response.error) {

@@ -21,7 +21,10 @@ export type EquipmentDTO = {
     unit: number;
 };
 
-export type EquipmentOperationDTO = EquipmentDTO & Operation;
+export type EquipmentOperationDTO = EquipmentDTO &
+    Operation & {
+        original_equipment?: number;
+    };
 
 const equipmentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -147,8 +150,8 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 url: "equipments/operations/",
                 method: "POST",
                 body: {
-                    operation_type: OperationType.DELETE,
                     original_equipment: equipmentID,
+                    operation_type: OperationType.DELETE,
                 },
             }),
             invalidatesTags: [{ type: "EquipmentOperation", id: "LIST" }],

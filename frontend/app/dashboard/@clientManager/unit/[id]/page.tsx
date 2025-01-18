@@ -12,7 +12,7 @@ import {
 import { apiSlice } from "@/redux/services/apiSlice";
 import {
     UnitDTO,
-    useCreateUnitMutation,
+    useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
@@ -86,7 +86,7 @@ function UnitPage() {
         error: errorEquipmentsOperations,
     } = useListAllEquipmentsOperationsQuery();
 
-    const [createUnitOperation] = useCreateUnitMutation();
+    const [createDeleteUnitOperation] = useCreateDeleteUnitOperationMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
     const {
@@ -168,18 +168,7 @@ function UnitPage() {
 
     const handleRequestDeleteUnit = async (selectedUnit: UnitDTO) => {
         try {
-            const response = await createUnitOperation({
-                name: selectedUnit.name,
-                address: selectedUnit.address,
-                cnpj: selectedUnit.cnpj,
-                phone: selectedUnit.phone,
-                email: selectedUnit.email,
-                state: selectedUnit.state,
-                city: selectedUnit.city,
-                client: selectedUnit.client,
-                original_unit: selectedUnit.id,
-                operation_type: OperationType.DELETE,
-            });
+            const response = await createDeleteUnitOperation(selectedUnit.id);
             if (isErrorWithMessages(response.error)) {
                 return toast.error(response.error.data.messages[0]);
             }

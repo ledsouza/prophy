@@ -1,13 +1,13 @@
-import { isErrorWithMessages } from "@/redux/services/helpers";
-import { useCreateUnitMutation } from "@/redux/features/unitApiSlice";
-
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-import { OperationType } from "@/enums";
 import { unitSchema } from "@/schemas";
+
+import { isErrorWithMessages } from "@/redux/services/helpers";
+import { useCreateAddUnitOperationMutation } from "@/redux/features/unitApiSlice";
+
 import { useIBGELocalidades } from "@/hooks";
 
 import { Typography } from "@/components/foundation";
@@ -42,14 +42,13 @@ const AddUnitForm = ({ clientId, setIsModalOpen }: AddUnitFormProps) => {
         handleMunicipioChange,
     } = useIBGELocalidades(setValue);
 
-    const [requestAddUnit] = useCreateUnitMutation();
+    const [createAddUnitOperation] = useCreateAddUnitOperationMutation();
 
     const onSubmit: SubmitHandler<AddUnitFields> = async (data) => {
         try {
-            const response = await requestAddUnit({
+            const response = await createAddUnitOperation({
                 ...data,
                 client: clientId,
-                operation_type: OperationType.ADD,
             });
 
             if (response.error) {

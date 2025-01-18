@@ -17,7 +17,7 @@ import {
 } from "@/redux/features/clientApiSlice";
 import {
     UnitDTO,
-    useCreateUnitMutation,
+    useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
     useListAllUnitsOperationsQuery,
 } from "@/redux/features/unitApiSlice";
@@ -62,7 +62,7 @@ function ClientPage() {
         useListAllUnitsOperationsQuery();
 
     const [deleteClientOperation] = useDeleteClientOperationMutation();
-    const [createUnitOperation] = useCreateUnitMutation();
+    const [createDeleteUnitOperation] = useCreateDeleteUnitOperationMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
     const [selectedClientInOperation, setSelectedClientInOperation] =
@@ -81,12 +81,12 @@ function ClientPage() {
         setSearchTerm(event.target.value);
     };
 
-    const handleEditClient = () => {
+    const handleModalEditClient = () => {
         setCurrentModal(Modals.EDIT_CLIENT);
         setIsModalOpen(true);
     };
 
-    const handleRejectClient = () => {
+    const handleModalRejectClient = () => {
         setCurrentModal(Modals.REJECT_CLIENT);
         setIsModalOpen(true);
     };
@@ -110,6 +110,9 @@ function ClientPage() {
                         }
                     );
                 }
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
             }
 
             setIsModalOpen(false);
@@ -119,12 +122,12 @@ function ClientPage() {
         }
     };
 
-    const handleAddUnit = () => {
+    const handleModalAddUnit = () => {
         setCurrentModal(Modals.ADD_UNIT);
         setIsModalOpen(true);
     };
 
-    const handleEditUnit = (selectedUnit: UnitDTO) => {
+    const handleModalEditUnit = (selectedUnit: UnitDTO) => {
         setSelectedUnit(selectedUnit);
         setCurrentModal(Modals.EDIT_UNIT);
         setIsModalOpen(true);
@@ -150,6 +153,9 @@ function ClientPage() {
                         }
                     );
                 }
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
             }
 
             toast.success("Requisição cancelada com sucesso.");
@@ -164,20 +170,9 @@ function ClientPage() {
         setIsModalOpen(true);
     };
 
-    const handleDeleteUnit = async (selectedUnit: UnitDTO) => {
+    const handleCreateDeleteUnitOperation = async (selectedUnit: UnitDTO) => {
         try {
-            const response = await createUnitOperation({
-                name: selectedUnit.name,
-                address: selectedUnit.address,
-                cnpj: selectedUnit.cnpj,
-                phone: selectedUnit.phone,
-                email: selectedUnit.email,
-                state: selectedUnit.state,
-                city: selectedUnit.city,
-                client: selectedUnit.client,
-                original_unit: selectedUnit.id,
-                operation_type: OperationType.DELETE,
-            });
+            const response = await createDeleteUnitOperation(selectedUnit.id);
             if (isResponseError(response)) {
                 return toast.error(response.error.data.message);
             }
@@ -192,7 +187,7 @@ function ClientPage() {
         }
     };
 
-    const handleRejectUnit = (selectedUnit: UnitDTO) => {
+    const handleModalRejectUnit = (selectedUnit: UnitDTO) => {
         setSelectedUnit(selectedUnit);
         setCurrentModal(Modals.REJECT_UNIT);
         setIsModalOpen(true);
@@ -219,6 +214,9 @@ function ClientPage() {
                         }
                     );
                 }
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
             }
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -342,8 +340,8 @@ function ClientPage() {
                         setSelectedClient={setSelectedClient}
                         filteredClient={filteredClient}
                         selectedClientInOperation={selectedClientInOperation}
-                        handleEdit={handleEditClient}
-                        handleReject={handleRejectClient}
+                        handleEdit={handleModalEditClient}
+                        handleReject={handleModalRejectClient}
                     />
                 )}
 
@@ -379,10 +377,10 @@ function ClientPage() {
                                     unit,
                                     equipments
                                 )}
-                                onEdit={() => handleEditUnit(unit)}
+                                onEdit={() => handleModalEditUnit(unit)}
                                 onCancelEdit={() => handleCancelEditUnit(unit)}
                                 onDelete={() => handleModalDeleteUnit(unit)}
-                                onReject={() => handleRejectUnit(unit)}
+                                onReject={() => handleModalRejectUnit(unit)}
                                 dataTestId={`unit-card-${unit.id}`}
                             />
                         ))
@@ -400,7 +398,7 @@ function ClientPage() {
                     )}
                 </div>
 
-                <Button onClick={handleAddUnit} data-testid="btn-add-unit">
+                <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
                     Adicionar unidade
                 </Button>
             </div>
@@ -475,7 +473,11 @@ function ClientPage() {
 
                             <Button
                                 variant="danger"
-                                onClick={() => handleDeleteUnit(selectedUnit)}
+                                onClick={() =>
+                                    handleCreateDeleteUnitOperation(
+                                        selectedUnit
+                                    )
+                                }
                                 className="w-full mt-6"
                                 data-testid="btn-confirm-delete-unit"
                             >

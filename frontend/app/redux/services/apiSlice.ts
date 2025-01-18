@@ -21,10 +21,7 @@ export type ListQueryParams = {
 
 export type Operation = {
     operation_type: OperationType;
-    operation_status?: OperationStatus;
-    original_client?: number;
-    original_unit?: number;
-    original_equipment?: number;
+    operation_status: OperationStatus;
     note?: string;
 };
 

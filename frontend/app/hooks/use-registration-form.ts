@@ -1,11 +1,12 @@
 "use client";
 
-import { useAppDispatch } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 import { SubmitHandler } from "react-hook-form";
-
 import { toast } from "react-toastify";
 
+import { OperationType, OperationStatus } from "@/enums";
+
+import { useAppDispatch } from "@/redux/hooks";
 import {
     useLoginMutation,
     useRegisterMutation,
@@ -13,7 +14,7 @@ import {
 import { useCreateClientMutation } from "@/redux/features/clientApiSlice";
 import { useCreateUnitMutation } from "@/redux/features/unitApiSlice";
 import { setAuth } from "@/redux/features/authSlice";
-import { OperationType, OperationStatus } from "@/enums";
+
 import {
     RegisterFields,
     registerSchema,
@@ -73,8 +74,6 @@ const useRegistrationForm = ({
                 address,
                 state,
                 city,
-                operation_type: OperationType.ADD,
-                operation_status: OperationStatus.ACCEPTED,
             });
 
             if (!clientResponse.error) {
@@ -87,8 +86,6 @@ const useRegistrationForm = ({
                     state,
                     city,
                     client: clientResponse.data?.id,
-                    operation_type: OperationType.ADD,
-                    operation_status: OperationStatus.ACCEPTED,
                 });
             }
 

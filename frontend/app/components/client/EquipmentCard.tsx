@@ -53,9 +53,10 @@ function EquipmentCard({
                     </Typography>
                 </div>
                 <div className="flex flex-col gap-2">
-                    <Typography element="h3" size="lg">
+                    <Typography element="h3" size="lg" className="text-right">
                         Status
                     </Typography>
+
                     <CardStatus status={status} />
                 </div>
             </div>

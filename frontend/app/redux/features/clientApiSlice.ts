@@ -1,3 +1,4 @@
+import { OperationStatus, OperationType } from "@/enums";
 import {
     apiSlice,
     ListQueryParams,
@@ -16,10 +17,13 @@ export type ClientDTO = {
     state: string;
     city: string;
     status: string;
-    users?: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
+    users: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
 };
 
-export type ClientOperationDTO = ClientDTO & Operation;
+export type ClientOperationDTO = ClientDTO &
+    Operation & {
+        original_client?: number;
+    };
 
 type Status = {
     status: boolean;
@@ -43,12 +47,23 @@ const clientApiSlice = apiSlice.injectEndpoints({
         }),
         createClient: builder.mutation<
             ClientOperationDTO,
-            Omit<ClientOperationDTO, "id" | "status">
+            Omit<
+                ClientOperationDTO,
+                | "id"
+                | "users"
+                | "status"
+                | "operation_type"
+                | "operation_status"
+            >
         >({
             query: (clientData) => ({
                 url: "clients/operations/",
                 method: "POST",
-                body: clientData,
+                body: {
+                    ...clientData,
+                    operation_type: OperationType.ADD,
+                    operation_status: OperationStatus.ACCEPTED,
+                },
             }),
             invalidatesTags: [
                 { type: "ClientOperation", id: "LIST" },
@@ -166,6 +181,71 @@ const clientApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "ClientOperation", id: "LIST" }],
         }),
+        createAddClientOperation: builder.mutation<
+            ClientOperationDTO,
+            Omit<
+                ClientOperationDTO,
+                | "id"
+                | "users"
+                | "status"
+                | "operation_type"
+                | "operation_status"
+            >
+        >({
+            query: (clientData) => ({
+                url: "clients/operations/",
+                method: "POST",
+                body: {
+                    ...clientData,
+                    operation_type: OperationType.ADD,
+                },
+            }),
+            invalidatesTags: [
+                { type: "ClientOperation", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
+        }),
+        createEditClientOperation: builder.mutation<
+            ClientOperationDTO,
+            Omit<
+                ClientOperationDTO,
+                | "id"
+                | "users"
+                | "status"
+                | "operation_type"
+                | "operation_status"
+            >
+        >({
+            query: (clientData) => ({
+                url: "clients/operations/",
+                method: "POST",
+                body: {
+                    ...clientData,
+                    operation_type: OperationType.EDIT,
+                },
+            }),
+            invalidatesTags: [
+                { type: "ClientOperation", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
+        }),
+        createDeleteClientOperation: builder.mutation<
+            ClientOperationDTO,
+            Number
+        >({
+            query: (clientID) => ({
+                url: "clients/operations/",
+                method: "POST",
+                body: {
+                    original_client: clientID,
+                    operation_type: OperationType.DELETE,
+                },
+            }),
+            invalidatesTags: [
+                { type: "ClientOperation", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
+        }),
     }),
 });
 
@@ -179,4 +259,7 @@ export const {
     useListAllClientsQuery,
     useListClientsOperationsQuery,
     useListAllClientsOperationsQuery,
+    useCreateAddClientOperationMutation,
+    useCreateEditClientOperationMutation,
+    useCreateDeleteClientOperationMutation,
 } = clientApiSlice;
