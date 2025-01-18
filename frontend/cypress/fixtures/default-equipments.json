@@ -2,19 +2,19 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "GE",
-    "model": "MOLESTIAS-547",
-    "series_number": "OVUm-758004",
-    "anvisa_registry": "eqQFFKFiRSzhz",
+    "manufacturer": "Toshiba",
+    "model": "MODI-598",
+    "series_number": "YjSo-807365",
+    "anvisa_registry": "uombVNjxDoYpk",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Raio-X",
-    "manufacturer": "Siemens",
-    "model": "NOSTRUM-441",
-    "series_number": "Mwiu-106187",
-    "anvisa_registry": "sXqiIKRYQzsBl",
+    "manufacturer": "GE",
+    "model": "NEQUE-323",
+    "series_number": "COqO-008736",
+    "anvisa_registry": "UfaBRRAtikOiy",
     "id": 1001
   }
 }

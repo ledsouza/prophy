@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     getEquipmentOperation,
     getUnitOperation,
-    isErrorWithMessage,
+    isErrorWithMessages,
     isResponseError,
 } from "@/redux/services/helpers";
 import { apiSlice } from "@/redux/services/apiSlice";
@@ -19,8 +19,7 @@ import {
 } from "@/redux/features/unitApiSlice";
 import {
     EquipmentDTO,
-    EquipmentOperationDTO,
-    useCreateEquipmentOperationMutation,
+    useCreateDeleteEquipmentOperationMutation,
     useDeleteEquipmentOperationMutation,
     useListAllEquipmentsOperationsQuery,
     useListAllEquipmentsQuery,
@@ -55,7 +54,6 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const [loadingCancel, setLoadingCancel] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentModal, setCurrentModal] = useState<Modals | null>(null);
 
@@ -97,8 +95,14 @@ function UnitPage() {
         error: errorEquipments,
     } = useListAllEquipmentsQuery();
 
-    const [createEquipmentOperation] = useCreateEquipmentOperationMutation();
-    const [deleteEquipmentOperation] = useDeleteEquipmentOperationMutation();
+    const [
+        createDeleteEquipmentOperation,
+        { isLoading: isLoadingCreateDeleteEquipmentOperation },
+    ] = useCreateDeleteEquipmentOperationMutation();
+    const [
+        deleteEquipmentOperation,
+        { isLoading: isLoadingDeleteEquipmentOperation },
+    ] = useDeleteEquipmentOperationMutation();
 
     const handleUpdateData = () => {
         dispatch(
@@ -111,60 +115,18 @@ function UnitPage() {
         );
     };
 
-    function handleClickEquipmentDetails(equipment: EquipmentDTO) {
-        setSelectedEquipment(equipment);
-        setCurrentModal(Modals.EQUIPMENT_DETAILS);
-        setIsModalOpen(true);
-    }
-
     const handleSearchInputChange = (
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         setSearchTerm(event.target.value);
     };
 
-    const handleCancelEquipmentOperation = async (equipment: EquipmentDTO) => {
-        setLoadingCancel(true);
-
-        const operation = getEquipmentOperation(
-            equipment,
-            equipmentsOperations
-        );
-
-        if (!operation) {
-            return toast.error(
-                "Algo deu errado! Não foi possível obter a requisição associada."
-            );
-        }
-
-        try {
-            const response = await deleteEquipmentOperation(operation.id);
-            if (isResponseError(response)) {
-                if (response.error.status === 404) {
-                    return toast.error(
-                        `A requisição não foi encontrada. É possível que ela já tenha sido revisada por um físico médico.
-                            Por favor, recarregue a página para atualizar a lista de requisições.`,
-                        {
-                            autoClose: 6000,
-                        }
-                    );
-                }
-            }
-
-            toast.success("Requisição cancelada com sucesso!");
-        } catch (error) {
-            toast.error("Algo deu errado. Tente novamente mais tarde.");
-        } finally {
-            setLoadingCancel(false);
-        }
-    };
-
-    const handleEditUnit = () => {
+    const handleModalEditUnit = () => {
         setCurrentModal(Modals.EDIT_UNIT);
         setIsModalOpen(true);
     };
 
-    const handleRejectUnit = () => {
+    const handleModalRejectUnit = () => {
         setCurrentModal(Modals.REJECT_UNIT);
         setIsModalOpen(true);
     };
@@ -204,7 +166,7 @@ function UnitPage() {
         setIsModalOpen(true);
     };
 
-    const handleDeleteUnit = async (selectedUnit: UnitDTO) => {
+    const handleRequestDeleteUnit = async (selectedUnit: UnitDTO) => {
         try {
             const response = await createUnitOperation({
                 name: selectedUnit.name,
@@ -218,7 +180,7 @@ function UnitPage() {
                 original_unit: selectedUnit.id,
                 operation_type: OperationType.DELETE,
             });
-            if (isErrorWithMessage(response.error)) {
+            if (isErrorWithMessages(response.error)) {
                 return toast.error(response.error.data.messages[0]);
             }
 
@@ -232,12 +194,18 @@ function UnitPage() {
         }
     };
 
-    const handleAddEquipment = () => {
+    const handleModalEquipmentDetails = (equipment: EquipmentDTO) => {
+        setSelectedEquipment(equipment);
+        setCurrentModal(Modals.EQUIPMENT_DETAILS);
+        setIsModalOpen(true);
+    };
+
+    const handleModalAddEquipment = () => {
         setCurrentModal(Modals.ADD_EQUIPMENT);
         setIsModalOpen(true);
     };
 
-    const handleEditEquipment = (selectedEquipment: EquipmentDTO) => {
+    const handleModalEditEquipment = (selectedEquipment: EquipmentDTO) => {
         setSelectedEquipment(selectedEquipment);
         setCurrentModal(Modals.EDIT_EQUIPMENT);
         setIsModalOpen(true);
@@ -249,22 +217,16 @@ function UnitPage() {
         setIsModalOpen(true);
     };
 
-    const handleDeleteEquipment = async (selectedEquipment: EquipmentDTO) => {
-        const formData = new FormData();
-
-        formData.append("operation_type", OperationType.DELETE);
-        formData.append("original_equipment", selectedEquipment.id.toString());
-
-        Array.from(formData.entries()).forEach(([key, value]) =>
-            console.log(key, value)
-        );
-
+    const handleRequestDeleteEquipment = async (
+        selectedEquipment: EquipmentDTO
+    ) => {
         try {
-            const response = await createEquipmentOperation(formData);
-            console.log(response);
+            const response = await createDeleteEquipmentOperation(
+                selectedEquipment.id
+            );
 
             if (response.error) {
-                if (isErrorWithMessage(response.error)) {
+                if (isErrorWithMessages(response.error)) {
                     toast.error(response.error.data.messages[0]);
                     return;
                 }
@@ -276,6 +238,84 @@ function UnitPage() {
 
             toast.success("Requisição enviada com sucesso!");
             setIsModalOpen(false);
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+    };
+
+    const handleModalRejectEquipment = (selectedEquipment: EquipmentDTO) => {
+        setSelectedEquipment(selectedEquipment);
+        setCurrentModal(Modals.REJECT_EQUIPMENT);
+        setIsModalOpen(true);
+    };
+
+    const handleConfirmRejectEquipment = async (
+        selectedEquipment: EquipmentDTO
+    ) => {
+        const equipmentOperation = getEquipmentOperation(
+            selectedEquipment,
+            equipmentsOperations
+        );
+
+        if (!equipmentOperation) {
+            return toast.error(
+                "Requisição não encontrada. Atualize a página e tente novamente."
+            );
+        }
+
+        try {
+            const response = await deleteEquipmentOperation(
+                equipmentOperation.id
+            );
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada.
+                            Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 5000,
+                        }
+                    );
+                }
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
+            }
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+
+        setIsModalOpen(false);
+        setCurrentModal(null);
+    };
+
+    const handleCancelEquipmentOperation = async (equipment: EquipmentDTO) => {
+        const operation = getEquipmentOperation(
+            equipment,
+            equipmentsOperations
+        );
+
+        if (!operation) {
+            return toast.error(
+                "Algo deu errado! Não foi possível obter a requisição associada."
+            );
+        }
+
+        try {
+            const response = await deleteEquipmentOperation(operation.id);
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada. É possível que ela já tenha sido revisada por um físico médico.
+                            Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 6000,
+                        }
+                    );
+                }
+            }
+
+            toast.success("Requisição cancelada com sucesso!");
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
@@ -393,9 +433,9 @@ function UnitPage() {
                         selectedUnit,
                         unitsOperations
                     )}
-                    onEdit={handleEditUnit}
+                    onEdit={handleModalEditUnit}
                     onDelete={handleModalDeleteUnit}
-                    onReject={handleRejectUnit}
+                    onReject={handleModalRejectUnit}
                 />
 
                 <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
@@ -431,7 +471,7 @@ function UnitPage() {
                                         equipmentsOperations
                                     )}
                                     onEdit={() =>
-                                        handleEditEquipment(equipment)
+                                        handleModalEditEquipment(equipment)
                                     }
                                     onCancelEdit={() =>
                                         handleCancelEquipmentOperation(
@@ -441,9 +481,11 @@ function UnitPage() {
                                     onDelete={() =>
                                         handleModalDeleteEquipment(equipment)
                                     }
-                                    onReject={() => {}}
+                                    onReject={() =>
+                                        handleModalRejectEquipment(equipment)
+                                    }
                                     onDetails={() =>
-                                        handleClickEquipmentDetails(equipment)
+                                        handleModalEquipmentDetails(equipment)
                                     }
                                     dataTestId={`equipment-card-${equipment.id}`}
                                 />
@@ -463,7 +505,7 @@ function UnitPage() {
                     </div>
 
                     <Button
-                        onClick={handleAddEquipment}
+                        onClick={handleModalAddEquipment}
                         data-testid="btn-add-equipment"
                     >
                         Adicionar equipamento
@@ -546,7 +588,7 @@ function UnitPage() {
                                 <Button
                                     variant="danger"
                                     onClick={() =>
-                                        handleDeleteUnit(selectedUnit)
+                                        handleRequestDeleteUnit(selectedUnit)
                                     }
                                     className="w-full mt-6"
                                     data-testid="btn-confirm-delete-unit"
@@ -601,9 +643,12 @@ function UnitPage() {
                                     <Button
                                         variant="danger"
                                         onClick={() =>
-                                            handleDeleteEquipment(
+                                            handleRequestDeleteEquipment(
                                                 selectedEquipment
                                             )
+                                        }
+                                        isLoading={
+                                            isLoadingCreateDeleteEquipmentOperation
                                         }
                                         className="w-full mt-6"
                                         data-testid="btn-confirm-delete-unit"
@@ -611,6 +656,43 @@ function UnitPage() {
                                         Confirmar
                                     </Button>
                                 </div>
+                            </div>
+                        )}
+
+                    {currentModal === Modals.REJECT_EQUIPMENT &&
+                        selectedEquipment && (
+                            <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                                <Typography
+                                    element="h2"
+                                    size="title2"
+                                    className="mb-6"
+                                >
+                                    Notas do Físico Médico Responsável
+                                </Typography>
+
+                                <Typography element="p" size="lg">
+                                    {
+                                        getEquipmentOperation(
+                                            selectedEquipment,
+                                            equipmentsOperations
+                                        )?.note
+                                    }
+                                </Typography>
+
+                                <Button
+                                    onClick={() =>
+                                        handleConfirmRejectEquipment(
+                                            selectedEquipment
+                                        )
+                                    }
+                                    isLoading={
+                                        isLoadingDeleteEquipmentOperation
+                                    }
+                                    className="w-full mt-6"
+                                    data-testid="btn-confirm-reject-client"
+                                >
+                                    Confirmar
+                                </Button>
                             </div>
                         )}
 

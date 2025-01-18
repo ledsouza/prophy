@@ -1,15 +1,16 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+
 import { equipmentSchema } from "@/schemas";
 
+import { useCreateAddEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
+import { isErrorWithMessages } from "@/redux/services/helpers";
+
+import { Button } from "@/components/common";
 import { Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Button } from "../common";
-import { OperationType } from "@/enums";
-import { useCreateEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
-import { isErrorWithMessage, isResponseError } from "@/redux/services/helpers";
-import { toast } from "react-toastify";
 
 export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
 
@@ -30,13 +31,13 @@ const AddEquipmentForm = ({
         resolver: zodResolver(equipmentSchema),
     });
 
-    const [createEquipmentOperation] = useCreateEquipmentOperationMutation();
+    const [createAddEquipmentOperation] =
+        useCreateAddEquipmentOperationMutation();
 
     const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
         const formData = new FormData();
 
         // Handle text fields
-        formData.append("operation_type", OperationType.ADD);
         formData.append("modality", data.modality);
         formData.append("manufacturer", data.manufacturer);
         formData.append("model", data.model);
@@ -54,17 +55,16 @@ const AddEquipmentForm = ({
         }
 
         try {
-            const response = await createEquipmentOperation(formData);
+            const response = await createAddEquipmentOperation(formData);
 
             if (response.error) {
-                if (isErrorWithMessage(response.error)) {
+                if (isErrorWithMessages(response.error)) {
                     toast.error(response.error.data.messages[0]);
                     return;
                 }
-                if (isResponseError(response.error)) {
-                    toast.error("Algo deu errado. Tente novamente mais tarde.");
-                    return;
-                }
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
             }
 
             toast.success("Requisição enviada com sucesso!");

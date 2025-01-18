@@ -1,4 +1,4 @@
-import { isErrorWithMessage } from "@/redux/services/helpers";
+import { isErrorWithMessages } from "@/redux/services/helpers";
 import { useCreateUnitMutation } from "@/redux/features/unitApiSlice";
 
 import { z } from "zod";
@@ -53,7 +53,7 @@ const AddUnitForm = ({ clientId, setIsModalOpen }: AddUnitFormProps) => {
             });
 
             if (response.error) {
-                if (isErrorWithMessage(response.error)) {
+                if (isErrorWithMessages(response.error)) {
                     toast.error(response.error.data.messages[0]);
                     return;
                 }

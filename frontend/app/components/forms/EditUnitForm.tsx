@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isCNPJ } from "validation-br";
 import { toast } from "react-toastify";
 
-import { isErrorWithMessage } from "@/redux/services/helpers";
+import { isErrorWithMessages } from "@/redux/services/helpers";
 import { UnitDTO, useCreateUnitMutation } from "@/redux/features/unitApiSlice";
 
 import { useIBGELocalidades } from "@/hooks";
@@ -106,7 +106,7 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
             });
 
             if (response.error) {
-                if (isErrorWithMessage(response.error)) {
+                if (isErrorWithMessages(response.error)) {
                     toast.error(response.error.data.messages[0]);
                     return;
                 }

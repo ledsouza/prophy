@@ -17,7 +17,7 @@ export function isFetchBaseQueryError(
 /**
  * Type predicate to narrow an unknown error to an object with a string 'message' property
  */
-export function isErrorWithMessage(
+export function isErrorWithMessages(
     error: unknown
 ): error is { data: { messages: string[] } } {
     return (

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import { OperationStatus } from "@/enums";
 
@@ -7,9 +7,6 @@ import {
     EquipmentOperationDTO,
 } from "@/redux/features/equipmentApiSlice";
 
-import { PencilLine, Trash } from "@phosphor-icons/react";
-
-import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { CardButtons, CardStatus } from "@/components/client";
 

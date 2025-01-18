@@ -1,19 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 import { equipmentSchema } from "@/schemas";
-import { OperationType } from "@/enums";
 
-import { isErrorWithMessage, isResponseError } from "@/redux/services/helpers";
+import { isErrorWithMessages } from "@/redux/services/helpers";
 import {
     EquipmentDTO,
-    useCreateEquipmentOperationMutation,
+    useCreateEditEquipmentOperationMutation,
 } from "@/redux/features/equipmentApiSlice";
 
 import { Button } from "@/components/common";
@@ -50,7 +49,8 @@ const EditEquipmentForm = ({
         },
     });
 
-    const [createEquipmentOperation] = useCreateEquipmentOperationMutation();
+    const [createEditEquipmentOperation] =
+        useCreateEditEquipmentOperationMutation();
 
     const onSubmit: SubmitHandler<EditEquipmentFields> = async (data) => {
         if (
@@ -79,7 +79,6 @@ const EditEquipmentForm = ({
         // Handle text fields
         formData.append("original_equipment", originalEquipment.id.toString());
         formData.append("unit", originalEquipment.unit.toString());
-        formData.append("operation_type", OperationType.EDIT);
         formData.append("modality", data.modality);
         formData.append("manufacturer", data.manufacturer);
         formData.append("model", data.model);
@@ -129,17 +128,17 @@ const EditEquipmentForm = ({
         }
 
         try {
-            const response = await createEquipmentOperation(formData);
+            const response = await createEditEquipmentOperation(formData);
 
             if (response.error) {
-                if (isErrorWithMessage(response.error)) {
+                if (isErrorWithMessages(response.error)) {
                     toast.error(response.error.data.messages[0]);
                     return;
                 }
-                if (isResponseError(response.error)) {
-                    toast.error("Algo deu errado. Tente novamente mais tarde.");
-                    return;
-                }
+
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
             }
 
             toast.success("Requisição enviada com sucesso!");

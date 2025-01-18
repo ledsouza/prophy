@@ -13,7 +13,7 @@ import {
     ClientDTO,
     useCreateClientMutation,
 } from "@/redux/features/clientApiSlice";
-import { isErrorWithMessage } from "@/redux/services/helpers";
+import { isErrorWithMessages } from "@/redux/services/helpers";
 
 import { useIBGELocalidades } from "@/hooks";
 import { ComboBox, Form, Input } from "@/components/forms";
@@ -123,7 +123,7 @@ const EditClientForm = ({
             });
 
             if (response.error) {
-                if (isErrorWithMessage(response.error)) {
+                if (isErrorWithMessages(response.error)) {
                     const message = response.error.data.messages[0];
                     return toast.error(message);
                 }

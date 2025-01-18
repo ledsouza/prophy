@@ -1,3 +1,4 @@
+import { OperationType } from "@/enums";
 import {
     apiSlice,
     ListQueryParams,
@@ -102,20 +103,55 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "EquipmentOperation", id: "LIST" }],
         }),
-        createEquipmentOperation: builder.mutation<
+        createAddEquipmentOperation: builder.mutation<
             EquipmentOperationDTO,
             FormData
         >({
-            query: (formData) => ({
-                url: "equipments/operations/",
-                method: "POST",
-                body: formData,
-                formData: true,
-            }),
+            query: (formData) => {
+                formData.append("operation_type", OperationType.ADD);
+                return {
+                    url: "equipments/operations/",
+                    method: "POST",
+                    body: formData,
+                    formData: true,
+                };
+            },
             invalidatesTags: [
                 { type: "EquipmentOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
             ],
+        }),
+        createEditEquipmentOperation: builder.mutation<
+            EquipmentOperationDTO,
+            FormData
+        >({
+            query: (formData) => {
+                formData.append("operation_type", OperationType.EDIT);
+                return {
+                    url: "equipments/operations/",
+                    method: "POST",
+                    body: formData,
+                    formData: true,
+                };
+            },
+            invalidatesTags: [
+                { type: "EquipmentOperation", id: "LIST" },
+                { type: "Equipment", id: "LIST" },
+            ],
+        }),
+        createDeleteEquipmentOperation: builder.mutation<
+            EquipmentOperationDTO,
+            Number
+        >({
+            query: (equipmentID) => ({
+                url: "equipments/operations/",
+                method: "POST",
+                body: {
+                    operation_type: OperationType.DELETE,
+                    original_equipment: equipmentID,
+                },
+            }),
+            invalidatesTags: [{ type: "EquipmentOperation", id: "LIST" }],
         }),
         deleteEquipmentOperation: builder.mutation<void, number>({
             query: (equipmentId) => ({
@@ -131,6 +167,8 @@ export const {
     useListEquipmentsQuery,
     useListAllEquipmentsQuery,
     useListAllEquipmentsOperationsQuery,
-    useCreateEquipmentOperationMutation,
+    useCreateAddEquipmentOperationMutation,
+    useCreateEditEquipmentOperationMutation,
+    useCreateDeleteEquipmentOperationMutation,
     useDeleteEquipmentOperationMutation,
 } = equipmentApiSlice;
