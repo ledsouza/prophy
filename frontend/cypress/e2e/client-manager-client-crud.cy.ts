@@ -3,7 +3,59 @@ import { errorMessages } from "cypress/support/e2e";
 
 const apiUrl = Cypress.env("apiUrl");
 
-describe("Gerente Geral de Cliente Client CRUD", () => {
+function createEditClientOperation(newClientName: string) {
+    cy.intercept("POST", `${apiUrl}/clients/operations/`).as(
+        "createEditClientOperation"
+    );
+
+    cy.getByTestId("institution-name-input").type(
+        `{selectAll}{del}${newClientName}`
+    );
+
+    cy.getByTestId("submit-btn").click();
+
+    cy.wait("@createEditClientOperation").then((interception) => {
+        expect(interception.response?.statusCode).to.eq(201);
+
+        const { id } = interception.response?.body;
+        cy.setCookie("operationID", String(id));
+    });
+}
+
+function answerClientOperation(operationStatus: OperationStatus, note = "") {
+    cy.fixture("users.json").then((users) => {
+        cy.request({
+            method: "POST",
+            url: `${apiUrl}/jwt/create/`,
+            body: {
+                cpf: users.internal_physicist_user.cpf,
+                password: users.internal_physicist_user.password,
+            },
+        }).then((response) => {
+            const { access } = response.body;
+            cy.setCookie("FMIToken", String(access));
+        });
+    });
+
+    cy.getCookie("operationID").then((operationIDCookie) => {
+        cy.getCookie("FMIToken").then((FMITokenCookie) => {
+            cy.request({
+                method: "PUT",
+                url: `${apiUrl}/clients/operations/${operationIDCookie?.value}/`,
+                body: {
+                    operation_status: operationStatus,
+                    note: note,
+                },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${FMITokenCookie?.value}`,
+                },
+            });
+        });
+    });
+}
+
+describe("Client Manager Client CRUD", () => {
     beforeEach(() => {
         cy.fixture("users.json").then((users) => {
             cy.loginSession(users.client_user.cpf, users.client_user.password);
@@ -11,7 +63,7 @@ describe("Gerente Geral de Cliente Client CRUD", () => {
         cy.visit("/dashboard");
     });
 
-    context("Updating Client", () => {
+    context("Edit Client", () => {
         context("Failure Scenario", () => {
             it("should display error message when no changes are made to client fields", () => {
                 cy.getByTestId("btn-edit-client").should("exist").click();
@@ -116,7 +168,7 @@ describe("Gerente Geral de Cliente Client CRUD", () => {
 
                 cy.getByTestId("validation-error").should(
                     "contain",
-                    errorMessages.emptyAddress
+                    errorMessages.emptyInstituionAddress
                 );
             });
 
@@ -172,52 +224,11 @@ describe("Gerente Geral de Cliente Client CRUD", () => {
             });
 
             it("should successfully receive a rejected operation for editing client details", () => {
-                cy.intercept("POST", `${apiUrl}/clients/operations/`).as(
-                    "createEditClientOperation"
-                );
+                const newClientName = "TEST EDIT CLIENT";
+                createEditClientOperation(newClientName);
 
-                cy.getByTestId("institution-name-input").type(
-                    "{selectAll}{del}TEST EDIT CLIENT"
-                );
-
-                cy.getByTestId("submit-btn").click();
-
-                cy.wait("@createEditClientOperation").then((interception) => {
-                    expect(interception.response?.statusCode).to.eq(201);
-
-                    const { id } = interception.response?.body;
-                    cy.setCookie("operationID", String(id));
-                });
-
-                cy.fixture("users.json").then((users) => {
-                    cy.request({
-                        method: "POST",
-                        url: `${apiUrl}/jwt/create/`,
-                        body: {
-                            cpf: users.internal_physicist_user.cpf,
-                            password: users.internal_physicist_user.password,
-                        },
-                    }).then((response) => {
-                        const { access } = response.body;
-                        cy.setCookie("FMIToken", String(access));
-                    });
-                });
-
-                cy.getCookie("operationID").then((operationIDCookie) => {
-                    cy.getCookie("FMIToken").then((FMITokenCookie) => {
-                        cy.request({
-                            method: "PUT",
-                            url: `${apiUrl}/clients/operations/${operationIDCookie?.value}/`,
-                            body: {
-                                operation_status: OperationStatus.REJECTED,
-                            },
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${FMITokenCookie?.value}`,
-                            },
-                        });
-                    });
-                });
+                const note = "Rejeitado";
+                answerClientOperation(OperationStatus.REJECTED, note);
 
                 cy.fixture("users.json").then((users) => {
                     cy.loginSession(
@@ -232,9 +243,32 @@ describe("Gerente Geral de Cliente Client CRUD", () => {
                     .should("exist")
                     .click();
 
+                cy.contains(note).should("be.visible");
+
                 cy.getByTestId("btn-confirm-reject-client")
                     .should("exist")
                     .click();
+            });
+
+            it("should succesfully receive an accepted operation for editing client details", () => {
+                const newClientName = "TEST EDIT CLIENT";
+                createEditClientOperation(newClientName);
+
+                answerClientOperation(OperationStatus.ACCEPTED);
+
+                cy.fixture("users.json").then((users) => {
+                    cy.loginSession(
+                        users.client_user.cpf,
+                        users.client_user.password
+                    );
+                });
+
+                cy.visit("/dashboard");
+
+                cy.getByTestId("client-options").should(
+                    "contain",
+                    newClientName
+                );
             });
         });
     });

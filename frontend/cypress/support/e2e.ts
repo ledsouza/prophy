@@ -14,6 +14,7 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
+import { randomMobilePhoneNumber } from "@/utils/generator";
 import "./commands";
 
 Cypress.on("uncaught:exception", (err, runnable) => {
@@ -24,15 +25,25 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 
 export const errorMessages = {
     emptyCPF: "O CPF deve conter 11 caracteres.",
+    emptyName: "Nome é obrigatório.",
+    emptyCNPJ: "CNPJ é obrigatório.",
+    invalidCNPJ: "CNPJ inválido.",
+    emptyEmail: "E-mail é obrigatório.",
     shortPassword: "A senha deve conter no mínimo 8 caracteres.",
     emptyInstitutionName: "Nome da instituição é obrigatório.",
     invalidInstitutionEmail: "E-mail da instituição inválido.",
     invalidPhone: "Telefone inválido.",
+    emptyPhone: "Telefone é obrigatório.",
     emptyState: "Estado da instituição é obrigatório.",
-    emptyCity: "Cidade da instituição é obrigatório.",
-    emptyAddress: "Endereço da instituição é obrigatório.",
+    emptyCity: "Cidade da instituição é obrigatória.",
+    emptyInstituionAddress: "Endereço da instituição é obrigatório.",
+    emptyAddress: "Endereço é obrigatório.",
     emptyContactName: "Nome do contato é obrigatório.",
     invalidContactEmail: "E-mail do contato inválido.",
+};
+
+export const fakerPhone = () => {
+    return randomMobilePhoneNumber();
 };
 
 // Alternatively you can use CommonJS syntax:

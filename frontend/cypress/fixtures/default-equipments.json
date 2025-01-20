@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "GE",
-    "model": "FACILIS-985",
-    "series_number": "egMO-276900",
-    "anvisa_registry": "BoaqKhdpUzKoR",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Philips",
+    "model": "LABORIOSAM-251",
+    "series_number": "CcRy-356666",
+    "anvisa_registry": "vjTOYinokbQHD",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "Toshiba",
-    "model": "VITAE-891",
-    "series_number": "TcGy-808427",
-    "anvisa_registry": "sAVQvSZGTWqAq",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
+    "manufacturer": "Siemens",
+    "model": "VOLUPTATEM-835",
+    "series_number": "Egxd-049593",
+    "anvisa_registry": "SKTcySDSWvUPp",
     "id": 1001
   }
 }

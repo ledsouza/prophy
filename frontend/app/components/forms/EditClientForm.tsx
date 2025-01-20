@@ -38,7 +38,7 @@ const editClientSchema = z.object({
         .min(1, { message: "Estado da instituição é obrigatório." }),
     city: z
         .string()
-        .min(1, { message: "Cidade da instituição é obrigatório." }),
+        .min(1, { message: "Cidade da instituição é obrigatória." }),
 });
 
 export type EditClientFields = z.infer<typeof editClientSchema>;
@@ -230,7 +230,7 @@ const EditClientForm = ({
                         <Spinner />
                     </div>
                 )}
-                {isMunicipiosSuccess && municipios ? (
+                {isMunicipiosSuccess && municipios && selectedEstado ? (
                     <ComboBox
                         data={municipios.map((municipio) => ({
                             id: municipio.id,
@@ -238,7 +238,7 @@ const EditClientForm = ({
                         }))}
                         errorMessage={
                             errors.city
-                                ? "Cidade da instituição é obrigatório."
+                                ? "Cidade da instituição é obrigatória."
                                 : ""
                         }
                         placeholder="Digite a cidade e selecione"
@@ -253,7 +253,7 @@ const EditClientForm = ({
                         disabled
                         errorMessage={
                             errors.city
-                                ? "Cidade da instituição é obrigatório."
+                                ? "Cidade da instituição é obrigatória."
                                 : ""
                         }
                         placeholder="Selecione um estado"

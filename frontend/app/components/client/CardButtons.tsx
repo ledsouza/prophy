@@ -97,7 +97,7 @@ function CardButtons({
                         variant="danger"
                         onClick={onReject}
                         className="w-40"
-                        data-testid="btn-retry-unit-operation"
+                        data-testid="btn-reject-edit-unit-operation"
                     >
                         Verificar motivo
                     </Button>

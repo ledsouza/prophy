@@ -514,7 +514,7 @@ function ClientPage() {
                                     handleConfirmRejectUnit(selectedUnit)
                                 }
                                 className="w-full mt-6"
-                                data-testid="btn-confirm-reject-client"
+                                data-testid="btn-confirm-reject-unit"
                             >
                                 Confirmar
                             </Button>

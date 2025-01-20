@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { isCNPJ } from "validation-br";
 import { toast } from "react-toastify";
 
 import { isErrorWithMessages } from "@/redux/services/helpers";
@@ -19,36 +18,9 @@ import { useIBGELocalidades } from "@/hooks";
 import { ComboBox, Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
+import { unitSchema } from "@/schemas";
 
-const editUnitSchema = z.object({
-    name: z
-        .string()
-        .nonempty({ message: "Nome é obrigatório." })
-        .max(50, { message: "Nome deve ter no máximo 50 caracteres." }),
-    cnpj: z
-        .string()
-        .nonempty({ message: "CNPJ é obrigatório." })
-        .length(14, { message: "CNPJ deve ter 14 caracteres." })
-        .refine((cnpj) => isCNPJ(cnpj), { message: "CNPJ inválido." }),
-    email: z
-        .string()
-        .nonempty({ message: "E-mail é obrigatório." })
-        .email({ message: "E-mail inválido." }),
-    phone: z
-        .string()
-        .nonempty({ message: "Telefone é obrigatório." })
-        .min(10, { message: "Telefone deve conter no mínimo 10 dígitos." })
-        .max(11, { message: "Telefone deve conter no máximo 11 dígitos." })
-        .regex(/^[0-9]+$/, { message: "Telefone deve conter apenas números." }),
-    address: z
-        .string()
-        .nonempty({ message: "Endereço é obrigatório." })
-        .max(150, { message: "Endereço deve ter no máximo 150 caracteres." }),
-    state: z.string().nonempty({ message: "Estado é obrigatório." }),
-    city: z.string().nonempty({ message: "Cidade é obrigatória." }),
-});
-
-export type EditUnitFields = z.infer<typeof editUnitSchema>;
+export type EditUnitFields = z.infer<typeof unitSchema>;
 
 type EditUnitFormProps = {
     originalUnit: UnitDTO;
@@ -62,7 +34,7 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
         formState: { errors, isSubmitting },
         setValue,
     } = useForm<EditUnitFields>({
-        resolver: zodResolver(editUnitSchema),
+        resolver: zodResolver(unitSchema),
         defaultValues: {
             name: originalUnit.name,
             cnpj: originalUnit.cnpj,
@@ -230,14 +202,14 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
                         <Spinner />
                     </div>
                 )}
-                {isMunicipiosSuccess && municipios ? (
+                {isMunicipiosSuccess && municipios && selectedEstado ? (
                     <ComboBox
                         data={municipios.map((municipio) => ({
                             id: municipio.id,
                             name: municipio.nome,
                         }))}
                         errorMessage={
-                            errors.state
+                            errors.city
                                 ? "Cidade da instituição é obrigatória."
                                 : ""
                         }
@@ -252,7 +224,7 @@ const EditUnitForm = ({ originalUnit, setIsModalOpen }: EditUnitFormProps) => {
                     <Input
                         disabled
                         errorMessage={
-                            errors.state
+                            errors.city
                                 ? "Cidade da instituição é obrigatória."
                                 : ""
                         }

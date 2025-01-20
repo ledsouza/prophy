@@ -1,3 +1,4 @@
+import { isValidPhonePTBR } from "@/utils/validation";
 import { isCNPJ } from "validation-br";
 import { z } from "zod";
 
@@ -9,7 +10,6 @@ const unitSchema = z.object({
     cnpj: z
         .string()
         .nonempty({ message: "CNPJ é obrigatório." })
-        .length(14, { message: "CNPJ deve ter 14 caracteres." })
         .refine((cnpj) => isCNPJ(cnpj), { message: "CNPJ inválido." }),
     email: z
         .string()
@@ -18,9 +18,9 @@ const unitSchema = z.object({
     phone: z
         .string()
         .nonempty({ message: "Telefone é obrigatório." })
-        .min(10, { message: "Telefone deve conter no mínimo 10 dígitos." })
-        .max(11, { message: "Telefone deve conter no máximo 11 dígitos." })
-        .regex(/^[0-9]+$/, { message: "Telefone deve conter apenas números." }),
+        .refine((value) => isValidPhonePTBR(value), {
+            message: "Telefone inválido.",
+        }),
     address: z
         .string()
         .nonempty({ message: "Endereço é obrigatório." })

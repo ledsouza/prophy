@@ -10,6 +10,14 @@ declare global {
             getByTestId(testId: string): Chainable<JQuery<HTMLElement>>;
 
             /**
+             * Custom command to select nested DOM element by data-testid attributes.
+             * @example cy.getByNestedTestId(['greeting', 'hello'])
+             */
+            getByNestedTestId(
+                testIds: string[]
+            ): Chainable<JQuery<HTMLElement>>;
+
+            /**
              * Custom command to select an option in a custom combobox.
              * @example cy.typeCombobox('institution-city-input', 'São Paulo')
              */
@@ -54,6 +62,14 @@ declare global {
 
 Cypress.Commands.add("getByTestId", (testId: string) => {
     return cy.get(`[data-testid="${testId}"]`);
+});
+
+Cypress.Commands.add("getByNestedTestId", (testIds: string[]) => {
+    let selector = "";
+    testIds.forEach((testId) => {
+        selector = selector + `[data-testid="${testId}"] `;
+    });
+    return cy.get(selector);
 });
 
 Cypress.Commands.add("selectCombobox", (id, option) => {

@@ -45,7 +45,11 @@ function UnitCard({
         >
             <div className="flex justify-between pb-4">
                 <div className="flex flex-col">
-                    <Typography element="h3" size="title3">
+                    <Typography
+                        element="h3"
+                        size="title3"
+                        dataTestId="unit-name"
+                    >
                         {unit.name}
                     </Typography>
 
