@@ -232,7 +232,12 @@ describe("Client Manager Unit CRUD", () => {
                     .should("exist")
                     .click();
 
-                cy.getByTestId("btn-edit-unit").first().should("exist");
+                cy.fixture("default-units.json").then((units) => {
+                    cy.getByNestedTestId([
+                        `unit-card-${units.unit1.id}`,
+                        "btn-edit-unit",
+                    ]).should("exist");
+                });
             });
 
             it("should succesfully receive a rejected operation", () => {
@@ -450,7 +455,7 @@ describe("Client Manager Unit CRUD", () => {
                     .click();
             });
 
-            it.only("should succesfully receive an accepted operation", () => {
+            it("should succesfully receive an accepted operation", () => {
                 const newUnit = {
                     name: `TEST ADD UNIT ${faker.number.int()}`,
                     cnpj: cnpj.fake({ alphanumeric: false }),
