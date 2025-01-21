@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const MAX_FILE_SIZE = 5000000;
+const MAX_FILE_SIZE = 5000000; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
 const optionalFileSchema = z
@@ -51,7 +51,7 @@ const equipmentSchema = z.object({
     model: z
         .string()
         .nonempty({ message: "Modelo é obrigatório." })
-        .max(30, { message: "Modelo é obrigatório." }),
+        .max(30, { message: "Modelo deve ter no máximo 30 caracteres." }),
     series_number: z.string().max(30, {
         message: "Número de série deve ter no máximo 30 caracteres.",
     }),

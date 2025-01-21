@@ -688,7 +688,7 @@ function UnitPage() {
                                         isLoadingDeleteEquipmentOperation
                                     }
                                     className="w-full mt-6"
-                                    data-testid="btn-confirm-reject-client"
+                                    data-testid="btn-confirm-reject-equipment"
                                 >
                                     Confirmar
                                 </Button>

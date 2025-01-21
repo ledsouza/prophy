@@ -23,7 +23,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             "block w-full rounded-md border-0 text-gray-primary shadow-md ring-1 ring-inset placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
             {
                 "py-1.5 ring-tertiary": disabled,
-                "py-1.5 bg-danger bg-opacity-5 ring-danger": errorMessage,
+                "bg-danger bg-opacity-5 ring-danger": errorMessage,
                 "py-1.5 ring-primary":
                     !errorMessage && !disabled && type !== "file",
                 "ring-primary file:py-1.5 file:border-0 file:bg-secondary file:rounded-md file:text-white hover:file:cursor-pointer hover:file:bg-opacity-80":

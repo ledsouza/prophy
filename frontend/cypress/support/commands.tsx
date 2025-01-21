@@ -5,6 +5,7 @@ import { randomMobilePhoneNumber } from "@/utils/generator";
 import * as cnpj from "validation-br/dist/cnpj";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { OperationStatus, OperationType } from "@/enums";
+import { EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
 
 // ***********************************************
 declare global {
@@ -65,12 +66,38 @@ declare global {
             getRandomCnpj(): Cypress.Chainable<string>;
 
             /**
+             * Custom command to retrieve an FMI (Físico Médico Interno) access token for authentication.
+             * This command reads user credentials from the users.json fixture, makes a POST request to the JWT creation endpoint,
+             * and returns the access token.
+             *
+             * @example
+             * cy.getFMIAccessToken().then((token) => {
+             *   // Use the token for authenticated requests
+             *   cy.request({
+             *     headers: { Authorization: `Bearer ${token}` }
+             *   });
+             * });
+             *
+             * @returns {Cypress.Chainable<string>} A Cypress chainable that yields the access token string
+             * @throws Will throw an error if the authentication request fails
+             */
+            getFMIAccessToken(): Cypress.Chainable<string>;
+
+            /**
              * Custom command to add a unit to the database.
              *
              * @example
              * cy.addUnit()
              */
             addUnit(): Cypress.Chainable<void>;
+
+            /**
+             * Custom command to add an equipment to the database.
+             *
+             * @example
+             * cy.addEquipment()
+             */
+            addEquipment(): Cypress.Chainable<void>;
         }
     }
 }
@@ -158,7 +185,7 @@ Cypress.Commands.add("getRandomCnpj", () => {
     });
 });
 
-Cypress.Commands.add("addUnit", () => {
+Cypress.Commands.add("getFMIAccessToken", () => {
     cy.fixture("users.json").then((users) => {
         cy.request({
             method: "POST",
@@ -172,6 +199,10 @@ Cypress.Commands.add("addUnit", () => {
             cy.wrap(access).as("accessToken");
         });
     });
+});
+
+Cypress.Commands.add("addUnit", () => {
+    cy.getFMIAccessToken();
 
     cy.get("@accessToken").then((accessToken) => {
         cy.fixture("default-clients.json").then((clients) => {
@@ -195,6 +226,35 @@ Cypress.Commands.add("addUnit", () => {
                 } as UnitOperationDTO,
             }).then((response) => {
                 cy.wrap(response.body.id).as("newUnitID");
+            });
+        });
+    });
+});
+
+Cypress.Commands.add("addEquipment", () => {
+    cy.getFMIAccessToken().then((accessToken) => {
+        cy.fixture("default-units.json").then((units) => {
+            cy.request({
+                method: "POST",
+                url: `${Cypress.env("apiUrl")}/equipments/operations/`,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                body: {
+                    name: `TEST EQUIPMENT ${faker.number.int()}`,
+                    modality: `TEST EQUIPMENT ${faker.number.int({
+                        max: 100,
+                    })}`,
+                    model: `TEST EQUIPMENT ${faker.number.int({ max: 100 })}`,
+                    manufacturer: `TEST EQUIPMENT ${faker.number.int({
+                        max: 100,
+                    })}`,
+                    unit: units.unit1.id,
+                    operation_status: OperationStatus.ACCEPTED,
+                    operation_type: OperationType.ADD,
+                } as Omit<EquipmentOperationDTO, "id">,
+            }).then((response) => {
+                cy.wrap(response.body).as("newEquipment");
             });
         });
     });

@@ -42,6 +42,15 @@ export const errorMessages = {
     invalidContactEmail: "E-mail do contato inválido.",
 };
 
+export const equipmentFormErrors = {
+    emptyModality: "Modalidade é obrigatório.",
+    longModality: "Modalidade deve ter no máximo 50 caracteres.",
+    emptyManufacturer: "Fabricante é obrigatório.",
+    longManufacturer: "Fabricante deve ter no máximo 30 caracteres.",
+    emptyModel: "Modelo é obrigatório.",
+    longModel: "Modelo deve ter no máximo 30 caracteres.",
+};
+
 export const fakerPhone = () => {
     return randomMobilePhoneNumber();
 };
