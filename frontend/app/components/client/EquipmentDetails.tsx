@@ -14,30 +14,31 @@ type EquipmentDetailsProps = {
 
 function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
     return (
-        <div data-testid="equipment-details">
+        <div className="flex flex-col" data-testid="equipment-details">
             <button
                 onClick={onClose}
-                className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="absolute right-1 top-1 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
                 data-testid="btn-close-modal"
                 aria-label="Fechar modal"
             >
                 <XCircle size={32} className="text-primary" />
             </button>
-            <Image
-                src={
-                    equipment.equipment_photo
-                        ? process.env.NEXT_PUBLIC_HOST +
-                          equipment.equipment_photo
-                        : notFound
-                }
-                alt="Imagem do equipamento"
-                width={equipment.equipment_photo ? 1200 : 600}
-                height={equipment.equipment_photo ? 1200 : 600}
-                className="flex justify-self-center"
-                style={{
-                    objectFit: "contain",
-                }}
-            />
+            <div className="relative w-full h-[700px]">
+                <Image
+                    src={
+                        equipment.equipment_photo
+                            ? process.env.NEXT_PUBLIC_HOST +
+                              equipment.equipment_photo
+                            : notFound
+                    }
+                    alt="Imagem do equipamento"
+                    fill={true}
+                    className="shadow-lg"
+                    style={{
+                        objectFit: "contain",
+                    }}
+                />
+            </div>
             <div className="m-6 flex flex-col gap-2 sm:flex-row justify-around">
                 <Typography size="md">
                     <b>Modelo:</b> {equipment.model}
@@ -53,17 +54,20 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                     <b>Registro da Anvisa:</b> {equipment.anvisa_registry}
                 </Typography>
 
-                <div className="flex flex-col gap-2">
-                    <Button
-                        variant="secondary"
-                        data-testid="btn-edit-equipment"
-                    >
-                        Editar
-                    </Button>
-                    <Button variant="danger" data-testid="btn-delete-equipment">
-                        Remover
-                    </Button>
-                </div>
+                {equipment.label_photo && (
+                    <Image
+                        src={
+                            process.env.NEXT_PUBLIC_HOST + equipment.label_photo
+                        }
+                        alt="Rótulo do equipamento"
+                        width={200}
+                        height={200}
+                        className="ring-1 shadow-md rounded-md"
+                        style={{
+                            objectFit: "contain",
+                        }}
+                    />
+                )}
             </div>
         </div>
     );

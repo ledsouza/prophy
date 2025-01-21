@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { Form, Input } from "@/components/forms";
+import { fetchPhoto } from "@/utils/media";
 
 export type EditEquipmentFields = z.infer<typeof equipmentSchema>;
 
@@ -33,6 +34,8 @@ const EditEquipmentForm = ({
     const [equipmentPhotoFile, setEquipmentPhotoFile] = useState<File | null>(
         null
     );
+    const [equipmentLabelPhotoFile, setEquipmentLabelPhotoFile] =
+        useState<File | null>(null);
 
     const {
         register,
@@ -53,27 +56,6 @@ const EditEquipmentForm = ({
         useCreateEditEquipmentOperationMutation();
 
     const onSubmit: SubmitHandler<EditEquipmentFields> = async (data) => {
-        if (
-            Object.entries(data).every(([key, value]) => {
-                if (typeof value === "string") {
-                    return (
-                        value.toLowerCase() ===
-                        originalEquipment[key as keyof EquipmentDTO]
-                            ?.toString()
-                            .toLowerCase()
-                    );
-                } else if (value instanceof FileList) {
-                    return (
-                        value.item(0)?.name ===
-                        originalEquipment.equipment_photo?.split("/").pop()
-                    );
-                }
-            })
-        ) {
-            toast.warning("Nenhuma alteração foi detectada nos dados.");
-            return;
-        }
-
         const formData = new FormData();
 
         // Handle text fields
@@ -94,6 +76,8 @@ const EditEquipmentForm = ({
 
         if (data.label_photo?.[0]) {
             formData.append("label_photo", data.label_photo[0]);
+        } else if (equipmentLabelPhotoFile) {
+            formData.append("label_photo", equipmentLabelPhotoFile);
         }
 
         const isSameData = Array.from(formData.entries()).every(
@@ -115,10 +99,10 @@ const EditEquipmentForm = ({
                         );
                     }
                 } else if (value instanceof File) {
-                    return (
-                        value.name ===
-                        originalEquipment.equipment_photo?.split("/").pop()
-                    );
+                    const originalFile = originalEquipment[
+                        key as keyof EquipmentDTO
+                    ] as string | undefined;
+                    return value.name === originalFile?.split("/").pop();
                 }
             }
         );
@@ -150,21 +134,29 @@ const EditEquipmentForm = ({
 
     useEffect(() => {
         if (originalEquipment.equipment_photo) {
-            fetch(
-                process.env.NEXT_PUBLIC_HOST + originalEquipment.equipment_photo
-            )
-                .then((response) => response.blob())
-                .then((blob) => {
-                    const filename =
-                        originalEquipment.equipment_photo?.split("/").pop() ||
-                        "Não definido";
-                    const file = new File([blob], filename, {
-                        type: blob.type,
-                    });
-                    setEquipmentPhotoFile(file);
-                });
+            try {
+                fetchPhoto(
+                    originalEquipment.equipment_photo,
+                    setEquipmentPhotoFile
+                );
+            } catch (error) {
+                toast.error("Erro ao carregar a foto do equipamento.");
+            }
         }
-    }, []);
+
+        if (originalEquipment.label_photo) {
+            try {
+                fetchPhoto(
+                    originalEquipment.label_photo,
+                    setEquipmentLabelPhotoFile
+                );
+            } catch (error) {
+                toast.error(
+                    "Erro ao carregar a foto do rótulo do equipamento."
+                );
+            }
+        }
+    }, [originalEquipment]);
 
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
@@ -260,6 +252,13 @@ const EditEquipmentForm = ({
                 >
                     Foto do rótulo do equipamento
                 </Input>
+
+                {originalEquipment.label_photo && (
+                    <Typography element="p" size="sm">
+                        Nome do arquivo atual:{" "}
+                        {originalEquipment.label_photo.split("/").pop()}
+                    </Typography>
+                )}
 
                 <div className="flex gap-2 py-4">
                     <Button
