@@ -173,9 +173,7 @@ function UnitPage() {
                 return toast.error(response.error.data.messages[0]);
             }
 
-            toast.success(
-                "Requisição para deletar unidade enviada com sucesso."
-            );
+            toast.success("Requisição enviada com sucesso!");
             setIsModalOpen(false);
             setCurrentModal(null);
         } catch (error) {
@@ -555,7 +553,7 @@ function UnitPage() {
                                     handleConfirmRejectUnit(selectedUnit)
                                 }
                                 className="w-full mt-6"
-                                data-testid="btn-confirm-reject-client"
+                                data-testid="btn-confirm-reject-unit"
                             >
                                 Confirmar
                             </Button>

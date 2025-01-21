@@ -16,7 +16,7 @@ function openEditUnitModal() {
     cy.fixture("default-units.json").then((units) => {
         cy.getByNestedTestId([
             `unit-card-${units.unit1.id}`,
-            "btn-edit-unit",
+            "btn-edit-operation",
         ]).click();
     });
     cy.wait(300); // Give enough time to get data from IBGE API
@@ -37,6 +37,8 @@ function createEditUnitOperation(newUnitName: string) {
         const { id } = interception.response?.body;
         cy.setCookie("operationID", String(id));
     });
+
+    cy.contains("Requisição enviada com sucesso!").should("be.visible");
 }
 
 function createAddUnitOperation(newUnit: UnitDTO) {
@@ -59,8 +61,9 @@ function createAddUnitOperation(newUnit: UnitDTO) {
 
         const { id } = interception.response?.body;
         cy.setCookie("operationID", String(id));
-        newUnit.id = id;
     });
+
+    cy.contains("Requisição enviada com sucesso!").should("be.visible");
 }
 
 function answerUnitOperation(operationStatus: OperationStatus, note = "") {
@@ -221,71 +224,169 @@ describe("Client Manager Unit CRUD", () => {
         });
 
         context("Success Scenario", () => {
-            beforeEach(() => {
-                openEditUnitModal();
-            });
-
-            it("should successfully cancel the operation", () => {
-                createEditUnitOperation("TEST EDIT UNIT");
-
-                cy.getByTestId("btn-cancel-unit-operation")
-                    .should("exist")
-                    .click();
-
-                cy.fixture("default-units.json").then((units) => {
-                    cy.getByNestedTestId([
-                        `unit-card-${units.unit1.id}`,
-                        "btn-edit-unit",
-                    ]).should("exist");
+            context("Client Details Page", () => {
+                beforeEach(() => {
+                    openEditUnitModal();
                 });
-            });
 
-            it("should succesfully receive a rejected operation", () => {
-                createEditUnitOperation("TEST EDIT UNIT");
-
-                const note = "Rejeitado";
-                answerUnitOperation(OperationStatus.REJECTED, note);
-
-                cy.fixture("users.json").then((users) => {
-                    cy.loginSession(
-                        users.client_user.cpf,
-                        users.client_user.password
+                it("should successfully cancel the operation", () => {
+                    createEditUnitOperation(
+                        `TEST EDIT UNIT ${faker.number.int()}`
                     );
+
+                    cy.getByTestId("btn-cancel-operation")
+                        .should("exist")
+                        .click();
+
+                    cy.contains("Requisição cancelada com sucesso!").should(
+                        "be.visible"
+                    );
+
+                    cy.fixture("default-units.json").then((units) => {
+                        cy.getByNestedTestId([
+                            `unit-card-${units.unit1.id}`,
+                            "btn-edit-operation",
+                        ]).should("exist");
+                    });
                 });
 
-                cy.visit("/dashboard");
+                it("should succesfully receive a rejected operation", () => {
+                    createEditUnitOperation(
+                        `TEST EDIT UNIT ${faker.number.int()}`
+                    );
 
-                cy.getByTestId("btn-reject-edit-unit-operation")
-                    .should("exist")
-                    .click();
+                    const note = "Rejeitado";
+                    answerUnitOperation(OperationStatus.REJECTED, note);
 
-                cy.contains(note).should("be.visible");
+                    cy.fixture("users.json").then((users) => {
+                        cy.loginSession(
+                            users.client_user.cpf,
+                            users.client_user.password
+                        );
+                    });
 
-                cy.getByTestId("btn-confirm-reject-unit")
-                    .should("exist")
-                    .click();
+                    cy.visit("/dashboard");
+
+                    cy.getByTestId("btn-reject-operation")
+                        .should("exist")
+                        .click();
+
+                    cy.contains(note).should("be.visible");
+
+                    cy.getByTestId("btn-confirm-reject-unit")
+                        .should("exist")
+                        .click();
+                });
+
+                it("should succesfully receive an accepted operation", () => {
+                    const newUnitName = `TEST EDIT UNIT ${faker.number.int()}`;
+                    createEditUnitOperation(newUnitName);
+
+                    answerUnitOperation(OperationStatus.ACCEPTED);
+
+                    cy.fixture("users.json").then((users) => {
+                        cy.loginSession(
+                            users.client_user.cpf,
+                            users.client_user.password
+                        );
+                    });
+
+                    cy.visit("/dashboard");
+
+                    cy.fixture("default-units.json").then((units) => {
+                        cy.getByNestedTestId([
+                            `unit-card-${units.unit1.id}`,
+                            "unit-name",
+                        ]).should("contain", newUnitName);
+                    });
+                });
             });
 
-            it("should succesfully receive an accepted operation", () => {
-                const newUnitName = "TEST EDIT UNIT";
-                createEditUnitOperation(newUnitName);
+            context("Unit Details Page", () => {
+                beforeEach(() => {
+                    cy.fixture("default-units.json").then((units) => {
+                        cy.getByNestedTestId([
+                            `unit-card-${units.unit2.id}`,
+                            "btn-details",
+                        ])
+                            .should("exist")
+                            .click();
+                        cy.url().should(
+                            "include",
+                            `/dashboard/unit/${units.unit2.id}`
+                        );
+                    });
 
-                answerUnitOperation(OperationStatus.ACCEPTED);
-
-                cy.fixture("users.json").then((users) => {
-                    cy.loginSession(
-                        users.client_user.cpf,
-                        users.client_user.password
-                    );
+                    cy.getByTestId("btn-edit-unit").should("exist").click();
                 });
 
-                cy.visit("/dashboard");
+                it("should successfully cancel the operation", () => {
+                    createEditUnitOperation(
+                        `TEST EDIT UNIT ${faker.number.int()}`
+                    );
 
-                cy.fixture("default-units.json").then((units) => {
-                    cy.getByNestedTestId([
-                        `unit-card-${units.unit1.id}`,
-                        "unit-name",
-                    ]).should("contain", newUnitName);
+                    cy.getByTestId("btn-cancel-unit-operation")
+                        .should("exist")
+                        .click();
+
+                    cy.contains("Requisição cancelada com sucesso!").should(
+                        "be.visible"
+                    );
+
+                    cy.getByTestId("btn-edit-unit").should("exist");
+                });
+
+                it("should succesfully receive a rejected operation", () => {
+                    createEditUnitOperation(
+                        `TEST EDIT UNIT ${faker.number.int()}`
+                    );
+
+                    const note = "Rejeitado";
+                    answerUnitOperation(OperationStatus.REJECTED, note);
+
+                    cy.fixture("users.json").then((users) => {
+                        cy.loginSession(
+                            users.client_user.cpf,
+                            users.client_user.password
+                        );
+                    });
+
+                    cy.fixture("default-units.json").then((units) => {
+                        cy.visit(`/dashboard/unit/${units.unit2.id}`);
+                    });
+
+                    cy.getByTestId("btn-reject-unit-operation")
+                        .should("exist")
+                        .click();
+
+                    cy.contains(note).should("be.visible");
+
+                    cy.getByTestId("btn-confirm-reject-unit")
+                        .should("exist")
+                        .click();
+                });
+
+                it("should succesfully receive an accepted operation", () => {
+                    const newUnitName = `TEST EDIT UNIT ${faker.number.int()}`;
+                    createEditUnitOperation(newUnitName);
+
+                    answerUnitOperation(OperationStatus.ACCEPTED);
+
+                    cy.fixture("users.json").then((users) => {
+                        cy.loginSession(
+                            users.client_user.cpf,
+                            users.client_user.password
+                        );
+                    });
+
+                    cy.fixture("default-units.json").then((units) => {
+                        cy.visit(`/dashboard/unit/${units.unit2.id}`);
+                    });
+
+                    cy.getByTestId("unit-details").should(
+                        "contain",
+                        newUnitName
+                    );
                 });
             });
         });
@@ -409,9 +510,7 @@ describe("Client Manager Unit CRUD", () => {
                     );
                 });
 
-                cy.getByTestId("btn-cancel-unit-operation")
-                    .should("exist")
-                    .click();
+                cy.getByTestId("btn-cancel-operation").should("exist").click();
 
                 cy.getCookie("operationID").then((unitIDCookie) => {
                     cy.getByTestId(`unit-card-${unitIDCookie?.value}`).should(
@@ -444,9 +543,7 @@ describe("Client Manager Unit CRUD", () => {
 
                 cy.visit("/dashboard");
 
-                cy.getByTestId("btn-reject-edit-unit-operation")
-                    .should("exist")
-                    .click();
+                cy.getByTestId("btn-reject-operation").should("exist").click();
 
                 cy.contains(note).should("be.visible");
 
@@ -479,6 +576,236 @@ describe("Client Manager Unit CRUD", () => {
                 cy.visit("/dashboard");
 
                 cy.getByTestId("unit-name").should("contain", newUnit.name);
+            });
+        });
+    });
+
+    context("Delete Unit", () => {
+        context("Client Details Page", () => {
+            it("should successfully cancel the operation before requesting", () => {
+                cy.fixture("default-units.json").then((units) => {
+                    cy.getByNestedTestId([
+                        `unit-card-${units.unit3.id}`,
+                        "btn-delete-operation",
+                    ]).click();
+
+                    cy.contains(
+                        "Tem certeza que deseja excluir esta unidade?"
+                    ).should("be.visible");
+
+                    cy.getByTestId("btn-cancel-delete-unit").click();
+
+                    cy.contains(
+                        "Tem certeza que deseja excluir esta unidade?"
+                    ).should("not.exist");
+                    cy.getByNestedTestId([
+                        `unit-card-${units.unit3.id}`,
+                        "btn-delete-operation",
+                    ]).should("exist");
+                });
+            });
+
+            it("should successfully cancel the operation after requesting", () => {
+                cy.fixture("default-units.json").then((units) => {
+                    cy.getByNestedTestId([
+                        `unit-card-${units.unit3.id}`,
+                        "btn-delete-operation",
+                    ]).click();
+                    cy.getByTestId("btn-confirm-delete-unit").click();
+                    cy.contains("Requisição enviada com sucesso!").should(
+                        "be.visible"
+                    );
+
+                    cy.getByNestedTestId([
+                        `unit-card-${units.unit3.id}`,
+                        "btn-cancel-operation",
+                    ]).click();
+                    cy.contains("Requisição cancelada com sucesso!").should(
+                        "be.visible"
+                    );
+                    cy.getByNestedTestId([
+                        `unit-card-${units.unit3.id}`,
+                        "btn-delete-operation",
+                    ]).should("exist");
+                });
+            });
+
+            it("should successfully receive a rejected operation", () => {
+                cy.intercept("POST", `${apiUrl}/units/operations/`).as(
+                    "createDeleteUnitOperation"
+                );
+
+                cy.fixture("default-units.json").then((units) => {
+                    cy.getByNestedTestId([
+                        `unit-card-${units.unit3.id}`,
+                        "btn-delete-operation",
+                    ]).click();
+                    cy.getByTestId("btn-confirm-delete-unit").click();
+
+                    cy.wait("@createDeleteUnitOperation").then(
+                        (interception) => {
+                            expect(interception.response?.statusCode).to.eq(
+                                201
+                            );
+
+                            const { id } = interception.response?.body;
+                            cy.setCookie("operationID", String(id));
+                        }
+                    );
+
+                    cy.contains("Requisição enviada com sucesso!").should(
+                        "be.visible"
+                    );
+
+                    const note = "Rejeitado";
+                    answerUnitOperation(OperationStatus.REJECTED, note);
+
+                    cy.fixture("users.json").then((users) => {
+                        cy.loginSession(
+                            users.client_user.cpf,
+                            users.client_user.password
+                        );
+                    });
+
+                    cy.visit("/dashboard");
+
+                    cy.getByNestedTestId([
+                        `unit-card-${units.unit3.id}`,
+                        "btn-reject-operation",
+                    ]).click();
+                    cy.contains(note).should("be.visible");
+
+                    cy.getByTestId("btn-confirm-reject-unit").click();
+                });
+            });
+        });
+
+        context("Unit Details Page", () => {
+            beforeEach(() => {
+                cy.addUnit();
+
+                cy.fixture("users.json").then((users) => {
+                    cy.loginSession(
+                        users.client_user.cpf,
+                        users.client_user.password
+                    );
+                });
+
+                cy.get("@newUnitID").then((unitID) => {
+                    cy.visit("/dashboard");
+                    cy.getByNestedTestId([`unit-card-${unitID}`, "btn-details"])
+                        .should("exist")
+                        .click();
+                    cy.url().should("include", `/dashboard/unit/${unitID}`);
+                });
+
+                cy.getByTestId("btn-delete-unit").should("exist").click();
+            });
+
+            it("should successfully cancel the operation before requesting", () => {
+                cy.contains(
+                    "Tem certeza que deseja excluir esta unidade?"
+                ).should("be.visible");
+
+                cy.getByTestId("btn-cancel-delete-unit").click();
+
+                cy.contains(
+                    "Tem certeza que deseja excluir esta unidade?"
+                ).should("not.exist");
+
+                cy.getByTestId("btn-delete-unit").should("exist");
+            });
+
+            it("should successfully cancel the operation after requesting", () => {
+                cy.getByTestId("btn-confirm-delete-unit").click();
+
+                cy.contains("Requisição enviada com sucesso!").should(
+                    "be.visible"
+                );
+
+                cy.getByTestId("btn-cancel-unit-operation").click();
+
+                cy.contains("Requisição cancelada com sucesso!").should(
+                    "be.visible"
+                );
+
+                cy.getByTestId("btn-delete-unit").should("exist");
+            });
+
+            it("should successfully receive a rejected operation", () => {
+                cy.intercept("POST", `${apiUrl}/units/operations/`).as(
+                    "createDeleteUnitOperation"
+                );
+
+                cy.getByTestId("btn-confirm-delete-unit").click();
+
+                cy.wait("@createDeleteUnitOperation").then((interception) => {
+                    expect(interception.response?.statusCode).to.eq(201);
+
+                    const { id } = interception.response?.body;
+                    cy.setCookie("operationID", String(id));
+                });
+
+                cy.contains("Requisição enviada com sucesso!").should(
+                    "be.visible"
+                );
+
+                const note = "Rejeitado";
+                answerUnitOperation(OperationStatus.REJECTED, note);
+
+                cy.fixture("users.json").then((users) => {
+                    cy.loginSession(
+                        users.client_user.cpf,
+                        users.client_user.password
+                    );
+                });
+
+                cy.get("@newUnitID").then((unitID) => {
+                    cy.visit(`/dashboard/unit/${unitID}`);
+                });
+
+                cy.getByTestId("btn-reject-unit-operation")
+                    .should("exist")
+                    .click();
+                cy.contains(note).should("be.visible");
+
+                cy.getByTestId("btn-confirm-reject-unit").click();
+                cy.contains(note).should("not.exist");
+                cy.getByTestId("btn-delete-unit").should("exist");
+            });
+
+            it("should successfully receive an accepted operation", () => {
+                cy.intercept("POST", `${apiUrl}/units/operations/`).as(
+                    "createDeleteUnitOperation"
+                );
+
+                cy.getByTestId("btn-confirm-delete-unit").click();
+
+                cy.wait("@createDeleteUnitOperation").then((interception) => {
+                    expect(interception.response?.statusCode).to.eq(201);
+
+                    const { id } = interception.response?.body;
+                    cy.setCookie("operationID", String(id));
+                });
+
+                cy.contains("Requisição enviada com sucesso!").should(
+                    "be.visible"
+                );
+
+                answerUnitOperation(OperationStatus.ACCEPTED);
+
+                cy.fixture("users.json").then((users) => {
+                    cy.loginSession(
+                        users.client_user.cpf,
+                        users.client_user.password
+                    );
+                });
+
+                cy.get("@newUnitID").then((unitID) => {
+                    cy.visit(`/dashboard/unit/${unitID}`);
+                });
+
+                cy.url().should("include", "/dashboard");
             });
         });
     });

@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Tom\u00f3grafo",
+    "modality": "Raio-X",
     "manufacturer": "Philips",
-    "model": "LABORIOSAM-251",
-    "series_number": "CcRy-356666",
-    "anvisa_registry": "vjTOYinokbQHD",
+    "model": "AT-638",
+    "series_number": "XwZq-698892",
+    "anvisa_registry": "EopiPtgOCccpc",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Siemens",
-    "model": "VOLUPTATEM-835",
-    "series_number": "Egxd-049593",
-    "anvisa_registry": "SKTcySDSWvUPp",
+    "manufacturer": "GE",
+    "model": "CUMQUE-126",
+    "series_number": "urSB-961427",
+    "anvisa_registry": "ShrQrzkjseMUm",
     "id": 1001
   }
 }

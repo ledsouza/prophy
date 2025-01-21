@@ -1,4 +1,11 @@
 /// <reference types="cypress" />
+
+import { UnitOperationDTO } from "@/redux/features/unitApiSlice";
+import { randomMobilePhoneNumber } from "@/utils/generator";
+import * as cnpj from "validation-br/dist/cnpj";
+import { fakerPT_BR as faker } from "@faker-js/faker";
+import { OperationStatus, OperationType } from "@/enums";
+
 // ***********************************************
 declare global {
     namespace Cypress {
@@ -56,6 +63,14 @@ declare global {
              * @throws {Error} If the fixture file is empty or doesn't contain any CNPJs.
              */
             getRandomCnpj(): Cypress.Chainable<string>;
+
+            /**
+             * Custom command to add a unit to the database.
+             *
+             * @example
+             * cy.addUnit()
+             */
+            addUnit(): Cypress.Chainable<void>;
         }
     }
 }
@@ -140,6 +155,48 @@ Cypress.Commands.add("getRandomCnpj", () => {
 
         const randomIndex = Math.floor(Math.random() * cnpjs.length);
         return cnpjs[randomIndex];
+    });
+});
+
+Cypress.Commands.add("addUnit", () => {
+    cy.fixture("users.json").then((users) => {
+        cy.request({
+            method: "POST",
+            url: `${Cypress.env("apiUrl")}/jwt/create/`,
+            body: {
+                cpf: users.internal_physicist_user.cpf,
+                password: users.internal_physicist_user.password,
+            },
+        }).then((response) => {
+            const { access } = response.body;
+            cy.wrap(access).as("accessToken");
+        });
+    });
+
+    cy.get("@accessToken").then((accessToken) => {
+        cy.fixture("default-clients.json").then((clients) => {
+            cy.request({
+                method: "POST",
+                url: `${Cypress.env("apiUrl")}/units/operations/`,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                body: {
+                    name: "TEST UNIT",
+                    cnpj: cnpj.fake({ alphanumeric: false }),
+                    phone: randomMobilePhoneNumber(),
+                    email: faker.internet.email(),
+                    address: "Rua teste",
+                    city: "Porto Alegre",
+                    state: "RS",
+                    client: clients.client1.id,
+                    operation_status: OperationStatus.ACCEPTED,
+                    operation_type: OperationType.ADD,
+                } as UnitOperationDTO,
+            }).then((response) => {
+                cy.wrap(response.body.id).as("newUnitID");
+            });
+        });
     });
 });
 

@@ -30,7 +30,7 @@ function CardButtons({
                 <Button
                     variant="secondary"
                     onClick={onDetails}
-                    data-testid="btn-unit-detail"
+                    data-testid="btn-details"
                 >
                     Acessar detalhes
                 </Button>
@@ -42,14 +42,14 @@ function CardButtons({
                         <Button
                             variant="secondary"
                             onClick={onEdit}
-                            data-testid="btn-edit-unit"
+                            data-testid="btn-edit-operation"
                         >
                             <PencilLine size={20} />
                         </Button>
                         <Button
                             variant="danger"
                             onClick={onDelete}
-                            data-testid="btn-delete-unit"
+                            data-testid="btn-delete-operation"
                         >
                             <Trash size={20} />
                         </Button>
@@ -62,7 +62,7 @@ function CardButtons({
                             variant="danger"
                             onClick={onCancelEdit}
                             className="w-40"
-                            data-testid="btn-cancel-unit-operation"
+                            data-testid="btn-cancel-operation"
                         >
                             Cancelar adição
                         </Button>
@@ -74,7 +74,7 @@ function CardButtons({
                             variant="danger"
                             onClick={onCancelEdit}
                             className="w-40"
-                            data-testid="btn-cancel-unit-operation"
+                            data-testid="btn-cancel-operation"
                         >
                             Cancelar alteração
                         </Button>
@@ -86,7 +86,7 @@ function CardButtons({
                             variant="danger"
                             onClick={onCancelEdit}
                             className="w-40"
-                            data-testid="btn-cancel-unit-operation"
+                            data-testid="btn-cancel-operation"
                         >
                             Cancelar remoção
                         </Button>
@@ -97,7 +97,7 @@ function CardButtons({
                         variant="danger"
                         onClick={onReject}
                         className="w-40"
-                        data-testid="btn-reject-edit-unit-operation"
+                        data-testid="btn-reject-operation"
                     >
                         Verificar motivo
                     </Button>

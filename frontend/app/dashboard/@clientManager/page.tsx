@@ -158,7 +158,7 @@ function ClientPage() {
                 );
             }
 
-            toast.success("Requisição cancelada com sucesso.");
+            toast.success("Requisição cancelada com sucesso!");
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
@@ -177,9 +177,7 @@ function ClientPage() {
                 return toast.error(response.error.data.message);
             }
 
-            toast.success(
-                "Requisição para deletar unidade enviada com sucesso."
-            );
+            toast.success("Requisição enviada com sucesso!");
             setIsModalOpen(false);
             setCurrentModal(null);
         } catch (error) {

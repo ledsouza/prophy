@@ -55,6 +55,9 @@ function UnitDetails({
                         }
                     );
                 }
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
             }
 
             toast.success("Requisição cancelada com sucesso!");
@@ -116,7 +119,7 @@ function UnitDetails({
                                     className="flex-grow"
                                     onClick={handleCancel}
                                     disabled={loadingCancel}
-                                    data-testid="btn-cancel-edit-client"
+                                    data-testid="btn-cancel-unit-operation"
                                 >
                                     Cancelar requisição
                                 </Button>
@@ -131,13 +134,13 @@ function UnitDetails({
                                     {unitOperation.operation_type ===
                                     OperationType.EDIT
                                         ? "Requisição de alteração rejeitada"
-                                        : "Requisição de remocão rejeitada"}
+                                        : "Requisição de remoção rejeitada"}
                                 </Typography>
                                 <Button
                                     variant="danger"
                                     className="flex-grow"
                                     onClick={onReject}
-                                    data-testid="btn-reject-edit-client"
+                                    data-testid="btn-reject-unit-operation"
                                 >
                                     Verificar motivo
                                 </Button>
