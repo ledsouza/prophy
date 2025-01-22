@@ -99,6 +99,48 @@ function createAddEquipmentOperation() {
 }
 
 /**
+ * Creates a delete equipment operation and verifies the API response.
+ *
+ * This function performs the following steps:
+ * 1. Intercepts the POST request to create a delete equipment operation
+ * 2. Clicks the delete button on the equipment card using the equipment ID
+ * 3. Waits for the API response and verifies it returns 201 status code
+ * 4. Stores the operation response body as "equipmentOperation" alias
+ * 5. Verifies success message is displayed
+ *
+ * @remarks
+ * Requires a previously stored equipment object under the "@newEquipment" alias
+ *
+ * @example
+ * ```typescript
+ * createDeleteEquipmentOperation();
+ * ```
+ */
+function createDeleteEquipmentOperation() {
+    cy.intercept("POST", `${Cypress.env("apiUrl")}/equipments/operations/`).as(
+        "createDeleteEquipmentOperation"
+    );
+
+    cy.get<EquipmentOperationDTO>("@newEquipment").then((newEquipment) => {
+        cy.getByNestedTestId([
+            `equipment-card-${newEquipment.id}`,
+            "btn-delete-operation",
+        ]).click();
+    });
+
+    cy.getByTestId("btn-confirm-delete-unit").click();
+
+    cy.wait("@createDeleteEquipmentOperation").then((interception) => {
+        expect(interception.response?.statusCode).to.eq(201);
+
+        const respBody = interception.response?.body;
+        cy.wrap(respBody).as("equipmentOperation");
+    });
+
+    cy.contains("Requisição enviada com sucesso!").should("be.visible");
+}
+
+/**
  * Processes an equipment operation response by authenticating as an internal physicist user
  * and updating the operation status.
  *
@@ -303,7 +345,7 @@ describe("Client Manager Equipment CRUD", () => {
             });
         });
 
-        context.only("Success Scenario", () => {
+        context("Success Scenario", () => {
             beforeEach(() => {
                 createAddEquipmentOperation();
             });
@@ -381,5 +423,75 @@ describe("Client Manager Equipment CRUD", () => {
         });
     });
 
-    context("Delete Equipment", () => {});
+    context("Delete Equipment", () => {
+        beforeEach(() => {
+            cy.addEquipment();
+            accessUnitDetailPage();
+            createDeleteEquipmentOperation();
+        });
+
+        it("should successfully cancel the operation", () => {
+            cy.get<EquipmentOperationDTO>("@newEquipment").then(
+                (newEquipment) => {
+                    cy.getByNestedTestId([
+                        `equipment-card-${newEquipment.id}`,
+                        "btn-cancel-operation",
+                    ]).click();
+                    cy.contains("Requisição cancelada com sucesso!").should(
+                        "be.visible"
+                    );
+                    cy.getByNestedTestId([
+                        `equipment-card-${newEquipment.id}`,
+                        "btn-cancel-operation",
+                    ]).should("not.exist");
+                }
+            );
+        });
+
+        it("should successfully receive a rejected operation", () => {
+            cy.get<EquipmentOperationDTO>("@newEquipment").then(
+                (newEquipment) => {
+                    cy.get<EquipmentOperationDTO>("@equipmentOperation").then(
+                        (equipmentOperation) => {
+                            cy.wrap(equipmentOperation.id).as("operationID");
+                        }
+                    );
+                    const note = "REJEITADA";
+                    answerEquipmentOperation(OperationStatus.REJECTED, note);
+                    accessUnitDetailPage();
+
+                    cy.getByNestedTestId([
+                        `equipment-card-${newEquipment.id}`,
+                        "btn-reject-operation",
+                    ]).click();
+                    cy.contains(note).should("be.visible");
+                    cy.getByTestId("btn-confirm-reject-equipment")
+                        .should("exist")
+                        .click();
+                    cy.getByNestedTestId([
+                        `equipment-card-${newEquipment.id}`,
+                        "btn-reject-operation",
+                    ]).should("not.exist");
+                }
+            );
+        });
+
+        it("should successfully receive an accepted operation", () => {
+            cy.get<EquipmentOperationDTO>("@newEquipment").then(
+                (newEquipment) => {
+                    cy.get<EquipmentOperationDTO>("@equipmentOperation").then(
+                        (equipmentOperation) => {
+                            cy.wrap(equipmentOperation.id).as("operationID");
+                        }
+                    );
+                    answerEquipmentOperation(OperationStatus.ACCEPTED);
+                    accessUnitDetailPage();
+
+                    cy.getByTestId(`equipment-card-${newEquipment.id}`).should(
+                        "not.exist"
+                    );
+                }
+            );
+        });
+    });
 });

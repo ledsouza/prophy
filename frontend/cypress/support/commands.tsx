@@ -96,6 +96,9 @@ declare global {
              *
              * @example
              * cy.addEquipment()
+             *
+             * @remarks
+             * This command will add an equipment to the database and store the response in the 'newEquipment' alias.
              */
             addEquipment(): Cypress.Chainable<void>;
         }
