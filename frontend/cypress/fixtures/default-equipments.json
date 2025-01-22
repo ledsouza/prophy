@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "Philips",
-    "model": "AT-638",
-    "series_number": "XwZq-698892",
-    "anvisa_registry": "EopiPtgOCccpc",
+    "modality": "Resson\u00e2ncia Magn\u00e9tica",
+    "manufacturer": "GE",
+    "model": "VENIAM-996",
+    "series_number": "yTeU-429510",
+    "anvisa_registry": "aEurXpDdbxSAt",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
+    "modality": "Raio-X",
     "manufacturer": "GE",
-    "model": "CUMQUE-126",
-    "series_number": "urSB-961427",
-    "anvisa_registry": "ShrQrzkjseMUm",
+    "model": "QUOS-550",
+    "series_number": "GQbv-423462",
+    "anvisa_registry": "hGNNCNZrVBIXl",
     "id": 1001
   }
 }

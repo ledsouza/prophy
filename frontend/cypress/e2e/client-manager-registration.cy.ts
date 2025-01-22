@@ -1,7 +1,7 @@
 import { OperationStatus, OperationType } from "@/enums";
 import { randomMobilePhoneNumber } from "@/utils/generator";
 import { fakerPT_BR as faker } from "@faker-js/faker";
-import { errorMessages } from "cypress/support/e2e";
+import { errorMessages, registrationFormErrors } from "cypress/support/e2e";
 import { generate as fakeCPF } from "gerador-validador-cpf";
 
 describe("Client Registration", () => {
@@ -120,7 +120,7 @@ describe("Client Registration", () => {
             cy.getByTestId("button-submit").click();
             cy.getByTestId("submit-btn").click();
 
-            Object.values(errorMessages).forEach((errorMessage) => {
+            Object.values(registrationFormErrors).forEach((errorMessage) => {
                 cy.getByTestId("validation-error").should(
                     "contain",
                     errorMessage
@@ -321,7 +321,7 @@ describe("Client Registration", () => {
     });
 
     context("Client Form Success Scenario", () => {
-        it.only("should successfully submit the form with valid data and be redirect to client dashboard", () => {
+        it("should successfully submit the form with valid data and be redirect to client dashboard", () => {
             cy.intercept("POST", "http://localhost:8000/api/users/").as(
                 "registerUser"
             );
@@ -445,6 +445,9 @@ describe("Client Registration", () => {
                     operation_type: OperationType.ADD,
                     operation_status: OperationStatus.ACCEPTED,
                 });
+
+                const { id } = interception.response?.body;
+                cy.wrap(id).as("unitID");
             });
 
             cy.contains("O seu cadastro foi realizado com sucesso!").should(
@@ -452,6 +455,9 @@ describe("Client Registration", () => {
             );
             cy.url().should("include", "/dashboard/");
             cy.getByTestId("client-header").should("be.visible");
+            cy.get("@unitID").then((unitID) => {
+                cy.getByTestId(`unit-card-${unitID}`).should("exist");
+            });
         });
 
         it("should close the form when cancel button is clicked", () => {

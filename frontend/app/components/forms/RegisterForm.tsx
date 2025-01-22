@@ -6,7 +6,7 @@ import useIBGELocalidades from "@/hooks/use-ibge-localidades";
 
 import { Form, Input, ComboBox } from "@/components/forms";
 import { Button, Spinner } from "@/components/common";
-import { checkPasswordScore } from "@/utils/validation";
+import { checkPasswordScore, isValidPhonePTBR } from "@/utils/validation";
 import { isCPF } from "validation-br";
 
 export const registerSchema = z
@@ -45,9 +45,6 @@ export const registerSchema = z
             .min(1, { message: "Nome do contato é obrigatório." })
             .max(50, {
                 message: "Nome do contato não pode exceder 50 caracteres.",
-            })
-            .regex(/^[a-zA-Z]+$/, {
-                message: "O nome deve conter apenas letras.",
             }),
         contactEmail: z
             .string()
@@ -69,7 +66,7 @@ export const registerSchema = z
             .string()
             .min(10, { message: "Telefone deve conter no mínimo 10 dígitos." })
             .max(11, { message: "Telefone deve conter no máximo 11 dígitos." })
-            .regex(/^\d+$/, {
+            .refine((value) => isValidPhonePTBR(value), {
                 message:
                     "Telefone deve conter apenas números com padrão nacional (DDXXXXXXXX).",
             }),

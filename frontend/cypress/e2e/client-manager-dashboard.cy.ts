@@ -30,34 +30,27 @@ describe("Client dashboard", () => {
                 });
             });
 
-            it("should display the responsable medical physicist as Gerente Prophy", () => {
+            it("should display the responsable medical physicist as Internal Medical Physicist", () => {
                 cy.getByTestId("responsable-medical-physicist-header").should(
                     "be.visible"
                 );
 
                 cy.fixture("users.json").then((users) => {
-                    cy.getByTestId("gerente-prophy")
-                        .should("contain", users.admin_user.name)
+                    cy.getByTestId("fisico-medico-interno")
+                        .should("contain", users.internal_physicist_user.name)
                         .should(
                             "contain",
-                            formatPhoneNumber(users.admin_user.phone)
+                            formatPhoneNumber(
+                                users.internal_physicist_user.phone
+                            )
                         )
-                        .should("contain", users.admin_user.email);
+                        .should("contain", users.internal_physicist_user.email);
                 });
             });
 
-            it("should display the comercial manager as Gerente Prophy", () => {
+            it("should display an message for empty comercial manager", () => {
                 cy.getByTestId("comercial-header").should("be.visible");
-
-                cy.fixture("users.json").then((users) => {
-                    cy.getByTestId("comercial-details")
-                        .should("contain", users.admin_user.name)
-                        .should(
-                            "contain",
-                            formatPhoneNumber(users.admin_user.phone)
-                        )
-                        .should("contain", users.admin_user.email);
-                });
+                cy.getByTestId("empty-comercial").should("exist");
             });
         }
     );
@@ -186,11 +179,6 @@ describe("Client dashboard", () => {
         }
     );
 
-    it("should display buttons for editing or deleting a client", () => {
-        cy.getByTestId("btn-edit-client").should("be.visible");
-        cy.getByTestId("btn-delete-client").should("be.visible");
-    });
-
     it("should display a list of units", () => {
         cy.fixture("default-units.json").then((units) => {
             cy.getByTestId(`unit-card-${units.unit1.id}`)
@@ -217,14 +205,8 @@ describe("Client dashboard", () => {
         });
     });
 
-    it("should display buttons for adding, editing and deleting a unit", () => {
-        cy.getByTestId("btn-add-unit").scrollIntoView().should("be.visible");
-        cy.getByTestId("btn-edit-unit").should("be.visible");
-        cy.getByTestId("btn-delete-unit").should("be.visible");
-    });
-
     context("API Retuns Empty Data", () => {
-        it("should display a user page when no clients are available", () => {
+        it("should display a not found page when no clients are available", () => {
             cy.intercept("GET", `${apiUrl}/clients/?page=1`, {
                 statusCode: 200,
                 body: {
@@ -280,7 +262,10 @@ describe("Unit dashboard", () => {
     context("when the unit has equipments and a manager", () => {
         beforeEach(() => {
             cy.fixture("default-units.json").then((units) => {
-                cy.getByTestId(`unit-card-${units.unit1.id}`).click();
+                cy.getByNestedTestId([
+                    `unit-card-${units.unit1.id}`,
+                    "btn-details",
+                ]).click();
                 cy.url().should(
                     "contain",
                     `/dashboard/unit/${units.unit1.id}/`
@@ -344,7 +329,10 @@ describe("Unit dashboard", () => {
             });
 
             cy.fixture("default-units.json").then((units) => {
-                cy.getByTestId(`unit-card-${units.unit4.id}`).click();
+                cy.getByNestedTestId([
+                    `unit-card-${units.unit4.id}`,
+                    "btn-details",
+                ]).click();
                 cy.url().should(
                     "contain",
                     `/dashboard/unit/${units.unit4.id}/`
@@ -387,7 +375,10 @@ describe("Unit dashboard", () => {
     context("functionality", () => {
         beforeEach(() => {
             cy.fixture("default-units.json").then((units) => {
-                cy.getByTestId(`unit-card-${units.unit1.id}`).click();
+                cy.getByNestedTestId([
+                    `unit-card-${units.unit1.id}`,
+                    "btn-details",
+                ]).click();
                 cy.url().should(
                     "contain",
                     `/dashboard/unit/${units.unit1.id}/`
@@ -399,19 +390,6 @@ describe("Unit dashboard", () => {
             cy.getByTestId("btn-go-back").should("be.visible").click();
 
             cy.url().should("contain", "/dashboard/");
-        });
-
-        it("should display buttons for editing or deleting an unit", () => {
-            cy.getByTestId("btn-edit-unit").should("be.visible");
-            cy.getByTestId("btn-delete-unit").should("be.visible");
-        });
-
-        it("should display buttons for adding, editing and deleting an equipment", () => {
-            cy.getByTestId("btn-add-equipment")
-                .scrollIntoView()
-                .should("be.visible");
-            cy.getByTestId("btn-edit-equipment").should("be.visible");
-            cy.getByTestId("btn-delete-equipment").should("be.visible");
         });
 
         it("should filter based on the search term", () => {
@@ -429,11 +407,12 @@ describe("Unit dashboard", () => {
             });
         });
 
-        it("should display a modal when unit card clicked", () => {
+        it("should display a modal when button details of equipment card clicked", () => {
             cy.fixture("default-equipments.json").then((equipments) => {
-                cy.getByTestId(
-                    `equipment-card-${equipments.equipment1.id}`
-                ).click();
+                cy.getByNestedTestId([
+                    `equipment-card-${equipments.equipment1.id}`,
+                    "btn-details",
+                ]).click();
 
                 cy.getByTestId("equipment-details")
                     .should("contain", equipments.equipment1.model)
@@ -444,9 +423,6 @@ describe("Unit dashboard", () => {
 
                 cy.get("img").should("be.visible");
             });
-
-            cy.getByTestId("btn-edit-equipment").should("be.visible");
-            cy.getByTestId("btn-delete-equipment").should("be.visible");
         });
     });
 });

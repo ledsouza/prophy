@@ -6,7 +6,6 @@ from django.utils.html import format_html
 
 from users.models import UserAccount
 from clients_management.validators import CNPJValidator
-from core.validators import AlphaOnly
 
 from localflavor.br.br_states import STATE_CHOICES
 import calendar
@@ -113,7 +112,7 @@ class Equipment(models.Model):
     label_photo = models.ImageField(
         "Foto da etiqueta", upload_to="equipments/labels", blank=True, null=True)
     maintenance_responsable = models.CharField(
-        "Responsável pela manutenção", max_length=50, blank=True, null=True, validators=[AlphaOnly()])
+        "Responsável pela manutenção", max_length=50, blank=True, null=True)
     email_maintenance_responsable = models.EmailField(
         "E-mail do responsável pela manutenção", blank=True, null=True)
     phone_maintenance_responsable = models.CharField(
@@ -155,9 +154,9 @@ class Proposal(models.Model):
     state = models.CharField("Estado da instituição",
                              max_length=2, choices=STATE_CHOICES)
     city = models.CharField("Cidade da instituição",
-                            max_length=50, validators=[AlphaOnly()])
+                            max_length=50)
     contact_name = models.CharField(
-        "Nome do contato", max_length=50, validators=[AlphaOnly()])
+        "Nome do contato", max_length=50)
     contact_phone = models.CharField("Telefone do contato", max_length=13)
     email = models.EmailField("E-mail do contato")
     date = models.DateField("Data da proposta", default=date.today)

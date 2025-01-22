@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models import TextChoices
-from core.validators import AlphaOnly
 from users.validators import CPFValidator, MobilePhoneValidator
 from django.contrib.auth.models import (
     BaseUserManager,
@@ -75,7 +74,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     cpf = models.CharField("CPF", max_length=11,
                            unique=True, validators=[CPFValidator()])
-    name = models.CharField("Nome", max_length=255, validators=[AlphaOnly()])
+    name = models.CharField("Nome", max_length=255)
     email = models.EmailField("E-mail", max_length=255, unique=True)
     phone = models.CharField("Celular", max_length=11,
                              unique=True, null=True, validators=[MobilePhoneValidator()])

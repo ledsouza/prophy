@@ -101,7 +101,7 @@ export function useClientDataLoading() {
     return {
         isLoading:
             isPaginatingClients || isPaginatingUnits || isPaginatingEquipments,
-        hasNoData: clients ? false : true,
+        hasNoData: clients?.length === 0,
         clientOptions,
         selectedClient,
         filteredClient,

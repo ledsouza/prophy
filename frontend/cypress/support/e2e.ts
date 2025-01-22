@@ -23,6 +23,23 @@ Cypress.on("uncaught:exception", (err, runnable) => {
     }
 });
 
+export const registrationFormErrors = {
+    emptyCPF: "O CPF deve conter 11 caracteres.",
+    shortPassword: "A senha deve conter no mínimo 8 caracteres.",
+    shortConfirmPassword:
+        "A confirmaçao de senha deve conter no mínimo 8 caracteres.",
+    emptyInstitutionName: "Nome da instituição é obrigatório.",
+    invalidInstitutionEmail: "E-mail da instituição inválido.",
+    shortPhone: "Telefone deve conter no mínimo 10 dígitos.",
+    emptyState: "Estado da instituição é obrigatório.",
+    emptyCity: "Cidade da instituição é obrigatório.",
+    emptyAdress: "Endereço da instituição é obrigatório.",
+    emptyContactName: "Nome do contato é obrigatório.",
+    invalidContactEmail: "E-mail do contato inválido.",
+    invalidPhoneNumber:
+        "O número de celular deve estar no padrão de 11 dígitos (DD9XXXXXXXX).",
+};
+
 export const errorMessages = {
     emptyCPF: "O CPF deve conter 11 caracteres.",
     emptyName: "Nome é obrigatório.",
