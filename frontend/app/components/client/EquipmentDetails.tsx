@@ -33,7 +33,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                     }
                     alt="Imagem do equipamento"
                     fill={true}
-                    className="shadow-lg"
+                    className="shadow-lg ring-2"
                     style={{
                         objectFit: "contain",
                     }}
