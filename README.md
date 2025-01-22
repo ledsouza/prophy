@@ -34,7 +34,11 @@
 
 This application is a comprehensive web-based system designed for medical physics at Prophy, providing a centralized platform to efficiently manage client data, schedule appointments, and organize institutional materials.
 
-**This project is currently under development.**
+## Motivation
+
+Companies providing medical physics services often lack a standardized tool to manage and organize data and business processes. Each company relies on its own methods, making it challenging for regulatory entities like ANVISA and CNEN to conduct audits effectively. Additionally, medical physicists frequently resort to manual processes for managing data and workflows, which are error-prone and time-consuming.  
+
+The goal of this project is to develop software that standardizes auditing processes and automates business workflows related to medical physics services. By doing so, it aims to enhance the security of healthcare services and improve the efficiency of medical physicists, ensuring better compliance and streamlined operations.
 
 ## Technologies Used
 
