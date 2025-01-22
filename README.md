@@ -2,7 +2,7 @@
    <img width="150" height="150" src="frontend/public/images/prophy-icon.png" alt="Prophy Logo">
 </p>
 
-<h1 align="center">Prophy Medical Physics Management System</h1>
+<h1 align="center">MedPhys Hub</h1>
 
 <div align="center">
 
@@ -32,7 +32,7 @@
 
 ## Description
 
-This application is a comprehensive web-based system designed for medical physics companies to manage their clients, schedule appointments, organize institutional materials, and handle billing efficiently. 
+This application is a comprehensive web-based system designed for medical physics at Prophy to manage their clients data, schedule appointments and organize institutional materials efficiently.
 
 **This project is currently under development.**
 
