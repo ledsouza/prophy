@@ -32,7 +32,7 @@
 
 ## Description
 
-This application is a comprehensive web-based system designed for medical physics at Prophy to manage their clients data, schedule appointments and organize institutional materials efficiently.
+This application is a comprehensive web-based system designed for medical physics at Prophy, providing a centralized platform to efficiently manage client data, schedule appointments, and organize institutional materials.
 
 **This project is currently under development.**
 
