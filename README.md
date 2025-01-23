@@ -42,17 +42,16 @@ The goal of this project is to develop software that standardizes auditing proce
 
 ## Technologies Used
 
-* **Backend:** Django, Django REST Framework
+* **Backend:** Django REST Framework
 * **Frontend:** React, Next.js, TypeScript, Javascript
 * **Testing:** Postman and Cypress
-* **Database:** PostgreSQL
+* **Database:** SQLite, PostgreSQL
 * **State Management:** Redux
 * **Data Fetching and Caching:** RTK Query
 * **Form Validation:** Zod
 * **Authentication:** JWT (JSON Web Token)
 * **Styling:** Tailwind CSS
 * **Design:** Figma
-* **Storage**: AWS S3
 * **Cloud Services**: App Platform (DigitalOcean), S3, SES, SQS (AWS)
 * **Deployment:** Serveless Docker Image
 
@@ -134,15 +133,14 @@ If the environment variables were correctly set up, the application should be ru
     * **Comercial**: Access to clients data (read-only), reports (read-only) and proposal of contracts (add/edit/read)
     * **Internal Medical Physicist:** Access to most features, including client-specific data, institutional materials, and scheduling.
     * **Client Manager:** Access to their own institution's data, equipment information, schedules (read-only), and invoices (read-only).
-    * **Unit Manager:**  Assigned by clients to manage specific units, with access limited to their assigned units' data.
-    * **External Medical Physicist:** Limited access to schedules (read-only) and client data (read-only) associated with their assigned appointments.
+    * **Unit Manager:**  Assigned by a Client Manager to manage specific units, with access limited to their assigned units' data.
+    * **External Medical Physicist:** Limited access to schedules (read-only) and client data (read-only) associated with their assigned clients.
 
 ### Client Management
 
 * **Client Registration Form:**
     * Allows approved clients to submit their information and request services.
-    * Data is stored in a separate table of proposals for tracking and follow-up of non-clients.
-* **Clients Dashboard:**
+* **Client Dashboard:**
     * Clients can register and manage their institution's information:
         * CNPJ (Brazilian company ID)
         * Institution details
@@ -151,7 +149,7 @@ If the environment variables were correctly set up, the application should be ru
         * Equipment inventory
     * Updating data needs approval from someone in the Prophy Staff
 * **Client Data Management (Internal Staff):**
-    * Internal staff can view, edit, and manage client data:
+    * Internal staff can view, edit, review, and manage client data:
         * Client details
         * Units
         * Equipments
@@ -165,22 +163,13 @@ If the environment variables were correctly set up, the application should be ru
         * Date and time
         * Client
         * Equipment involved
-        * Tests to be performed
+        * Description of the service that will be provided
         * Appointment status (scheduled, completed)
+        * Reports
     * Google Calendar integration for seamless scheduling and reminders.
 * **Appointment Views:**
     * Clients and assigned external physicists can view their scheduled appointments.
     * Notifications and reminders via email and Google Calendar integration.
-
-### Equipment and Test Management
-
-* **Equipment Inventory:**
-    * Clients can add and manage their equipment inventory if approved by internal staff, including details such as:
-        * Modality
-        * Brand, manufacturer, model
-        * Serial number
-        * ANVISA registration (Brazilian health regulatory agency)
-        * Photos 
 
 ### Institutional Materials
 
@@ -198,17 +187,15 @@ If the environment variables were correctly set up, the application should be ru
     * Internal staff can manage invoice details and payment status.
 * **Payment Tracking:**
     * Clients can view their invoices, download copies, and upload payment confirmations.
-    * Automated reminders for overdue payments.
 
 ## Project Status and Future Development
 
 The project is actively in development. There's 5 stages of development:
 
-* **1:** User authentication and client registration.
-* **2:** Client data management and viewing for both internal staff and clients.
-* **3:** Appointment scheduling and Google Calendar integration.
-* **4:** Equipment and test management, including report uploads and notifications.
-* **5:** Institutional materials management and access control.
+- [x] User authentication and client registration.
+- [ ] Client data management for both internal staff and clients _(actively under development)_.
+- [ ] Appointment scheduling and Reports.
+- [ ] Institutional materials management and access control.
 
 Future development will include:
 
