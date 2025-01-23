@@ -202,3 +202,7 @@ Future development will include:
 * **Enhanced reporting and analytics.**
 * **Mobile app for clients and staff.**
 * **Continuous improvement based on user feedback.**
+
+## 🤝 Contributing
+
+If you'd like to contribute, please fork the repository and open a pull request to the `main` branch.
