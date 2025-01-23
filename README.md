@@ -43,7 +43,7 @@ The goal of this project is to develop software that standardizes auditing proce
 ## Technologies Used
 
 * **Backend:** Django, Django REST Framework
-* **Frontend:** React, Next.js, TypeScript
+* **Frontend:** React, Next.js, TypeScript, Javascript
 * **Testing:** Postman and Cypress
 * **Database:** PostgreSQL
 * **State Management:** Redux
@@ -52,7 +52,77 @@ The goal of this project is to develop software that standardizes auditing proce
 * **Authentication:** JWT (JSON Web Token)
 * **Styling:** Tailwind CSS
 * **Design:** Figma
-* **Deployment:** DigitalOcean
+* **Storage**: AWS S3
+* **Cloud Services**: App Platform (DigitalOcean), S3, SES, SQS (AWS)
+* **Deployment:** Docker Image
+
+## Quick Start
+### Set up a Python environment based on the ```pyproject.toml``` file:
+
+1. **Install Poetry**:
+   Poetry is a robust tool for dependency management and packaging in Python. To install it, follow the docs: [Poetry Installation](https://python-poetry.org/docs/#installation)
+
+2. **Initialize the Project**:
+   Navigate to your project directory containing the `pyproject.toml` file and run:
+
+   ```bash
+   poetry install
+   ```
+
+   This command will create a virtual environment and install the dependencies specified in the `pyproject.toml`.
+
+### Set up the environment for the frontend:
+
+1. **Install Node.js and npm**:
+   - Download and install the latest Long-Term Support (LTS) version of Node.js from the official website: [https://nodejs.org/](https://nodejs.org/).
+   - The Node.js installer includes npm (Node Package Manager), which you'll use to manage project dependencies.
+
+2. **Install Project Dependencies**:
+   - Inside of the `frontend` folder, run:
+     
+     ```bash
+     npm install
+     ```
+     This command reads the `package.json` file and installs all specified dependencies into a `node_modules` folder.
+
+### Set up the enviroment variables
+
+The backend depends on multiple enviroment variables. Check out the `backend/core/settings.py` to configure all of them.
+The frontend only needs NEXT_PUBLIC_HOST, which will be the host for the frontend application.
+
+### Set up database
+
+1. Inside of the ```backend``` folder, run the migratios:
+
+```bash
+python manage.py makemigrations
+```
+
+```bash
+python manage.py migrate
+```
+
+2. Run the script to populate the database with some example data:
+
+```bash
+./flush_and_populate_db.sh
+```
+
+### Run the application
+
+1. In the ```backend``` folder, run:
+
+```bash
+python manage.py runserver
+```
+
+2. In a different terminal and inside the ```frontend``` folder, run:
+
+```bash
+npm build && npm start
+```
+
+If the environment variables were correctly set up, the application should be running in your local machine!
 
 ## Detailed Features
 
