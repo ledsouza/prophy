@@ -54,7 +54,7 @@ The goal of this project is to develop software that standardizes auditing proce
 * **Design:** Figma
 * **Storage**: AWS S3
 * **Cloud Services**: App Platform (DigitalOcean), S3, SES, SQS (AWS)
-* **Deployment:** Docker Image
+* **Deployment:** Serveless Docker Image
 
 ## Quick Start
 ### Set up a Python environment based on the ```pyproject.toml``` file:
