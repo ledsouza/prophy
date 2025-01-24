@@ -225,7 +225,7 @@ If the environment variables were correctly set up, the application should be ru
 
 ## Project Status and Future Development
 
-The project is actively in development. There's 5 stages of development:
+The project is actively in development. There's 4 stages of development:
 
 - [x] User authentication and client registration.
 - [ ] Client data management for both internal staff and clients _(actively under development)_.
