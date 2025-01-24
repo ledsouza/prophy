@@ -40,21 +40,6 @@ Companies providing medical physics services often lack a standardized tool to m
 
 The goal of this project is to develop software that standardizes auditing processes and automates business workflows related to medical physics services. By doing so, it aims to enhance the security of healthcare services and improve the efficiency of medical physicists, ensuring better compliance and streamlined operations.
 
-## Technologies Used
-
-* **Backend:** Django REST Framework
-* **Frontend:** React, Next.js, TypeScript, Javascript
-* **Testing:** Postman and Cypress
-* **Database:** SQLite, PostgreSQL
-* **State Management:** Redux
-* **Data Fetching and Caching:** RTK Query
-* **Form Validation:** Zod
-* **Authentication:** JWT (JSON Web Token)
-* **Styling:** Tailwind CSS
-* **Design:** Figma
-* **Cloud Services**: App Platform (DigitalOcean), S3, SES, SQS (AWS)
-* **Deployment:** Serveless Docker Image
-
 ## Quick Start
 ### Set up a Python environment based on the ```pyproject.toml``` file:
 
