@@ -114,8 +114,7 @@ To run the frontend application, only one variable must be set in a `.env` file 
 1. **NEXT_PUBLIC_HOST**
 - Description: The host URL for the backend application, used by the frontend to communicate with the backend API.
 - Purpose: Ensures the frontend correctly points to the backend application.
-- Example: NEXT_PUBLIC_HOST=http://localhost:8000
-The frontend only needs NEXT_PUBLIC_HOST, which will be the host for the backend application. For example, `NEXT_PUBLIC_HOST=http://localhost:8000`. Set it in an `.env` file inside of the `frontend` folder.
+- Example: `NEXT_PUBLIC_HOST=http://localhost:8000`
 
 #### Notes
 
