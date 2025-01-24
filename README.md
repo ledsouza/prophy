@@ -71,8 +71,59 @@ The goal of this project is to develop software that standardizes auditing proce
 
 ### Set up the enviroment variables
 
-The backend depends on multiple enviroment variables. Check out the `backend/core/settings.py` to configure all of them.
-The frontend only needs NEXT_PUBLIC_HOST, which will be the host for the frontend application.
+#### Environment Variables for Backend
+
+To run this Django project, specific environment variables must be configured in a `.env` file located at the ```backend``` folder. Below is a detailed explanation of all the environment variables required:
+
+1. **DJANGO_SECRET_KEY**
+- **Description**: The secret key used by Django for cryptographic signing.
+- **Purpose**: This key ensures the security of cookies, tokens, and other cryptographic processes.
+- **Example**: `DJANGO_SECRET_KEY='<random_generated_secret_key>`
+- **Note**: This should be a long, unique, and randomly generated string. Never share it publicly.
+
+2. **DEBUG**
+- **Description**: Controls whether the application is in debug mode.
+- **Purpose**: Debug mode is helpful during development but should always be set to `False` in production.
+- **Values**:
+  - `True`: Enables debug mode.
+  - `False`: Disables debug mode.
+- **Example**: `DEBUG=True`
+
+3. **AUTH_COOKIE_SECURE**
+- **Description**: Determines whether the authentication cookie should only be sent over secure (HTTPS) connections.
+- **Purpose**: Enhances the security of cookies by restricting them to HTTPS.
+- **Values**:
+  - `True`: Only allow cookies over HTTPS.
+  - `False`: Allow cookies over both HTTP and HTTPS (useful for local development).
+- **Example**: `AUTH_COOKIE_SECURE=False`
+
+4. **FRONTEND_URL**
+- **Description**: The URL of the frontend application that interacts with this Django backend.
+- **Purpose**: Used for configuring CORS and other integrations with the frontend.
+- **Example**: `FRONTEND_URL='http://localhost:3000'`
+
+5. **DJANGO_ALLOWED_HOSTS**
+- **Description**: Specifies the host/domain names that this Django site can serve.
+- **Purpose**: Protects against HTTP Host header attacks.
+- **Values**: A comma-separated list of allowed hostnames.
+- **Example**: `DJANGO_ALLOWED_HOSTS='127.0.0.1,localhost'`
+
+#### Environment Variables for Frontend
+To run the frontend application, only one variable must be set in a `.env` file located at `frontend` folder.
+
+1. **NEXT_PUBLIC_HOST**
+- Description: The host URL for the backend application, used by the frontend to communicate with the backend API.
+- Purpose: Ensures the frontend correctly points to the backend application.
+- Example: NEXT_PUBLIC_HOST=http://localhost:8000
+The frontend only needs NEXT_PUBLIC_HOST, which will be the host for the backend application. For example, `NEXT_PUBLIC_HOST=http://localhost:8000`. Set it in an `.env` file inside of the `frontend` folder.
+
+#### Notes
+
+1. **Security**: Do not expose your `.env` file publicly or commit it to version control systems like Git.
+2. **Production Configuration**: Ensure that `DEBUG` is `False` and `AUTH_COOKIE_SECURE` is `True` in production.
+3. **Dynamic Configuration**: You can create separate `.env` files for different environments (e.g., `.env.production` and `.env.development`) and load them accordingly.
+
+Ensure all required variables are properly set before running the application to avoid errors or insecure configurations.
 
 ### Set up database
 
