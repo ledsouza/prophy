@@ -314,7 +314,8 @@ class Command(BaseCommand):
                 city=fake.city(),
                 active=True
             )
-            client.users.add(choice(users.exclude(cpf=CPF_CLIENT_MANAGER)))
+            client.users.add(choice(users.exclude(cpf=CPF_CLIENT_MANAGER).filter(
+                role=UserAccount.Role.CLIENT_GENERAL_MANAGER)))
             client.users.add(users.get(cpf=CPF_ADMIN))
 
         default_clients = {
