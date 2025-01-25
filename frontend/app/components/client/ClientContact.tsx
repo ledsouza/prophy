@@ -128,7 +128,7 @@ function ClientContact({ client }: ClientContactProps) {
                         Contato
                     </Typography>
 
-                    {clientManager && (
+                    {clientManager ? (
                         <div data-testid="client-manager">
                             <Typography element="p" size="md">
                                 {clientManager.name}
@@ -138,6 +138,10 @@ function ClientContact({ client }: ClientContactProps) {
                                 {clientManager.email}
                             </Typography>
                         </div>
+                    ) : (
+                        <Typography dataTestId="empty-client-manager">
+                            Não há um contato associado a este cliente.
+                        </Typography>
                     )}
                 </div>
 

@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "GE",
-    "model": "VENIAM-996",
-    "series_number": "yTeU-429510",
-    "anvisa_registry": "aEurXpDdbxSAt",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Toshiba",
+    "model": "MOLLITIA-173",
+    "series_number": "xQDs-347221",
+    "anvisa_registry": "kZAWOZjyjnORI",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "GE",
-    "model": "QUOS-550",
-    "series_number": "GQbv-423462",
-    "anvisa_registry": "hGNNCNZrVBIXl",
+    "modality": "Tom\u00f3grafo",
+    "manufacturer": "Siemens",
+    "model": "MODI-739",
+    "series_number": "eymo-063675",
+    "anvisa_registry": "lsKirXoqLObwj",
     "id": 1001
   }
 }
