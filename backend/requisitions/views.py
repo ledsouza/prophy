@@ -120,11 +120,18 @@ class ClientOperationViewSet(viewsets.ViewSet):
         serializer = ClientOperationSerializer(data=data)
         if serializer.is_valid():
             try:
-                client = serializer.save()
+                new_client = serializer.save()
             except ValidationError as error:
                 return Response({"message": error.messages}, status=status.HTTP_400_BAD_REQUEST)
 
-            client.users.add(self.request.user)
+            try:
+                original_users = ClientOperation.objects.get(
+                    id=request.data["original_client"]).users.all().values_list('id', flat=True)
+                new_client.users.set(original_users)
+            except ClientOperation.DoesNotExist:
+                # If original_client does not exist, this is an ADD operation
+                new_client.users.add(self.request.user)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
