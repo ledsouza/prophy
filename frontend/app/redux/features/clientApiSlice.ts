@@ -25,6 +25,20 @@ export type ClientOperationDTO = ClientDTO &
         original_client?: number;
     };
 
+type PutClientOperationDTO = Partial<
+    Omit<
+        ClientOperationDTO,
+        | "id"
+        | "users"
+        | "status"
+        | "operation_type"
+        | "operation_status"
+        | "cnpj"
+        | "note"
+        | "original_client"
+    >
+>;
+
 type Status = {
     status: boolean;
 };
@@ -44,31 +58,6 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: { cnpj },
             }),
-        }),
-        createClient: builder.mutation<
-            ClientOperationDTO,
-            Omit<
-                ClientOperationDTO,
-                | "id"
-                | "users"
-                | "status"
-                | "operation_type"
-                | "operation_status"
-            >
-        >({
-            query: (clientData) => ({
-                url: "clients/operations/",
-                method: "POST",
-                body: {
-                    ...clientData,
-                    operation_type: OperationType.ADD,
-                    operation_status: OperationStatus.ACCEPTED,
-                },
-            }),
-            invalidatesTags: [
-                { type: "ClientOperation", id: "LIST" },
-                { type: "Client", id: "LIST" },
-            ],
         }),
         deleteClientOperation: builder.mutation<void, number>({
             query: (clientId) => ({
@@ -246,13 +235,54 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 { type: "Client", id: "LIST" },
             ],
         }),
+        createClient: builder.mutation<
+            ClientOperationDTO,
+            Omit<
+                ClientOperationDTO,
+                | "id"
+                | "users"
+                | "status"
+                | "operation_type"
+                | "operation_status"
+            >
+        >({
+            query: (clientData) => ({
+                url: "clients/operations/",
+                method: "POST",
+                body: {
+                    ...clientData,
+                    operation_type: OperationType.ADD,
+                    operation_status: OperationStatus.ACCEPTED,
+                },
+            }),
+            invalidatesTags: [
+                { type: "ClientOperation", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
+        }),
+        editClient: builder.mutation<
+            ClientOperationDTO,
+            {
+                clientID: number;
+                clientData: PutClientOperationDTO;
+            }
+        >({
+            query: ({ clientID, clientData }) => ({
+                url: `clients/operations/${clientID}/`,
+                method: "PUT",
+                body: clientData,
+            }),
+            invalidatesTags: [
+                { type: "ClientOperation", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
+        }),
     }),
 });
 
 export const {
     useVerifyProposalStatusMutation,
     useVerifyClientStatusMutation,
-    useCreateClientMutation,
     useDeleteClientOperationMutation,
     useGetByCnpjQuery,
     useListClientsQuery,
@@ -262,4 +292,6 @@ export const {
     useCreateAddClientOperationMutation,
     useCreateEditClientOperationMutation,
     useCreateDeleteClientOperationMutation,
+    useCreateClientMutation,
+    useEditClientMutation,
 } = clientApiSlice;

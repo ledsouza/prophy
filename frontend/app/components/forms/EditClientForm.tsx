@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import {
     ClientDTO,
     useCreateEditClientOperationMutation,
+    useEditClientMutation,
 } from "@/redux/features/clientApiSlice";
 import { isErrorWithMessages } from "@/redux/services/helpers";
 
@@ -18,6 +19,7 @@ import { ComboBox, Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { isValidPhonePTBR } from "@/utils/validation";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 const editClientSchema = z.object({
     name: z
@@ -78,53 +80,66 @@ const EditClientForm = ({
         handleMunicipioChange,
     } = useIBGELocalidades(setValue);
 
+    const { data: userData } = useRetrieveUserQuery();
+    const needReview =
+        userData?.role === "GGC" ||
+        userData?.role === "FME" ||
+        userData?.role === "GU";
+
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     const [createEditClientOperation] = useCreateEditClientOperationMutation();
+    const [editClient] = useEditClientMutation();
 
-    const onSubmit: SubmitHandler<EditClientFields> = async ({
-        name,
-        email,
-        phone,
-        state,
-        city,
-        address,
-    }) => {
-        if (
-            name.toLowerCase() === originalClient.name.toLowerCase() &&
-            email.toLowerCase() === originalClient.email.toLowerCase() &&
-            phone.toLowerCase() === originalClient.phone.toLowerCase() &&
-            state.toLowerCase() === originalClient.state.toLowerCase() &&
-            city.toLowerCase() === originalClient.city.toLowerCase() &&
-            address.toLowerCase() === originalClient.address.toLowerCase()
-        ) {
+    const isDataUnchanged = (
+        editData: EditClientFields,
+        originalClient: Omit<ClientDTO, "users" | "id">
+    ): boolean => {
+        return Object.keys(editData).every(
+            (key) =>
+                editData[key as keyof EditClientFields].toLowerCase() ===
+                originalClient[
+                    key as keyof Omit<ClientDTO, "users" | "id">
+                ].toLowerCase()
+        );
+    };
+
+    const onSubmit: SubmitHandler<EditClientFields> = async (editData) => {
+        if (isDataUnchanged(editData, originalClient)) {
             toast.warning("Nenhuma alteração foi detectada nos dados.");
             return;
         }
 
         try {
-            const response = await createEditClientOperation({
-                cnpj: originalClient.cnpj,
-                name,
-                email,
-                phone,
-                state,
-                city,
-                address,
-                original_client: originalClient.id,
-            });
+            const response = needReview
+                ? await createEditClientOperation({
+                      ...editData,
+                      cnpj: originalClient.cnpj,
+                      original_client: originalClient.id,
+                  })
+                : await editClient({
+                      clientID: originalClient.id,
+                      clientData: editData,
+                  });
 
             if (response.error) {
                 if (isErrorWithMessages(response.error)) {
-                    const message = response.error.data.messages[0];
-                    return toast.error(message);
+                    throw new Error(response.error.data.messages[0]);
                 }
+                throw new Error("Um erro inesperado ocorreu.");
             }
 
-            toast.success("Requisição enviada com sucesso!");
+            const successMessage = needReview
+                ? "Requisição enviada com sucesso!"
+                : "Dados atualizados com sucesso!";
+            toast.success(successMessage);
             setIsModalOpen(false);
         } catch (error) {
-            toast.error("Algo deu errado. Tente novamente mais tarde.");
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Algo deu errado. Tente novamente mais tarde."
+            );
         }
     };
 
@@ -289,7 +304,7 @@ const EditClientForm = ({
                         data-testid="submit-btn"
                         className="w-full"
                     >
-                        Requisitar
+                        {needReview ? "Requisitar" : "Atualizar"}
                     </Button>
                 </div>
             </Form>
