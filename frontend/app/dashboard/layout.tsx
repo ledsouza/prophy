@@ -6,11 +6,13 @@ import useRequireAuth from "@/hooks/use-require-auth";
 type DashboardLayoutProps = {
     children: React.ReactNode;
     clientManager: React.ReactNode;
+    internalMedicalPhysicist: React.ReactNode;
 };
 
 export default function DashboardLayout({
     children,
     clientManager,
+    internalMedicalPhysicist,
 }: DashboardLayoutProps) {
     const { userData, isLoading } = useRequireAuth();
 
@@ -22,5 +24,13 @@ export default function DashboardLayout({
         );
     }
 
-    return <>{userData?.role === "GGC" ? clientManager : children}</>;
+    if (userData?.role === "GGC") {
+        return <>{clientManager}</>;
+    }
+
+    if (userData?.role === "FMI") {
+        return <>{internalMedicalPhysicist}</>;
+    }
+
+    return <>{children}</>;
 }

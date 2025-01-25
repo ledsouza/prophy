@@ -333,7 +333,7 @@ function ClientPage() {
                 filteredClient &&
                 clientsOperations && (
                     <ClientDetails
-                        title="Informações da instituição"
+                        title="Informações do cliente"
                         isLoading={isLoadingClientData}
                         clientOptions={clientOptions}
                         selectedClient={selectedClient}
