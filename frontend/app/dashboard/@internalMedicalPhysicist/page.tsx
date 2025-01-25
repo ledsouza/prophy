@@ -91,35 +91,9 @@ function ClientPage() {
         setIsModalOpen(true);
     };
 
-    const handleConfirmRejectClient = async () => {
-        if (!selectedClientInOperation) {
-            return;
-        }
-
-        try {
-            const response = await deleteClientOperation(
-                selectedClientInOperation?.id
-            );
-            if (isResponseError(response)) {
-                if (response.error.status === 404) {
-                    return toast.error(
-                        `A requisição não foi encontrada.
-                        Por favor, recarregue a página para atualizar a lista de requisições.`,
-                        {
-                            autoClose: 5000,
-                        }
-                    );
-                }
-                return toast.error(
-                    "Algo deu errado. Tente novamente mais tarde."
-                );
-            }
-
-            setIsModalOpen(false);
-            setCurrentModal(null);
-        } catch (error) {
-            toast.error("Algo deu errado. Tente novamente mais tarde.");
-        }
+    const handleReview = () => {
+        setCurrentModal(Modals.REVIEW_CLIENT);
+        setIsModalOpen(true);
     };
 
     const handleModalAddUnit = () => {
@@ -342,6 +316,7 @@ function ClientPage() {
                         selectedClientInOperation={selectedClientInOperation}
                         handleEdit={handleModalEditClient}
                         handleReject={handleModalRejectClient}
+                        onReview={handleReview}
                     />
                 )}
 
@@ -408,34 +383,41 @@ function ClientPage() {
                 onClose={() =>
                     handleCloseModal({ setIsModalOpen, setCurrentModal })
                 }
-                className="max-w-lg"
+                className={
+                    currentModal === Modals.REVIEW_CLIENT
+                        ? "max-w-6xl mx-6"
+                        : "max-w-lg"
+                }
             >
                 {currentModal === Modals.EDIT_CLIENT && (
                     <EditClientForm
-                        originalClient={filteredClient!}
+                        title="Atualização de dados"
+                        description={`Por favor, edite os campos que deseja atualizar,
+                            certificando-se de preencher as informações corretamente.`}
+                        client={filteredClient!}
                         setIsModalOpen={setIsModalOpen}
                     />
                 )}
 
-                {currentModal === Modals.REJECT_CLIENT && (
-                    <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-                        <Typography element="h2" size="title2" className="mb-6">
-                            Notas do Físico Médico Responsável
-                        </Typography>
+                {currentModal === Modals.REVIEW_CLIENT &&
+                    selectedClientInOperation &&
+                    filteredClient && (
+                        <div className="flex flex-row">
+                            <EditClientForm
+                                title="Alterações requisitadas"
+                                reviewMode
+                                client={selectedClientInOperation}
+                                setIsModalOpen={setIsModalOpen}
+                            />
 
-                        <Typography element="p" size="lg">
-                            {selectedClientInOperation?.note}
-                        </Typography>
-
-                        <Button
-                            onClick={handleConfirmRejectClient}
-                            className="w-full mt-6"
-                            data-testid="btn-confirm-reject-client"
-                        >
-                            Confirmar
-                        </Button>
-                    </div>
-                )}
+                            <EditClientForm
+                                title="Informações atuais"
+                                disabled
+                                client={filteredClient}
+                                setIsModalOpen={setIsModalOpen}
+                            />
+                        </div>
+                    )}
 
                 {currentModal === Modals.ADD_UNIT && selectedClient?.id && (
                     <AddUnitForm

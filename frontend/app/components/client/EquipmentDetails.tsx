@@ -4,7 +4,6 @@ import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 import notFound from "@/assets/image-not-found.png";
 import { XCircle } from "@phosphor-icons/react";
 
-import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
 
 type EquipmentDetailsProps = {

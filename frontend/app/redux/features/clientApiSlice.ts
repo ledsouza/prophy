@@ -32,7 +32,6 @@ type PutClientOperationDTO = Partial<
         | "users"
         | "status"
         | "operation_type"
-        | "operation_status"
         | "cnpj"
         | "note"
         | "original_client"

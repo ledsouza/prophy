@@ -15,11 +15,12 @@ import {
 import { isErrorWithMessages } from "@/redux/services/helpers";
 
 import { useIBGELocalidades } from "@/hooks";
-import { ComboBox, Form, Input } from "@/components/forms";
+import { ComboBox, Form, Input, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { isValidPhonePTBR } from "@/utils/validation";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import { OperationStatus } from "@/enums";
 
 const editClientSchema = z.object({
     name: z
@@ -41,17 +42,31 @@ const editClientSchema = z.object({
     city: z
         .string()
         .min(1, { message: "Cidade da instituição é obrigatória." }),
+    note: z
+        .string()
+        .optional()
+        .refine((value) => value === undefined || value.trim().length > 0, {
+            message: "Justificativa de rejeição não pode ser vazia.",
+        }),
 });
 
 export type EditClientFields = z.infer<typeof editClientSchema>;
 
 type EditClientProps = {
-    originalClient: ClientDTO;
+    title?: string;
+    description?: string;
+    disabled?: boolean;
+    reviewMode?: boolean;
+    client: ClientDTO;
     setIsModalOpen: (value: boolean) => void;
 };
 
 const EditClientForm = ({
-    originalClient,
+    title,
+    description,
+    disabled = false,
+    reviewMode = false,
+    client,
     setIsModalOpen,
 }: EditClientProps) => {
     const {
@@ -62,10 +77,10 @@ const EditClientForm = ({
     } = useForm<EditClientFields>({
         resolver: zodResolver(editClientSchema),
         defaultValues: {
-            name: originalClient.name,
-            email: originalClient.email,
-            phone: originalClient.phone,
-            address: originalClient.address,
+            name: client.name,
+            email: client.email,
+            phone: client.phone,
+            address: client.address,
         },
     });
 
@@ -88,24 +103,28 @@ const EditClientForm = ({
 
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+    const [isRejected, setIsRejected] = useState(false);
+
     const [createEditClientOperation] = useCreateEditClientOperationMutation();
     const [editClient] = useEditClientMutation();
 
     const isDataUnchanged = (
-        editData: EditClientFields,
-        originalClient: Omit<ClientDTO, "users" | "id">
+        editData: Omit<EditClientFields, "note">,
+        client: Omit<ClientDTO, "users" | "id">
     ): boolean => {
         return Object.keys(editData).every(
             (key) =>
-                editData[key as keyof EditClientFields].toLowerCase() ===
-                originalClient[
+                editData[
+                    key as keyof Omit<EditClientFields, "note">
+                ].toLowerCase() ===
+                client[
                     key as keyof Omit<ClientDTO, "users" | "id">
                 ].toLowerCase()
         );
     };
 
     const onSubmit: SubmitHandler<EditClientFields> = async (editData) => {
-        if (isDataUnchanged(editData, originalClient)) {
+        if (!reviewMode && isDataUnchanged(editData, client)) {
             toast.warning("Nenhuma alteração foi detectada nos dados.");
             return;
         }
@@ -114,12 +133,17 @@ const EditClientForm = ({
             const response = needReview
                 ? await createEditClientOperation({
                       ...editData,
-                      cnpj: originalClient.cnpj,
-                      original_client: originalClient.id,
+                      cnpj: client.cnpj,
+                      original_client: client.id,
                   })
                 : await editClient({
-                      clientID: originalClient.id,
-                      clientData: editData,
+                      clientID: client.id,
+                      clientData: {
+                          ...editData,
+                          operation_status: isRejected
+                              ? OperationStatus.REJECTED
+                              : OperationStatus.ACCEPTED,
+                      },
                   });
 
             if (response.error) {
@@ -143,18 +167,218 @@ const EditClientForm = ({
         }
     };
 
+    const renderInputs = () => {
+        // If in rejection note step, show only the note input
+        if (isRejected) {
+            return (
+                <Textarea
+                    {...register("note")}
+                    rows={18}
+                    errorMessage={errors.note?.message}
+                    placeholder="Justifique o motivo da rejeição"
+                    data-testid="rejection-note-input"
+                ></Textarea>
+            );
+        }
+
+        return (
+            <>
+                <Input
+                    {...register("name")}
+                    type="text"
+                    errorMessage={errors.name?.message}
+                    placeholder="Digite o nome completo da instituição"
+                    disabled={disabled}
+                    data-testid="institution-name-input"
+                >
+                    {disabled ? <br /> : "Nome"}
+                </Input>
+                <Input
+                    {...register("email")}
+                    type="text"
+                    errorMessage={errors.email?.message}
+                    placeholder="nome@email.com"
+                    disabled={disabled}
+                    data-testid="institution-email-input"
+                >
+                    {disabled ? <br /> : "E-mail"}
+                </Input>
+                <Input
+                    {...register("phone")}
+                    type="text"
+                    errorMessage={errors.phone?.message}
+                    placeholder="DD9XXXXXXXX"
+                    disabled={disabled}
+                    data-testid="institution-phone-input"
+                >
+                    {disabled ? <br /> : "Telefone"}
+                </Input>
+                {isEstadosSuccess && estados ? (
+                    <ComboBox
+                        data={estados.map((estado) => ({
+                            id: estado.id,
+                            name: estado.nome,
+                            sigla: estado.sigla,
+                        }))}
+                        errorMessage={
+                            errors.state
+                                ? "Estado da instituição é obrigatório."
+                                : ""
+                        }
+                        placeholder="Digite o estado e selecione"
+                        selectedValue={selectedEstado}
+                        onChange={handleEstadoChange}
+                        disabled={disabled}
+                        data-testid="institution-state-input"
+                    >
+                        {disabled ? <br /> : "Estado"}
+                    </ComboBox>
+                ) : (
+                    <div>
+                        <Spinner />
+                    </div>
+                )}
+                {isMunicipiosSuccess && municipios && selectedEstado ? (
+                    <ComboBox
+                        data={municipios.map((municipio) => ({
+                            id: municipio.id,
+                            name: municipio.nome,
+                        }))}
+                        errorMessage={
+                            errors.city
+                                ? "Cidade da instituição é obrigatória."
+                                : ""
+                        }
+                        placeholder="Digite a cidade e selecione"
+                        selectedValue={selectedMunicipio}
+                        onChange={handleMunicipioChange}
+                        disabled={disabled}
+                        data-testid="institution-city-input"
+                    >
+                        {disabled ? <br /> : "Endereço"}
+                    </ComboBox>
+                ) : (
+                    <Input
+                        disabled
+                        errorMessage={
+                            errors.city
+                                ? "Cidade da instituição é obrigatória."
+                                : ""
+                        }
+                        placeholder="Selecione um estado"
+                        data-testid="institution-city-input"
+                    >
+                        {disabled ? <br /> : "Cidade"}
+                    </Input>
+                )}
+                <Input
+                    {...register("address")}
+                    type="text"
+                    errorMessage={errors.address?.message}
+                    placeholder="Rua, número, bairro"
+                    disabled={disabled}
+                    data-testid="institution-address-input"
+                >
+                    {disabled ? <br /> : "Endereço"}
+                </Input>
+            </>
+        );
+    };
+
+    // Render buttons based on current state
+    const renderButtons = () => {
+        // Rejection note step
+        if (isRejected) {
+            return (
+                <div className="flex gap-2 py-4">
+                    <Button
+                        type="button"
+                        onClick={() => setIsRejected(false)}
+                        variant="secondary"
+                        className="w-full"
+                        data-testid="back-btn"
+                    >
+                        Voltar
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        data-testid="submit-rejection-btn"
+                        className="w-full"
+                    >
+                        Enviar
+                    </Button>
+                </div>
+            );
+        }
+
+        // Review mode buttons
+        if (!disabled && reviewMode) {
+            return (
+                <div className="flex gap-2 py-4">
+                    <Button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => {
+                            setIsRejected(true);
+                        }}
+                        variant="danger"
+                        className="w-full"
+                        data-testid="reject-btn"
+                    >
+                        Rejeitar
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        data-testid="submit-btn"
+                        className="w-full"
+                    >
+                        Aceitar
+                    </Button>
+                </div>
+            );
+        }
+
+        if (disabled) {
+            return <br />;
+        }
+
+        // Default buttons (if not in review mode)
+        return (
+            <div className="flex gap-2 py-4">
+                <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setIsModalOpen(false)}
+                    variant="secondary"
+                    className="w-full"
+                    data-testid="cancel-btn"
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    data-testid="submit-btn"
+                    className="w-full"
+                >
+                    {needReview ? "Requisitar" : "Atualizar"}
+                </Button>
+            </div>
+        );
+    };
+
     useEffect(() => {
         if (isInitialLoad) {
             const estado = estados?.find(
                 (estado) =>
-                    estado.sigla?.toLowerCase() ===
-                    originalClient.state.toLowerCase()
+                    estado.sigla?.toLowerCase() === client.state.toLowerCase()
             );
 
             const municipio = municipios?.find(
                 (municipio) =>
-                    municipio.nome.toLowerCase() ===
-                    originalClient.city.toLowerCase()
+                    municipio.nome.toLowerCase() === client.city.toLowerCase()
             );
 
             if (estado) {
@@ -180,133 +404,35 @@ const EditClientForm = ({
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
-                <Typography
-                    element="h3"
-                    size="title3"
-                    className="font-semibold"
-                >
-                    Atualização de dados
-                </Typography>
-                <Typography element="p" size="md" className="text-justify">
-                    Por favor, edite os campos que deseja atualizar,
-                    certificando-se de preencher as informações corretamente.
-                    Após a submissão, o formulário será enviado para análise de
-                    um físico médico responsável, que fará a revisão e validação
-                    das informações fornecidas.
-                </Typography>
-                <Input
-                    {...register("name")}
-                    type="text"
-                    errorMessage={errors.name?.message}
-                    placeholder="Digite o nome completo da instituição"
-                    data-testid="institution-name-input"
-                >
-                    Nome
-                </Input>
-                <Input
-                    {...register("email")}
-                    type="text"
-                    errorMessage={errors.email?.message}
-                    placeholder="nome@email.com"
-                    data-testid="institution-email-input"
-                >
-                    E-mail
-                </Input>
-                <Input
-                    {...register("phone")}
-                    type="text"
-                    errorMessage={errors.phone?.message}
-                    placeholder="DD9XXXXXXXX"
-                    data-testid="institution-phone-input"
-                >
-                    Telefone
-                </Input>
-                {isEstadosSuccess && estados ? (
-                    <ComboBox
-                        data={estados.map((estado) => ({
-                            id: estado.id,
-                            name: estado.nome,
-                            sigla: estado.sigla,
-                        }))}
-                        errorMessage={
-                            errors.state
-                                ? "Estado da instituição é obrigatório."
-                                : ""
-                        }
-                        placeholder="Digite o estado e selecione"
-                        selectedValue={selectedEstado}
-                        onChange={handleEstadoChange}
-                        data-testid="institution-state-input"
-                    >
-                        Estado
-                    </ComboBox>
+                {!isRejected ? (
+                    <>
+                        <Typography
+                            element="h3"
+                            size="title3"
+                            className="font-semibold"
+                        >
+                            {title}
+                        </Typography>
+                        <Typography
+                            element="p"
+                            size="md"
+                            className="text-justify"
+                        >
+                            {description}
+                        </Typography>
+                    </>
                 ) : (
-                    <div>
-                        <Spinner />
-                    </div>
-                )}
-                {isMunicipiosSuccess && municipios && selectedEstado ? (
-                    <ComboBox
-                        data={municipios.map((municipio) => ({
-                            id: municipio.id,
-                            name: municipio.nome,
-                        }))}
-                        errorMessage={
-                            errors.city
-                                ? "Cidade da instituição é obrigatória."
-                                : ""
-                        }
-                        placeholder="Digite a cidade e selecione"
-                        selectedValue={selectedMunicipio}
-                        onChange={handleMunicipioChange}
-                        data-testid="institution-city-input"
+                    <Typography
+                        element="h3"
+                        size="title3"
+                        className="font-semibold"
                     >
-                        Cidade
-                    </ComboBox>
-                ) : (
-                    <Input
-                        disabled
-                        errorMessage={
-                            errors.city
-                                ? "Cidade da instituição é obrigatória."
-                                : ""
-                        }
-                        placeholder="Selecione um estado"
-                        data-testid="institution-city-input"
-                    >
-                        Cidade
-                    </Input>
+                        Por favor, justifique o motivo da rejeição
+                    </Typography>
                 )}
-                <Input
-                    {...register("address")}
-                    type="text"
-                    errorMessage={errors.address?.message}
-                    placeholder="Rua, número, bairro"
-                    data-testid="institution-address-input"
-                >
-                    Endereço
-                </Input>
 
-                <div className="flex gap-2 py-4">
-                    <Button
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={() => setIsModalOpen(false)}
-                        variant="secondary"
-                        data-testid="cancel-btn"
-                        className="w-full"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        data-testid="submit-btn"
-                        className="w-full"
-                    >
-                        {needReview ? "Requisitar" : "Atualizar"}
-                    </Button>
-                </div>
+                {renderInputs()}
+                {renderButtons()}
             </Form>
         </div>
     );

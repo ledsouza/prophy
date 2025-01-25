@@ -9,9 +9,10 @@ import {
     ClientOperationDTO,
     useDeleteClientOperationMutation,
 } from "@/redux/features/clientApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 import { Typography } from "@/components/foundation";
-import { Button } from "@/components/common";
+import { Button, Spinner } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
 
@@ -28,6 +29,7 @@ type ClientDetailsProps = {
     selectedClientInOperation: ClientOperationDTO | null;
     handleEdit: () => void;
     handleReject: () => void;
+    onReview?: () => void;
 };
 
 function ClientDetails({
@@ -40,7 +42,11 @@ function ClientDetails({
     selectedClientInOperation,
     handleEdit,
     handleReject,
+    onReview,
 }: ClientDetailsProps) {
+    const { data: userData } = useRetrieveUserQuery();
+    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+
     const [deleteClientOperation] = useDeleteClientOperationMutation();
 
     const [loadingCancel, setLoadingCancel] = useState(false);
@@ -76,6 +82,10 @@ function ClientDetails({
         }
     };
 
+    if (isLoading) {
+        return <Spinner md />;
+    }
+
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
             <Typography
@@ -107,7 +117,8 @@ function ClientDetails({
                 <div className="flex flex-col gap-2 w-full mt-2">
                     {selectedClientInOperation &&
                         selectedClientInOperation.operation_status ===
-                            OperationStatus.REJECTED && (
+                            OperationStatus.REJECTED &&
+                        !isStaff && (
                             <>
                                 <Typography variant="danger">
                                     Requisição de alteração rejeitada
@@ -125,19 +136,35 @@ function ClientDetails({
 
                     {selectedClientInOperation &&
                         selectedClientInOperation.operation_status ===
+                            OperationStatus.REJECTED &&
+                        isStaff && (
+                            <Button
+                                variant="secondary"
+                                className="flex-grow"
+                                onClick={handleEdit}
+                                data-testid="btn-edit-client"
+                            >
+                                Editar
+                            </Button>
+                        )}
+
+                    {selectedClientInOperation &&
+                        selectedClientInOperation.operation_status ===
                             OperationStatus.REVIEW && (
                             <>
                                 <Typography variant="secondary">
                                     Requisição de alteração em análise
                                 </Typography>
                                 <Button
-                                    variant="danger"
+                                    variant={isStaff ? "primary" : "danger"}
                                     className="flex-grow"
-                                    onClick={handleCancel}
+                                    onClick={isStaff ? onReview : handleCancel}
                                     disabled={loadingCancel}
                                     data-testid="btn-cancel-edit-client"
                                 >
-                                    Cancelar requisição
+                                    {isStaff
+                                        ? "Revisar requisição"
+                                        : "Cancelar requisição"}
                                 </Button>
                             </>
                         )}

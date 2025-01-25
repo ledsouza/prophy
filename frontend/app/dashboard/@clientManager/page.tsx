@@ -412,7 +412,13 @@ function ClientPage() {
             >
                 {currentModal === Modals.EDIT_CLIENT && (
                     <EditClientForm
-                        originalClient={filteredClient!}
+                        title="Atualização de dados"
+                        description={`Por favor, edite os campos que deseja atualizar,
+                        certificando-se de preencher as informações corretamente.
+                        Após a submissão, o formulário será enviado para análise de
+                        um físico médico responsável, que fará a revisão e validação
+                        das informações fornecidas.`}
+                        client={filteredClient!}
                         setIsModalOpen={setIsModalOpen}
                     />
                 )}
