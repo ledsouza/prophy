@@ -7,48 +7,24 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 
+import { clientSchema } from "@/schemas";
+import { OperationStatus } from "@/enums";
+
 import {
     ClientDTO,
     useCreateEditClientOperationMutation,
     useEditClientMutation,
 } from "@/redux/features/clientApiSlice";
 import { isErrorWithMessages } from "@/redux/services/helpers";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 import { useIBGELocalidades } from "@/hooks";
-import { ComboBox, Form, Input, Textarea } from "@/components/forms";
+
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
-import { isValidPhonePTBR } from "@/utils/validation";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
-import { OperationStatus } from "@/enums";
+import { ComboBox, Form, Input, Textarea } from "@/components/forms";
 
-const editClientSchema = z.object({
-    name: z
-        .string()
-        .min(1, { message: "Nome da instituição é obrigatório." })
-        .max(50, {
-            message: "Nome da instituição não pode exceder 50 caracteres.",
-        }),
-    email: z.string().email({ message: "E-mail da instituição inválido." }),
-    phone: z.string().refine((value) => isValidPhonePTBR(value), {
-        message: "Telefone inválido.",
-    }),
-    address: z
-        .string()
-        .min(1, { message: "Endereço da instituição é obrigatório." }),
-    state: z
-        .string()
-        .min(1, { message: "Estado da instituição é obrigatório." }),
-    city: z
-        .string()
-        .min(1, { message: "Cidade da instituição é obrigatória." }),
-    note: z
-        .string()
-        .optional()
-        .refine((value) => value === undefined || value.trim().length > 0, {
-            message: "Justificativa de rejeição não pode ser vazia.",
-        }),
-});
+const editClientSchema = clientSchema;
 
 export type EditClientFields = z.infer<typeof editClientSchema>;
 
@@ -153,9 +129,15 @@ const EditClientForm = ({
                 throw new Error("Um erro inesperado ocorreu.");
             }
 
-            const successMessage = needReview
-                ? "Requisição enviada com sucesso!"
-                : "Dados atualizados com sucesso!";
+            // If review is not required, the user is either an internal medical physicist or a Prophy manager.
+            // The user may be editing information or reviewing an operation.
+            // If `isRejected` is false, the user accepted the operation or updated some information.
+            let successMessage;
+            if (!needReview) {
+                successMessage = isRejected
+                    ? "Revisão concluída! O cliente será notificado da rejeição."
+                    : "Dados atualizados com sucesso!";
+            }
             toast.success(successMessage);
             setIsModalOpen(false);
         } catch (error) {

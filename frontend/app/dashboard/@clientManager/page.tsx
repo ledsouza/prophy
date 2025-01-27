@@ -429,8 +429,19 @@ function ClientPage() {
                             Notas do Físico Médico Responsável
                         </Typography>
 
-                        <Typography element="p" size="lg">
-                            {selectedClientInOperation?.note}
+                        <Typography
+                            element="p"
+                            size="lg"
+                            className="break-words"
+                        >
+                            {selectedClientInOperation?.note
+                                ?.split("\n")
+                                .map((line, index) => (
+                                    <span key={index}>
+                                        {line}
+                                        <br />
+                                    </span>
+                                ))}
                         </Typography>
 
                         <Button
