@@ -2,19 +2,19 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "GE",
-    "model": "CONSEQUUNTUR-109",
-    "series_number": "mFtK-250481",
-    "anvisa_registry": "LRRzkBThhXYBv",
+    "manufacturer": "Siemens",
+    "model": "SAPIENTE-987",
+    "series_number": "jOJe-064334",
+    "anvisa_registry": "AjdImhXlBVcew",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Ultrassom",
-    "manufacturer": "Toshiba",
-    "model": "MINIMA-674",
-    "series_number": "CgYU-582895",
-    "anvisa_registry": "wBAMTQENfluEY",
+    "manufacturer": "Siemens",
+    "model": "SIMILIQUE-299",
+    "series_number": "OSQs-556668",
+    "anvisa_registry": "hWCLXkLzCgBDn",
     "id": 1001
   }
 }

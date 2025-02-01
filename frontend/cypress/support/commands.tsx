@@ -6,6 +6,9 @@ import * as cnpj from "validation-br/dist/cnpj";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { OperationStatus, OperationType } from "@/enums";
 import { EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
+import { ClientDTO, ClientOperationDTO } from "@/redux/features/clientApiSlice";
+
+const apiUrl = Cypress.env("apiUrl");
 
 // ***********************************************
 declare global {

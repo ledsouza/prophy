@@ -299,6 +299,24 @@ class Command(BaseCommand):
         )
         client_empty.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
 
+        client_with_comercial = ClientOperation.objects.create(
+            operation_type=ClientOperation.OperationType.CLOSED,
+            operation_status=ClientOperation.OperationStatus.ACCEPTED,
+            created_by=users.get(cpf=CPF_ADMIN),
+            cnpj=fake_cnpj(),
+            name="Hospital São Lucas da PUCRS",
+            email="ouvidoria@saolucas.br",
+            phone=fake_phone_number(),
+            address="Av. Ipiranga, 6690 - Partenon, Porto Alegre - RS, 90610-000",
+            state="RS",
+            city="Porto Alegre",
+            active=True,
+            id=1003
+        )
+        client_with_comercial.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
+        client_with_comercial.users.add(users.get(cpf=CPF_INTERNAL_PHYSICIST))
+        client_with_comercial.users.add(users.get(cpf=CPF_COMERCIAL))
+
         # Random clients for automated testing
         for _ in range(num_clients + randint(0, 4)):
             client = ClientOperation.objects.create(
@@ -351,6 +369,17 @@ class Command(BaseCommand):
                 "city": client_empty.city,
                 "active": client_empty.active,
                 "id": client_empty.id
+            },
+            "client_with_comercial": {
+                "cnpj": client_with_comercial.cnpj,
+                "name": client_with_comercial.name,
+                "email": client_with_comercial.email,
+                "phone": client_with_comercial.phone,
+                "address": client_with_comercial.address,
+                "state": client_with_comercial.state,
+                "city": client_with_comercial.city,
+                "active": client_with_comercial.active,
+                "id": client_with_comercial.id
             }
         }
         return default_clients

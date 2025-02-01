@@ -160,7 +160,11 @@ function ClientDetails({
                                     className="flex-grow"
                                     onClick={isStaff ? onReview : handleCancel}
                                     disabled={loadingCancel}
-                                    data-testid="btn-cancel-edit-client"
+                                    data-testid={
+                                        isStaff
+                                            ? "btn-review-edit-client"
+                                            : "btn-cancel-edit-client"
+                                    }
                                 >
                                     {isStaff
                                         ? "Revisar requisição"

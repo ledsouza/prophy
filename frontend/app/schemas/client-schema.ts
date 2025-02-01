@@ -24,7 +24,8 @@ const clientSchema = z.object({
     note: z
         .string()
         .optional()
-        .refine((value) => value === undefined || value.trim().length > 0, {
+        .transform((value) => value?.trim())
+        .refine((value) => value === undefined || value.length > 0, {
             message: "A justificative é obrigatória.",
         }),
 });

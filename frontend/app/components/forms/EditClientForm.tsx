@@ -383,6 +383,12 @@ const EditClientForm = ({
         }
     }, [estados, municipios]);
 
+    useEffect(() => {
+        if (!isRejected) {
+            setValue("note", undefined);
+        }
+    }, [isRejected]);
+
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>

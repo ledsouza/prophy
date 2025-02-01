@@ -49,7 +49,12 @@ const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
 
     const handleEstadoChange = (selectedEstado: ComboboxDataProps | null) => {
         setSelectedEstado(selectedEstado);
-        setValue("state", selectedEstado?.sigla || "");
+        if (selectedEstado) {
+            setValue("state", selectedEstado.sigla);
+            return;
+        }
+        setValue("state", "");
+        setValue("city", "");
     };
 
     const handleMunicipioChange = (
