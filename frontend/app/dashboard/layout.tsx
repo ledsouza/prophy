@@ -1,9 +1,7 @@
 "use client";
 
-import OneSignal from "react-onesignal";
 import { Spinner } from "@/components/common";
 import useRequireAuth from "@/hooks/use-require-auth";
-import { useEffect, useRef } from "react";
 
 type DashboardLayoutProps = {
     children: React.ReactNode;
@@ -17,15 +15,6 @@ export default function DashboardLayout({
     internalMedicalPhysicist,
 }: DashboardLayoutProps) {
     const { userData, isLoading } = useRequireAuth();
-
-    const oneSignalInitialized = useRef(false);
-
-    useEffect(() => {
-        if (!oneSignalInitialized.current && typeof window !== "undefined") {
-            OneSignal.init({ appId: "b939cd35-7885-4eed-aed8-4b3168258161" });
-            oneSignalInitialized.current = true;
-        }
-    }, []);
 
     if (isLoading) {
         return (
