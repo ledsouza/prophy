@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { formatPhoneNumber } from "@/utils/format";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { toast } from "react-toastify";
@@ -8,6 +8,7 @@ import {
     ClientDTO,
     ClientOperationDTO,
     useDeleteClientOperationMutation,
+    useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
@@ -18,6 +19,15 @@ import { SelectData } from "@/components/forms/Select";
 
 import { OperationStatus } from "@/enums";
 import ClientContact from "./ClientContact";
+import {
+    UnitOperationDTO,
+    useListAllUnitsOperationsQuery,
+    useListAllUnitsQuery,
+} from "@/redux/features/unitApiSlice";
+import {
+    EquipmentOperationDTO,
+    useListAllEquipmentsOperationsQuery,
+} from "@/redux/features/equipmentApiSlice";
 
 type ClientDetailsProps = {
     title: string;
@@ -46,6 +56,22 @@ function ClientDetails({
 }: ClientDetailsProps) {
     const { data: userData } = useRetrieveUserQuery();
     const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+
+    const [operationsIDs, setOperationsIDs] = useState<number[]>([]);
+
+    const { data: units, isLoading: isPaginatingUnits } =
+        useListAllUnitsQuery();
+
+    const { data: clientsOperations, isLoading: isLoadingClientsOperations } =
+        useListAllClientsOperationsQuery();
+
+    const { data: unitsOperations, isLoading: isLoadingUnitsOperations } =
+        useListAllUnitsOperationsQuery();
+
+    const {
+        data: equipmentsOperations,
+        isLoading: isLoadingEquipmentsOperations,
+    } = useListAllEquipmentsOperationsQuery();
 
     const [deleteClientOperation] = useDeleteClientOperationMutation();
 
@@ -82,6 +108,49 @@ function ClientDetails({
         }
     };
 
+    // Obtaining the id of the clients that has a operation in progress
+    useEffect(() => {
+        if (
+            [
+                isLoadingClientsOperations,
+                isLoadingUnitsOperations,
+                isLoadingEquipmentsOperations,
+                isPaginatingUnits,
+            ].some(Boolean)
+        ) {
+            return;
+        }
+
+        let clientOperationIDs = [
+            ...(clientsOperations?.map(
+                (operation) => operation.original_client!
+            ) ?? []),
+            ...(unitsOperations?.map((operation) => operation.client) ?? []),
+        ];
+
+        const unitsOperationIDs =
+            equipmentsOperations?.map((operation) => operation.unit) ?? [];
+
+        const filteredUnits = units?.filter((units) =>
+            unitsOperationIDs.includes(units.id)
+        );
+
+        clientOperationIDs = [
+            ...clientOperationIDs,
+            ...(filteredUnits?.map((unit) => unit.client) ?? []),
+        ];
+
+        setOperationsIDs(clientOperationIDs);
+    }, [
+        isLoadingClientsOperations,
+        isLoadingUnitsOperations,
+        isLoadingEquipmentsOperations,
+        isPaginatingUnits,
+        clientsOperations,
+        unitsOperations,
+        equipmentsOperations,
+    ]);
+
     if (isLoading) {
         return <Spinner md />;
     }
@@ -102,6 +171,7 @@ function ClientDetails({
                     options={clientOptions}
                     selectedData={selectedClient}
                     setSelect={setSelectedClient}
+                    operationsIDs={operationsIDs}
                     listBoxStyles="mb-4"
                     dataTestId="client-options"
                 />

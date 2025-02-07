@@ -12,7 +12,6 @@ import {
 } from "@/redux/services/helpers";
 import {
     ClientOperationDTO,
-    useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
 import {
@@ -61,7 +60,6 @@ function ClientPage() {
     const { data: unitsOperations, isLoading: isLoadingUnitsOperations } =
         useListAllUnitsOperationsQuery();
 
-    const [deleteClientOperation] = useDeleteClientOperationMutation();
     const [createDeleteUnitOperation] = useCreateDeleteUnitOperationMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
@@ -230,7 +228,13 @@ function ClientPage() {
                         operation.operation_type === OperationType.ADD
                 ) ?? [];
 
-            const units = [...filteredUnits, ...addUnitsInOperation];
+            const selectedClientID = filteredUnits[0].client;
+            const units = [
+                ...filteredUnits,
+                ...addUnitsInOperation.filter(
+                    (operation) => operation.client === selectedClientID
+                ),
+            ];
 
             if (searchTerm.length > 0) {
                 const searchedUnits = units.filter((unit) =>

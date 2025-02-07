@@ -28,6 +28,17 @@ const config: Config = {
                 disabled: "rgba(var(--text-disabled), <alpha-value>)",
                 placeholder: "rgba(var(--text-placeholder), <alpha-value>)",
             },
+            keyframes: {
+                flash: {
+                    "0%, 100%": {
+                        "box-shadow": "0 0 0 2px rgb(234 179 8 / 0.5)",
+                    },
+                    "50%": { "box-shadow": "0 0 0 2px rgb(234 179 8 / 0.1)" },
+                },
+            },
+            animation: {
+                flash: "flash 2s ease-in-out infinite",
+            },
         },
     },
     plugins: [require("@tailwindcss/forms")],

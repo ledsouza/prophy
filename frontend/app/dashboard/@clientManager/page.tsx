@@ -256,7 +256,13 @@ function ClientPage() {
                         operation.operation_type === OperationType.ADD
                 ) ?? [];
 
-            const units = [...filteredUnits, ...addUnitsInOperation];
+            const selectedClientID = filteredUnits[0].client;
+            const units = [
+                ...filteredUnits,
+                ...addUnitsInOperation.filter(
+                    (operation) => operation.client === selectedClientID
+                ),
+            ];
 
             if (searchTerm.length > 0) {
                 const searchedUnits = units.filter((unit) =>

@@ -11,6 +11,8 @@ import {
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 import { Typography } from "@/components/foundation";
+import { UnitOperationDTO } from "@/redux/features/unitApiSlice";
+import { EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
 
 export type SelectData = {
     id: number;
@@ -22,7 +24,9 @@ type SelectProps = {
     selectedData: SelectData;
     setSelect: (value: SelectData) => void;
     label?: string;
+    operationsIDs?: number[];
     listBoxStyles?: string;
+    listOptionStyles?: string;
     dataTestId?: string | undefined;
 } & ListboxProps;
 
@@ -31,7 +35,9 @@ function Select({
     selectedData,
     setSelect,
     label = "",
+    operationsIDs,
     listBoxStyles = "",
+    listOptionStyles = "",
     dataTestId,
 }: SelectProps) {
     return (
@@ -39,7 +45,13 @@ function Select({
             <Listbox value={selectedData} onChange={setSelect}>
                 <Label>{label}</Label>
                 <div className={`relative mt-2 ${listBoxStyles}`}>
-                    <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 mb-2 text-left shadow-sm ring-1 ring-inset ring-secondary focus:outline-none focus:ring-2 focus:primary sm:text-sm sm:leading-6">
+                    <ListboxButton
+                        className={`relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 mb-2 text-left shadow-sm ring-1 ring-inset focus:outline-none focus:ring-2 focus:primary sm:text-sm sm:leading-6 ${
+                            (operationsIDs?.length ?? 0) > 0
+                                ? "ring-4 ring-yellow-500 animate-flash"
+                                : "ring-secondary"
+                        }`}
+                    >
                         <Typography
                             element="span"
                             size="lg"
@@ -63,7 +75,11 @@ function Select({
                             <ListboxOption
                                 key={option.id}
                                 value={option}
-                                className="group relative cursor-default select-none py-2 pl-3 pr-9 text-primary data-[focus]:bg-primary data-[focus]:text-white"
+                                className={`group relative cursor-default select-none py-2 pl-3 pr-9 text-primary data-[focus]:bg-primary data-[focus]:text-white ${
+                                    operationsIDs?.includes(option.id)
+                                        ? "ring-4 ring-yellow-500 animate-flash data-[focus]:bg-yellow-500"
+                                        : ""
+                                } ${listOptionStyles}`}
                             >
                                 <div className="flex items-center">
                                     <span className="ml-3 block truncate font-normal group-data-[selected]:font-semibold">
