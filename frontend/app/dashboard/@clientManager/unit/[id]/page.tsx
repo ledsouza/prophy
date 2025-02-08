@@ -43,6 +43,7 @@ import {
     UnitDetails,
     EquipmentCard,
     EquipmentDetails,
+    EquipmentList,
 } from "@/components/client";
 import { OperationStatus, OperationType } from "@/enums";
 import { sortByOperationStatus } from "@/utils/sorting";
@@ -455,53 +456,16 @@ function UnitPage() {
                         />
                     )}
 
-                    <div className="flex flex-col gap-6">
-                        {searchedEquipments.length > 0 ? (
-                            sortByOperationStatus(
-                                searchedEquipments,
-                                defaultOperationStatusOrder,
-                                handleEquipmentStatus
-                            ).map((equipment) => (
-                                <EquipmentCard
-                                    key={equipment.id}
-                                    equipment={equipment}
-                                    equipmentOperation={getEquipmentOperation(
-                                        equipment,
-                                        equipmentsOperations
-                                    )}
-                                    onEdit={() =>
-                                        handleModalEditEquipment(equipment)
-                                    }
-                                    onCancelEdit={() =>
-                                        handleCancelEquipmentOperation(
-                                            equipment
-                                        )
-                                    }
-                                    onDelete={() =>
-                                        handleModalDeleteEquipment(equipment)
-                                    }
-                                    onReject={() =>
-                                        handleModalRejectEquipment(equipment)
-                                    }
-                                    onDetails={() =>
-                                        handleModalEquipmentDetails(equipment)
-                                    }
-                                    dataTestId={`equipment-card-${equipment.id}`}
-                                />
-                            ))
-                        ) : (
-                            <Typography
-                                element="p"
-                                size="lg"
-                                dataTestId="equipment-not-found"
-                                className="justify-center text-center"
-                            >
-                                {filteredEquipmentsByUnit?.length === 0
-                                    ? "Nenhum equipamento registrado"
-                                    : "Nenhum equipamento encontrado para o termo pesquisado"}
-                            </Typography>
-                        )}
-                    </div>
+                    <EquipmentList
+                        searchedEquipments={searchedEquipments}
+                        filteredEquipmentsByUnit={filteredEquipmentsByUnit}
+                        handleEquipmentStatus={handleEquipmentStatus}
+                        onEditEquipment={handleModalEditEquipment}
+                        onCancelEquipment={handleCancelEquipmentOperation}
+                        onDeleteEquipment={handleModalDeleteEquipment}
+                        onRejectEquipment={handleModalRejectEquipment}
+                        onDetailsEquipment={handleModalEquipmentDetails}
+                    />
 
                     <Button
                         onClick={handleModalAddEquipment}
