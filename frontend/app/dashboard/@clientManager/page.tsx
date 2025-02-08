@@ -37,7 +37,7 @@ import {
     Input,
 } from "@/components/forms";
 import { Button, Modal, Spinner } from "@/components/common";
-import { ClientDetails, UnitCard } from "@/components/client";
+import { ClientDetails, UnitCard, UnitList } from "@/components/client";
 import { sortByOperationStatus } from "@/utils/sorting";
 import { defaultOperationStatusOrder } from "@/constants/ordering";
 
@@ -365,44 +365,15 @@ function ClientPage() {
                     />
                 )}
 
-                <div className="flex flex-col gap-6">
-                    {searchedUnits && searchedUnits.length > 0 ? (
-                        sortByOperationStatus(
-                            searchedUnits,
-                            defaultOperationStatusOrder,
-                            handleUnitStatus
-                        ).map((unit) => (
-                            <UnitCard
-                                key={unit.id}
-                                unit={unit}
-                                unitOperation={getUnitOperation(
-                                    unit,
-                                    unitsOperations
-                                )}
-                                equipmentsCount={getEquipmentsCount(
-                                    unit,
-                                    equipments
-                                )}
-                                onEdit={() => handleModalEditUnit(unit)}
-                                onCancelEdit={() => handleCancelEditUnit(unit)}
-                                onDelete={() => handleModalDeleteUnit(unit)}
-                                onReject={() => handleModalRejectUnit(unit)}
-                                dataTestId={`unit-card-${unit.id}`}
-                            />
-                        ))
-                    ) : (
-                        <Typography
-                            element="p"
-                            size="lg"
-                            dataTestId="unit-not-found"
-                            className="justify-center text-center"
-                        >
-                            {filteredUnits?.length === 0
-                                ? "Nenhuma unidade registrada"
-                                : "Nenhuma unidade encontrada para o termo pesquisado"}
-                        </Typography>
-                    )}
-                </div>
+                <UnitList
+                    searchedUnits={searchedUnits}
+                    filteredUnits={filteredUnits}
+                    handleUnitStatus={handleUnitStatus}
+                    onEditUnit={handleModalEditUnit}
+                    onCancelEditUnit={handleCancelEditUnit}
+                    onDeleteUnit={handleModalDeleteUnit}
+                    onRejectUnit={handleModalRejectUnit}
+                />
 
                 <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
                     Adicionar unidade
