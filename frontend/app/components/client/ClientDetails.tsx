@@ -53,7 +53,12 @@ function ClientDetails({
     const { data: userData } = useRetrieveUserQuery();
     const isStaff = userData?.role === "FMI" || userData?.role === "GP";
 
-    const [operationsIDs, setOperationsIDs] = useState<Set<number>>(new Set());
+    const [reviewOperationsIDs, setReviewOperationsIDs] = useState<Set<number>>(
+        new Set()
+    );
+    const [rejectedOperationsIDs, setRejectedOperationsIDs] = useState<
+        Set<number>
+    >(new Set());
 
     const { data: units, isLoading: isPaginatingUnits } =
         useListAllUnitsQuery();
@@ -115,31 +120,103 @@ function ClientDetails({
             return;
         }
 
-        const clientIDsFromClientOps = (clientsOperations || [])
+        const clientIDsFromClientOpsReview = (
+            clientsOperations?.filter(
+                (operation) =>
+                    operation.operation_status === OperationStatus.REVIEW
+            ) || []
+        )
             .map((operation) => operation.original_client)
             .filter((id): id is number => id !== undefined);
 
-        const clientIDsFromUnitOps = (unitsOperations || []).map(
-            (operation) => operation.client
+        const clientIDsFromClientOpsRejected = (
+            clientsOperations?.filter(
+                (operation) =>
+                    operation.operation_status === OperationStatus.REJECTED
+            ) || []
+        )
+            .map((operation) => operation.original_client)
+            .filter((id): id is number => id !== undefined);
+
+        const clientIDsFromUnitOpsReview = (
+            unitsOperations?.filter(
+                (operation) =>
+                    operation.operation_status === OperationStatus.REVIEW
+            ) || []
+        ).map((operation) => operation.client);
+
+        const clientIDsFromUnitOpsRejected = (
+            unitsOperations?.filter(
+                (operation) =>
+                    operation.operation_status === OperationStatus.REJECTED
+            ) || []
+        ).map((operation) => operation.client);
+
+        const unitIDsFromEquipmentOpsReview = new Set(
+            (
+                equipmentsOperations?.filter(
+                    (operation) =>
+                        operation.operation_status === OperationStatus.REVIEW
+                ) || []
+            ).map((operation) => operation.unit)
         );
 
-        const unitIDsFromEquipmentOps = new Set(
-            (equipmentsOperations || []).map((operation) => operation.unit)
+        const unitIDsFromEquipmentOpsRejected = new Set(
+            (
+                equipmentsOperations?.filter(
+                    (operation) =>
+                        operation.operation_status === OperationStatus.REJECTED
+                ) || []
+            ).map((operation) => operation.unit)
         );
 
-        const relevantUnits = (units || []).filter((unit) =>
-            unitIDsFromEquipmentOps.has(unit.id)
+        const relevantUnitsReview = (units || []).filter((unit) =>
+            unitIDsFromEquipmentOpsReview.has(unit.id)
         );
 
-        const clientIDsFromUnits = relevantUnits.map((unit) => unit.client);
+        const relevantUnitsRejected = (units || []).filter((unit) =>
+            unitIDsFromEquipmentOpsRejected.has(unit.id)
+        );
 
-        const aggregatedClientIDs = [
-            ...clientIDsFromClientOps,
-            ...clientIDsFromUnitOps,
-            ...clientIDsFromUnits,
+        const clientIDsFromUnitsReview = relevantUnitsReview.map(
+            (unit) => unit.client
+        );
+        const clientIDsFromUnitsRejected = relevantUnitsRejected.map(
+            (unit) => unit.client
+        );
+
+        // const clientIDsFromClientOps = (clientsOperations || [])
+        //     .map((operation) => operation.original_client)
+        //     .filter((id): id is number => id !== undefined);
+
+        // const clientIDsFromUnitOps = (unitsOperations || []).map(
+        //     (operation) => operation.client
+        // );
+
+        // const unitIDsFromEquipmentOps = new Set(
+        //     (equipmentsOperations || []).map((operation) => operation.unit)
+        // );
+
+        // const relevantUnits = (units || []).filter((unit) =>
+        //     unitIDsFromEquipmentOps.has(unit.id)
+        // );
+
+        // const clientIDsFromUnits = relevantUnits.map((unit) => unit.client);
+
+        const aggregatedClientIDsReview = [
+            ...clientIDsFromClientOpsReview,
+            ...clientIDsFromUnitOpsReview,
+            ...clientIDsFromUnitsReview,
         ];
 
-        setOperationsIDs(new Set(aggregatedClientIDs));
+        const aggregatedClientIDsRejected = [
+            ...clientIDsFromClientOpsRejected,
+            ...clientIDsFromUnitOpsRejected,
+            ...clientIDsFromUnitsRejected,
+        ];
+
+        setReviewOperationsIDs(new Set(aggregatedClientIDsReview));
+        setRejectedOperationsIDs(new Set(aggregatedClientIDsRejected));
     }, [
         isLoadingClientsOperations,
         isLoadingUnitsOperations,
@@ -170,7 +247,8 @@ function ClientDetails({
                     options={clientOptions}
                     selectedData={selectedClient}
                     setSelect={setSelectedClient}
-                    operationsIDs={operationsIDs}
+                    operationsIDs={reviewOperationsIDs}
+                    rejectedOperationIDs={rejectedOperationsIDs}
                     listBoxStyles="mb-4"
                     dataTestId="client-options"
                 />

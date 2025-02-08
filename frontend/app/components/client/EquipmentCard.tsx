@@ -34,11 +34,13 @@ function EquipmentCard({
 }: EquipmentCardProps) {
     const [status, setStatus] = useState<OperationStatus>();
     const [hasOperation, setHasOperation] = useState(false);
+    const [isRejected, setIsRejected] = useState(false);
 
     const containerStyle = cn(
         "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
+            "animate-danger": isRejected,
         }
     );
 
@@ -51,15 +53,21 @@ function EquipmentCard({
     }, [equipmentOperation]);
 
     useEffect(() => {
-        if (
-            status === OperationStatus.REVIEW ||
-            status === OperationStatus.REJECTED
-        ) {
+        if (status === OperationStatus.REJECTED) {
+            setHasOperation(false);
+            setIsRejected(true);
+        } else if (status === OperationStatus.REVIEW) {
             setHasOperation(true);
+            setIsRejected(false);
         } else {
             setHasOperation(false);
+            setIsRejected(false);
         }
     }, [status]);
+
+    useEffect(() => {
+        console.log("setIsRejected:", isRejected);
+    }, [isRejected]);
 
     return (
         <div className={containerStyle} data-testid={dataTestId}>

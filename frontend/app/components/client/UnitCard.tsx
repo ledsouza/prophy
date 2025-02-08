@@ -34,6 +34,7 @@ function UnitCard({
 }: UnitCardProps) {
     const [status, setStatus] = useState<OperationStatus>();
     const [hasOperation, setHasOperation] = useState(false);
+    const [isRejected, setIsRejected] = useState(false);
 
     const router = useRouter();
 
@@ -43,6 +44,7 @@ function UnitCard({
         "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
+            "animate-danger": isRejected,
         }
     );
 
@@ -55,17 +57,35 @@ function UnitCard({
     }, [unitOperation]);
 
     useEffect(() => {
-        const unitIDsFromEquipmentOps = equipmentOperations?.map(
-            (operation) => operation.unit
-        );
+        const unitIDsFromEquipmentOpsReview = equipmentOperations
+            ?.filter(
+                (operation) =>
+                    operation.operation_status === OperationStatus.REVIEW
+            )
+            ?.map((operation) => operation.unit);
+
+        const unitIDsFromEquipmentOpsRejected = equipmentOperations
+            ?.filter(
+                (operation) =>
+                    operation.operation_status === OperationStatus.REJECTED
+            )
+            ?.map((operation) => operation.unit);
+
         if (
-            status === OperationStatus.REVIEW ||
             status === OperationStatus.REJECTED ||
-            unitIDsFromEquipmentOps?.includes(unit.id)
+            unitIDsFromEquipmentOpsRejected?.includes(unit.id)
+        ) {
+            setHasOperation(false);
+            setIsRejected(true);
+        } else if (
+            status === OperationStatus.REVIEW ||
+            unitIDsFromEquipmentOpsReview?.includes(unit.id)
         ) {
             setHasOperation(true);
+            setIsRejected(false);
         } else {
             setHasOperation(false);
+            setIsRejected(false);
         }
     }, [status, equipmentOperations]);
 

@@ -35,9 +35,18 @@ const config: Config = {
                     },
                     "50%": { "box-shadow": "0 0 0 2px rgb(234 179 8 / 0.1)" },
                 },
+                danger: {
+                    "0%, 100%": {
+                        "box-shadow": "0 0 0 2px rgb(220 38 38 / 0.6)",
+                    },
+                    "50%": {
+                        "box-shadow": "0 0 0 2px rgb(220 38 38 / 0.1)",
+                    },
+                },
             },
             animation: {
                 warning: "warning 2s ease-in-out infinite",
+                danger: "danger 2s ease-in-out infinite",
             },
         },
     },
