@@ -16,13 +16,14 @@ import {
     useEditClientMutation,
 } from "@/redux/features/clientApiSlice";
 import { isErrorWithMessages } from "@/redux/services/helpers";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
-import { useIBGELocalidades } from "@/hooks";
+import { useIBGELocalidades, useNeedReview } from "@/hooks";
 
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { ComboBox, Form, Input, Textarea } from "@/components/forms";
+import { useAppDispatch } from "@/redux/hooks";
+import { closeModal } from "@/redux/features/modalSlice";
 
 const editClientSchema = clientSchema;
 
@@ -34,7 +35,6 @@ type EditClientProps = {
     disabled?: boolean;
     reviewMode?: boolean;
     client: ClientDTO;
-    setIsModalOpen: (value: boolean) => void;
 };
 
 const EditClientForm = ({
@@ -43,8 +43,9 @@ const EditClientForm = ({
     disabled = false,
     reviewMode = false,
     client,
-    setIsModalOpen,
 }: EditClientProps) => {
+    const dispatch = useAppDispatch();
+
     const {
         register,
         handleSubmit,
@@ -71,11 +72,7 @@ const EditClientForm = ({
         handleMunicipioChange,
     } = useIBGELocalidades(setValue);
 
-    const { data: userData } = useRetrieveUserQuery();
-    const needReview =
-        userData?.role === "GGC" ||
-        userData?.role === "FME" ||
-        userData?.role === "GU";
+    const { needReview } = useNeedReview();
 
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -139,7 +136,7 @@ const EditClientForm = ({
                     : "Dados atualizados com sucesso!";
             }
             toast.success(successMessage);
-            setIsModalOpen(false);
+            dispatch(closeModal());
         } catch (error) {
             toast.error(
                 error instanceof Error
@@ -332,7 +329,7 @@ const EditClientForm = ({
                 <Button
                     type="button"
                     disabled={isSubmitting}
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={() => dispatch(closeModal())}
                     variant="secondary"
                     className="w-full"
                     data-testid="cancel-btn"

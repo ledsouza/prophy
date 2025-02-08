@@ -16,12 +16,6 @@ type EquipmentListProps = {
     searchedEquipments: EquipmentDTO[];
     filteredEquipmentsByUnit?: EquipmentDTO[];
     OperationStatusOrder?: typeof defaultOperationStatusOrder;
-    handleEquipmentStatus: (equipment: EquipmentDTO) => OperationStatus;
-    onEditEquipment: (equipment: EquipmentDTO) => void;
-    onCancelEquipment: (equipment: EquipmentDTO) => void;
-    onDeleteEquipment: (equipment: EquipmentDTO) => void;
-    onRejectEquipment: (equipment: EquipmentDTO) => void;
-    onDetailsEquipment: (equipment: EquipmentDTO) => void;
     emptyStateMessage?: {
         noEquipmentsRegistered?: string;
         noEquipmentsFound?: string;
@@ -32,12 +26,6 @@ const EquipmentList = ({
     searchedEquipments,
     filteredEquipmentsByUnit,
     OperationStatusOrder = defaultOperationStatusOrder,
-    handleEquipmentStatus,
-    onEditEquipment,
-    onCancelEquipment,
-    onDeleteEquipment,
-    onRejectEquipment,
-    onDetailsEquipment,
     emptyStateMessage = {
         noEquipmentsRegistered: "Nenhum equipamento registrado",
         noEquipmentsFound:
@@ -46,6 +34,21 @@ const EquipmentList = ({
 }: EquipmentListProps) => {
     const { data: equipmentsOperations } =
         useListAllEquipmentsOperationsQuery();
+
+    const handleEquipmentStatus = (
+        equipment: EquipmentDTO
+    ): OperationStatus => {
+        const equipmentOperation = getEquipmentOperation(
+            equipment,
+            equipmentsOperations
+        );
+
+        if (equipmentOperation) {
+            return equipmentOperation.operation_status as OperationStatus;
+        } else {
+            return OperationStatus.ACCEPTED;
+        }
+    };
 
     return (
         <div className="flex flex-col gap-6">
@@ -62,11 +65,6 @@ const EquipmentList = ({
                             equipment,
                             equipmentsOperations
                         )}
-                        onEdit={() => onEditEquipment(equipment)}
-                        onCancelEdit={() => onCancelEquipment(equipment)}
-                        onDelete={() => onDeleteEquipment(equipment)}
-                        onReject={() => onRejectEquipment(equipment)}
-                        onDetails={() => onDetailsEquipment(equipment)}
                         dataTestId={`equipment-card-${equipment.id}`}
                     />
                 ))

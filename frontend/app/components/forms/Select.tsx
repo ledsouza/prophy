@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import cn from "classnames";
 
@@ -43,9 +45,6 @@ function Select({
 }: SelectProps) {
     const [hasOperation, setHasOperation] = useState(false);
     const [isRejected, setIsRejected] = useState(false);
-
-    // const hasOperation: boolean =
-    //     operationsIDs !== undefined && operationsIDs.size > 0;
 
     useEffect(() => {
         if (
@@ -115,7 +114,8 @@ function Select({
                                     "animate-danger": rejectedOperationIDs?.has(
                                         option.id
                                     ),
-                                }
+                                },
+                                listOptionStyles
                             );
 
                             return (

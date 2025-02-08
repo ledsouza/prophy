@@ -25,29 +25,15 @@ export type UnitOperationDTO = UnitDTO &
         original_unit?: number;
     };
 
+type PutUnitOperationDTO = Partial<
+    Omit<
+        UnitOperationDTO,
+        "id" | "users" | "operation_type" | "note" | "original_unit"
+    >
+>;
+
 const unitApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        createUnit: builder.mutation<
-            UnitOperationDTO,
-            Omit<
-                UnitOperationDTO,
-                "id" | "user" | "status" | "operation_type" | "operation_status"
-            >
-        >({
-            query: (unitData) => ({
-                url: "units/operations/",
-                method: "POST",
-                body: {
-                    ...unitData,
-                    operation_type: OperationType.ADD,
-                    operation_status: OperationStatus.ACCEPTED,
-                },
-            }),
-            invalidatesTags: [
-                { type: "UnitOperation", id: "LIST" },
-                { type: "Unit", id: "LIST" },
-            ],
-        }),
         listUnits: builder.query<PaginatedResponse<UnitDTO>, ListQueryParams>({
             query: ({ page = 1 }) => ({
                 url: "units/",
@@ -180,11 +166,48 @@ const unitApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: "UnitOperation", id: "LIST" }],
         }),
+        createUnit: builder.mutation<
+            UnitOperationDTO,
+            Omit<
+                UnitOperationDTO,
+                "id" | "user" | "status" | "operation_type" | "operation_status"
+            >
+        >({
+            query: (unitData) => ({
+                url: "units/operations/",
+                method: "POST",
+                body: {
+                    ...unitData,
+                    operation_type: OperationType.ADD,
+                    operation_status: OperationStatus.ACCEPTED,
+                },
+            }),
+            invalidatesTags: [
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+            ],
+        }),
+        editUnit: builder.mutation<
+            UnitOperationDTO,
+            {
+                unitID: number;
+                unitData: PutUnitOperationDTO;
+            }
+        >({
+            query: ({ unitID, unitData }) => ({
+                url: `units/operations/${unitID}/`,
+                method: "PUT",
+                body: unitData,
+            }),
+            invalidatesTags: [
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+            ],
+        }),
     }),
 });
 
 export const {
-    useCreateUnitMutation,
     useListUnitsQuery,
     useListAllUnitsQuery,
     useListAllUnitsOperationsQuery,
@@ -192,4 +215,6 @@ export const {
     useCreateEditUnitOperationMutation,
     useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
+    useCreateUnitMutation,
+    useEditUnitMutation,
 } = unitApiSlice;

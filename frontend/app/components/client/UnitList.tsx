@@ -19,11 +19,6 @@ type UnitListProps = {
     searchedUnits: UnitDTO[];
     filteredUnits?: UnitDTO[];
     OperationStatusOrder?: typeof defaultOperationStatusOrder;
-    handleUnitStatus: (unit: UnitDTO) => OperationStatus;
-    onEditUnit: (unit: UnitDTO) => void;
-    onCancelEditUnit: (unit: UnitDTO) => void;
-    onDeleteUnit: (unit: UnitDTO) => void;
-    onRejectUnit: (unit: UnitDTO) => void;
     emptyStateMessage?: {
         noUnitsRegistered?: string;
         noUnitsFound?: string;
@@ -34,11 +29,6 @@ const UnitList = ({
     searchedUnits,
     filteredUnits,
     OperationStatusOrder = defaultOperationStatusOrder,
-    handleUnitStatus,
-    onEditUnit,
-    onCancelEditUnit,
-    onDeleteUnit,
-    onRejectUnit,
     emptyStateMessage = {
         noUnitsRegistered: "Nenhuma unidade registrada",
         noUnitsFound: "Nenhuma unidade encontrada para o termo pesquisado",
@@ -46,6 +36,16 @@ const UnitList = ({
 }: UnitListProps) => {
     const { data: unitsOperations } = useListAllUnitsOperationsQuery();
     const { data: equipments } = useListAllEquipmentsQuery();
+
+    const handleUnitStatus = (unit: UnitDTO): OperationStatus => {
+        const unitOperation = getUnitOperation(unit, unitsOperations);
+
+        if (unitOperation) {
+            return unitOperation.operation_status as OperationStatus;
+        } else {
+            return OperationStatus.ACCEPTED;
+        }
+    };
 
     return (
         <div className="flex flex-col gap-6">
@@ -60,10 +60,6 @@ const UnitList = ({
                         unit={unit}
                         unitOperation={getUnitOperation(unit, unitsOperations)}
                         equipmentsCount={getEquipmentsCount(unit, equipments)}
-                        onEdit={() => onEditUnit(unit)}
-                        onCancelEdit={() => onCancelEditUnit(unit)}
-                        onDelete={() => onDeleteUnit(unit)}
-                        onReject={() => onRejectUnit(unit)}
                         dataTestId={`unit-card-${unit.id}`}
                     />
                 ))

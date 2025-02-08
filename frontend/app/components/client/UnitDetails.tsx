@@ -16,27 +16,21 @@ import { Typography } from "@/components/foundation";
 import { OperationStatus, OperationType } from "@/enums";
 import { isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
+import { useAppDispatch } from "@/redux/hooks";
+import { Modals, openModal } from "@/redux/features/modalSlice";
 
 type UnitDetailsProps = {
     unit: UnitDTO;
     unitOperation: UnitOperationDTO | undefined;
-    onEdit: () => void;
-    onDelete: () => void;
-    onReject: () => void;
 };
 
-function UnitDetails({
-    unit,
-    unitOperation,
-    onEdit,
-    onDelete,
-    onReject,
-}: UnitDetailsProps) {
+function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
+    const dispatch = useAppDispatch();
     const [loadingCancel, setLoadingCancel] = useState(false);
 
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
-    const handleCancel = async () => {
+    async function handleCancel() {
         if (!unitOperation) {
             return;
         }
@@ -66,7 +60,19 @@ function UnitDetails({
         } finally {
             setLoadingCancel(false);
         }
-    };
+    }
+
+    function handleEdit() {
+        dispatch(openModal(Modals.EDIT_UNIT));
+    }
+
+    function handleReject() {
+        dispatch(openModal(Modals.REJECT_UNIT));
+    }
+
+    function handleDelete() {
+        dispatch(openModal(Modals.DELETE_UNIT));
+    }
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
@@ -139,7 +145,7 @@ function UnitDetails({
                                 <Button
                                     variant="danger"
                                     className="flex-grow"
-                                    onClick={onReject}
+                                    onClick={handleReject}
                                     data-testid="btn-reject-unit-operation"
                                 >
                                     Verificar motivo
@@ -153,14 +159,14 @@ function UnitDetails({
                         <Button
                             variant="secondary"
                             className="flex-grow"
-                            onClick={onEdit}
+                            onClick={handleEdit}
                             data-testid="btn-edit-unit"
                         >
                             Editar
                         </Button>
                         <Button
                             variant="danger"
-                            onClick={onDelete}
+                            onClick={handleDelete}
                             className="flex-grow"
                             data-testid="btn-delete-unit"
                         >

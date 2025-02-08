@@ -17,13 +17,16 @@ import { Button, Spinner } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
 
-import { OperationStatus } from "@/enums";
+import { OperationStatus, OperationType } from "@/enums";
 import ClientContact from "./ClientContact";
 import {
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
 import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
+import { useNeedReview, useStaff } from "@/hooks";
+import { useAppDispatch } from "@/redux/hooks";
+import { Modals, openModal } from "@/redux/features/modalSlice";
 
 type ClientDetailsProps = {
     title: string;
@@ -33,9 +36,6 @@ type ClientDetailsProps = {
     setSelectedClient: (value: SelectData) => void;
     filteredClient: ClientDTO;
     selectedClientInOperation: ClientOperationDTO | null;
-    handleEdit: () => void;
-    handleReject: () => void;
-    onReview?: () => void;
 };
 
 function ClientDetails({
@@ -46,12 +46,9 @@ function ClientDetails({
     setSelectedClient,
     filteredClient,
     selectedClientInOperation,
-    handleEdit,
-    handleReject,
-    onReview,
 }: ClientDetailsProps) {
-    const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+    const dispatch = useAppDispatch();
+    const { isStaff } = useStaff();
 
     const [reviewOperationsIDs, setReviewOperationsIDs] = useState<Set<number>>(
         new Set()
@@ -78,7 +75,7 @@ function ClientDetails({
 
     const [loadingCancel, setLoadingCancel] = useState(false);
 
-    const handleCancel = async () => {
+    async function handleCancel() {
         if (!selectedClientInOperation) {
             return;
         }
@@ -107,7 +104,19 @@ function ClientDetails({
         } finally {
             setLoadingCancel(false);
         }
-    };
+    }
+
+    function handleReject() {
+        dispatch(openModal(Modals.REJECT_CLIENT));
+    }
+
+    function handleEdit() {
+        dispatch(openModal(Modals.EDIT_CLIENT));
+    }
+
+    function handleReview() {
+        dispatch(openModal(Modals.REVIEW_CLIENT));
+    }
 
     // Obtaining the id of the clients that has a operation in progress
     useEffect(() => {
@@ -129,14 +138,19 @@ function ClientDetails({
             .map((operation) => operation.original_client)
             .filter((id): id is number => id !== undefined);
 
-        const clientIDsFromClientOpsRejected = (
-            clientsOperations?.filter(
-                (operation) =>
-                    operation.operation_status === OperationStatus.REJECTED
-            ) || []
-        )
-            .map((operation) => operation.original_client)
-            .filter((id): id is number => id !== undefined);
+        let clientIDsFromClientOpsRejected: number[];
+        if (isStaff) {
+            clientIDsFromClientOpsRejected = [];
+        } else {
+            clientIDsFromClientOpsRejected = (
+                clientsOperations?.filter(
+                    (operation) =>
+                        operation.operation_status === OperationStatus.REJECTED
+                ) || []
+            )
+                .map((operation) => operation.original_client)
+                .filter((id): id is number => id !== undefined);
+        }
 
         const clientIDsFromUnitOpsReview = (
             unitsOperations?.filter(
@@ -145,12 +159,17 @@ function ClientDetails({
             ) || []
         ).map((operation) => operation.client);
 
-        const clientIDsFromUnitOpsRejected = (
-            unitsOperations?.filter(
-                (operation) =>
-                    operation.operation_status === OperationStatus.REJECTED
-            ) || []
-        ).map((operation) => operation.client);
+        let clientIDsFromUnitOpsRejected: number[];
+        if (isStaff) {
+            clientIDsFromUnitOpsRejected = [];
+        } else {
+            clientIDsFromUnitOpsRejected = (
+                unitsOperations?.filter(
+                    (operation) =>
+                        operation.operation_status === OperationStatus.REJECTED
+                ) || []
+            ).map((operation) => operation.client);
+        }
 
         const unitIDsFromEquipmentOpsReview = new Set(
             (
@@ -161,14 +180,29 @@ function ClientDetails({
             ).map((operation) => operation.unit)
         );
 
-        const unitIDsFromEquipmentOpsRejected = new Set(
-            (
-                equipmentsOperations?.filter(
-                    (operation) =>
-                        operation.operation_status === OperationStatus.REJECTED
-                ) || []
-            ).map((operation) => operation.unit)
-        );
+        let unitIDsFromEquipmentOpsRejected;
+        if (isStaff) {
+            unitIDsFromEquipmentOpsRejected = new Set(
+                (
+                    equipmentsOperations?.filter(
+                        (operation) =>
+                            operation.operation_status ===
+                                OperationStatus.REJECTED &&
+                            operation.operation_type !== OperationType.ADD
+                    ) || []
+                ).map((operation) => operation.unit)
+            );
+        } else {
+            unitIDsFromEquipmentOpsRejected = new Set(
+                (
+                    equipmentsOperations?.filter(
+                        (operation) =>
+                            operation.operation_status ===
+                            OperationStatus.REJECTED
+                    ) || []
+                ).map((operation) => operation.unit)
+            );
+        }
 
         const relevantUnitsReview = (units || []).filter((unit) =>
             unitIDsFromEquipmentOpsReview.has(unit.id)
@@ -184,24 +218,6 @@ function ClientDetails({
         const clientIDsFromUnitsRejected = relevantUnitsRejected.map(
             (unit) => unit.client
         );
-
-        // const clientIDsFromClientOps = (clientsOperations || [])
-        //     .map((operation) => operation.original_client)
-        //     .filter((id): id is number => id !== undefined);
-
-        // const clientIDsFromUnitOps = (unitsOperations || []).map(
-        //     (operation) => operation.client
-        // );
-
-        // const unitIDsFromEquipmentOps = new Set(
-        //     (equipmentsOperations || []).map((operation) => operation.unit)
-        // );
-
-        // const relevantUnits = (units || []).filter((unit) =>
-        //     unitIDsFromEquipmentOps.has(unit.id)
-        // );
-
-        // const clientIDsFromUnits = relevantUnits.map((unit) => unit.client);
 
         const aggregatedClientIDsReview = [
             ...clientIDsFromClientOpsReview,
@@ -305,7 +321,9 @@ function ClientDetails({
                                 <Button
                                     variant={isStaff ? "primary" : "danger"}
                                     className="flex-grow"
-                                    onClick={isStaff ? onReview : handleCancel}
+                                    onClick={
+                                        isStaff ? handleReview : handleCancel
+                                    }
                                     disabled={loadingCancel}
                                     data-testid={
                                         isStaff

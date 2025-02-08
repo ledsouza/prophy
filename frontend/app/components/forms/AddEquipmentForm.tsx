@@ -11,18 +11,18 @@ import { isErrorWithMessages } from "@/redux/services/helpers";
 import { Button } from "@/components/common";
 import { Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import { useAppDispatch } from "@/redux/hooks";
+import { closeModal } from "@/redux/features/modalSlice";
 
 export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
 
 type AddEquipmentFormProps = {
     unitId: number;
-    setIsModalOpen: (value: boolean) => void;
 };
 
-const AddEquipmentForm = ({
-    unitId,
-    setIsModalOpen,
-}: AddEquipmentFormProps) => {
+const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
+    const dispatch = useAppDispatch();
+
     const {
         register,
         handleSubmit,
@@ -69,7 +69,7 @@ const AddEquipmentForm = ({
             }
 
             toast.success("Requisição enviada com sucesso!");
-            setIsModalOpen(false);
+            dispatch(closeModal());
         } catch (error) {
             console.log("Error in AddEquipmentForm => ", error);
             toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -168,7 +168,7 @@ const AddEquipmentForm = ({
                     <Button
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => setIsModalOpen(false)}
+                        onClick={() => dispatch(closeModal())}
                         variant="secondary"
                         data-testid="cancel-btn"
                         className="w-full"

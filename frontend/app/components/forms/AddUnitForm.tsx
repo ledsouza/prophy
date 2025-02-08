@@ -13,15 +13,18 @@ import { useIBGELocalidades } from "@/hooks";
 import { Typography } from "@/components/foundation";
 import { Spinner, Button } from "@/components/common";
 import { Form, Input, ComboBox } from "@/components/forms";
+import { useAppDispatch } from "@/redux/hooks";
+import { closeModal } from "@/redux/features/modalSlice";
 
 export type AddUnitFields = z.infer<typeof unitSchema>;
 
 type AddUnitFormProps = {
     clientId: number;
-    setIsModalOpen: (value: boolean) => void;
 };
 
-const AddUnitForm = ({ clientId, setIsModalOpen }: AddUnitFormProps) => {
+const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
+    const dispatch = useAppDispatch();
+
     const {
         register,
         handleSubmit,
@@ -59,7 +62,7 @@ const AddUnitForm = ({ clientId, setIsModalOpen }: AddUnitFormProps) => {
             }
 
             toast.success("Requisição enviada com sucesso!");
-            setIsModalOpen(false);
+            dispatch(closeModal());
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
@@ -188,7 +191,7 @@ const AddUnitForm = ({ clientId, setIsModalOpen }: AddUnitFormProps) => {
                     <Button
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => setIsModalOpen(false)}
+                        onClick={() => dispatch(closeModal())}
                         variant="secondary"
                         data-testid="cancel-btn"
                         className="w-full"

@@ -58,13 +58,6 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 body: { cnpj },
             }),
         }),
-        deleteClientOperation: builder.mutation<void, number>({
-            query: (clientId) => ({
-                url: `clients/operations/${clientId}`,
-                method: "DELETE",
-            }),
-            invalidatesTags: [{ type: "ClientOperation", id: "LIST" }],
-        }),
         getByCnpj: builder.query<
             PaginatedResponse<ClientDTO>,
             { cnpj: ClientDTO["cnpj"] } & ListQueryParams
@@ -233,6 +226,13 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 { type: "ClientOperation", id: "LIST" },
                 { type: "Client", id: "LIST" },
             ],
+        }),
+        deleteClientOperation: builder.mutation<void, number>({
+            query: (clientId) => ({
+                url: `clients/operations/${clientId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [{ type: "ClientOperation", id: "LIST" }],
         }),
         createClient: builder.mutation<
             ClientOperationDTO,

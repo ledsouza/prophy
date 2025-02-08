@@ -3,22 +3,32 @@ import cn from "classnames";
 
 import { useRouter } from "next/navigation";
 
-import { OperationStatus } from "@/enums";
+import { OperationStatus, OperationType } from "@/enums";
 
-import { UnitDTO, UnitOperationDTO } from "@/redux/features/unitApiSlice";
+import {
+    UnitDTO,
+    UnitOperationDTO,
+    useDeleteUnitOperationMutation,
+} from "@/redux/features/unitApiSlice";
 
 import { CardButtons, CardStatus } from "@/components/client";
 import { Typography } from "@/components/foundation";
 import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
+import { useAppDispatch } from "@/redux/hooks";
+import {
+    Modals,
+    openModal,
+    setUnit,
+    setUnitOperation,
+} from "@/redux/features/modalSlice";
+import { isResponseError } from "@/redux/services/helpers";
+import { toast } from "react-toastify";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 type UnitCardProps = {
     unit: UnitDTO;
     unitOperation: UnitOperationDTO | undefined;
     equipmentsCount: number;
-    onEdit: () => void;
-    onCancelEdit: () => void;
-    onDelete: () => void;
-    onReject: () => void;
     dataTestId?: string | undefined;
 };
 
@@ -26,19 +36,20 @@ function UnitCard({
     unit,
     unitOperation,
     equipmentsCount,
-    onEdit,
-    onCancelEdit,
-    onDelete,
-    onReject,
     dataTestId,
 }: UnitCardProps) {
+    const router = useRouter();
+    const dispatch = useAppDispatch();
+
+    const { data: userData } = useRetrieveUserQuery();
+    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+
+    const { data: equipmentOperations } = useListAllEquipmentsOperationsQuery();
+    const [deleteUnitOperation] = useDeleteUnitOperationMutation();
+
     const [status, setStatus] = useState<OperationStatus>();
     const [hasOperation, setHasOperation] = useState(false);
     const [isRejected, setIsRejected] = useState(false);
-
-    const router = useRouter();
-
-    const { data: equipmentOperations } = useListAllEquipmentsOperationsQuery();
 
     const containerStyle = cn(
         "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
@@ -48,7 +59,82 @@ function UnitCard({
         }
     );
 
+    function handleEdit() {
+        dispatch(setUnit(unit));
+        dispatch(openModal(Modals.EDIT_UNIT));
+    }
+
+    function handleDelete() {
+        dispatch(setUnit(unit));
+        dispatch(openModal(Modals.DELETE_UNIT));
+    }
+
+    async function handleCancelEdit() {
+        if (!unitOperation) {
+            return toast.error(
+                "Requisição não encontrada. Atualize a página e tente novamente."
+            );
+        }
+
+        try {
+            const response = await deleteUnitOperation(unitOperation.id);
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada.
+                        Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 5000,
+                        }
+                    );
+                }
+                return toast.error(
+                    "Algo deu errado. Tente novamente mais tarde."
+                );
+            }
+
+            toast.success("Requisição cancelada com sucesso!");
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+    }
+
+    function handleReject() {
+        dispatch(setUnit(unit));
+        dispatch(openModal(Modals.REJECT_UNIT));
+    }
+
+    function handleReviewEdit() {
+        if (unitOperation) {
+            dispatch(setUnit(unit));
+            dispatch(setUnitOperation(unitOperation));
+            dispatch(openModal(Modals.REVIEW_EDIT_UNIT));
+        } else {
+            toast.error("Algo deu errado! Tente novamente mais tarde.");
+        }
+    }
+
+    function handleReviewAdd() {
+        if (unitOperation) {
+            dispatch(setUnitOperation(unitOperation));
+            dispatch(openModal(Modals.REVIEW_ADD_UNIT));
+        } else {
+            toast.error("Algo deu errado! Tente novamente mais tarde.");
+        }
+    }
+
+    function handleReviewDelete() {
+        dispatch(openModal(Modals.REVIEW_DELETE_UNIT));
+    }
+
     useEffect(() => {
+        if (
+            isStaff &&
+            unitOperation?.operation_status === OperationStatus.REJECTED
+        ) {
+            setStatus(OperationStatus.ACCEPTED);
+            return;
+        }
         setStatus(
             unitOperation
                 ? unitOperation.operation_status
@@ -89,6 +175,14 @@ function UnitCard({
         }
     }, [status, equipmentOperations]);
 
+    if (
+        isStaff &&
+        unitOperation?.operation_status === OperationStatus.REJECTED &&
+        unitOperation.operation_type === OperationType.ADD
+    ) {
+        return;
+    }
+
     return (
         <div className={containerStyle} data-testid={dataTestId}>
             <div className="flex justify-between pb-4">
@@ -123,10 +217,13 @@ function UnitCard({
                     operation={unitOperation}
                     status={status}
                     onDetails={() => router.push(`/dashboard/unit/${unit.id}`)}
-                    onCancelEdit={onCancelEdit}
-                    onDelete={onDelete}
-                    onEdit={onEdit}
-                    onReject={onReject}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onCancelEdit={handleCancelEdit}
+                    onReject={handleReject}
+                    onReviewAdd={handleReviewAdd}
+                    onReviewEdit={handleReviewEdit}
+                    onReviewDelete={handleReviewDelete}
                 />
             </div>
         </div>

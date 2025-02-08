@@ -4,6 +4,10 @@ import { UnitOperationDTO } from "@/redux/features/unitApiSlice";
 
 import { Button } from "@/components/common";
 import { PencilLine, Trash } from "@phosphor-icons/react";
+import { useNeedReview } from "@/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { Modals, openModal } from "@/redux/features/modalSlice";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 type CardButtonsProps = {
     operation: UnitOperationDTO | EquipmentOperationDTO | undefined;
@@ -13,6 +17,9 @@ type CardButtonsProps = {
     onDelete: () => void;
     onCancelEdit: () => void;
     onReject: () => void;
+    onReviewAdd: () => void;
+    onReviewEdit: () => void;
+    onReviewDelete: () => void;
 };
 
 function CardButtons({
@@ -23,7 +30,13 @@ function CardButtons({
     onDelete,
     onCancelEdit,
     onReject,
+    onReviewAdd,
+    onReviewDelete,
+    onReviewEdit,
 }: CardButtonsProps) {
+    const { data: userData } = useRetrieveUserQuery();
+    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+
     return (
         <>
             {operation?.operation_type !== OperationType.ADD && (
@@ -57,7 +70,8 @@ function CardButtons({
                 )}
 
                 {status === OperationStatus.REVIEW &&
-                    operation?.operation_type === OperationType.ADD && (
+                    operation?.operation_type === OperationType.ADD &&
+                    !isStaff && (
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}
@@ -69,7 +83,21 @@ function CardButtons({
                     )}
 
                 {status === OperationStatus.REVIEW &&
-                    operation?.operation_type === OperationType.EDIT && (
+                    operation?.operation_type === OperationType.ADD &&
+                    isStaff && (
+                        <Button
+                            variant="primary"
+                            onClick={onReviewAdd}
+                            className="w-40"
+                            data-testid="btn-cancel-operation"
+                        >
+                            Revisar requisição
+                        </Button>
+                    )}
+
+                {status === OperationStatus.REVIEW &&
+                    operation?.operation_type === OperationType.EDIT &&
+                    !isStaff && (
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}
@@ -81,7 +109,21 @@ function CardButtons({
                     )}
 
                 {status === OperationStatus.REVIEW &&
-                    operation?.operation_type === OperationType.DELETE && (
+                    operation?.operation_type === OperationType.EDIT &&
+                    isStaff && (
+                        <Button
+                            variant="primary"
+                            onClick={onReviewEdit}
+                            className="w-40"
+                            data-testid="btn-cancel-operation"
+                        >
+                            Revisar requisição
+                        </Button>
+                    )}
+
+                {status === OperationStatus.REVIEW &&
+                    operation?.operation_type === OperationType.DELETE &&
+                    !isStaff && (
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}
@@ -92,7 +134,20 @@ function CardButtons({
                         </Button>
                     )}
 
-                {status === OperationStatus.REJECTED && (
+                {status === OperationStatus.REVIEW &&
+                    operation?.operation_type === OperationType.DELETE &&
+                    isStaff && (
+                        <Button
+                            variant="danger"
+                            onClick={onReviewDelete}
+                            className="w-40"
+                            data-testid="btn-cancel-operation"
+                        >
+                            Revisar requisição
+                        </Button>
+                    )}
+
+                {status === OperationStatus.REJECTED && !isStaff && (
                     <Button
                         variant="danger"
                         onClick={onReject}
@@ -101,6 +156,25 @@ function CardButtons({
                     >
                         Verificar motivo
                     </Button>
+                )}
+
+                {status === OperationStatus.REJECTED && isStaff && (
+                    <>
+                        <Button
+                            variant="secondary"
+                            onClick={onEdit}
+                            data-testid="btn-edit-operation"
+                        >
+                            <PencilLine size={20} />
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={onDelete}
+                            data-testid="btn-delete-operation"
+                        >
+                            <Trash size={20} />
+                        </Button>
+                    </>
                 )}
             </div>
         </>

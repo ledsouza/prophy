@@ -27,8 +27,7 @@ import {
 
 import { toast } from "react-toastify";
 import { getIdFromUrl } from "@/utils/url";
-import { handleCloseModal, Modals } from "@/utils/modal";
-import { useAppDispatch } from "@/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { ArrowClockwise } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
@@ -41,13 +40,16 @@ import {
 } from "@/components/forms";
 import {
     UnitDetails,
-    EquipmentCard,
     EquipmentDetails,
     EquipmentList,
 } from "@/components/client";
 import { OperationStatus, OperationType } from "@/enums";
-import { sortByOperationStatus } from "@/utils/sorting";
-import { defaultOperationStatusOrder } from "@/constants/ordering";
+import {
+    closeModal,
+    Modals,
+    openModal,
+    setEquipment,
+} from "@/redux/features/modalSlice";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -55,12 +57,11 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentModal, setCurrentModal] = useState<Modals | null>(null);
+    const { isModalOpen, currentModal, selectedEquipment } = useAppSelector(
+        (state) => state.modal
+    );
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
-    const [selectedEquipment, setSelectedEquipment] =
-        useState<EquipmentDTO | null>(null);
     const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<
         EquipmentDTO[]
     >([]);
@@ -122,16 +123,6 @@ function UnitPage() {
         setSearchTerm(event.target.value);
     };
 
-    const handleModalEditUnit = () => {
-        setCurrentModal(Modals.EDIT_UNIT);
-        setIsModalOpen(true);
-    };
-
-    const handleModalRejectUnit = () => {
-        setCurrentModal(Modals.REJECT_UNIT);
-        setIsModalOpen(true);
-    };
-
     const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
         const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
 
@@ -158,13 +149,7 @@ function UnitPage() {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
 
-        setIsModalOpen(false);
-        setCurrentModal(null);
-    };
-
-    const handleModalDeleteUnit = () => {
-        setCurrentModal(Modals.DELETE_UNIT);
-        setIsModalOpen(true);
+        dispatch(closeModal());
     };
 
     const handleRequestDeleteUnit = async (selectedUnit: UnitDTO) => {
@@ -175,34 +160,14 @@ function UnitPage() {
             }
 
             toast.success("Requisição enviada com sucesso!");
-            setIsModalOpen(false);
-            setCurrentModal(null);
+            dispatch(closeModal());
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
     };
 
-    const handleModalEquipmentDetails = (equipment: EquipmentDTO) => {
-        setSelectedEquipment(equipment);
-        setCurrentModal(Modals.EQUIPMENT_DETAILS);
-        setIsModalOpen(true);
-    };
-
     const handleModalAddEquipment = () => {
-        setCurrentModal(Modals.ADD_EQUIPMENT);
-        setIsModalOpen(true);
-    };
-
-    const handleModalEditEquipment = (selectedEquipment: EquipmentDTO) => {
-        setSelectedEquipment(selectedEquipment);
-        setCurrentModal(Modals.EDIT_EQUIPMENT);
-        setIsModalOpen(true);
-    };
-
-    const handleModalDeleteEquipment = (selectedEquipment: EquipmentDTO) => {
-        setSelectedEquipment(selectedEquipment);
-        setCurrentModal(Modals.DELETE_EQUIPMENT);
-        setIsModalOpen(true);
+        dispatch(openModal(Modals.ADD_EQUIPMENT));
     };
 
     const handleRequestDeleteEquipment = async (
@@ -225,16 +190,10 @@ function UnitPage() {
             }
 
             toast.success("Requisição enviada com sucesso!");
-            setIsModalOpen(false);
+            dispatch(closeModal());
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
-    };
-
-    const handleModalRejectEquipment = (selectedEquipment: EquipmentDTO) => {
-        setSelectedEquipment(selectedEquipment);
-        setCurrentModal(Modals.REJECT_EQUIPMENT);
-        setIsModalOpen(true);
     };
 
     const handleConfirmRejectEquipment = async (
@@ -273,55 +232,7 @@ function UnitPage() {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
 
-        setIsModalOpen(false);
-        setCurrentModal(null);
-    };
-
-    const handleCancelEquipmentOperation = async (equipment: EquipmentDTO) => {
-        const operation = getEquipmentOperation(
-            equipment,
-            equipmentsOperations
-        );
-
-        if (!operation) {
-            return toast.error(
-                "Algo deu errado! Não foi possível obter a requisição associada."
-            );
-        }
-
-        try {
-            const response = await deleteEquipmentOperation(operation.id);
-            if (isResponseError(response)) {
-                if (response.error.status === 404) {
-                    return toast.error(
-                        `A requisição não foi encontrada. É possível que ela já tenha sido revisada por um físico médico.
-                            Por favor, recarregue a página para atualizar a lista de requisições.`,
-                        {
-                            autoClose: 6000,
-                        }
-                    );
-                }
-            }
-
-            toast.success("Requisição cancelada com sucesso!");
-        } catch (error) {
-            toast.error("Algo deu errado. Tente novamente mais tarde.");
-        }
-    };
-
-    const handleEquipmentStatus = (
-        equipment: EquipmentDTO
-    ): OperationStatus => {
-        const equipmentOperation = getEquipmentOperation(
-            equipment,
-            equipmentsOperations
-        );
-
-        if (equipmentOperation) {
-            return equipmentOperation.operation_status as OperationStatus;
-        } else {
-            return OperationStatus.ACCEPTED;
-        }
+        dispatch(closeModal());
     };
 
     // Set selected unit
@@ -433,9 +344,6 @@ function UnitPage() {
                         selectedUnit,
                         unitsOperations
                     )}
-                    onEdit={handleModalEditUnit}
-                    onDelete={handleModalDeleteUnit}
-                    onReject={handleModalRejectUnit}
                 />
 
                 <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
@@ -459,12 +367,6 @@ function UnitPage() {
                     <EquipmentList
                         searchedEquipments={searchedEquipments}
                         filteredEquipmentsByUnit={filteredEquipmentsByUnit}
-                        handleEquipmentStatus={handleEquipmentStatus}
-                        onEditEquipment={handleModalEditEquipment}
-                        onCancelEquipment={handleCancelEquipmentOperation}
-                        onDeleteEquipment={handleModalDeleteEquipment}
-                        onRejectEquipment={handleModalRejectEquipment}
-                        onDetailsEquipment={handleModalEquipmentDetails}
                     />
 
                     <Button
@@ -477,9 +379,7 @@ function UnitPage() {
 
                 <Modal
                     isOpen={isModalOpen}
-                    onClose={() =>
-                        handleCloseModal({ setIsModalOpen, setCurrentModal })
-                    }
+                    onClose={() => dispatch(closeModal())}
                     className={
                         currentModal === Modals.EQUIPMENT_DETAILS
                             ? "max-w-6xl mx-6"
@@ -487,10 +387,7 @@ function UnitPage() {
                     }
                 >
                     {currentModal === Modals.EDIT_UNIT && (
-                        <EditUnitForm
-                            originalUnit={selectedUnit}
-                            setIsModalOpen={setIsModalOpen}
-                        />
+                        <EditUnitForm unit={selectedUnit} />
                     )}
 
                     {currentModal === Modals.REJECT_UNIT && (
@@ -537,10 +434,7 @@ function UnitPage() {
                             <div className="flex flex-row gap-2">
                                 <Button
                                     onClick={() => {
-                                        handleCloseModal({
-                                            setIsModalOpen,
-                                            setCurrentModal,
-                                        });
+                                        dispatch(closeModal());
                                     }}
                                     className="w-full mt-6"
                                     data-testid="btn-cancel-delete-unit"
@@ -563,17 +457,13 @@ function UnitPage() {
                     )}
 
                     {currentModal === Modals.ADD_EQUIPMENT && (
-                        <AddEquipmentForm
-                            unitId={unitId}
-                            setIsModalOpen={setIsModalOpen}
-                        />
+                        <AddEquipmentForm unitId={unitId} />
                     )}
 
                     {currentModal === Modals.EDIT_EQUIPMENT &&
                         selectedEquipment && (
                             <EditEquipmentForm
                                 originalEquipment={selectedEquipment}
-                                setIsModalOpen={setIsModalOpen}
                             />
                         )}
 
@@ -592,10 +482,7 @@ function UnitPage() {
                                 <div className="flex flex-row gap-2">
                                     <Button
                                         onClick={() => {
-                                            handleCloseModal({
-                                                setIsModalOpen,
-                                                setCurrentModal,
-                                            });
+                                            dispatch(closeModal());
                                         }}
                                         className="w-full mt-6"
                                         data-testid="btn-cancel-delete-unit"
@@ -663,12 +550,7 @@ function UnitPage() {
                         selectedEquipment && (
                             <EquipmentDetails
                                 equipment={selectedEquipment}
-                                onClose={() =>
-                                    handleCloseModal({
-                                        setIsModalOpen,
-                                        setCurrentModal,
-                                    })
-                                }
+                                onClose={() => dispatch(closeModal())}
                             />
                         )}
                 </Modal>

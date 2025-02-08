@@ -6,19 +6,19 @@ import { OperationStatus } from "@/enums";
 import {
     EquipmentDTO,
     EquipmentOperationDTO,
+    useDeleteEquipmentOperationMutation,
 } from "@/redux/features/equipmentApiSlice";
 
 import { Typography } from "@/components/foundation";
 import { CardButtons, CardStatus } from "@/components/client";
+import { useAppDispatch } from "@/redux/hooks";
+import { Modals, openModal, setEquipment } from "@/redux/features/modalSlice";
+import { toast } from "react-toastify";
+import { isResponseError } from "@/redux/services/helpers";
 
 type EquipmentCardProps = {
     equipment: EquipmentDTO;
     equipmentOperation: EquipmentOperationDTO | undefined;
-    onDetails: () => void;
-    onEdit: () => void;
-    onCancelEdit: () => void;
-    onDelete: () => void;
-    onReject: () => void;
     dataTestId?: string | undefined;
 };
 
@@ -26,15 +26,14 @@ function EquipmentCard({
     equipment,
     equipmentOperation,
     dataTestId,
-    onDetails,
-    onEdit,
-    onCancelEdit,
-    onDelete,
-    onReject,
 }: EquipmentCardProps) {
+    const dispatch = useAppDispatch();
+
     const [status, setStatus] = useState<OperationStatus>();
     const [hasOperation, setHasOperation] = useState(false);
     const [isRejected, setIsRejected] = useState(false);
+
+    const [deleteEquipmentOperation] = useDeleteEquipmentOperationMutation();
 
     const containerStyle = cn(
         "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
@@ -43,6 +42,55 @@ function EquipmentCard({
             "animate-danger": isRejected,
         }
     );
+
+    function handleEdit() {
+        dispatch(setEquipment(equipment));
+        dispatch(openModal(Modals.EDIT_EQUIPMENT));
+    }
+
+    function handleDelete() {
+        dispatch(setEquipment(equipment));
+        dispatch(openModal(Modals.DELETE_EQUIPMENT));
+    }
+
+    function handleReject() {
+        dispatch(setEquipment(equipment));
+        dispatch(openModal(Modals.REJECT_EQUIPMENT));
+    }
+
+    async function handleCancelEquipmentOperation() {
+        if (!equipmentOperation) {
+            return toast.error(
+                "Algo deu errado! Não foi possível obter a requisição associada."
+            );
+        }
+
+        try {
+            const response = await deleteEquipmentOperation(
+                equipmentOperation.id
+            );
+            if (isResponseError(response)) {
+                if (response.error.status === 404) {
+                    return toast.error(
+                        `A requisição não foi encontrada. É possível que ela já tenha sido revisada por um físico médico.
+                            Por favor, recarregue a página para atualizar a lista de requisições.`,
+                        {
+                            autoClose: 6000,
+                        }
+                    );
+                }
+            }
+
+            toast.success("Requisição cancelada com sucesso!");
+        } catch (error) {
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
+    }
+
+    function handleEquipmentDetails() {
+        dispatch(setEquipment(equipment));
+        dispatch(openModal(Modals.EQUIPMENT_DETAILS));
+    }
 
     useEffect(() => {
         setStatus(
@@ -64,10 +112,6 @@ function EquipmentCard({
             setIsRejected(false);
         }
     }, [status]);
-
-    useEffect(() => {
-        console.log("setIsRejected:", isRejected);
-    }, [isRejected]);
 
     return (
         <div className={containerStyle} data-testid={dataTestId}>
@@ -96,11 +140,14 @@ function EquipmentCard({
                 <CardButtons
                     operation={equipmentOperation}
                     status={status}
-                    onDetails={onDetails}
-                    onCancelEdit={onCancelEdit}
-                    onDelete={onDelete}
-                    onEdit={onEdit}
-                    onReject={onReject}
+                    onDetails={handleEquipmentDetails}
+                    onCancelEdit={handleCancelEquipmentOperation}
+                    onDelete={handleDelete}
+                    onEdit={handleEdit}
+                    onReject={handleReject}
+                    onReviewAdd={() => {}}
+                    onReviewDelete={() => {}}
+                    onReviewEdit={() => {}}
                 />
             </div>
         </div>

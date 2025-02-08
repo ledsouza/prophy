@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 import { apiSlice } from "@/redux/services/apiSlice";
-import {
-    getEquipmentsCount,
-    getUnitOperation,
-    isResponseError,
-} from "@/redux/services/helpers";
+import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 import {
     ClientOperationDTO,
     useDeleteClientOperationMutation,
@@ -23,9 +19,8 @@ import {
 } from "@/redux/features/unitApiSlice";
 
 import { useClientDataLoading } from "@/hooks/use-client-data-loading";
-import { OperationStatus, OperationType } from "@/enums";
-import { handleCloseModal, Modals } from "@/utils/modal";
-import { useAppDispatch } from "@/redux/hooks";
+import { OperationType } from "@/enums";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 import { ArrowClockwise } from "@phosphor-icons/react";
 
@@ -37,9 +32,8 @@ import {
     Input,
 } from "@/components/forms";
 import { Button, Modal, Spinner } from "@/components/common";
-import { ClientDetails, UnitCard, UnitList } from "@/components/client";
-import { sortByOperationStatus } from "@/utils/sorting";
-import { defaultOperationStatusOrder } from "@/constants/ordering";
+import { ClientDetails, UnitList } from "@/components/client";
+import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 
 function ClientPage() {
     const router = useRouter();
@@ -52,7 +46,6 @@ function ClientPage() {
         selectedClient,
         filteredClient,
         filteredUnits,
-        equipments,
         setSelectedClient,
     } = useClientDataLoading();
 
@@ -68,27 +61,17 @@ function ClientPage() {
     const [selectedClientInOperation, setSelectedClientInOperation] =
         useState<ClientOperationDTO | null>(null);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentModal, setCurrentModal] = useState<Modals | null>(null);
+    const { currentModal, isModalOpen, selectedUnit } = useAppSelector(
+        (state) => state.modal
+    );
 
     const [searchTerm, setSearchTerm] = useState("");
     const [searchedUnits, setSearchedUnits] = useState<UnitDTO[]>([]);
-    const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
 
     const handleSearchInputChange = (
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         setSearchTerm(event.target.value);
-    };
-
-    const handleModalEditClient = () => {
-        setCurrentModal(Modals.EDIT_CLIENT);
-        setIsModalOpen(true);
-    };
-
-    const handleModalRejectClient = () => {
-        setCurrentModal(Modals.REJECT_CLIENT);
-        setIsModalOpen(true);
     };
 
     const handleConfirmRejectClient = async () => {
@@ -115,59 +98,14 @@ function ClientPage() {
                 );
             }
 
-            setIsModalOpen(false);
-            setCurrentModal(null);
+            dispatch(closeModal());
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
     };
 
     const handleModalAddUnit = () => {
-        setCurrentModal(Modals.ADD_UNIT);
-        setIsModalOpen(true);
-    };
-
-    const handleModalEditUnit = (selectedUnit: UnitDTO) => {
-        setSelectedUnit(selectedUnit);
-        setCurrentModal(Modals.EDIT_UNIT);
-        setIsModalOpen(true);
-    };
-
-    const handleCancelEditUnit = async (selectedUnit: UnitDTO) => {
-        const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
-        if (!unitOperation) {
-            return toast.error(
-                "Requisição não encontrada. Atualize a página e tente novamente."
-            );
-        }
-
-        try {
-            const response = await deleteUnitOperation(unitOperation.id);
-            if (isResponseError(response)) {
-                if (response.error.status === 404) {
-                    return toast.error(
-                        `A requisição não foi encontrada.
-                        Por favor, recarregue a página para atualizar a lista de requisições.`,
-                        {
-                            autoClose: 5000,
-                        }
-                    );
-                }
-                return toast.error(
-                    "Algo deu errado. Tente novamente mais tarde."
-                );
-            }
-
-            toast.success("Requisição cancelada com sucesso!");
-        } catch (error) {
-            toast.error("Algo deu errado. Tente novamente mais tarde.");
-        }
-    };
-
-    const handleModalDeleteUnit = (selectedUnit: UnitDTO) => {
-        setSelectedUnit(selectedUnit);
-        setCurrentModal(Modals.DELETE_UNIT);
-        setIsModalOpen(true);
+        dispatch(openModal(Modals.ADD_UNIT));
     };
 
     const handleCreateDeleteUnitOperation = async (selectedUnit: UnitDTO) => {
@@ -178,17 +116,10 @@ function ClientPage() {
             }
 
             toast.success("Requisição enviada com sucesso!");
-            setIsModalOpen(false);
-            setCurrentModal(null);
+            dispatch(closeModal());
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
-    };
-
-    const handleModalRejectUnit = (selectedUnit: UnitDTO) => {
-        setSelectedUnit(selectedUnit);
-        setCurrentModal(Modals.REJECT_UNIT);
-        setIsModalOpen(true);
     };
 
     const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
@@ -220,18 +151,7 @@ function ClientPage() {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
 
-        setIsModalOpen(false);
-        setCurrentModal(null);
-    };
-
-    const handleUnitStatus = (unit: UnitDTO): OperationStatus => {
-        const unitOperation = getUnitOperation(unit, unitsOperations);
-
-        if (unitOperation) {
-            return unitOperation.operation_status as OperationStatus;
-        } else {
-            return OperationStatus.ACCEPTED;
-        }
+        dispatch(closeModal());
     };
 
     const handleUpdateData = () => {
@@ -346,8 +266,6 @@ function ClientPage() {
                         setSelectedClient={setSelectedClient}
                         filteredClient={filteredClient}
                         selectedClientInOperation={selectedClientInOperation}
-                        handleEdit={handleModalEditClient}
-                        handleReject={handleModalRejectClient}
                     />
                 )}
 
@@ -368,11 +286,6 @@ function ClientPage() {
                 <UnitList
                     searchedUnits={searchedUnits}
                     filteredUnits={filteredUnits}
-                    handleUnitStatus={handleUnitStatus}
-                    onEditUnit={handleModalEditUnit}
-                    onCancelEditUnit={handleCancelEditUnit}
-                    onDeleteUnit={handleModalDeleteUnit}
-                    onRejectUnit={handleModalRejectUnit}
                 />
 
                 <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
@@ -382,12 +295,10 @@ function ClientPage() {
 
             <Modal
                 isOpen={isModalOpen}
-                onClose={() =>
-                    handleCloseModal({ setIsModalOpen, setCurrentModal })
-                }
+                onClose={() => dispatch(closeModal())}
                 className="max-w-lg"
             >
-                {currentModal === Modals.EDIT_CLIENT && (
+                {currentModal === Modals.EDIT_CLIENT && filteredClient && (
                     <EditClientForm
                         title="Atualização de dados"
                         description={`Por favor, edite os campos que deseja atualizar,
@@ -395,8 +306,7 @@ function ClientPage() {
                         Após a submissão, o formulário será enviado para análise de
                         um físico médico responsável, que fará a revisão e validação
                         das informações fornecidas.`}
-                        client={filteredClient!}
-                        setIsModalOpen={setIsModalOpen}
+                        client={filteredClient}
                     />
                 )}
 
@@ -432,16 +342,18 @@ function ClientPage() {
                 )}
 
                 {currentModal === Modals.ADD_UNIT && selectedClient?.id && (
-                    <AddUnitForm
-                        clientId={selectedClient.id}
-                        setIsModalOpen={setIsModalOpen}
-                    />
+                    <AddUnitForm clientId={selectedClient.id} />
                 )}
 
                 {currentModal === Modals.EDIT_UNIT && selectedUnit && (
                     <EditUnitForm
-                        originalUnit={selectedUnit}
-                        setIsModalOpen={setIsModalOpen}
+                        title="Atualização de dados"
+                        description={`Por favor, edite os campos que deseja atualizar,
+                        certificando-se de preencher as informações corretamente.
+                        Após a submissão, o formulário será enviado para análise de
+                        um físico médico responsável, que fará a revisão e validação
+                        das informações fornecidas.`}
+                        unit={selectedUnit}
                     />
                 )}
 
@@ -454,10 +366,7 @@ function ClientPage() {
                         <div className="flex flex-row gap-2">
                             <Button
                                 onClick={() => {
-                                    handleCloseModal({
-                                        setIsModalOpen,
-                                        setCurrentModal,
-                                    });
+                                    dispatch(closeModal());
                                 }}
                                 className="w-full mt-6"
                                 data-testid="btn-cancel-delete-unit"

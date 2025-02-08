@@ -19,18 +19,17 @@ import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { Form, Input } from "@/components/forms";
 import { fetchPhoto } from "@/utils/media";
+import { useAppDispatch } from "@/redux/hooks";
+import { closeModal } from "@/redux/features/modalSlice";
 
 export type EditEquipmentFields = z.infer<typeof equipmentSchema>;
 
 type EditEquipmentFormProps = {
     originalEquipment: EquipmentDTO;
-    setIsModalOpen: (value: boolean) => void;
 };
 
-const EditEquipmentForm = ({
-    originalEquipment,
-    setIsModalOpen,
-}: EditEquipmentFormProps) => {
+const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
+    const dispatch = useAppDispatch();
     const [equipmentPhotoFile, setEquipmentPhotoFile] = useState<File | null>(
         null
     );
@@ -126,7 +125,7 @@ const EditEquipmentForm = ({
             }
 
             toast.success("Requisição enviada com sucesso!");
-            setIsModalOpen(false);
+            dispatch(closeModal());
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
@@ -264,7 +263,7 @@ const EditEquipmentForm = ({
                     <Button
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => setIsModalOpen(false)}
+                        onClick={() => dispatch(closeModal())}
                         variant="secondary"
                         data-testid="cancel-btn"
                         className="w-full"
