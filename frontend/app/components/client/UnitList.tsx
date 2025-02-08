@@ -1,16 +1,19 @@
 import React from "react";
 
-import { UnitCard } from "@/components/client";
-import { Typography } from "@/components/foundation";
-import { sortByOperationStatus } from "@/utils/sorting";
+import { OperationStatus } from "@/enums";
+import { defaultOperationStatusOrder } from "@/constants/ordering";
+
 import { getEquipmentsCount, getUnitOperation } from "@/redux/services/helpers";
 import {
     UnitDTO,
     useListAllUnitsOperationsQuery,
 } from "@/redux/features/unitApiSlice";
 import { useListAllEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
-import { defaultOperationStatusOrder } from "@/constants/ordering";
-import { OperationStatus } from "@/enums";
+
+import { sortByOperationStatus } from "@/utils/sorting";
+
+import { UnitCard } from "@/components/client";
+import { Typography } from "@/components/foundation";
 
 type UnitListProps = {
     searchedUnits: UnitDTO[];

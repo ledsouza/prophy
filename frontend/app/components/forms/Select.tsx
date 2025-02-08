@@ -49,7 +49,7 @@ function Select({
                     <ListboxButton
                         className={`relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 mb-2 text-left shadow-sm ring-1 ring-inset focus:outline-none focus:ring-2 focus:primary sm:text-sm sm:leading-6 ${
                             hasOperation
-                                ? "ring-4 ring-yellow-500 animate-flash"
+                                ? "ring-4 ring-yellow-500 animate-warning"
                                 : "ring-secondary"
                         }`}
                     >
@@ -78,7 +78,7 @@ function Select({
                                 value={option}
                                 className={`group relative cursor-default select-none py-2 pl-3 pr-9 text-primary data-[focus]:bg-primary data-[focus]:text-white ${
                                     operationsIDs?.has(option.id)
-                                        ? "ring-4 ring-yellow-500 animate-flash data-[focus]:bg-yellow-500"
+                                        ? "ring-4 ring-yellow-500 animate-warning data-[focus]:bg-yellow-500"
                                         : ""
                                 } ${listOptionStyles}`}
                             >

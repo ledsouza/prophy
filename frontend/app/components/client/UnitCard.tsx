@@ -1,15 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import cn from "classnames";
+
 import { useRouter } from "next/navigation";
 
-import { PencilLine, Trash } from "@phosphor-icons/react";
-
-import { OperationStatus, OperationType } from "@/enums";
+import { OperationStatus } from "@/enums";
 
 import { UnitDTO, UnitOperationDTO } from "@/redux/features/unitApiSlice";
 
-import { Button } from "@/components/common";
 import { CardButtons, CardStatus } from "@/components/client";
 import { Typography } from "@/components/foundation";
+import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
 
 type UnitCardProps = {
     unit: UnitDTO;
@@ -32,17 +32,45 @@ function UnitCard({
     onReject,
     dataTestId,
 }: UnitCardProps) {
-    const status = unitOperation
-        ? unitOperation.operation_status
-        : OperationStatus.ACCEPTED;
+    const [hasOperation, setHasOperation] = useState(false);
+    const [status, setStatus] = useState<OperationStatus>();
 
     const router = useRouter();
 
+    const { data: equipmentOperations } = useListAllEquipmentsOperationsQuery();
+
+    const containerStyle = cn(
+        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
+        {
+            "animate-warning": hasOperation,
+        }
+    );
+
+    useEffect(() => {
+        setStatus(
+            unitOperation
+                ? unitOperation.operation_status
+                : OperationStatus.ACCEPTED
+        );
+    }, [unitOperation]);
+
+    useEffect(() => {
+        const unitIDsFromEquipmentOps = equipmentOperations?.map(
+            (operation) => operation.unit
+        );
+        if (
+            status === OperationStatus.REVIEW ||
+            status === OperationStatus.REJECTED ||
+            unitIDsFromEquipmentOps?.includes(unit.id)
+        ) {
+            setHasOperation(true);
+        } else {
+            setHasOperation(false);
+        }
+    }, [status, equipmentOperations]);
+
     return (
-        <div
-            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary"
-            data-testid={dataTestId}
-        >
+        <div className={containerStyle} data-testid={dataTestId}>
             <div className="flex justify-between pb-4">
                 <div className="flex flex-col">
                     <Typography

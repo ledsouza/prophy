@@ -29,15 +29,15 @@ const config: Config = {
                 placeholder: "rgba(var(--text-placeholder), <alpha-value>)",
             },
             keyframes: {
-                flash: {
+                warning: {
                     "0%, 100%": {
-                        "box-shadow": "0 0 0 2px rgb(234 179 8 / 0.5)",
+                        "box-shadow": "0 0 0 2px rgb(234 179 8 / 0.6)",
                     },
                     "50%": { "box-shadow": "0 0 0 2px rgb(234 179 8 / 0.1)" },
                 },
             },
             animation: {
-                flash: "flash 2s ease-in-out infinite",
+                warning: "warning 2s ease-in-out infinite",
             },
         },
     },
