@@ -32,8 +32,8 @@ function UnitCard({
     onReject,
     dataTestId,
 }: UnitCardProps) {
-    const [hasOperation, setHasOperation] = useState(false);
     const [status, setStatus] = useState<OperationStatus>();
+    const [hasOperation, setHasOperation] = useState(false);
 
     const router = useRouter();
 

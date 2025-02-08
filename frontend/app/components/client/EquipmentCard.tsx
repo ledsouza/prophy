@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import cn from "classnames";
 
 import { OperationStatus } from "@/enums";
 
@@ -31,15 +32,37 @@ function EquipmentCard({
     onDelete,
     onReject,
 }: EquipmentCardProps) {
-    const status = equipmentOperation
-        ? equipmentOperation.operation_status
-        : OperationStatus.ACCEPTED;
+    const [status, setStatus] = useState<OperationStatus>();
+    const [hasOperation, setHasOperation] = useState(false);
+
+    const containerStyle = cn(
+        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
+        {
+            "animate-warning": hasOperation,
+        }
+    );
+
+    useEffect(() => {
+        setStatus(
+            equipmentOperation
+                ? equipmentOperation.operation_status
+                : OperationStatus.ACCEPTED
+        );
+    }, [equipmentOperation]);
+
+    useEffect(() => {
+        if (
+            status === OperationStatus.REVIEW ||
+            status === OperationStatus.REJECTED
+        ) {
+            setHasOperation(true);
+        } else {
+            setHasOperation(false);
+        }
+    }, [status]);
 
     return (
-        <div
-            className="bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary"
-            data-testid={dataTestId}
-        >
+        <div className={containerStyle} data-testid={dataTestId}>
             <div className="flex justify-between pb-4">
                 <div className="flex flex-col">
                     <Typography element="h3" size="title3">
