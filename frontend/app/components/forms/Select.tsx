@@ -11,8 +11,6 @@ import {
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 import { Typography } from "@/components/foundation";
-import { UnitOperationDTO } from "@/redux/features/unitApiSlice";
-import { EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
 
 export type SelectData = {
     id: number;
@@ -24,7 +22,7 @@ type SelectProps = {
     selectedData: SelectData;
     setSelect: (value: SelectData) => void;
     label?: string;
-    operationsIDs?: number[];
+    operationsIDs?: Set<number>;
     listBoxStyles?: string;
     listOptionStyles?: string;
     dataTestId?: string | undefined;
@@ -40,6 +38,9 @@ function Select({
     listOptionStyles = "",
     dataTestId,
 }: SelectProps) {
+    const hasOperation: boolean =
+        operationsIDs !== undefined && operationsIDs.size > 0;
+
     return (
         <div data-testid={dataTestId}>
             <Listbox value={selectedData} onChange={setSelect}>
@@ -47,7 +48,7 @@ function Select({
                 <div className={`relative mt-2 ${listBoxStyles}`}>
                     <ListboxButton
                         className={`relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 mb-2 text-left shadow-sm ring-1 ring-inset focus:outline-none focus:ring-2 focus:primary sm:text-sm sm:leading-6 ${
-                            (operationsIDs?.length ?? 0) > 0
+                            hasOperation
                                 ? "ring-4 ring-yellow-500 animate-flash"
                                 : "ring-secondary"
                         }`}
@@ -76,7 +77,7 @@ function Select({
                                 key={option.id}
                                 value={option}
                                 className={`group relative cursor-default select-none py-2 pl-3 pr-9 text-primary data-[focus]:bg-primary data-[focus]:text-white ${
-                                    operationsIDs?.includes(option.id)
+                                    operationsIDs?.has(option.id)
                                         ? "ring-4 ring-yellow-500 animate-flash data-[focus]:bg-yellow-500"
                                         : ""
                                 } ${listOptionStyles}`}

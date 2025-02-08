@@ -20,14 +20,10 @@ import { SelectData } from "@/components/forms/Select";
 import { OperationStatus } from "@/enums";
 import ClientContact from "./ClientContact";
 import {
-    UnitOperationDTO,
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
-import {
-    EquipmentOperationDTO,
-    useListAllEquipmentsOperationsQuery,
-} from "@/redux/features/equipmentApiSlice";
+import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
 
 type ClientDetailsProps = {
     title: string;
@@ -57,7 +53,7 @@ function ClientDetails({
     const { data: userData } = useRetrieveUserQuery();
     const isStaff = userData?.role === "FMI" || userData?.role === "GP";
 
-    const [operationsIDs, setOperationsIDs] = useState<number[]>([]);
+    const [operationsIDs, setOperationsIDs] = useState<Set<number>>(new Set());
 
     const { data: units, isLoading: isPaginatingUnits } =
         useListAllUnitsQuery();
@@ -111,36 +107,39 @@ function ClientDetails({
     // Obtaining the id of the clients that has a operation in progress
     useEffect(() => {
         if (
-            [
-                isLoadingClientsOperations,
-                isLoadingUnitsOperations,
-                isLoadingEquipmentsOperations,
-                isPaginatingUnits,
-            ].some(Boolean)
+            isLoadingClientsOperations ||
+            isLoadingUnitsOperations ||
+            isLoadingEquipmentsOperations ||
+            isPaginatingUnits
         ) {
             return;
         }
 
-        let clientOperationIDs = [
-            ...(clientsOperations?.map(
-                (operation) => operation.original_client!
-            ) ?? []),
-            ...(unitsOperations?.map((operation) => operation.client) ?? []),
-        ];
+        const clientIDsFromClientOps = (clientsOperations || [])
+            .map((operation) => operation.original_client)
+            .filter((id): id is number => id !== undefined);
 
-        const unitsOperationIDs =
-            equipmentsOperations?.map((operation) => operation.unit) ?? [];
-
-        const filteredUnits = units?.filter((units) =>
-            unitsOperationIDs.includes(units.id)
+        const clientIDsFromUnitOps = (unitsOperations || []).map(
+            (operation) => operation.client
         );
 
-        clientOperationIDs = [
-            ...clientOperationIDs,
-            ...(filteredUnits?.map((unit) => unit.client) ?? []),
+        const unitIDsFromEquipmentOps = new Set(
+            (equipmentsOperations || []).map((operation) => operation.unit)
+        );
+
+        const relevantUnits = (units || []).filter((unit) =>
+            unitIDsFromEquipmentOps.has(unit.id)
+        );
+
+        const clientIDsFromUnits = relevantUnits.map((unit) => unit.client);
+
+        const aggregatedClientIDs = [
+            ...clientIDsFromClientOps,
+            ...clientIDsFromUnitOps,
+            ...clientIDsFromUnits,
         ];
 
-        setOperationsIDs(clientOperationIDs);
+        setOperationsIDs(new Set(aggregatedClientIDs));
     }, [
         isLoadingClientsOperations,
         isLoadingUnitsOperations,
