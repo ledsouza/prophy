@@ -376,6 +376,7 @@ const EditUnitForm = ({
         }
     }, [estados, municipios]);
 
+    // If the user clicks in go back, it's required to transform the note to undefined
     useEffect(() => {
         if (!isRejected) {
             setValue("note", undefined);

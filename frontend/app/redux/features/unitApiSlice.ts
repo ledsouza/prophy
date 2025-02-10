@@ -1,5 +1,6 @@
 import { OperationStatus, OperationType } from "@/enums";
 import {
+    APIDeleteResponse,
     apiSlice,
     ListQueryParams,
     Operation,
@@ -26,10 +27,7 @@ export type UnitOperationDTO = UnitDTO &
     };
 
 type PutUnitOperationDTO = Partial<
-    Omit<
-        UnitOperationDTO,
-        "id" | "users" | "operation_type" | "note" | "original_unit"
-    >
+    Omit<UnitOperationDTO, "id" | "users" | "operation_type" | "original_unit">
 >;
 
 const unitApiSlice = apiSlice.injectEndpoints({
@@ -159,7 +157,7 @@ const unitApiSlice = apiSlice.injectEndpoints({
                 { type: "Unit", id: "LIST" },
             ],
         }),
-        deleteUnitOperation: builder.mutation<void, number>({
+        deleteUnitOperation: builder.mutation<APIDeleteResponse, number>({
             query: (unitId) => ({
                 url: `units/operations/${unitId}`,
                 method: "DELETE",

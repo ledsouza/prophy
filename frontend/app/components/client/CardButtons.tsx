@@ -88,7 +88,7 @@ function CardButtons({
                             variant="primary"
                             onClick={onReviewAdd}
                             className="w-40"
-                            data-testid="btn-cancel-operation"
+                            data-testid="btn-review-operation"
                         >
                             Revisar requisição
                         </Button>
@@ -114,7 +114,7 @@ function CardButtons({
                             variant="primary"
                             onClick={onReviewEdit}
                             className="w-40"
-                            data-testid="btn-cancel-operation"
+                            data-testid="btn-review-operation"
                         >
                             Revisar requisição
                         </Button>
@@ -137,10 +137,10 @@ function CardButtons({
                     operation?.operation_type === OperationType.DELETE &&
                     isStaff && (
                         <Button
-                            variant="danger"
+                            variant="primary"
                             onClick={onReviewDelete}
                             className="w-40"
-                            data-testid="btn-cancel-operation"
+                            data-testid="btn-review-operation"
                         >
                             Revisar requisição
                         </Button>

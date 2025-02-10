@@ -124,7 +124,12 @@ function UnitCard({
     }
 
     function handleReviewDelete() {
-        dispatch(openModal(Modals.REVIEW_DELETE_UNIT));
+        if (unitOperation) {
+            dispatch(setUnitOperation(unitOperation));
+            dispatch(openModal(Modals.REVIEW_DELETE_UNIT));
+            return;
+        }
+        toast.error("Algo deu errado! Tente novamente mais tarde.");
     }
 
     useEffect(() => {

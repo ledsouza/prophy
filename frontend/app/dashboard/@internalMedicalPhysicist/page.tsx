@@ -29,6 +29,7 @@ import {
     EditClientForm,
     EditUnitForm,
     Input,
+    ReviewDeleteUnitForm,
 } from "@/components/forms";
 import { Button, Modal, Spinner } from "@/components/common";
 import { ClientDetails, UnitList } from "@/components/client";
@@ -305,7 +306,8 @@ function ClientPage() {
                     selectedUnitOperation && (
                         <EditUnitForm
                             title="Unidade requisitada"
-                            description="Verifique as informações. Se identificar algum erro, você pode editá-las ou rejeitá-las completamente."
+                            description={`Verifique as informações. Se identificar algum erro,
+                            você pode editá-las ou rejeitá-las completamente.`}
                             reviewMode
                             unit={selectedUnitOperation as UnitDTO}
                         />
@@ -370,6 +372,14 @@ function ClientPage() {
                         </div>
                     </div>
                 )}
+
+                {currentModal === Modals.REVIEW_DELETE_UNIT &&
+                    selectedUnitOperation && (
+                        <ReviewDeleteUnitForm
+                            title="O cliente deseja remover esta unidade. Você concorda?"
+                            unitOperationID={selectedUnitOperation.id}
+                        />
+                    )}
 
                 {currentModal === Modals.REJECT_UNIT &&
                     selectedUnit &&

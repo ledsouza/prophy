@@ -356,6 +356,7 @@ class UnitOperationViewSet(viewsets.ViewSet):
         operation_summary="Delete unit operation",
         operation_description="""
         Delete a specific unit operation by its ID.
+        Please note that each unit operation is linked to a unit. Deleting the unit operation will also result in the associated unit being removed.
         """,
         responses={
             200: openapi.Response(
