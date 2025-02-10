@@ -162,7 +162,10 @@ const unitApiSlice = apiSlice.injectEndpoints({
                 url: `units/operations/${unitId}`,
                 method: "DELETE",
             }),
-            invalidatesTags: [{ type: "UnitOperation", id: "LIST" }],
+            invalidatesTags: [
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+            ],
         }),
         createUnit: builder.mutation<
             UnitOperationDTO,

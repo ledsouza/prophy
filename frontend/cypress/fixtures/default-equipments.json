@@ -1,20 +1,20 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Resson\u00e2ncia Magn\u00e9tica",
-    "manufacturer": "Siemens",
-    "model": "SAPIENTE-987",
-    "series_number": "jOJe-064334",
-    "anvisa_registry": "AjdImhXlBVcew",
+    "modality": "Ultrassom",
+    "manufacturer": "GE",
+    "model": "DOLORIBUS-712",
+    "series_number": "kVef-700543",
+    "anvisa_registry": "cFxEoloBFIzvu",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Ultrassom",
-    "manufacturer": "Siemens",
-    "model": "SIMILIQUE-299",
-    "series_number": "OSQs-556668",
-    "anvisa_registry": "hWCLXkLzCgBDn",
+    "modality": "Raio-X",
+    "manufacturer": "GE",
+    "model": "MOLLITIA-145",
+    "series_number": "Nvoy-585181",
+    "anvisa_registry": "hwAeHZxllqvOm",
     "id": 1001
   }
 }

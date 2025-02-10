@@ -65,6 +65,12 @@ const ReviewDeleteUnitForm = ({
                 }
                 throw new Error("Um erro inesperado ocorreu.");
             }
+
+            const successMessage = isRejected
+                ? "Requisição rejeitada! O cliente será notificado de sua decisão."
+                : "Unidade removida com sucesso!";
+            toast.success(successMessage);
+            dispatch(closeModal());
         } catch (error) {
             toast.error(
                 error instanceof Error
@@ -72,12 +78,6 @@ const ReviewDeleteUnitForm = ({
                     : "Algo deu errado. Tente novamente mais tarde."
             );
         }
-
-        const successMessage = isRejected
-            ? "Requisição rejeitada! O cliente será notificado de sua decisão."
-            : "Unidade removida com sucesso!";
-        toast.success(successMessage);
-        dispatch(closeModal());
     };
 
     // If the user clicks in go back, it's required to transform the note to undefined

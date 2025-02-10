@@ -20,6 +20,7 @@ import {
 import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { OperationType } from "@/enums";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 
 import { ArrowClockwise } from "@phosphor-icons/react";
 
@@ -31,9 +32,9 @@ import {
     Input,
     ReviewDeleteUnitForm,
 } from "@/components/forms";
+import { ModalDeleteUnit } from "@/components/modals";
 import { Button, Modal, Spinner } from "@/components/common";
 import { ClientDetails, UnitList } from "@/components/client";
-import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 
 function ClientPage() {
     const router = useRouter();
@@ -74,20 +75,6 @@ function ClientPage() {
 
     const handleModalAddUnit = () => {
         dispatch(openModal(Modals.ADD_UNIT));
-    };
-
-    const handleCreateDeleteUnitOperation = async (selectedUnit: UnitDTO) => {
-        try {
-            const response = await createDeleteUnitOperation(selectedUnit.id);
-            if (isResponseError(response)) {
-                return toast.error(response.error.data.message);
-            }
-
-            toast.success("Requisição enviada com sucesso!");
-            dispatch(closeModal());
-        } catch (error) {
-            toast.error("Algo deu errado. Tente novamente mais tarde.");
-        }
     };
 
     const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
@@ -340,38 +327,7 @@ function ClientPage() {
                         </div>
                     )}
 
-                {currentModal === Modals.DELETE_UNIT && selectedUnit && (
-                    <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-                        <Typography element="h2" size="title2" className="mb-6">
-                            Tem certeza que deseja excluir esta unidade?
-                        </Typography>
-
-                        <div className="flex flex-row gap-2">
-                            <Button
-                                onClick={() => {
-                                    dispatch(closeModal());
-                                }}
-                                className="w-full mt-6"
-                                data-testid="btn-cancel-delete-unit"
-                            >
-                                Cancelar
-                            </Button>
-
-                            <Button
-                                variant="danger"
-                                onClick={() =>
-                                    handleCreateDeleteUnitOperation(
-                                        selectedUnit
-                                    )
-                                }
-                                className="w-full mt-6"
-                                data-testid="btn-confirm-delete-unit"
-                            >
-                                Confirmar
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                {currentModal === Modals.DELETE_UNIT && <ModalDeleteUnit />}
 
                 {currentModal === Modals.REVIEW_DELETE_UNIT &&
                     selectedUnitOperation && (
