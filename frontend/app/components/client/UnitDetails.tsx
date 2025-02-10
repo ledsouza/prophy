@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
     UnitDTO,
@@ -17,15 +17,32 @@ import { OperationStatus, OperationType } from "@/enums";
 import { isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
 import { useAppDispatch } from "@/redux/hooks";
-import { Modals, openModal } from "@/redux/features/modalSlice";
+import {
+    Modals,
+    openModal,
+    setUnit,
+    setUnitOperation,
+} from "@/redux/features/modalSlice";
+import { useStaff } from "@/hooks";
 
 type UnitDetailsProps = {
     unit: UnitDTO;
     unitOperation: UnitOperationDTO | undefined;
 };
 
+enum ButtonsState {
+    REVIEWSTAFF,
+    REVIEWNONSTAFF,
+    REJECTED,
+    EDIT,
+}
+
 function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const dispatch = useAppDispatch();
+    const { isStaff } = useStaff();
+    const [buttonsState, setButtonsState] = useState<ButtonsState>(
+        ButtonsState.REVIEWNONSTAFF
+    );
     const [loadingCancel, setLoadingCancel] = useState(false);
 
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
@@ -63,6 +80,10 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     }
 
     function handleEdit() {
+        if (!unitOperation) {
+            return toast.error("Algo deu errado! Tente novamente mais tarde.");
+        }
+        dispatch(setUnitOperation(unitOperation));
         dispatch(openModal(Modals.EDIT_UNIT));
     }
 
@@ -71,8 +92,44 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     }
 
     function handleDelete() {
+        if (!unitOperation) {
+            return toast.error("Algo deu errado! Tente novamente mais tarde.");
+        }
+        dispatch(setUnitOperation(unitOperation));
         dispatch(openModal(Modals.DELETE_UNIT));
     }
+
+    function handleReview() {
+        if (!unitOperation) {
+            return toast.error("Algo deu errado! Tente novamente mais tarde.");
+        }
+        dispatch(setUnitOperation(unitOperation));
+        unitOperation.operation_type === OperationType.EDIT
+            ? dispatch(openModal(Modals.REVIEW_EDIT_UNIT))
+            : dispatch(openModal(Modals.REVIEW_DELETE_UNIT));
+    }
+
+    // Set the buttons that should be rendered
+    useEffect(() => {
+        if (
+            unitOperation?.operation_status === OperationStatus.REVIEW &&
+            !isStaff
+        ) {
+            setButtonsState(ButtonsState.REVIEWNONSTAFF);
+        } else if (
+            unitOperation?.operation_status === OperationStatus.REVIEW &&
+            isStaff
+        ) {
+            setButtonsState(ButtonsState.REVIEWSTAFF);
+        } else if (
+            unitOperation?.operation_status === OperationStatus.REJECTED &&
+            !isStaff
+        ) {
+            setButtonsState(ButtonsState.REJECTED);
+        } else {
+            setButtonsState(ButtonsState.EDIT);
+        }
+    }, [unitOperation, isStaff]);
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
@@ -110,51 +167,67 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                 </Typography>
 
                 <div className="flex flex-col gap-2 w-full mt-2">
-                    {unitOperation &&
-                        unitOperation.operation_status ===
-                            OperationStatus.REVIEW && (
-                            <>
-                                <Typography variant="secondary">
-                                    {unitOperation.operation_type ===
-                                    OperationType.EDIT
-                                        ? "Requisição de alteração em análise"
-                                        : "Requisição de remoção em análise"}
-                                </Typography>
-                                <Button
-                                    variant="danger"
-                                    className="flex-grow"
-                                    onClick={handleCancel}
-                                    disabled={loadingCancel}
-                                    data-testid="btn-cancel-unit-operation"
-                                >
-                                    Cancelar requisição
-                                </Button>
-                            </>
-                        )}
+                    {buttonsState === ButtonsState.REVIEWNONSTAFF && (
+                        <>
+                            <Typography variant="secondary">
+                                {unitOperation?.operation_type ===
+                                OperationType.EDIT
+                                    ? "Requisição de alteração em análise"
+                                    : "Requisição de remoção em análise"}
+                            </Typography>
+                            <Button
+                                variant="danger"
+                                className="flex-grow"
+                                onClick={handleCancel}
+                                disabled={loadingCancel}
+                                data-testid="btn-cancel-unit-operation"
+                            >
+                                Cancelar requisição
+                            </Button>
+                        </>
+                    )}
 
-                    {unitOperation &&
-                        unitOperation.operation_status ===
-                            OperationStatus.REJECTED && (
-                            <>
-                                <Typography variant="danger">
-                                    {unitOperation.operation_type ===
-                                    OperationType.EDIT
-                                        ? "Requisição de alteração rejeitada"
-                                        : "Requisição de remoção rejeitada"}
-                                </Typography>
-                                <Button
-                                    variant="danger"
-                                    className="flex-grow"
-                                    onClick={handleReject}
-                                    data-testid="btn-reject-unit-operation"
-                                >
-                                    Verificar motivo
-                                </Button>
-                            </>
-                        )}
+                    {buttonsState === ButtonsState.REVIEWSTAFF && (
+                        <>
+                            <Typography variant="secondary">
+                                {unitOperation?.operation_type ===
+                                OperationType.EDIT
+                                    ? "Requisição de alteração em análise"
+                                    : "Requisição de remoção em análise"}
+                            </Typography>
+                            <Button
+                                variant="danger"
+                                className="flex-grow"
+                                onClick={handleReview}
+                                disabled={loadingCancel}
+                                data-testid="btn-review-unit-operation"
+                            >
+                                Revisar requisição
+                            </Button>
+                        </>
+                    )}
+
+                    {buttonsState === ButtonsState.REJECTED && (
+                        <>
+                            <Typography variant="danger">
+                                {unitOperation?.operation_type ===
+                                OperationType.EDIT
+                                    ? "Requisição de alteração rejeitada"
+                                    : "Requisição de remoção rejeitada"}
+                            </Typography>
+                            <Button
+                                variant="danger"
+                                className="flex-grow"
+                                onClick={handleReject}
+                                data-testid="btn-reject-unit-operation"
+                            >
+                                Verificar motivo
+                            </Button>
+                        </>
+                    )}
                 </div>
 
-                {!unitOperation && (
+                {buttonsState === ButtonsState.EDIT && (
                     <div className="flex flex-row gap-2 w-full mt-2">
                         <Button
                             variant="secondary"

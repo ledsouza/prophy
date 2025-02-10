@@ -43,9 +43,12 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const { isModalOpen, currentModal, selectedEquipment } = useAppSelector(
-        (state) => state.modal
-    );
+    const {
+        isModalOpen,
+        currentModal,
+        selectedUnitOperation,
+        selectedEquipment,
+    } = useAppSelector((state) => state.modal);
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
     const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<
@@ -255,6 +258,23 @@ function UnitPage() {
                     {currentModal === Modals.EDIT_UNIT && (
                         <EditUnitForm unit={selectedUnit} />
                     )}
+
+                    {currentModal === Modals.REVIEW_EDIT_UNIT &&
+                        selectedUnit && (
+                            <div className="flex flex-row">
+                                <EditUnitForm
+                                    title="Alterações requisitadas"
+                                    reviewMode
+                                    unit={selectedUnitOperation as UnitDTO}
+                                />
+
+                                <EditUnitForm
+                                    title="Informações atuais"
+                                    disabled
+                                    unit={selectedUnit}
+                                />
+                            </div>
+                        )}
 
                     {currentModal === Modals.DELETE_UNIT && <ModalDeleteUnit />}
 
