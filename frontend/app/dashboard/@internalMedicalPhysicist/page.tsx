@@ -18,7 +18,7 @@ import {
 } from "@/redux/features/unitApiSlice";
 
 import { useClientDataLoading } from "@/hooks/use-client-data-loading";
-import { OperationStatus, OperationType } from "@/enums";
+import { OperationType } from "@/enums";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 import { ArrowClockwise } from "@phosphor-icons/react";
@@ -265,8 +265,7 @@ function ClientPage() {
                 onClose={() => dispatch(closeModal())}
                 className={
                     currentModal === Modals.REVIEW_CLIENT ||
-                    currentModal === Modals.REVIEW_EDIT_UNIT ||
-                    currentModal === Modals.REVIEW_DELETE_UNIT
+                    currentModal === Modals.REVIEW_EDIT_UNIT
                         ? "max-w-6xl mx-6"
                         : "max-w-lg"
                 }

@@ -1,13 +1,12 @@
 import { OperationStatus, OperationType } from "@/enums";
+
 import { EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
 import { UnitOperationDTO } from "@/redux/features/unitApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+
+import { PencilLine, Trash } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
-import { PencilLine, Trash } from "@phosphor-icons/react";
-import { useNeedReview } from "@/hooks";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { Modals, openModal } from "@/redux/features/modalSlice";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 type CardButtonsProps = {
     operation: UnitOperationDTO | EquipmentOperationDTO | undefined;

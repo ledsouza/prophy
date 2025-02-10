@@ -10,7 +10,6 @@ import {
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
@@ -24,7 +23,7 @@ import {
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
 import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
-import { useNeedReview, useStaff } from "@/hooks";
+import { useStaff } from "@/hooks";
 import { useAppDispatch } from "@/redux/hooks";
 import { Modals, openModal } from "@/redux/features/modalSlice";
 
