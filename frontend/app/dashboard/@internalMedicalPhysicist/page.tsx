@@ -55,7 +55,6 @@ function ClientPage() {
     const { data: unitsOperations, isLoading: isLoadingUnitsOperations } =
         useListAllUnitsOperationsQuery();
 
-    const [createDeleteUnitOperation] = useCreateDeleteUnitOperationMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
     const [selectedClientInOperation, setSelectedClientInOperation] =

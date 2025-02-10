@@ -183,7 +183,10 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 url: `equipments/operations/${equipmentId}`,
                 method: "DELETE",
             }),
-            invalidatesTags: [{ type: "EquipmentOperation", id: "LIST" }],
+            invalidatesTags: [
+                { type: "EquipmentOperation", id: "LIST" },
+                { type: "Equipment", id: "LIST" },
+            ],
         }),
     }),
 });

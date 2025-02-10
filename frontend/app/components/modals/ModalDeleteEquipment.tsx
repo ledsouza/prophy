@@ -3,23 +3,23 @@ import { toast } from "react-toastify";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
 import { isErrorWithMessages } from "@/redux/services/helpers";
-import { useDeleteUnitOperationMutation } from "@/redux/features/unitApiSlice";
 
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
+import { useDeleteEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
 
-const ModalDeleteUnit = () => {
+const ModalDeleteEquipment = () => {
     const dispatch = useAppDispatch();
-    const { selectedUnit } = useAppSelector((state) => state.modal);
+    const { selectedEquipment } = useAppSelector((state) => state.modal);
 
-    const [deleteUnitOperation] = useDeleteUnitOperationMutation();
+    const [deleteEquipment] = useDeleteEquipmentOperationMutation();
 
-    async function handleDeleteUnit() {
-        if (!selectedUnit?.id) {
-            return toast.error("Unidade não encontrada");
+    async function handleDeleteEquipment() {
+        if (!selectedEquipment?.id) {
+            return toast.error("Equipamento não encontrado.");
         }
         try {
-            const response = await deleteUnitOperation(selectedUnit.id);
+            const response = await deleteEquipment(selectedEquipment.id);
             if (response.error) {
                 if (isErrorWithMessages(response.error)) {
                     throw new Error(response.error.data.messages[0]);
@@ -27,7 +27,7 @@ const ModalDeleteUnit = () => {
                 throw new Error("Um erro inesperado ocorreu.");
             }
 
-            toast.success("Unidade deletada com sucesso!");
+            toast.success("Equipamento deletado com sucesso!");
             dispatch(closeModal());
         } catch (error) {
             toast.error(
@@ -41,7 +41,7 @@ const ModalDeleteUnit = () => {
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Typography element="h2" size="title2" className="mb-6">
-                Tem certeza que deseja excluir esta unidade?
+                Tem certeza que deseja excluir este equipamento?
             </Typography>
 
             <div className="flex flex-row gap-2">
@@ -57,7 +57,7 @@ const ModalDeleteUnit = () => {
 
                 <Button
                     variant="danger"
-                    onClick={handleDeleteUnit}
+                    onClick={handleDeleteEquipment}
                     className="w-full mt-6"
                     data-testid="btn-confirm-delete-unit"
                 >
@@ -68,4 +68,4 @@ const ModalDeleteUnit = () => {
     );
 };
 
-export default ModalDeleteUnit;
+export default ModalDeleteEquipment;
