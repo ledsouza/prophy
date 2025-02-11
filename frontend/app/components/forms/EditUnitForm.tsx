@@ -90,7 +90,7 @@ const EditUnitForm = ({
     }
 
     const onSubmit: SubmitHandler<EditUnitFields> = async (data) => {
-        if (isDataUnchanged(data, unit)) {
+        if (!reviewMode && isDataUnchanged(data, unit)) {
             toast.warning("Nenhuma alteração foi detectada nos dados.");
             return;
         }

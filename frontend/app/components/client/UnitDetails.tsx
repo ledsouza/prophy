@@ -81,6 +81,9 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
 
     function handleEdit() {
         if (!unitOperation) {
+            console.log(
+                "Couldn't run handEdit in UnitDetail because unitOperation is undefined"
+            );
             return toast.error("Algo deu errado! Tente novamente mais tarde.");
         }
         dispatch(setUnitOperation(unitOperation));
@@ -196,7 +199,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                                     : "Requisição de remoção em análise"}
                             </Typography>
                             <Button
-                                variant="danger"
+                                variant="primary"
                                 className="flex-grow"
                                 onClick={handleReview}
                                 disabled={loadingCancel}

@@ -27,6 +27,7 @@ import {
     EditUnitForm,
     AddEquipmentForm,
     EditEquipmentForm,
+    ReviewDeleteUnitForm,
 } from "@/components/forms";
 import {
     UnitDetails,
@@ -250,7 +251,8 @@ function UnitPage() {
                     isOpen={isModalOpen}
                     onClose={() => dispatch(closeModal())}
                     className={
-                        currentModal === Modals.EQUIPMENT_DETAILS
+                        currentModal === Modals.EQUIPMENT_DETAILS ||
+                        currentModal === Modals.REVIEW_EDIT_UNIT
                             ? "max-w-6xl mx-6"
                             : "max-w-lg"
                     }
@@ -277,6 +279,14 @@ function UnitPage() {
                         )}
 
                     {currentModal === Modals.DELETE_UNIT && <ModalDeleteUnit />}
+
+                    {currentModal === Modals.REVIEW_DELETE_UNIT &&
+                        selectedUnitOperation && (
+                            <ReviewDeleteUnitForm
+                                title="O cliente deseja remover esta unidade. Você concorda?"
+                                unitOperationID={selectedUnitOperation.id}
+                            />
+                        )}
 
                     {currentModal === Modals.ADD_EQUIPMENT && (
                         <AddEquipmentForm unitId={unitId} />
