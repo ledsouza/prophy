@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from django.core.files import File
 from django.conf import settings
 
-from clients_management.models import Client, Unit, Proposal
+from clients_management.models import Client, Unit, Modality, Accessory, Proposal
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 from users.models import UserAccount
 
@@ -36,7 +36,16 @@ APPROVED_PROPOSAL_CNPJ = "26661570000116"
 
 REGISTERED_CNPJ = "78187773000116"
 
-EQUIPMENT_PHOTO_PATH = BASE_DIR / "static" / "petct.jpg"
+MODALITIES = ["Raio X Convencional", "Raio X Móvel", "Litotripsia"
+              "Angiógrafo", "Arco C", "Telecomandada"
+              "Mamografia", "Tomografia Computadorizada",
+              "PET/CT", "SPECT/CT", "Raio X Extraoral"
+              "Raio X Panorâmico", "Tomografia Cone Beam",
+              "Raio X Intraoral", "Ultrassom", "Ressonância Magnética",
+              "PET/RM", "Densitometria Óssea"]
+
+EQUIPMENT_PHOTO_PATH = BASE_DIR / "static" / "mamografia.jpg"
+EQUIPMENT_LABEL_PHOTO_PATH = BASE_DIR / "static" / "serial-number.jpg"
 
 FIXTURE_PATH = os.path.join(
     project_root, 'frontend', 'cypress', 'fixtures')
@@ -53,6 +62,24 @@ def fake_cnpj():
 
 def fake_cpf():
     return fake.cpf().replace(".", "").replace("-", "")
+
+
+def get_accessory_type(modality: str) -> Modality.AccessoryType:
+    if (
+        modality == "Raio X Convencional" or
+        modality == "Raio X Móvel" or
+        modality == "Mamografia" or
+        modality == "Raio X Intraoral"
+    ):
+        return Modality.AccessoryType.DETECTOR
+    if (
+        modality == "Ressonância Magnética" or
+        modality == "PET/RM"
+    ):
+        return Modality.AccessoryType.COIL
+    if modality == "Ultrassom":
+        return Modality.AccessoryType.TRANSDUCER
+    return Modality.AccessoryType.NONE
 
 
 def create_fixture_path(output_name: str) -> str:
@@ -80,7 +107,9 @@ class Command(BaseCommand):
         users = self.populate_users()
         default_clients = self.populate_clients()
         default_units = self.populate_units()
-        default_equipments = self.populate_equipaments()
+        self.populate_modalities()
+        default_equipments = self.populate_equipments()
+        self.populate_accessories()
         approved_cnpjs = self.populate_proposals()
         self.create_json_fixture(
             approved_cnpjs, users, default_clients, default_units, default_equipments)
@@ -521,83 +550,123 @@ class Command(BaseCommand):
 
         return default_units
 
-    def populate_equipaments(self, num_equipments_per_units=3):
+    def populate_modalities(self):
+        for modality in MODALITIES:
+            accessory_type = get_accessory_type(modality)
+            Modality.objects.create(
+                name=modality,
+                accessory_type=accessory_type
+            )
+
+    def populate_equipments(self, num_equipments_per_units=3):
         """Populates the Equipment model with example data."""
-        modalities = ['Tomógrafo', 'Raio-X',
-                      'Ultrassom', 'Ressonância Magnética']
+
         manufactures = ['GE', 'Philips', 'Siemens', 'Toshiba']
 
         user_client = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
+        modalities = Modality.objects.all()
 
         with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
-            photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
+            with EQUIPMENT_LABEL_PHOTO_PATH.open(mode="rb") as f_label:
+                photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
+                label_file = File(
+                    f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
 
-            # Default equipments for automated testing
-            equipment1 = EquipmentOperation.objects.create(
-                operation_type="C",
-                operation_status="A",
-                created_by=user_client,
-                unit=Unit.objects.filter(client__users=user_client)[0],
-                modality=choice(modalities),
-                manufacturer=choice(manufactures),
-                model=fake.word().upper() + "-" + str(randint(100, 999)),
-                series_number=fake.bothify(text='????-######'),
-                anvisa_registry=fake.bothify(text='?????????????'),
-                equipment_photo=photo_file,
-                id=1000
-            )
-            equipment2 = EquipmentOperation.objects.create(
-                operation_type="C",
-                operation_status="A",
-                created_by=user_client,
-                unit=Unit.objects.filter(client__users=user_client)[0],
-                modality=choice(modalities),
-                manufacturer=choice(manufactures),
-                model=fake.word().upper() + "-" + str(randint(100, 999)),
-                series_number=fake.bothify(text='????-######'),
-                anvisa_registry=fake.bothify(text='?????????????'),
-                equipment_photo=photo_file,
-                id=1001
-            )
+                # Default equipments for automated testing
+                equipment1 = EquipmentOperation.objects.create(
+                    operation_type="C",
+                    operation_status="A",
+                    created_by=user_client,
+                    unit=Unit.objects.filter(client__users=user_client)[0],
+                    modality=modalities.get(name="Mamografia"),
+                    manufacturer=choice(manufactures),
+                    model=fake.word().upper() + "-" + str(randint(100, 999)),
+                    series_number=fake.bothify(text='????-######'),
+                    anvisa_registry=fake.bothify(text='?????????????'),
+                    equipment_photo=photo_file,
+                    label_photo=label_file,
+                    id=1000
+                )
+                equipment2 = EquipmentOperation.objects.create(
+                    operation_type="C",
+                    operation_status="A",
+                    created_by=user_client,
+                    unit=Unit.objects.filter(client__users=user_client)[0],
+                    modality=modalities.get(name="Mamografia"),
+                    manufacturer=choice(manufactures),
+                    model=fake.word().upper() + "-" + str(randint(100, 999)),
+                    series_number=fake.bothify(text='????-######'),
+                    anvisa_registry=fake.bothify(text='?????????????'),
+                    equipment_photo=photo_file,
+                    label_photo=label_file,
+                    id=1001
+                )
 
-            equipments = {
-                "equipment1": {
-                    "unit": equipment1.unit.id,
-                    "modality": equipment1.modality,
-                    "manufacturer": equipment1.manufacturer,
-                    "model": equipment1.model,
-                    "series_number": equipment1.series_number,
-                    "anvisa_registry": equipment1.anvisa_registry,
-                    "id": equipment1.id
-                },
-                "equipment2": {
-                    "unit": equipment2.unit.id,
-                    "modality": equipment2.modality,
-                    "manufacturer": equipment2.manufacturer,
-                    "model": equipment2.model,
-                    "series_number": equipment2.series_number,
-                    "anvisa_registry": equipment2.anvisa_registry,
-                    "id": equipment2.id
+                equipments = {
+                    "equipment1": {
+                        "unit": equipment1.unit.id,
+                        "modality": equipment1.modality,
+                        "manufacturer": equipment1.manufacturer,
+                        "model": equipment1.model,
+                        "series_number": equipment1.series_number,
+                        "anvisa_registry": equipment1.anvisa_registry,
+                        "equipment_photo": equipment1.equipment_photo.url,
+                        "label_photo": equipment1.label_photo.url,
+                        "id": equipment1.id
+                    },
+                    "equipment2": {
+                        "unit": equipment2.unit.id,
+                        "modality": equipment2.modality,
+                        "manufacturer": equipment2.manufacturer,
+                        "model": equipment2.model,
+                        "series_number": equipment2.series_number,
+                        "anvisa_registry": equipment2.anvisa_registry,
+                        "equipment_photo": equipment2.equipment_photo.url,
+                        "label_photo": equipment2.label_photo.url,
+                        "id": equipment2.id
+                    }
                 }
-            }
 
-            # Random equipments for automated testing
-            for units in Unit.objects.all().exclude(client__users=user_client):
-                for _ in range(num_equipments_per_units + randint(0, 4)):
-                    EquipmentOperation.objects.create(
-                        operation_type="C",
-                        operation_status="A",
-                        created_by=user_client,
-                        unit=units,
-                        modality=choice(modalities),
-                        manufacturer=choice(manufactures),
-                        model=fake.word().upper() + "-" + str(randint(100, 999)),
-                        series_number=fake.bothify(text='????-######'),
-                        anvisa_registry=fake.bothify(text='?????????????'),
-                        equipment_photo=photo_file
-                    )
+                # Random equipments for automated testing
+                for units in Unit.objects.all().exclude(client__users=user_client):
+                    for _ in range(num_equipments_per_units + randint(0, 4)):
+                        EquipmentOperation.objects.create(
+                            operation_type="C",
+                            operation_status="A",
+                            created_by=user_client,
+                            unit=units,
+                            modality=choice(modalities),
+                            manufacturer=choice(manufactures),
+                            model=fake.word().upper() + "-" + str(randint(100, 999)),
+                            series_number=fake.bothify(text='????-######'),
+                            anvisa_registry=fake.bothify(text='?????????????'),
+                            equipment_photo=photo_file,
+                            label_photo=label_file,
+                        )
 
         return equipments
+
+    def populate_accessories(self):
+        with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
+            with EQUIPMENT_LABEL_PHOTO_PATH.open(mode="rb") as f_label:
+                photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
+                label_file = File(
+                    f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
+
+                equipments = EquipmentOperation.objects.all()
+                for equipment in equipments:
+                    modality = equipment.modality
+                    if modality.accessory_type != Modality.AccessoryType.NONE:
+                        continue
+                    Accessory.objects.create(
+                        equipment=equipment,
+                        category=get_accessory_type(modality),
+                        manufacturer=equipment.manufacturer,
+                        model=fake.word().upper() + "-" + str(randint(100, 999)),
+                        series_number=fake.bothify(text='????-######'),
+                        equipment_photo=photo_file,
+                        label_photo=label_file,
+                    )
 
     def populate_proposals(self, num_proposals=150):
         """Populates the Proposal model with example data."""

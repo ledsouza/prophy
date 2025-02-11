@@ -1,6 +1,7 @@
 from datetime import date
 from django.db import models
 from django.contrib import admin
+from django.db.models import TextChoices
 from django.utils.translation import gettext as _
 from django.utils.html import format_html
 
@@ -20,6 +21,20 @@ def get_status(operation):
         return format_html(f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para editar</div>")
     if operation.operation_type == "D":
         return format_html(f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para deletar</div>")
+
+
+class BaseEquipment(models.Model):
+    manufacturer = models.CharField("Fabricante", max_length=30)
+    model = models.CharField("Modelo", max_length=30)
+    series_number = models.CharField(
+        "Número de Série", max_length=30, blank=True, null=True)
+    equipment_photo = models.ImageField(
+        "Foto do equipamento", upload_to="equipments/photos")
+    label_photo = models.ImageField(
+        "Foto da etiqueta", upload_to="equipments/labels")
+
+    class Meta:
+        abstract = True
 
 
 class Client(models.Model):
@@ -94,23 +109,83 @@ class Unit(models.Model):
         verbose_name_plural = "Unidades"
 
 
-class Equipment(models.Model):
+class Modality(models.Model):
     """
-    Model representing equipment of a unit.
+    A Django model representing different imaging modalities in medical equipment.
+
+    This class defines various imaging modalities and their associated accessories
+    commonly used in medical diagnostics and treatments.
+
+    Attributes:
+        name (CharField): The name of the modality, limited to 50 characters.
+        accessory (CharField): The type of accessory used with the modality.
+            Can be one of the following:
+            - D: Detector
+            - C: Coil (Bobina)
+            - T: Transducer (Transdutor)
+            - N: Not applicable (Não se aplica)
+
+        Accessory (TextChoices): An inner class defining the available accessory types
+            as choices for the accessory field.
     """
+    class AccessoryType(TextChoices):
+        DETECTOR = "D", "Detector",
+        COIL = "C", "Bobina",
+        TRANSDUCER = "T", "Transdutor"
+        NONE = "N", "Não se aplica"
+
+    name = models.CharField("Nome", max_length=50)
+    accessory_type = models.CharField(
+        "Tipo de acessório", max_length=1, choices=AccessoryType.choices, default=AccessoryType.NONE)
+
+    class Meta:
+        verbose_name = "Modalidade"
+        verbose_name_plural = "Modalidades"
+
+
+class Equipment(BaseEquipment, models.Model):
+    """
+    A Django model representing medical equipment.
+    This class models medical equipment with various attributes including manufacturer details,
+    technical specifications, installation information, and maintenance contact details.
+    Attributes:
+        unit (ForeignKey): Reference to the Unit where the equipment is located
+        manufacturer (str): Equipment manufacturer name
+        model (str): Equipment model name
+        series_number (str): Equipment serial number
+        anvisa_registry (str): ANVISA (Brazilian Health Regulatory Agency) registration number
+        modality (str): Equipment modality/type
+        channels (str): Number of channels
+        official_max_load (int): Official maximum load capacity
+        usual_max_load (int): Usual maximum load capacity
+        purchase_installation_date (Date): Date when equipment was purchased/installed
+        equipment_photo (ImageField): Photo of the equipment
+        label_photo (ImageField): Photo of the equipment label
+        maintenance_responsable (str): Name of maintenance responsible person
+        email_maintenance_responsable (EmailField): Email of maintenance contact
+        phone_maintenance_responsable (str): Phone number of maintenance contact
+    Methods:
+        client(): Returns the client associated with the equipment's unit
+        __str__(): Returns string representation of equipment (manufacturer - model)
+    Meta:
+        verbose_name (str): Human-readable singular name for the model
+        verbose_name_plural (str): Human-readable plural name for the model
+    """
+
     unit = models.ForeignKey(
-        Unit, on_delete=models.SET_NULL, related_name="equipments", blank=True, null=True)
-    modality = models.CharField("Modalidade", max_length=50)
-    manufacturer = models.CharField("Fabricante", max_length=30)
-    model = models.CharField("Modelo", max_length=30)
-    series_number = models.CharField(
-        "Número de Série", max_length=30, blank=True, null=True)
+        Unit, on_delete=models.CASCADE, related_name="equipments")
+    modality = models.ForeignKey(
+        Modality, on_delete=models.CASCADE, related_name="equipments")
     anvisa_registry = models.CharField(
-        "Registro na ANVISA", max_length=15, blank=True, null=True)
-    equipment_photo = models.ImageField(
-        "Foto do equipamento", upload_to="equipments/photos", blank=True, null=True)
-    label_photo = models.ImageField(
-        "Foto da etiqueta", upload_to="equipments/labels", blank=True, null=True)
+        "Registro na ANVISA", max_length=30, blank=True, null=True)
+    modality = models.CharField("Modalidade", max_length=50)
+    channels = models.CharField("Canais", max_length=10, blank=True, null=True)
+    official_max_load = models.IntegerField(
+        "Carga máxima oficial", blank=True, null=True)
+    usual_max_load = models.IntegerField(
+        "Carga máxima usual", blank=True, null=True)
+    purchase_installation_date = models.DateField(
+        "Data de instalação da compra", blank=True, null=True)
     maintenance_responsable = models.CharField(
         "Responsável pela manutenção", max_length=50, blank=True, null=True)
     email_maintenance_responsable = models.EmailField(
@@ -134,9 +209,42 @@ class Equipment(models.Model):
         verbose_name_plural = "Equipamentos"
 
 
+class Accessory(BaseEquipment, models.Model):
+    equipment = models.ForeignKey(
+        Equipment, on_delete=models.CASCADE, related_name="accessories")
+    category = models.CharField(
+        "Categoria", max_length=1, choices=Modality.AccessoryType.choices)
+
+    class Meta:
+        verbose_name = "Acessório"
+        verbose_name_plural = "Acessórios"
+
+
 class Proposal(models.Model):
     """
-    Model representing a contract proposal with a potential client.
+    This class manages proposals for contracts, tracking client information, contact details,
+    and proposal status through its lifecycle.
+
+    Attributes:
+        cnpj (str): Brazilian company registration number (14 digits)
+        state (str): State where the institution is located (2-letter code)
+        city (str): City where the institution is located
+        contact_name (str): Name of the primary contact person
+        contact_phone (str): Contact person's phone number
+        email (str): Contact person's email address
+        date (date): Date when the proposal was created (defaults to current date)
+        value (decimal): Proposed contract value with 2 decimal places
+        contract_type (str): Type of contract ('A' for Annual, 'M' for Monthly)
+        status (str): Current status of the proposal ('A' for Accepted, 'R' for Rejected, 'P' for Pending)
+
+    Methods:
+        approved_client(): Returns True if the proposal status is 'Accepted', False otherwise
+        proposal_month(): Returns the month name of the proposal date in the current locale
+
+    Meta:
+        ordering: Ordered by date in descending order
+        verbose_name: "Proposta"
+        verbose_name_plural: "Propostas"
     """
     STATUS = (
         ("A", "Aceito"),
