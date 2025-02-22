@@ -44,7 +44,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                     <br />
                     <b>Fabricante:</b> {equipment.manufacturer}
                     <br />
-                    <b>Modalidade:</b> {equipment.modality}
+                    <b>Modalidade:</b> {equipment.modality.name}
                 </Typography>
 
                 <Typography size="md">

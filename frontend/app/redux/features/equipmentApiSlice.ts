@@ -1,4 +1,5 @@
 import { OperationType } from "@/enums";
+import { ModalityDTO } from "./modalityApiSlice";
 import {
     apiSlice,
     ListQueryParams,
@@ -9,7 +10,7 @@ import { forEach } from "lodash";
 
 export type EquipmentDTO = {
     id: number;
-    modality: string;
+    modality: ModalityDTO;
     manufacturer: string;
     model: string;
     series_number?: string;

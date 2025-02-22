@@ -124,7 +124,7 @@ function EquipmentCard({
                         {equipment.manufacturer}
                     </Typography>
                     <Typography dataTestId="equipments-counts">
-                        {equipment.modality}
+                        {equipment.modality.name}
                     </Typography>
                 </div>
                 <div className="flex flex-col gap-2">

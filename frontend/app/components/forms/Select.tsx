@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import cn from "classnames";
 
 import {
+    Field,
     Label,
     Listbox,
     ListboxButton,
@@ -14,6 +15,7 @@ import {
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 import { Typography } from "@/components/foundation";
+import { Spinner } from "../common";
 
 export type SelectData = {
     id: number;
@@ -28,11 +30,44 @@ type SelectProps = {
     operationsIDs?: Set<number>;
     rejectedOperationIDs?: Set<number>;
     listBoxStyles?: string;
+    listBoxButtonSize?: "sm" | "md" | "lg";
     listOptionStyles?: string;
+    listOptionSize?: "sm" | "md" | "lg";
+    labelStyles?: string;
+    labelSize?: "sm" | "md" | "lg";
+    disabled?: boolean;
     dataTestId?: string | undefined;
 } & ListboxProps;
 
-function Select({
+/**
+ * A customizable select component built with Headless UI's Listbox.
+ *
+ * @component
+ * @param {Object} props - The component props
+ * @param {SelectData[]} props.options - Array of options to display in the select dropdown
+ * @param {SelectData} props.selectedData - Currently selected option
+ * @param {(value: SelectData) => void} props.setSelect - Callback function to handle selection changes
+ * @param {string} [props.label] - Optional label text for the select input
+ * @param {Set<number>} [props.operationsIDs] - Set of option IDs that should show a warning state
+ * @param {Set<number>} [props.rejectedOperationIDs] - Set of option IDs that should show an error state
+ * @param {string} [props.listBoxStyles] - Additional CSS classes for the listbox container
+ * @param {string} [props.listOptionStyles] - Additional CSS classes for the list options
+ * @param {string} [props.dataTestId] - Test ID for testing purposes
+ *
+ * @example
+ * ```tsx
+ * <Select
+ *   options={[{ id: 1, value: 'Option 1' }, { id: 2, value: 'Option 2' }]}
+ *   selectedData={{ id: 1, value: 'Option 1' }}
+ *   setSelect={(value) => handleSelect(value)}
+ *   label="Select an option"
+ * />
+ * ```
+ *
+ * @returns A select component with customizable styling, warning and error states,
+ * and keyboard navigation support.
+ */
+const Select = ({
     options,
     selectedData,
     setSelect,
@@ -40,9 +75,14 @@ function Select({
     operationsIDs,
     rejectedOperationIDs,
     listBoxStyles = "",
+    listBoxButtonSize = "md",
     listOptionStyles = "",
+    listOptionSize = "md",
+    labelStyles = "",
+    labelSize = "md",
+    disabled = false,
     dataTestId,
-}: SelectProps) {
+}: SelectProps) => {
     const [hasOperation, setHasOperation] = useState(false);
     const [isRejected, setIsRejected] = useState(false);
 
@@ -64,11 +104,10 @@ function Select({
 
     const listBoxButtonStyle = cn(
         "relative",
-        "w-full rounded-md py-1.5 pl-3 pr-10 mb-2 sm:leading-6",
-        "bg-white shadow-sm ring-1 ring-inset",
+        "w-full rounded-md py-1.5 pr-10 mb-2 sm:leading-6",
+        "bg-white shadow-md ring-1 ring-inset ring-primary",
         "text-left sm:text-sm",
-        "cursor-default",
-        "focus:outline-none focus:ring-2 focus:primary",
+        "focus:ring-2 focus:ring-inset focus:ring-primary",
         {
             "animate-warning": hasOperation,
             "animate-danger": isRejected,
@@ -77,73 +116,82 @@ function Select({
 
     return (
         <div data-testid={dataTestId}>
-            <Listbox value={selectedData} onChange={setSelect}>
-                <Label>{label}</Label>
-                <div className={`relative mt-2 ${listBoxStyles}`}>
-                    <ListboxButton className={listBoxButtonStyle}>
-                        <Typography
-                            element="span"
-                            size="lg"
-                            className="ml-3 block truncate text-primary font-semibold"
+            <Field disabled={disabled}>
+                <Listbox value={selectedData} onChange={setSelect}>
+                    <Typography element="p" size={labelSize}>
+                        <Label className={labelStyles}>{label}</Label>
+                    </Typography>
+                    <div className={`relative mt-2 ${listBoxStyles}`}>
+                        <ListboxButton className={listBoxButtonStyle}>
+                            <Typography
+                                element="span"
+                                size={listBoxButtonSize}
+                                className="ml-3 block truncate text-primary font-semibold"
+                            >
+                                {selectedData.value}
+                            </Typography>
+                            <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                <ChevronUpDownIcon
+                                    aria-hidden="true"
+                                    className="h-5 w-5 text-gray-400"
+                                />
+                            </span>
+                        </ListboxButton>
+
+                        <ListboxOptions
+                            transition
+                            className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
                         >
-                            {selectedData.value}
-                        </Typography>
-                        <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                            <ChevronUpDownIcon
-                                aria-hidden="true"
-                                className="h-5 w-5 text-gray-400"
-                            />
-                        </span>
-                    </ListboxButton>
+                            {options.map((option) => {
+                                const listBoxOptionStyle = cn(
+                                    "group relative",
+                                    "cursor-default select-none",
+                                    "py-2 pl-3 pr-9",
+                                    "text-primary",
+                                    "data-[focus]:bg-primary data-[focus]:text-white",
+                                    {
+                                        "animate-warning": operationsIDs?.has(
+                                            option.id
+                                        ),
+                                        "animate-danger":
+                                            rejectedOperationIDs?.has(
+                                                option.id
+                                            ),
+                                    },
+                                    listOptionStyles
+                                );
 
-                    <ListboxOptions
-                        transition
-                        className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
-                    >
-                        {options.map((option) => {
-                            const listBoxOptionStyle = cn(
-                                "group relative",
-                                "cursor-default select-none",
-                                "py-2 pl-3 pr-9",
-                                "text-primary",
-                                "data-[focus]:bg-primary data-[focus]:text-white",
-                                {
-                                    "animate-warning": operationsIDs?.has(
-                                        option.id
-                                    ),
-                                    "animate-danger": rejectedOperationIDs?.has(
-                                        option.id
-                                    ),
-                                },
-                                listOptionStyles
-                            );
+                                return (
+                                    <ListboxOption
+                                        key={option.id}
+                                        value={option}
+                                        className={listBoxOptionStyle}
+                                    >
+                                        <div className="flex items-center">
+                                            <Typography
+                                                element="span"
+                                                size={listOptionSize}
+                                                className="ml-3 block truncate font-normal group-data-[selected]:font-semibold"
+                                            >
+                                                {option.value}
+                                            </Typography>
+                                        </div>
 
-                            return (
-                                <ListboxOption
-                                    key={option.id}
-                                    value={option}
-                                    className={listBoxOptionStyle}
-                                >
-                                    <div className="flex items-center">
-                                        <span className="ml-3 block truncate font-normal group-data-[selected]:font-semibold">
-                                            {option.value}
+                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-primary group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
+                                            <CheckIcon
+                                                aria-hidden="true"
+                                                className="h-5 w-5"
+                                            />
                                         </span>
-                                    </div>
-
-                                    <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-primary group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
-                                        <CheckIcon
-                                            aria-hidden="true"
-                                            className="h-5 w-5"
-                                        />
-                                    </span>
-                                </ListboxOption>
-                            );
-                        })}
-                    </ListboxOptions>
-                </div>
-            </Listbox>
+                                    </ListboxOption>
+                                );
+                            })}
+                        </ListboxOptions>
+                    </div>
+                </Listbox>
+            </Field>
         </div>
     );
-}
+};
 
 export default Select;

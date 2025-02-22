@@ -509,7 +509,7 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
             try:
                 serializer.save()
             except ValidationError as error:
-                return Response({"message": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

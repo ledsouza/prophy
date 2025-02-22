@@ -265,6 +265,7 @@ function ClientDetails({
                     operationsIDs={reviewOperationsIDs}
                     rejectedOperationIDs={rejectedOperationsIDs}
                     listBoxStyles="mb-4"
+                    listBoxButtonSize="lg"
                     dataTestId="client-options"
                 />
                 <Typography element="p" size="md" dataTestId="client-details">

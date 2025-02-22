@@ -71,7 +71,8 @@ class EquipmentOperationDeleteSerializer(serializers.ModelSerializer):
             model=equipment.model,
             series_number=equipment.series_number,
             anvisa_registry=equipment.anvisa_registry,
-            equipment_photo=equipment.equipment_photo
+            equipment_photo=equipment.equipment_photo,
+            label_photo=equipment.label_photo,
         )
 
         return equipment_operation
