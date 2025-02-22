@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from clients_management.models import Client, Unit, Equipment
+from clients_management.models import Client, Unit, Equipment, Modality
 from users.models import UserAccount
 
 
@@ -20,7 +20,7 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = "__all__"
 
-    def to_representation(self, instance):
+    def to_representation(self, instance: Client):
         representation = super().to_representation(instance)
         representation["users"] = [
             {"name": user["name"], "role": user["role"],
@@ -42,3 +42,17 @@ class EquipmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Equipment
         fields = "__all__"
+
+    def to_representation(self, instance: Equipment):
+        representation = super().to_representation(instance)
+        representation["modality"] = {
+            "name": instance.modality.name,
+            "accessory_type": instance.modality.accessory_type
+        }
+        return representation
+
+
+class ModalitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Modality
+        fields = '__all__'

@@ -3,22 +3,22 @@
     "unit": 1000,
     "modality": "Mamografia",
     "manufacturer": "Philips",
-    "model": "VOLUPTATES-869",
-    "series_number": "tgEz-226205",
-    "anvisa_registry": "BgHFtJgkdQaPy",
+    "model": "CONSEQUATUR-214",
+    "series_number": "Emwr-233782",
+    "anvisa_registry": "RCVvyDkWIwkoB",
     "equipment_photo": "/media/equipments/photos/mamografia.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_YftmE6l.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_mjfSiws.jpg",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Mamografia",
     "manufacturer": "Philips",
-    "model": "NISI-266",
-    "series_number": "nbqB-498023",
-    "anvisa_registry": "kQMKaNAqAPJAd",
-    "equipment_photo": "/media/equipments/photos/mamografia_XleRisl.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_X1TxW8J.jpg",
+    "model": "QUAE-191",
+    "series_number": "gRqK-387314",
+    "anvisa_registry": "LzOAZWlKzqLbl",
+    "equipment_photo": "/media/equipments/photos/mamografia_qvf0BBw.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_tuxqro4.jpg",
     "id": 1001
   }
 }

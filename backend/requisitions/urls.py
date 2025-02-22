@@ -11,5 +11,5 @@ router.register("equipments/operations", EquipmentOperationViewSet,
                 basename="equipments-operations")
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]

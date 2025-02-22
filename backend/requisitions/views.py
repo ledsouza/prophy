@@ -345,12 +345,17 @@ class UnitOperationViewSet(viewsets.ViewSet):
         }
     )
     def update(self, request, pk=None):
-        instance = UnitOperation.objects.get(pk=pk)
+        try:
+            operation = UnitOperation.objects.get(pk=pk)
+        except UnitOperation.DoesNotExist:
+            return Response({"detail": "Operação não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = UnitOperationSerializer(
-            instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            operation, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="Delete unit operation",

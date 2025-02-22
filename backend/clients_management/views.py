@@ -10,8 +10,9 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.models import UserAccount
-from clients_management.models import Proposal, Client
-from clients_management.serializers import CNPJSerializer, ClientSerializer, UnitSerializer, EquipmentSerializer
+from clients_management.models import Proposal, Client, Modality
+from clients_management.serializers import (CNPJSerializer, ClientSerializer, UnitSerializer,
+                                            EquipmentSerializer, ModalitySerializer)
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 from requisitions.serializers import EquipmentOperation
 
@@ -314,3 +315,153 @@ class EquipmentViewSet(viewsets.ViewSet):
         else:
             serializer = EquipmentSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ModalityViewSet(viewsets.ViewSet):
+    """
+    A viewset for listing, creating, and destroying Modality instances.
+    The list action does not use pagination as there are only a few records.
+    """
+
+    @swagger_auto_schema(
+        operation_summary="List all modalities",
+        operation_description="Retrieve a list of all modalities.",
+        responses={
+            200: openapi.Response(
+                description="List of all modalities",
+                schema=ModalitySerializer(many=True)
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def list(self, request):
+        """
+        Return a list of all modalities.
+        """
+        queryset = Modality.objects.all()
+        serializer = ModalitySerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_summary="Create a new modality",
+        operation_description="Create a new modality instance with the provided data.",
+        request_body=ModalitySerializer,
+        responses={
+            201: openapi.Response(
+                description="Modality created successfully",
+                schema=ModalitySerializer
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details"
+                        )
+                    }
+                )
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def create(self, request):
+        """
+        Create a new modality instance.
+        """
+        serializer = ModalitySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Update a modality",
+        operation_description="Update an existing modality instance with the provided data.",
+        request_body=ModalitySerializer,
+        responses={
+            200: openapi.Response(
+                description="Modality updated successfully",
+                schema=ModalitySerializer
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'error': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details"
+                        )
+                    }
+                )
+            ),
+            404: openapi.Response(
+                description="Modality not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Error message"
+                        )
+                    }
+                )
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def update(self, request, pk=None):
+        """
+        Update an existing modality instance.
+        """
+        try:
+            modality = Modality.objects.get(pk=pk)
+        except Modality.DoesNotExist:
+            return Response({"detail": "Modalidade não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ModalitySerializer(
+            modality, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Delete a modality",
+        operation_description="Delete an existing modality instance by its ID.",
+        responses={
+            204: openapi.Response(
+                description="Modality deleted successfully"
+            ),
+            404: openapi.Response(
+                description="Modality not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Error message"
+                        )
+                    }
+                )
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def destroy(self, request, pk=None):
+        """
+        Delete an existing modality instance.
+        """
+        try:
+            modality = Modality.objects.get(pk=pk)
+        except Modality.DoesNotExist:
+            return Response({"detail": "Modalidade não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
+        modality.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
