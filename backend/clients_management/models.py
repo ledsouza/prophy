@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from datetime import date
 from django.db import models
 from django.contrib import admin
@@ -11,8 +14,26 @@ from clients_management.validators import CNPJValidator
 from localflavor.br.br_states import STATE_CHOICES
 import calendar
 
+if TYPE_CHECKING:
+    from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 
-def get_status(operation):
+
+def get_status(operation: ClientOperation | UnitOperation | EquipmentOperation) -> str | format_html:
+    """
+    Returns the formatted status of a client, unit, or equipment operation.
+
+    This function takes an operation object and returns either a plain string status
+    or an HTML-formatted status message depending on the operation's type and status.
+
+    Args:
+        operation (ClientOperation | UnitOperation | EquipmentOperation): 
+            The operation object to get status for. Can be any of the operation types.
+
+    Returns:
+        str | format_html: Either a plain string status for approved operations,
+        or an HTML-formatted status message for pending add/edit/delete operations.
+        The HTML includes the status and type of request in a fixed-width div.
+    """
     if operation.operation_status == "A":
         return operation.get_operation_status_display()
     if operation.operation_type == "A":
@@ -24,6 +45,24 @@ def get_status(operation):
 
 
 class BaseEquipment(models.Model):
+    """
+    A base abstract model representing common equipment attributes.
+
+    This model serves as a base class for various equipment types, providing standard
+    fields for tracking equipment information such as manufacturer, model, series number,
+    and associated photos.
+
+    Attributes:
+        manufacturer (CharField): The equipment manufacturer name (max 30 characters)
+        model (CharField): The equipment model name (max 30 characters)
+        series_number (CharField): Optional equipment serial number (max 30 characters)
+        equipment_photo (ImageField): Photo of the equipment, stored in 'equipments/photos'
+        label_photo (ImageField): Photo of the equipment label, stored in 'equipments/labels'
+
+    Note:
+        This is an abstract base class and cannot be instantiated directly.
+        It should be inherited by concrete equipment models.
+    """
     manufacturer = models.CharField("Fabricante", max_length=30)
     model = models.CharField("Modelo", max_length=30)
     series_number = models.CharField(
@@ -39,7 +78,30 @@ class BaseEquipment(models.Model):
 
 class Client(models.Model):
     """
-    Model representing a client.
+    A Django model class representing a client in the system.
+
+    This model stores essential information about clients, including their identification,
+    contact details, location, and associated users.
+
+    Attributes:
+        users (ManyToManyField): Multiple UserAccount objects linked to this client as responsibles
+        cnpj (CharField): Brazilian company registration number (14 digits)
+        name (CharField): Institution/company name (max 50 characters)
+        email (EmailField): Institution's contact email
+        phone (CharField): Institution's contact phone number (max 13 characters)
+        address (CharField): Institution's physical address (max 150 characters)
+        state (CharField): Institution's state, using 2-letter codes from STATE_CHOICES
+        city (CharField): Institution's city (max 50 characters)
+        active (BooleanField): Flag indicating if the client is currently active
+
+    Methods:
+        responsables(): Returns formatted HTML string of associated users and their roles
+        status(): Returns the operational status of the client
+        __str__(): Returns string representation of the client (name)
+
+    Meta:
+        verbose_name: "Cliente"
+        verbose_name_plural: "Clientes"
     """
     users = models.ManyToManyField(
         UserAccount, related_name="clients", blank=True, verbose_name="Responsáveis")
@@ -79,12 +141,32 @@ class Client(models.Model):
 
 class Unit(models.Model):
     """
-    Model representing a unit of a client.
+    This class represents a business unit belonging to a client in the system. It stores
+    information about the unit's management, location, and contact details.
+
+    Attributes:
+        user (UserAccount): The unit manager, can be null.
+        client (Client): The client this unit belongs to.
+        name (str): Name of the unit, max 50 characters.
+        cnpj (str): Brazilian company registration number (CNPJ), must be 14 digits.
+        email (str): Contact email address for the unit.
+        phone (str): Contact phone number, max 13 characters.
+        address (str): Physical address of the unit, max 150 characters.
+        state (str): Two-letter state code, chosen from STATE_CHOICES.
+        city (str): City name, max 50 characters.
+
+    Methods:
+        status(): Returns the operational status of the unit.
+        __str__(): Returns the unit name as string representation.
+
+    Meta:
+        verbose_name: "Unidade"
+        verbose_name_plural: "Unidades"
     """
     user = models.ForeignKey(UserAccount, on_delete=models.SET_NULL,
                              related_name="unit", blank=True, null=True, verbose_name="Gerente de Unidade")
     client = models.ForeignKey(
-        Client, on_delete=models.SET_NULL, related_name="units", blank=True, null=True, verbose_name="Cliente")
+        Client, on_delete=models.CASCADE, related_name="units", blank=True, null=True, verbose_name="Cliente")
     name = models.CharField("Nome", max_length=50)
     cnpj = models.CharField("CNPJ", max_length=14,
                             validators=[CNPJValidator()])
@@ -154,7 +236,7 @@ class Equipment(BaseEquipment, models.Model):
         model (str): Equipment model name
         series_number (str): Equipment serial number
         anvisa_registry (str): ANVISA (Brazilian Health Regulatory Agency) registration number
-        modality (str): Equipment modality/type
+        modality (ForeignKey): Reference to the Modality of the equipment
         channels (str): Number of channels
         official_max_load (int): Official maximum load capacity
         usual_max_load (int): Usual maximum load capacity
@@ -209,6 +291,19 @@ class Equipment(BaseEquipment, models.Model):
 
 
 class Accessory(BaseEquipment, models.Model):
+    """
+    A class representing an accessory equipment that can be attached to a main equipment.
+    This model inherits from BaseEquipment and represents additional accessories or attachments
+    that can be associated with a main equipment piece. Each accessory has a category and is
+    linked to a specific equipment.
+    Attributes:
+        equipment (ForeignKey): Reference to the main Equipment this accessory belongs to
+        category (CharField): Category of the accessory, chosen from Modality.AccessoryType choices
+    Meta:
+        verbose_name (str): Display name for a single instance ("Acessório")
+        verbose_name_plural (str): Display name for multiple instances ("Acessórios")
+    """
+
     equipment = models.ForeignKey(
         Equipment, on_delete=models.CASCADE, related_name="accessories")
     category = models.CharField(
@@ -221,40 +316,36 @@ class Accessory(BaseEquipment, models.Model):
 
 class Proposal(models.Model):
     """
-    This class manages proposals for contracts, tracking client information, contact details,
-    and proposal status through its lifecycle.
-
+    A model representing client proposals in the system.
+    This model stores information about business proposals including client details,
+    contact information, financial terms, and proposal status.
     Attributes:
-        cnpj (str): Brazilian company registration number (14 digits)
-        state (str): State where the institution is located (2-letter code)
-        city (str): City where the institution is located
-        contact_name (str): Name of the primary contact person
-        contact_phone (str): Contact person's phone number
-        email (str): Contact person's email address
-        date (date): Date when the proposal was created (defaults to current date)
-        value (decimal): Proposed contract value with 2 decimal places
-        contract_type (str): Type of contract ('A' for Annual, 'M' for Monthly)
-        status (str): Current status of the proposal ('A' for Accepted, 'R' for Rejected, 'P' for Pending)
-
+        cnpj (CharField): Brazilian company registration number (14 digits)
+        state (CharField): State where the institution is located
+        city (CharField): City where the institution is located 
+        contact_name (CharField): Name of the contact person
+        contact_phone (CharField): Contact person's phone number
+        email (EmailField): Contact person's email address
+        date (DateField): Date when the proposal was created
+        value (DecimalField): Proposed contract value
+        contract_type (CharField): Type of contract (Annual or Monthly)
+        status (CharField): Current status of the proposal (Accepted, Rejected or Pending)
     Methods:
-        approved_client(): Returns True if the proposal status is 'Accepted', False otherwise
-        proposal_month(): Returns the month name of the proposal date in the current locale
-
+        approved_client(): Returns True if proposal status is Accepted, False otherwise
+        proposal_month(): Returns the month name when proposal was created
     Meta:
-        ordering: Ordered by date in descending order
+        ordering: Orders by date in descending order
         verbose_name: "Proposta"
         verbose_name_plural: "Propostas"
     """
-    STATUS = (
-        ("A", "Aceito"),
-        ("R", "Rejeitado"),
-        ("P", "Pendente"),
-    )
+    class Status(TextChoices):
+        ACCEPTED = "A", "Aceito",
+        REJECTED = "R", "Rejeitado",
+        PENDING = "P", "Pendente"
 
-    CONTRACT_TYPE = (
-        ("A", "Anual"),
-        ("M", "Mensal"),
-    )
+    class ContractType(TextChoices):
+        ANNUAL = "A", "Anual",
+        MONTHLY = "M", "Mensal"
 
     cnpj = models.CharField("CNPJ", max_length=14, validators=[
                             CNPJValidator()])
@@ -270,9 +361,9 @@ class Proposal(models.Model):
     value = models.DecimalField(
         "Valor proposto", max_digits=10, decimal_places=2)
     contract_type = models.CharField(
-        "Tipo de contrato", max_length=1, choices=CONTRACT_TYPE)
+        "Tipo de contrato", max_length=1, choices=ContractType.choices)
     status = models.CharField(
-        max_length=1, choices=STATUS, blank=False, null=False, default="P")
+        max_length=1, choices=Status.choices, blank=False, null=False, default=Status.PENDING)
 
     def approved_client(self):
         if self.status == "A":

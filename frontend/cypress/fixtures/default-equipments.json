@@ -2,23 +2,23 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Mamografia",
-    "manufacturer": "Siemens",
-    "model": "MOLESTIAE-281",
-    "series_number": "FYVB-739049",
-    "anvisa_registry": "tQBreNWrQwfBL",
+    "manufacturer": "Philips",
+    "model": "VOLUPTATES-869",
+    "series_number": "tgEz-226205",
+    "anvisa_registry": "BgHFtJgkdQaPy",
     "equipment_photo": "/media/equipments/photos/mamografia.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_Y07xbbh.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_YftmE6l.jpg",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Mamografia",
-    "manufacturer": "Toshiba",
-    "model": "TEMPORIBUS-373",
-    "series_number": "DLfy-823806",
-    "anvisa_registry": "IeqLnUokaPDMq",
-    "equipment_photo": "/media/equipments/photos/mamografia_Lq4meD7.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_yAklRFr.jpg",
+    "manufacturer": "Philips",
+    "model": "NISI-266",
+    "series_number": "nbqB-498023",
+    "anvisa_registry": "kQMKaNAqAPJAd",
+    "equipment_photo": "/media/equipments/photos/mamografia_XleRisl.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_X1TxW8J.jpg",
     "id": 1001
   }
 }
