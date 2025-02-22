@@ -178,7 +178,6 @@ class Equipment(BaseEquipment, models.Model):
         Modality, on_delete=models.CASCADE, related_name="equipments")
     anvisa_registry = models.CharField(
         "Registro na ANVISA", max_length=30, blank=True, null=True)
-    modality = models.CharField("Modalidade", max_length=50)
     channels = models.CharField("Canais", max_length=10, blank=True, null=True)
     official_max_load = models.IntegerField(
         "Carga máxima oficial", blank=True, null=True)

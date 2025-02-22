@@ -36,10 +36,10 @@ APPROVED_PROPOSAL_CNPJ = "26661570000116"
 
 REGISTERED_CNPJ = "78187773000116"
 
-MODALITIES = ["Raio X Convencional", "Raio X Móvel", "Litotripsia"
-              "Angiógrafo", "Arco C", "Telecomandada"
+MODALITIES = ["Raio X Convencional", "Raio X Móvel", "Litotripsia",
+              "Angiógrafo", "Arco C", "Telecomandada",
               "Mamografia", "Tomografia Computadorizada",
-              "PET/CT", "SPECT/CT", "Raio X Extraoral"
+              "PET/CT", "SPECT/CT", "Raio X Extraoral",
               "Raio X Panorâmico", "Tomografia Cone Beam",
               "Raio X Intraoral", "Ultrassom", "Ressonância Magnética",
               "PET/RM", "Densitometria Óssea"]
@@ -605,7 +605,7 @@ class Command(BaseCommand):
                 equipments = {
                     "equipment1": {
                         "unit": equipment1.unit.id,
-                        "modality": equipment1.modality,
+                        "modality": equipment1.modality.name,
                         "manufacturer": equipment1.manufacturer,
                         "model": equipment1.model,
                         "series_number": equipment1.series_number,
@@ -616,7 +616,7 @@ class Command(BaseCommand):
                     },
                     "equipment2": {
                         "unit": equipment2.unit.id,
-                        "modality": equipment2.modality,
+                        "modality": equipment2.modality.name,
                         "manufacturer": equipment2.manufacturer,
                         "model": equipment2.model,
                         "series_number": equipment2.series_number,

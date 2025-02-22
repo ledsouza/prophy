@@ -1,20 +1,24 @@
 {
   "equipment1": {
     "unit": 1000,
-    "modality": "Ultrassom",
-    "manufacturer": "GE",
-    "model": "DOLORIBUS-712",
-    "series_number": "kVef-700543",
-    "anvisa_registry": "cFxEoloBFIzvu",
+    "modality": "Mamografia",
+    "manufacturer": "Siemens",
+    "model": "MOLESTIAE-281",
+    "series_number": "FYVB-739049",
+    "anvisa_registry": "tQBreNWrQwfBL",
+    "equipment_photo": "/media/equipments/photos/mamografia.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_Y07xbbh.jpg",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
-    "modality": "Raio-X",
-    "manufacturer": "GE",
-    "model": "MOLLITIA-145",
-    "series_number": "Nvoy-585181",
-    "anvisa_registry": "hwAeHZxllqvOm",
+    "modality": "Mamografia",
+    "manufacturer": "Toshiba",
+    "model": "TEMPORIBUS-373",
+    "series_number": "DLfy-823806",
+    "anvisa_registry": "IeqLnUokaPDMq",
+    "equipment_photo": "/media/equipments/photos/mamografia_Lq4meD7.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_yAklRFr.jpg",
     "id": 1001
   }
 }
