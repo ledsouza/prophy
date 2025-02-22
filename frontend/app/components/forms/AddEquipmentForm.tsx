@@ -18,11 +18,9 @@ import { closeModal } from "@/redux/features/modalSlice";
 import { useEffect, useState } from "react";
 import {
     AccessoryType,
-    ModalityDTO,
     useListModalitiesQuery,
 } from "@/redux/features/modalityApiSlice";
 import { SelectData } from "./Select";
-import { set } from "lodash";
 
 export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
 
@@ -54,6 +52,8 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     const [modalityOptions, setModalityOptions] = useState<SelectData[]>();
     const [selectedModality, setSelectedModality] = useState<SelectData>();
     const [accessoryType, setAccessoryType] = useState<AccessoryType>();
+    const [addAccessory, setAddAccessory] = useState(false);
+    const [accessoryIndex, setAccessoryIndex] = useState(0);
 
     const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
         if (!isLoadingModalities) {
@@ -121,34 +121,19 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             const modality = modalities?.find(
                 (modality) => modality.id === selectedModality.id
             );
+            console.log(modality?.accessory_type);
             setAccessoryType(modality?.accessory_type);
         }
     }, [selectedModality]);
 
-    if (isErrorModalities) {
-        toast.error("Algo deu errado. Tente novamente mais tarde.");
-        dispatch(closeModal());
-        return null;
-    }
+    const handleAddAccessory = () => {
+        setAddAccessory(false);
+        setAccessoryIndex((prev) => prev + 1);
+    };
 
-    return (
-        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-            <Form onSubmit={handleSubmit(onSubmit)}>
-                <Typography
-                    element="h3"
-                    size="title3"
-                    className="font-semibold"
-                >
-                    Informe os dados do equipamento
-                </Typography>
-                <Typography element="p" size="md" className="text-justify">
-                    Por favor, preencha os campos abaixo com as informações do
-                    equipamento, certificando-se de preencher as informações
-                    corretamente. Após a submissão, o formulário será enviado
-                    para análise de um físico médico responsável, que fará a
-                    revisão e validação das informações fornecidas.
-                </Typography>
-
+    const renderEquipmentInputs = () => {
+        return (
+            <>
                 {modalityOptions && selectedModality ? (
                     <Select
                         options={modalityOptions}
@@ -232,7 +217,78 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 >
                     Foto do rótulo do equipamento
                 </Input>
+            </>
+        );
+    };
 
+    const renderAccessoryInputs = () => {
+        return (
+            <>
+                <Input
+                    {...register(`accessories.${accessoryIndex}.model`)}
+                    type="text"
+                    errorMessage={
+                        errors.accessories?.[accessoryIndex]?.model?.message
+                    }
+                    placeholder="Digite o nome do modelo"
+                    data-testid="equipment-model-input"
+                >
+                    Modelo
+                </Input>
+
+                <Input
+                    {...register(`accessories.${accessoryIndex}.series_number`)}
+                    type="text"
+                    errorMessage={
+                        errors.accessories?.[accessoryIndex]?.series_number
+                            ?.message
+                    }
+                    placeholder="Digite o número de série, se houver"
+                    data-testid="equipment-series-number-input"
+                >
+                    Número de série
+                </Input>
+
+                <Input
+                    {...register(
+                        `accessories.${accessoryIndex}.equipment_photo`
+                    )}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png"
+                    errorMessage={
+                        errors.accessories?.[accessoryIndex]?.equipment_photo
+                            ?.message
+                    }
+                    data-testid="equipment-photo-input"
+                >
+                    Foto do equipamento
+                </Input>
+
+                <Input
+                    {...register(`accessories.${accessoryIndex}.label_photo`)}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png"
+                    errorMessage={
+                        errors.accessories?.[accessoryIndex]?.label_photo
+                            ?.message
+                    }
+                    data-testid="equipment-label-input"
+                >
+                    Foto do rótulo do equipamento
+                </Input>
+            </>
+        );
+    };
+
+    if (isErrorModalities) {
+        toast.error("Algo deu errado. Tente novamente mais tarde.");
+        dispatch(closeModal());
+        return null;
+    }
+
+    const renderButtons = () => {
+        if (accessoryType === AccessoryType.NONE && !addAccessory) {
+            return (
                 <div className="flex gap-2 py-4">
                     <Button
                         type="button"
@@ -253,6 +309,151 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                         Requisitar
                     </Button>
                 </div>
+            );
+        }
+
+        if (accessoryType !== AccessoryType.NONE && !addAccessory) {
+            return (
+                <div>
+                    <Button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => {
+                            setAddAccessory(true);
+                        }}
+                        variant="secondary"
+                        data-testid="submit-btn"
+                        className="w-full"
+                    >
+                        Adicionar acessório
+                    </Button>
+                    <div className="flex gap-2 py-4">
+                        <Button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={() => dispatch(closeModal())}
+                            variant="secondary"
+                            data-testid="cancel-btn"
+                            className="w-full"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            data-testid="submit-btn"
+                            className="w-full"
+                        >
+                            Requisitar sem acessório
+                        </Button>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="flex gap-2 py-4">
+                <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setAddAccessory(false)}
+                    variant="secondary"
+                    data-testid="cancel-btn"
+                    className="w-full"
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setAddAccessory(false)}
+                    data-testid="submit-btn"
+                    className="w-full"
+                >
+                    Adicionar
+                </Button>
+            </div>
+        );
+    };
+
+    return (
+        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+            <Form onSubmit={handleSubmit(onSubmit)}>
+                <Typography
+                    element="h3"
+                    size="title3"
+                    className="font-semibold"
+                >
+                    Informe os dados do equipamento
+                </Typography>
+                <Typography element="p" size="md" className="text-justify">
+                    Por favor, preencha os campos abaixo com as informações do
+                    equipamento, certificando-se de preencher as informações
+                    corretamente. Após a submissão, o formulário será enviado
+                    para análise de um físico médico responsável, que fará a
+                    revisão e validação das informações fornecidas.
+                </Typography>
+
+                {!addAccessory && renderEquipmentInputs()}
+                {addAccessory && renderAccessoryInputs()}
+
+                {accessoryType === AccessoryType.NONE && !addAccessory ? (
+                    <div className="flex gap-2 py-4">
+                        <Button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={() => dispatch(closeModal())}
+                            variant="secondary"
+                            data-testid="cancel-btn"
+                            className="w-full"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            data-testid="submit-btn"
+                            className="w-full"
+                        >
+                            Requisitar
+                        </Button>
+                    </div>
+                ) : (
+                    <div>
+                        <Button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={() => {
+                                setAddAccessory(true);
+                            }}
+                            variant="secondary"
+                            data-testid="submit-btn"
+                            className="w-full"
+                        >
+                            Adicionar acessório
+                        </Button>
+                        <div className="flex gap-2 py-4">
+                            <Button
+                                type="button"
+                                disabled={isSubmitting}
+                                onClick={() => dispatch(closeModal())}
+                                variant="secondary"
+                                data-testid="cancel-btn"
+                                className="w-full"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                data-testid="submit-btn"
+                                className="w-full"
+                            >
+                                Requisitar sem acessório
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </Form>
         </div>
     );
