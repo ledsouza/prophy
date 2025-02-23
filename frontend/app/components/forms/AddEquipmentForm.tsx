@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 import { equipmentSchema } from "@/schemas";
@@ -33,11 +33,21 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
 
     const {
         register,
+        control,
         handleSubmit,
         setValue,
+        getValues,
         formState: { errors, isSubmitting },
     } = useForm<AddEquipmentFields>({
         resolver: zodResolver(equipmentSchema),
+        defaultValues: {
+            accessories: [],
+        },
+    });
+
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "accessories",
     });
 
     const {
@@ -53,10 +63,9 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     const [selectedModality, setSelectedModality] = useState<SelectData>();
     const [accessoryType, setAccessoryType] = useState<AccessoryType>();
     const [addAccessory, setAddAccessory] = useState(false);
-    const [accessoryIndex, setAccessoryIndex] = useState(0);
 
     const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
-        if (!isLoadingModalities) {
+        if (isLoadingModalities) {
             toast.warning("Aguarde o carregamento das modalidades.");
             return;
         }
@@ -121,14 +130,20 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             const modality = modalities?.find(
                 (modality) => modality.id === selectedModality.id
             );
-            console.log(modality?.accessory_type);
             setAccessoryType(modality?.accessory_type);
         }
     }, [selectedModality]);
 
     const handleAddAccessory = () => {
-        setAddAccessory(false);
-        setAccessoryIndex((prev) => prev + 1);
+        if (fields.length === 0) {
+            append({
+                model: "",
+                series_number: "",
+                equipment_photo: new DataTransfer().files,
+                label_photo: new DataTransfer().files,
+            });
+        }
+        setAddAccessory(true);
     };
 
     const renderEquipmentInputs = () => {
@@ -221,9 +236,29 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         );
     };
 
-    const renderAccessoryInputs = () => {
+    const renderAccessoryInputs = (
+        accessoryIndex: number,
+        remove: (index: number) => void
+    ) => {
         return (
-            <>
+            <div key={accessoryIndex} className="flex flex-col gap-4">
+                <div className="flex justify-between gap-24 items-center">
+                    <Typography element="h3" className="font-semibold">
+                        Acessório&nbsp;{accessoryIndex + 1}
+                    </Typography>
+
+                    <Button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={() => remove(accessoryIndex)}
+                        variant="secondary"
+                        data-testid="cancel-btn"
+                        className="w-full"
+                    >
+                        Remover esse acessório
+                    </Button>
+                </div>
+
                 <Input
                     {...register(`accessories.${accessoryIndex}.model`)}
                     type="text"
@@ -276,7 +311,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 >
                     Foto do rótulo do equipamento
                 </Input>
-            </>
+            </div>
         );
     };
 
@@ -318,14 +353,12 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     <Button
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => {
-                            setAddAccessory(true);
-                        }}
+                        onClick={handleAddAccessory}
                         variant="secondary"
                         data-testid="submit-btn"
                         className="w-full"
                     >
-                        Adicionar acessório
+                        Acessórios
                     </Button>
                     <div className="flex gap-2 py-4">
                         <Button
@@ -344,7 +377,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                             data-testid="submit-btn"
                             className="w-full"
                         >
-                            Requisitar sem acessório
+                            Requisitar
                         </Button>
                     </div>
                 </div>
@@ -361,16 +394,23 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     data-testid="cancel-btn"
                     className="w-full"
                 >
-                    Cancelar
+                    Voltar
                 </Button>
                 <Button
                     type="button"
                     disabled={isSubmitting}
-                    onClick={() => setAddAccessory(false)}
+                    onClick={() =>
+                        append({
+                            model: "",
+                            series_number: "",
+                            equipment_photo: new DataTransfer().files,
+                            label_photo: new DataTransfer().files,
+                        })
+                    }
                     data-testid="submit-btn"
                     className="w-full"
                 >
-                    Adicionar
+                    Adicionar mais um acessório
                 </Button>
             </div>
         );
@@ -394,66 +434,60 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     revisão e validação das informações fornecidas.
                 </Typography>
 
-                {!addAccessory && renderEquipmentInputs()}
-                {addAccessory && renderAccessoryInputs()}
-
-                {accessoryType === AccessoryType.NONE && !addAccessory ? (
-                    <div className="flex gap-2 py-4">
-                        <Button
-                            type="button"
-                            disabled={isSubmitting}
-                            onClick={() => dispatch(closeModal())}
-                            variant="secondary"
-                            data-testid="cancel-btn"
-                            className="w-full"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            data-testid="submit-btn"
-                            className="w-full"
-                        >
-                            Requisitar
-                        </Button>
-                    </div>
-                ) : (
-                    <div>
-                        <Button
-                            type="button"
-                            disabled={isSubmitting}
-                            onClick={() => {
-                                setAddAccessory(true);
-                            }}
-                            variant="secondary"
-                            data-testid="submit-btn"
-                            className="w-full"
-                        >
-                            Adicionar acessório
-                        </Button>
-                        <div className="flex gap-2 py-4">
-                            <Button
-                                type="button"
-                                disabled={isSubmitting}
-                                onClick={() => dispatch(closeModal())}
-                                variant="secondary"
-                                data-testid="cancel-btn"
-                                className="w-full"
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting}
-                                data-testid="submit-btn"
-                                className="w-full"
-                            >
-                                Requisitar sem acessório
-                            </Button>
-                        </div>
-                    </div>
+                {!addAccessory && (
+                    <Typography element="p" size="md" className="text-justify">
+                        Alguns equipamentos podem possuir acessórios. Caso o
+                        equipamento que você deseja requisitar possua
+                        acessórios, clique no botão "Acessórios" para adicionar
+                        os acessórios necessários.
+                    </Typography>
                 )}
+
+                {!addAccessory && renderEquipmentInputs()}
+                {addAccessory &&
+                    fields.map((_, index) =>
+                        renderAccessoryInputs(index, remove)
+                    )}
+
+                {addAccessory && fields.length === 0 && (
+                    <Typography element="p" className="font-semibold">
+                        Nenhum acessório adicionado. Clique em "Adicionar mais
+                        um acessório" para adicionar um acessório.
+                    </Typography>
+                )}
+
+                {fields.length > 0 && !addAccessory && (
+                    <Typography element="p" className="font-semibold">
+                        Acessórios adicionados:
+                    </Typography>
+                )}
+                {fields.length > 0 &&
+                    !addAccessory &&
+                    fields.map((_, index) => (
+                        <div>
+                            <Typography element="p">
+                                {getValues(`accessories.${index}.model`) === ""
+                                    ? "Acessório " + (index + 1)
+                                    : getValues(`accessories.${index}.model`)}
+                                {getValues(
+                                    `accessories.${index}.series_number`
+                                ) === ""
+                                    ? ""
+                                    : " - " +
+                                      getValues(
+                                          `accessories.${index}.series_number`
+                                      )}
+                            </Typography>
+
+                            <Typography element="span" variant="danger">
+                                {errors?.accessories?.[index]
+                                    ? "Há campos inválidos nesse acessório. Acesse os acessórios para corrigir."
+                                    : null}
+                            </Typography>
+                        </div>
+                    ))}
+
+                {renderButtons()}
             </Form>
         </div>
     );
