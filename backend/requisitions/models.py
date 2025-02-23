@@ -3,7 +3,7 @@ from django.db.models import TextChoices
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
-from clients_management.models import Client, Unit, Equipment
+from clients_management.models import Client, Unit, Equipment, Accessory
 
 User = get_user_model()
 
@@ -286,6 +286,15 @@ class EquipmentOperation(BaseOperation, Equipment):
             'series_number': self.series_number
         }
 
+    def _update_accessories(self) -> None:
+        """
+        Update the original equipment accessories.
+        """
+        accessories = Accessory.objects.filter(equipment=self.equipment_ptr)
+        for accessory in accessories:
+            accessory.equipment = self.original_equipment
+            accessory.save()
+
     def _update_equipment(self) -> None:
         """
         Update the original equipment with new information.
@@ -302,6 +311,8 @@ class EquipmentOperation(BaseOperation, Equipment):
         for field in update_fields:
             setattr(self.original_equipment, field,
                     getattr(self.equipment_ptr, field))
+
+        self._update_accessories()
 
         self.original_equipment.save()
 
