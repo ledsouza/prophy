@@ -255,7 +255,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                         data-testid="cancel-btn"
                         className="w-full"
                     >
-                        Remover esse acessório
+                        Remover este acessório
                     </Button>
                 </div>
 
@@ -410,7 +410,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     data-testid="submit-btn"
                     className="w-full"
                 >
-                    Adicionar mais um acessório
+                    Adicionar um acessório
                 </Button>
             </div>
         );
@@ -451,8 +451,8 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
 
                 {addAccessory && fields.length === 0 && (
                     <Typography element="p" className="font-semibold">
-                        Nenhum acessório adicionado. Clique em "Adicionar mais
-                        um acessório" para adicionar um acessório.
+                        Nenhum acessório adicionado. Clique em "Adicionar um
+                        acessório" para adicionar um acessório.
                     </Typography>
                 )}
 
