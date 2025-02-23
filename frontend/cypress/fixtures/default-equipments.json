@@ -2,23 +2,23 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Mamografia",
-    "manufacturer": "Philips",
-    "model": "CONSEQUATUR-214",
-    "series_number": "Emwr-233782",
-    "anvisa_registry": "RCVvyDkWIwkoB",
+    "manufacturer": "GE",
+    "model": "HARUM-370",
+    "series_number": "tboR-608513",
+    "anvisa_registry": "dIfESbTPGqTUz",
     "equipment_photo": "/media/equipments/photos/mamografia.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_mjfSiws.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_5vJ4sOa.jpg",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Mamografia",
     "manufacturer": "Philips",
-    "model": "QUAE-191",
-    "series_number": "gRqK-387314",
-    "anvisa_registry": "LzOAZWlKzqLbl",
-    "equipment_photo": "/media/equipments/photos/mamografia_qvf0BBw.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_tuxqro4.jpg",
+    "model": "ALIQUID-415",
+    "series_number": "qmEa-896241",
+    "anvisa_registry": "NlbaHdSWwYUGr",
+    "equipment_photo": "/media/equipments/photos/mamografia_rrUVJPp.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_Xawfdoc.jpg",
     "id": 1001
   }
 }

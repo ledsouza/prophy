@@ -6,7 +6,8 @@ from clients_management.views import (
     ClientViewSet,
     UnitViewSet,
     EquipmentViewSet,
-    ModalityViewSet
+    ModalityViewSet,
+    AccessoryViewSet,
 )
 
 router = DefaultRouter()
@@ -14,6 +15,7 @@ router.register("clients", ClientViewSet, basename="clients")
 router.register("units", UnitViewSet, basename="units")
 router.register("equipments", EquipmentViewSet, basename="equipments")
 router.register("modalities", ModalityViewSet, basename="modality")
+router.register("accessories", AccessoryViewSet, basename="accessory")
 
 urlpatterns = [
     path("proposals/status/",

@@ -10,9 +10,9 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.models import UserAccount
-from clients_management.models import Proposal, Client, Modality
+from clients_management.models import Proposal, Client, Modality, Accessory
 from clients_management.serializers import (CNPJSerializer, ClientSerializer, UnitSerializer,
-                                            EquipmentSerializer, ModalitySerializer)
+                                            EquipmentSerializer, ModalitySerializer, AccessorySerializer)
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 from requisitions.serializers import EquipmentOperation
 
@@ -464,4 +464,114 @@ class ModalityViewSet(viewsets.ViewSet):
             return Response({"detail": "Modalidade não encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
         modality.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AccessoryViewSet(viewsets.ViewSet):
+    """
+    A viewset for listing, creating, updating and destroying Accessory instances.
+    The list action does not use pagination as there are only a few records.
+    """
+
+    @swagger_auto_schema(
+        operation_summary="List all accessories",
+        operation_description="Retrieve a list of all accessories.",
+        responses={
+            200: openapi.Response(
+                description="List of all accessories",
+                schema=AccessorySerializer(many=True)
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def list(self, request):
+        """
+        Return a list of all accessories.
+        """
+        user = request.user
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            queryset = Accessory.objects.all()
+        else:
+            queryset = Accessory.objects.filter(
+                equipment__unit__client__users=user)
+
+        serializer = AccessorySerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_summary="Create a new accessory",
+        operation_description="Create a new accessory instance with the provided data.",
+        request_body=AccessorySerializer,
+        responses={
+            201: openapi.Response(
+                description="Accessory created successfully",
+                schema=AccessorySerializer
+            ),
+            400: "Invalid input data",
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def create(self, request):
+        """
+        Create a new accessory instance.
+        """
+        serializer = AccessorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Update an accessory",
+        operation_description="Update an existing accessory instance with the provided data.",
+        request_body=AccessorySerializer,
+        responses={
+            200: openapi.Response(
+                description="Accessory updated successfully",
+                schema=AccessorySerializer
+            ),
+            400: "Invalid input data",
+            404: "Accessory not found",
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def update(self, request, pk=None):
+        """
+        Update an existing accessory instance.
+        """
+        try:
+            accessory = Accessory.objects.get(pk=pk)
+        except Accessory.DoesNotExist:
+            return Response({"detail": "Acessório não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AccessorySerializer(
+            accessory, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Delete an accessory",
+        operation_description="Delete an existing accessory instance by its ID.",
+        responses={
+            204: "Accessory deleted successfully",
+            404: "Accessory not found",
+            401: "Unauthorized access",
+            403: "Permission denied"
+        }
+    )
+    def destroy(self, request, pk=None):
+        """
+        Delete an existing accessory instance.
+        """
+        try:
+            accessory = Accessory.objects.get(pk=pk)
+        except Accessory.DoesNotExist:
+            return Response({"detail": "Acessório não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        accessory.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

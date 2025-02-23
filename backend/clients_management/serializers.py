@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from clients_management.models import Client, Unit, Equipment, Modality
+from clients_management.models import (Client, Unit, Equipment, Modality,
+                                       Accessory)
 from users.models import UserAccount
 
 
@@ -55,4 +56,10 @@ class EquipmentSerializer(serializers.ModelSerializer):
 class ModalitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Modality
+        fields = '__all__'
+
+
+class AccessorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Accessory
         fields = '__all__'
