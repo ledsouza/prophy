@@ -21,12 +21,15 @@ import {
     useListModalitiesQuery,
 } from "@/redux/features/modalityApiSlice";
 import { SelectData } from "./Select";
+import { useCreateAccessoryMutation } from "@/redux/features/accessoryApiSlice";
 
 export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
 
 type AddEquipmentFormProps = {
     unitId: number;
 };
+
+type AccessoryFields = AddEquipmentFields["accessories"][0];
 
 const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     const dispatch = useAppDispatch();
@@ -59,10 +62,52 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     const [createAddEquipmentOperation] =
         useCreateAddEquipmentOperationMutation();
 
+    const [createAccessory] = useCreateAccessoryMutation();
+
     const [modalityOptions, setModalityOptions] = useState<SelectData[]>();
     const [selectedModality, setSelectedModality] = useState<SelectData>();
     const [accessoryType, setAccessoryType] = useState<AccessoryType>();
     const [addAccessory, setAddAccessory] = useState(false);
+
+    const handleCreateAccessory = async (
+        accessory: AccessoryFields,
+        manufacturer: string,
+        equipmentID: number
+    ) => {
+        if (!accessoryType) {
+            throw new Error("Accessory type not set.");
+        }
+
+        const accessoryFormData = new FormData();
+        accessoryFormData.append("manufacturer", manufacturer);
+        accessoryFormData.append("model", accessory.model);
+        accessoryFormData.append("series_number", accessory.series_number);
+        accessoryFormData.append(
+            "equipment_photo",
+            accessory.equipment_photo[0]
+        );
+        accessoryFormData.append("label_photo", accessory.label_photo[0]);
+        accessoryFormData.append("equipment", equipmentID.toString());
+        accessoryFormData.append("category", accessoryType.toString());
+
+        try {
+            const accessoryResponse = await createAccessory(accessoryFormData);
+            if (accessoryResponse.error) {
+                if (isErrorWithMessages(accessoryResponse.error)) {
+                    throw new Error(accessoryResponse.error.data.messages[0]);
+                }
+                throw new Error("Error creating accessory.");
+            }
+        } catch (error) {
+            console.error("Failed to create accessory:", error);
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Um erro inesperado ocorreu ao adicionar o acessório.";
+            toast.error(errorMessage);
+            throw error;
+        }
+    };
 
     const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
         if (isLoadingModalities) {
@@ -85,16 +130,28 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         formData.append("label_photo", data.label_photo[0]);
 
         try {
-            const response = await createAddEquipmentOperation(formData);
+            const equipmentResponse = await createAddEquipmentOperation(
+                formData
+            );
 
-            if (response.error) {
-                if (isErrorWithMessages(response.error)) {
-                    toast.error(response.error.data.messages[0]);
+            if (equipmentResponse.error) {
+                if (isErrorWithMessages(equipmentResponse.error)) {
+                    toast.error(equipmentResponse.error.data.messages[0]);
                     return;
                 }
                 return toast.error(
                     "Algo deu errado. Tente novamente mais tarde."
                 );
+            }
+
+            if (data.accessories.length > 0) {
+                for (const accessory of data.accessories) {
+                    await handleCreateAccessory(
+                        accessory,
+                        data.manufacturer,
+                        equipmentResponse.data.id
+                    );
+                }
             }
 
             toast.success("Requisição enviada com sucesso!");
