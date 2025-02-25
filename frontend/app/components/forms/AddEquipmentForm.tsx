@@ -7,7 +7,10 @@ import { toast } from "react-toastify";
 
 import { equipmentSchema } from "@/schemas";
 
-import { useCreateAddEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
+import {
+    useCreateAddEquipmentOperationMutation,
+    useDeleteEquipmentOperationMutation,
+} from "@/redux/features/equipmentApiSlice";
 import { isErrorWithMessages } from "@/redux/services/helpers";
 
 import { Button, Spinner } from "@/components/common";
@@ -61,6 +64,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
 
     const [createAddEquipmentOperation] =
         useCreateAddEquipmentOperationMutation();
+    const [deleteEquipmentOperation] = useDeleteEquipmentOperationMutation();
 
     const [createAccessory] = useCreateAccessoryMutation();
 
@@ -93,20 +97,33 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         try {
             const accessoryResponse = await createAccessory(accessoryFormData);
             if (accessoryResponse.error) {
-                if (isErrorWithMessages(accessoryResponse.error)) {
-                    throw new Error(accessoryResponse.error.data.messages[0]);
-                }
-                throw new Error("Error creating accessory.");
+                throw new AccessoryCreationError(
+                    `Error creating accessory: ${accessoryResponse.error}`
+                );
             }
         } catch (error) {
-            console.error("Failed to create accessory:", error);
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : "Um erro inesperado ocorreu ao adicionar o acessório.";
-            toast.error(errorMessage);
             throw error;
         }
+    };
+
+    const handleCreateAccessories = async (
+        accessories: AccessoryFields[],
+        manufacturer: string,
+        equipmentID: number
+    ) => {
+        if (accessories.length === 0) {
+            return;
+        }
+
+        await Promise.all(
+            accessories.map(async (accessory) => {
+                await handleCreateAccessory(
+                    accessory,
+                    manufacturer,
+                    equipmentID
+                );
+            })
+        );
     };
 
     const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
@@ -135,29 +152,32 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             );
 
             if (equipmentResponse.error) {
-                if (isErrorWithMessages(equipmentResponse.error)) {
-                    toast.error(equipmentResponse.error.data.messages[0]);
-                    return;
-                }
-                return toast.error(
-                    "Algo deu errado. Tente novamente mais tarde."
+                throw new Error(
+                    `Error creating equipment: ${equipmentResponse.error}`
                 );
             }
 
-            if (data.accessories.length > 0) {
-                for (const accessory of data.accessories) {
-                    await handleCreateAccessory(
-                        accessory,
-                        data.manufacturer,
-                        equipmentResponse.data.id
-                    );
-                }
-            }
+            await handleCreateAccessories(
+                data.accessories,
+                data.manufacturer,
+                equipmentResponse.data.id
+            );
 
             toast.success("Requisição enviada com sucesso!");
             dispatch(closeModal());
         } catch (error) {
-            toast.error("Algo deu errado. Tente novamente mais tarde.");
+            if (error instanceof AccessoryCreationError) {
+                console.error("Accessory creation error:", error.message);
+                toast.error(
+                    "Erro ao criar acessório. Verifique os dados e tente novamente."
+                );
+            } else if (error instanceof Error) {
+                console.error("Failed to create equipment:", error.message);
+                toast.error("Algo deu errado. Tente novamente mais tarde.");
+            } else {
+                console.error("Failed to create equipment:", error);
+                toast.error("Algo deu errado. Tente novamente mais tarde.");
+            }
         }
     };
 

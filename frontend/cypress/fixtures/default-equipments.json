@@ -2,23 +2,23 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Mamografia",
-    "manufacturer": "GE",
-    "model": "HARUM-370",
-    "series_number": "tboR-608513",
-    "anvisa_registry": "dIfESbTPGqTUz",
+    "manufacturer": "Philips",
+    "model": "EXPEDITA-337",
+    "series_number": "JVuy-452176",
+    "anvisa_registry": "cShzfdScVCluv",
     "equipment_photo": "/media/equipments/photos/mamografia.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_5vJ4sOa.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_qKkHgMT.jpg",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Mamografia",
     "manufacturer": "Philips",
-    "model": "ALIQUID-415",
-    "series_number": "qmEa-896241",
-    "anvisa_registry": "NlbaHdSWwYUGr",
-    "equipment_photo": "/media/equipments/photos/mamografia_rrUVJPp.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_Xawfdoc.jpg",
+    "model": "SINT-896",
+    "series_number": "vabx-100462",
+    "anvisa_registry": "mzondRBvxTbJd",
+    "equipment_photo": "/media/equipments/photos/mamografia_dKavtN1.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_ZgIYKjp.jpg",
     "id": 1001
   }
 }
