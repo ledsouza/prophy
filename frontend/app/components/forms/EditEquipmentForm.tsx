@@ -7,20 +7,34 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-import { equipmentSchema } from "@/schemas";
+import { accessorySchema, equipmentSchema } from "@/schemas";
 
 import { isErrorWithMessages } from "@/redux/services/helpers";
 import {
     EquipmentDTO,
     useCreateEditEquipmentOperationMutation,
 } from "@/redux/features/equipmentApiSlice";
-
-import { Button } from "@/components/common";
-import { Typography } from "@/components/foundation";
-import { Form, Input } from "@/components/forms";
-import { fetchPhoto } from "@/utils/media";
-import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
+import { useAppDispatch } from "@/redux/hooks";
+
+import { fetchPhoto } from "@/utils/media";
+import { useModality } from "@/hooks/use-modality";
+
+import { Button, Spinner } from "@/components/common";
+import { Typography } from "@/components/foundation";
+import { Form, Input, Select } from "@/components/forms";
+import requiredFileSchema from "@/schemas/file-schema";
+
+const editAccessorySchema = accessorySchema.extend({
+    equipment_photo: requiredFileSchema.optional(),
+    label_photo: requiredFileSchema.optional(),
+});
+
+const editEquipmentSchema = equipmentSchema.extend({
+    equipment_photo: requiredFileSchema.optional(),
+    label_photo: requiredFileSchema.optional(),
+    accessories: z.array(editAccessorySchema),
+});
 
 export type EditEquipmentFields = z.infer<typeof equipmentSchema>;
 
@@ -39,28 +53,51 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
     const {
         register,
         handleSubmit,
+        setValue,
+        getValues,
         formState: { errors, isSubmitting },
     } = useForm<EditEquipmentFields>({
         resolver: zodResolver(equipmentSchema),
         defaultValues: {
-            modality: originalEquipment.modality,
             manufacturer: originalEquipment.manufacturer,
             model: originalEquipment.model,
             series_number: originalEquipment.series_number,
             anvisa_registry: originalEquipment.anvisa_registry,
+            // accessories: [],
         },
     });
+
+    const {
+        modalityOptions,
+        selectedModality,
+        setSelectedModality,
+        accessoryType,
+        isErrorModalities,
+        isLoadingModalities,
+    } = useModality(setValue, originalEquipment.modality);
 
     const [createEditEquipmentOperation] =
         useCreateEditEquipmentOperationMutation();
 
     const onSubmit: SubmitHandler<EditEquipmentFields> = async (data) => {
+        if (isLoadingModalities) {
+            toast.warning("Aguarde o carregamento das modalidades.");
+            return;
+        }
+
         const formData = new FormData();
+
+        console.log("FormData entries:");
+        formData.forEach((value, key) => {
+            console.log(
+                `${key}: ${value instanceof File ? value.name : value}`
+            );
+        });
 
         // Handle text fields
         formData.append("original_equipment", originalEquipment.id.toString());
         formData.append("unit", originalEquipment.unit.toString());
-        formData.append("modality", data.modality);
+        formData.append("modality", data.modality.toString());
         formData.append("manufacturer", data.manufacturer);
         formData.append("model", data.model);
         formData.append("series_number", data.series_number);
@@ -81,6 +118,7 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
 
         const isSameData = Array.from(formData.entries()).every(
             ([key, value]) => {
+                console.log(key, value);
                 if (typeof value === "string") {
                     if (key === "original_equipment") {
                         return (
@@ -112,6 +150,7 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
 
         try {
             const response = await createEditEquipmentOperation(formData);
+            console.log(response);
 
             if (response.error) {
                 if (isErrorWithMessages(response.error)) {
@@ -157,6 +196,12 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         }
     }, [originalEquipment]);
 
+    if (isErrorModalities) {
+        toast.error("Algo deu errado. Tente novamente mais tarde.");
+        dispatch(closeModal());
+        return null;
+    }
+
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
@@ -175,15 +220,29 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
                     revisão e validação das informações fornecidas.
                 </Typography>
 
-                <Input
-                    {...register("modality")}
-                    type="text"
-                    errorMessage={errors.modality?.message}
-                    placeholder="Digite o nome da modalidade"
-                    data-testid="equipment-modality-input"
-                >
-                    Modalidade
-                </Input>
+                {modalityOptions && selectedModality ? (
+                    <Select
+                        options={modalityOptions}
+                        selectedData={selectedModality}
+                        setSelect={setSelectedModality}
+                        label="Modalidade"
+                        labelSize="sm"
+                        listBoxButtonSize="sm"
+                        listOptionSize="sm"
+                        dataTestId="equipment-modality-select"
+                    />
+                ) : (
+                    <div className="flex flex-col items-center">
+                        <Spinner md />
+                        <Typography
+                            element="p"
+                            size="md"
+                            className="text-center"
+                        >
+                            Carregando opções de modalidade...
+                        </Typography>
+                    </div>
+                )}
 
                 <Input
                     {...register("manufacturer")}

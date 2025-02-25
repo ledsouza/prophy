@@ -22,6 +22,7 @@ import { Form, Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
+import { useModality } from "@/hooks/use-modality";
 
 export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
 
@@ -54,19 +55,19 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     });
 
     const {
-        data: modalities,
-        isLoading: isLoadingModalities,
-        isError: isErrorModalities,
-    } = useListModalitiesQuery();
+        modalityOptions,
+        selectedModality,
+        setSelectedModality,
+        accessoryType,
+        isErrorModalities,
+        isLoadingModalities,
+    } = useModality(setValue);
 
     const [createAddEquipmentOperation] =
         useCreateAddEquipmentOperationMutation();
 
     const [createAccessory] = useCreateAccessoryMutation();
 
-    const [modalityOptions, setModalityOptions] = useState<SelectData[]>();
-    const [selectedModality, setSelectedModality] = useState<SelectData>();
-    const [accessoryType, setAccessoryType] = useState<AccessoryType>();
     const [addAccessory, setAddAccessory] = useState(false);
 
     const handleCreateAccessory = async (
@@ -176,36 +177,6 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             }
         }
     };
-
-    // Set the modality options when the modalities are loaded
-    useEffect(() => {
-        if (modalities && modalities.length > 0) {
-            setModalityOptions(
-                modalities.map((modality) => ({
-                    id: modality.id,
-                    value: modality.name,
-                }))
-            );
-            setSelectedModality({
-                id: modalities[0].id,
-                value: modalities[0].name,
-            });
-        }
-    }, [modalities]);
-
-    // Set the value for the modality field when the modalities are loaded
-    // and when the selected modality changes
-    // Also set the accessory type based on the selected modality
-    useEffect(() => {
-        if (selectedModality) {
-            setValue("modality", selectedModality.id);
-
-            const modality = modalities?.find(
-                (modality) => modality.id === selectedModality.id
-            );
-            setAccessoryType(modality?.accessory_type);
-        }
-    }, [selectedModality]);
 
     const handleAddAccessory = () => {
         if (fields.length === 0) {
@@ -388,12 +359,6 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         );
     };
 
-    if (isErrorModalities) {
-        toast.error("Algo deu errado. Tente novamente mais tarde.");
-        dispatch(closeModal());
-        return null;
-    }
-
     const renderButtons = () => {
         if (accessoryType === AccessoryType.NONE && !addAccessory) {
             return (
@@ -488,6 +453,12 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             </div>
         );
     };
+
+    if (isErrorModalities) {
+        toast.error("Algo deu errado. Tente novamente mais tarde.");
+        dispatch(closeModal());
+        return null;
+    }
 
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">

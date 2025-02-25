@@ -161,6 +161,26 @@ const Select = ({
                                     listOptionStyles
                                 );
 
+                                const typographyStyle = cn(
+                                    "block truncate",
+                                    "ml-3",
+                                    {
+                                        "font-semibold":
+                                            selectedData.id === option.id,
+                                    }
+                                );
+
+                                const checkIconStyle = cn(
+                                    "absolute",
+                                    "inset-y-0 right-0 pr-4",
+                                    "flex items-center",
+                                    "text-primary",
+                                    "group-data-[focus]:text-white",
+                                    {
+                                        hidden: selectedData.id !== option.id,
+                                    }
+                                );
+
                                 return (
                                     <ListboxOption
                                         key={option.id}
@@ -171,13 +191,13 @@ const Select = ({
                                             <Typography
                                                 element="span"
                                                 size={listOptionSize}
-                                                className="ml-3 block truncate font-normal group-data-[selected]:font-semibold"
+                                                className={typographyStyle}
                                             >
                                                 {option.value}
                                             </Typography>
                                         </div>
 
-                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-primary group-data-[focus]:text-white [.group:not([data-selected])_&]:hidden">
+                                        <span className={checkIconStyle}>
                                             <CheckIcon
                                                 aria-hidden="true"
                                                 className="h-5 w-5"

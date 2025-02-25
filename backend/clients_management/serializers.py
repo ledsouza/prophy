@@ -47,6 +47,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance: Equipment):
         representation = super().to_representation(instance)
         representation["modality"] = {
+            "id": instance.modality.id,
             "name": instance.modality.name,
             "accessory_type": instance.modality.accessory_type
         }
