@@ -1,30 +1,27 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
 import { equipmentSchema } from "@/schemas";
+import { SelectData } from "./Select";
 
+import { useCreateAddEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
+import { useCreateAccessoryMutation } from "@/redux/features/accessoryApiSlice";
 import {
-    useCreateAddEquipmentOperationMutation,
-    useDeleteEquipmentOperationMutation,
-} from "@/redux/features/equipmentApiSlice";
-import { isErrorWithMessages } from "@/redux/services/helpers";
+    AccessoryType,
+    useListModalitiesQuery,
+} from "@/redux/features/modalityApiSlice";
 
 import { Button, Spinner } from "@/components/common";
 import { Form, Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
-import { useEffect, useState } from "react";
-import {
-    AccessoryType,
-    useListModalitiesQuery,
-} from "@/redux/features/modalityApiSlice";
-import { SelectData } from "./Select";
-import { useCreateAccessoryMutation } from "@/redux/features/accessoryApiSlice";
 
 export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
 
@@ -64,7 +61,6 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
 
     const [createAddEquipmentOperation] =
         useCreateAddEquipmentOperationMutation();
-    const [deleteEquipmentOperation] = useDeleteEquipmentOperationMutation();
 
     const [createAccessory] = useCreateAccessoryMutation();
 
