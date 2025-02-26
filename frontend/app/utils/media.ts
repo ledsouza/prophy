@@ -1,16 +1,19 @@
-export function fetchPhoto(endpoint: string, setPhoto: (file: File) => void) {
-    fetch(process.env.NEXT_PUBLIC_HOST + endpoint)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const filename = endpoint.split("/").pop();
+export async function fetchPhoto(endpoint: string): Promise<File> {
+    try {
+        const response = await fetch(process.env.NEXT_PUBLIC_HOST + endpoint);
+        const blob = await response.blob();
 
-            if (!filename) {
-                throw new Error("Could not get filename from endpoint");
-            }
+        const filename = endpoint.split("/").pop();
 
-            const file = new File([blob], filename, {
-                type: blob.type,
-            });
-            setPhoto(file);
+        if (!filename) {
+            throw new Error("Could not get filename from endpoint");
+        }
+
+        return new File([blob], filename, {
+            type: blob.type,
         });
+    } catch (error) {
+        // Re-throw the error to allow the caller to handle it
+        throw error;
+    }
 }

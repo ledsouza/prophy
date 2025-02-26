@@ -1,5 +1,5 @@
 import { z } from "zod";
-import requiredFileSchema from "./file-schema";
+import requiredFileSchema from "./required-file-schema";
 import accessorySchema from "./accessory-schema";
 
 const equipmentSchema = z.object({
@@ -18,9 +18,7 @@ const equipmentSchema = z.object({
     anvisa_registry: z.string().max(30, {
         message: "Registro na ANVISA deve ter no máximo 30 caracteres.",
     }),
-    equipment_photo: requiredFileSchema,
-    label_photo: requiredFileSchema,
-    // accessories: z.array(accessorySchema),
+    accessories: z.array(accessorySchema),
 });
 
 export default equipmentSchema;

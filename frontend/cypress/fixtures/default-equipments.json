@@ -2,23 +2,23 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Mamografia",
-    "manufacturer": "Philips",
-    "model": "EXPEDITA-337",
-    "series_number": "JVuy-452176",
-    "anvisa_registry": "cShzfdScVCluv",
+    "manufacturer": "Siemens",
+    "model": "DICTA-217",
+    "series_number": "PSOu-151623",
+    "anvisa_registry": "OKMtxWAvcQTZJ",
     "equipment_photo": "/media/equipments/photos/mamografia.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_qKkHgMT.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_C4ceMFE.jpg",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Mamografia",
     "manufacturer": "Philips",
-    "model": "SINT-896",
-    "series_number": "vabx-100462",
-    "anvisa_registry": "mzondRBvxTbJd",
-    "equipment_photo": "/media/equipments/photos/mamografia_dKavtN1.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_ZgIYKjp.jpg",
+    "model": "ASPERNATUR-463",
+    "series_number": "cjQF-986131",
+    "anvisa_registry": "lAAUGHZeufIJn",
+    "equipment_photo": "/media/equipments/photos/mamografia_y7nlJQz.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_Ao8Uor8.jpg",
     "id": 1001
   }
 }

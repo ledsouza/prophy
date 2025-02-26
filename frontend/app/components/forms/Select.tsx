@@ -15,7 +15,6 @@ import {
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 import { Typography } from "@/components/foundation";
-import { Spinner } from "../common";
 
 export type SelectData = {
     id: number;
@@ -87,10 +86,7 @@ const Select = ({
     const [isRejected, setIsRejected] = useState(false);
 
     useEffect(() => {
-        if (
-            rejectedOperationIDs !== undefined &&
-            rejectedOperationIDs.size > 0
-        ) {
+        if (rejectedOperationIDs !== undefined && rejectedOperationIDs.size > 0) {
             setHasOperation(false);
             setIsRejected(true);
         } else if (operationsIDs !== undefined && operationsIDs.size > 0) {
@@ -150,25 +146,15 @@ const Select = ({
                                     "text-primary",
                                     "data-[focus]:bg-primary data-[focus]:text-white",
                                     {
-                                        "animate-warning": operationsIDs?.has(
-                                            option.id
-                                        ),
-                                        "animate-danger":
-                                            rejectedOperationIDs?.has(
-                                                option.id
-                                            ),
+                                        "animate-warning": operationsIDs?.has(option.id),
+                                        "animate-danger": rejectedOperationIDs?.has(option.id),
                                     },
                                     listOptionStyles
                                 );
 
-                                const typographyStyle = cn(
-                                    "block truncate",
-                                    "ml-3",
-                                    {
-                                        "font-semibold":
-                                            selectedData.id === option.id,
-                                    }
-                                );
+                                const typographyStyle = cn("block truncate", "ml-3", {
+                                    "font-semibold": selectedData.id === option.id,
+                                });
 
                                 const checkIconStyle = cn(
                                     "absolute",
@@ -198,10 +184,7 @@ const Select = ({
                                         </div>
 
                                         <span className={checkIconStyle}>
-                                            <CheckIcon
-                                                aria-hidden="true"
-                                                className="h-5 w-5"
-                                            />
+                                            <CheckIcon aria-hidden="true" className="h-5 w-5" />
                                         </span>
                                     </ListboxOption>
                                 );

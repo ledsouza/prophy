@@ -1,21 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-import { equipmentSchema } from "@/schemas";
-import { SelectData } from "./Select";
+import { accessorySchema, equipmentSchema, requiredFileSchema } from "@/schemas";
 
 import { useCreateAddEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
 import { useCreateAccessoryMutation } from "@/redux/features/accessoryApiSlice";
-import {
-    AccessoryType,
-    useListModalitiesQuery,
-} from "@/redux/features/modalityApiSlice";
+import { AccessoryType } from "@/redux/features/modalityApiSlice";
 
 import { Button, Spinner } from "@/components/common";
 import { Form, Input, Select } from "@/components/forms";
@@ -23,8 +19,20 @@ import { Typography } from "@/components/foundation";
 import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useModality } from "@/hooks/use-modality";
+import { displayPluralAccessoryType, displaySingularAccessoryType } from "@/utils/format";
 
-export type AddEquipmentFields = z.infer<typeof equipmentSchema>;
+const addAccessorySchema = accessorySchema.extend({
+    equipment_photo: requiredFileSchema,
+    label_photo: requiredFileSchema,
+});
+
+const addEquipmentSchema = equipmentSchema.extend({
+    equipment_photo: requiredFileSchema,
+    label_photo: requiredFileSchema,
+    accessories: z.array(addAccessorySchema),
+});
+
+export type AddEquipmentFields = z.infer<typeof addEquipmentSchema>;
 
 type AddEquipmentFormProps = {
     unitId: number;
@@ -43,7 +51,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         getValues,
         formState: { errors, isSubmitting },
     } = useForm<AddEquipmentFields>({
-        resolver: zodResolver(equipmentSchema),
+        resolver: zodResolver(addEquipmentSchema),
         defaultValues: {
             accessories: [],
         },
@@ -63,8 +71,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         isLoadingModalities,
     } = useModality(setValue);
 
-    const [createAddEquipmentOperation] =
-        useCreateAddEquipmentOperationMutation();
+    const [createAddEquipmentOperation] = useCreateAddEquipmentOperationMutation();
 
     const [createAccessory] = useCreateAccessoryMutation();
 
@@ -83,10 +90,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         accessoryFormData.append("manufacturer", manufacturer);
         accessoryFormData.append("model", accessory.model);
         accessoryFormData.append("series_number", accessory.series_number);
-        accessoryFormData.append(
-            "equipment_photo",
-            accessory.equipment_photo[0]
-        );
+        accessoryFormData.append("equipment_photo", accessory.equipment_photo[0]);
         accessoryFormData.append("label_photo", accessory.label_photo[0]);
         accessoryFormData.append("equipment", equipmentID.toString());
         accessoryFormData.append("category", accessoryType.toString());
@@ -114,11 +118,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
 
         await Promise.all(
             accessories.map(async (accessory) => {
-                await handleCreateAccessory(
-                    accessory,
-                    manufacturer,
-                    equipmentID
-                );
+                await handleCreateAccessory(accessory, manufacturer, equipmentID);
             })
         );
     };
@@ -144,14 +144,10 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         formData.append("label_photo", data.label_photo[0]);
 
         try {
-            const equipmentResponse = await createAddEquipmentOperation(
-                formData
-            );
+            const equipmentResponse = await createAddEquipmentOperation(formData);
 
             if (equipmentResponse.error) {
-                throw new Error(
-                    `Error creating equipment: ${equipmentResponse.error}`
-                );
+                throw new Error(`Error creating equipment: ${equipmentResponse.error}`);
             }
 
             await handleCreateAccessories(
@@ -165,9 +161,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         } catch (error) {
             if (error instanceof AccessoryCreationError) {
                 console.error("Accessory creation error:", error.message);
-                toast.error(
-                    "Erro ao criar acessório. Verifique os dados e tente novamente."
-                );
+                toast.error("Erro ao criar acessório. Verifique os dados e tente novamente.");
             } else if (error instanceof Error) {
                 console.error("Failed to create equipment:", error.message);
                 toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -207,11 +201,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 ) : (
                     <div className="flex flex-col items-center">
                         <Spinner md />
-                        <Typography
-                            element="p"
-                            size="md"
-                            className="text-center"
-                        >
+                        <Typography element="p" size="md" className="text-center">
                             Carregando opções de modalidade...
                         </Typography>
                     </div>
@@ -280,15 +270,12 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         );
     };
 
-    const renderAccessoryInputs = (
-        accessoryIndex: number,
-        remove: (index: number) => void
-    ) => {
+    const renderAccessoryInputs = (accessoryIndex: number, remove: (index: number) => void) => {
         return (
             <div key={accessoryIndex} className="flex flex-col gap-4">
                 <div className="flex justify-between gap-24 items-center">
                     <Typography element="h3" className="font-semibold">
-                        Acessório&nbsp;{accessoryIndex + 1}
+                        {displaySingularAccessoryType(accessoryType!)}&nbsp;{accessoryIndex + 1}
                     </Typography>
 
                     <Button
@@ -306,9 +293,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 <Input
                     {...register(`accessories.${accessoryIndex}.model`)}
                     type="text"
-                    errorMessage={
-                        errors.accessories?.[accessoryIndex]?.model?.message
-                    }
+                    errorMessage={errors.accessories?.[accessoryIndex]?.model?.message}
                     placeholder="Digite o nome do modelo"
                     data-testid="equipment-model-input"
                 >
@@ -318,10 +303,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 <Input
                     {...register(`accessories.${accessoryIndex}.series_number`)}
                     type="text"
-                    errorMessage={
-                        errors.accessories?.[accessoryIndex]?.series_number
-                            ?.message
-                    }
+                    errorMessage={errors.accessories?.[accessoryIndex]?.series_number?.message}
                     placeholder="Digite o número de série, se houver"
                     data-testid="equipment-series-number-input"
                 >
@@ -329,15 +311,10 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 </Input>
 
                 <Input
-                    {...register(
-                        `accessories.${accessoryIndex}.equipment_photo`
-                    )}
+                    {...register(`accessories.${accessoryIndex}.equipment_photo`)}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png"
-                    errorMessage={
-                        errors.accessories?.[accessoryIndex]?.equipment_photo
-                            ?.message
-                    }
+                    errorMessage={errors.accessories?.[accessoryIndex]?.equipment_photo?.message}
                     data-testid="equipment-photo-input"
                 >
                     Foto do equipamento
@@ -347,10 +324,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     {...register(`accessories.${accessoryIndex}.label_photo`)}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png"
-                    errorMessage={
-                        errors.accessories?.[accessoryIndex]?.label_photo
-                            ?.message
-                    }
+                    errorMessage={errors.accessories?.[accessoryIndex]?.label_photo?.message}
                     data-testid="equipment-label-input"
                 >
                     Foto do rótulo do equipamento
@@ -427,16 +401,6 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 <Button
                     type="button"
                     disabled={isSubmitting}
-                    onClick={() => setAddAccessory(false)}
-                    variant="secondary"
-                    data-testid="cancel-btn"
-                    className="w-full"
-                >
-                    Voltar
-                </Button>
-                <Button
-                    type="button"
-                    disabled={isSubmitting}
                     onClick={() =>
                         append({
                             model: "",
@@ -445,10 +409,21 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                             label_photo: new DataTransfer().files,
                         })
                     }
+                    variant="secondary"
                     data-testid="submit-btn"
                     className="w-full"
                 >
-                    Adicionar um acessório
+                    Adicionar um {displaySingularAccessoryType(accessoryType!)}
+                </Button>
+                <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setAddAccessory(false)}
+                    variant="primary"
+                    data-testid="cancel-btn"
+                    className="w-full"
+                >
+                    Concluir
                 </Button>
             </div>
         );
@@ -463,40 +438,31 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
-                <Typography
-                    element="h3"
-                    size="title3"
-                    className="font-semibold"
-                >
+                <Typography element="h3" size="title3" className="font-semibold">
                     Informe os dados do equipamento
                 </Typography>
                 <Typography element="p" size="md" className="text-justify">
-                    Por favor, preencha os campos abaixo com as informações do
-                    equipamento, certificando-se de preencher as informações
-                    corretamente. Após a submissão, o formulário será enviado
-                    para análise de um físico médico responsável, que fará a
+                    Por favor, preencha os campos abaixo com as informações do equipamento,
+                    certificando-se de preencher as informações corretamente. Após a submissão, o
+                    formulário será enviado para análise de um físico médico responsável, que fará a
                     revisão e validação das informações fornecidas.
                 </Typography>
 
                 {!addAccessory && (
                     <Typography element="p" size="md" className="text-justify">
-                        Alguns equipamentos podem possuir acessórios. Caso o
-                        equipamento que você deseja requisitar possua
-                        acessórios, clique no botão "Acessórios" para adicionar
-                        os acessórios necessários.
+                        Alguns equipamentos podem possuir acessórios. Caso o equipamento que você
+                        deseja requisitar possua acessórios, clique no botão "Acessórios" para
+                        adicionar os acessórios necessários.
                     </Typography>
                 )}
 
                 {!addAccessory && renderEquipmentInputs()}
-                {addAccessory &&
-                    fields.map((_, index) =>
-                        renderAccessoryInputs(index, remove)
-                    )}
+                {addAccessory && fields.map((_, index) => renderAccessoryInputs(index, remove))}
 
                 {addAccessory && fields.length === 0 && (
                     <Typography element="p" className="font-semibold">
-                        Nenhum acessório adicionado. Clique em "Adicionar um
-                        acessório" para adicionar um acessório.
+                        Nenhum acessório adicionado. Clique em "Adicionar um{" "}
+                        {displaySingularAccessoryType(accessoryType!)}" para adicionar um acessório.
                     </Typography>
                 )}
 
@@ -511,16 +477,13 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                         <div>
                             <Typography element="p">
                                 {getValues(`accessories.${index}.model`) === ""
-                                    ? "Acessório " + (index + 1)
+                                    ? displaySingularAccessoryType(accessoryType!) +
+                                      " " +
+                                      (index + 1)
                                     : getValues(`accessories.${index}.model`)}
-                                {getValues(
-                                    `accessories.${index}.series_number`
-                                ) === ""
+                                {getValues(`accessories.${index}.series_number`) === ""
                                     ? ""
-                                    : " - " +
-                                      getValues(
-                                          `accessories.${index}.series_number`
-                                      )}
+                                    : " - " + getValues(`accessories.${index}.series_number`)}
                             </Typography>
 
                             <Typography element="span" variant="danger">
