@@ -3,7 +3,7 @@ import { z } from "zod";
 const MAX_FILE_SIZE = 5000000; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
-const requiredFileSchema = z.custom<FileList>().superRefine((file, ctx) => {
+const optionalFileSchema = z.custom<FileList | null>().superRefine((file, ctx) => {
     // File is optional
     if (!file || file.length === 0) {
         return;
@@ -35,4 +35,4 @@ const requiredFileSchema = z.custom<FileList>().superRefine((file, ctx) => {
     }
 });
 
-export default requiredFileSchema;
+export default optionalFileSchema;

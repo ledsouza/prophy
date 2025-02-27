@@ -29,6 +29,7 @@ type SelectProps = {
     operationsIDs?: Set<number>;
     rejectedOperationIDs?: Set<number>;
     listBoxStyles?: string;
+    listBoxButtonStyles?: string;
     listBoxButtonSize?: "sm" | "md" | "lg";
     listOptionStyles?: string;
     listOptionSize?: "sm" | "md" | "lg";
@@ -50,7 +51,13 @@ type SelectProps = {
  * @param {Set<number>} [props.operationsIDs] - Set of option IDs that should show a warning state
  * @param {Set<number>} [props.rejectedOperationIDs] - Set of option IDs that should show an error state
  * @param {string} [props.listBoxStyles] - Additional CSS classes for the listbox container
+ * @param {string} [props.listBoxButtonStyles] - Additional CSS classes for the listbox button
+ * @param {'sm' | 'md' | 'lg'} [props.listBoxButtonSize] - Size of the listbox button text
  * @param {string} [props.listOptionStyles] - Additional CSS classes for the list options
+ * @param {'sm' | 'md' | 'lg'} [props.listOptionSize] - Size of the list option text
+ * @param {string} [props.labelStyles] - Additional CSS classes for the label
+ * @param {'sm' | 'md' | 'lg'} [props.labelSize] - Size of the label text
+ * @param {boolean} [props.disabled] - Whether the select is disabled
  * @param {string} [props.dataTestId] - Test ID for testing purposes
  *
  * @example
@@ -60,6 +67,9 @@ type SelectProps = {
  *   selectedData={{ id: 1, value: 'Option 1' }}
  *   setSelect={(value) => handleSelect(value)}
  *   label="Select an option"
+ *   listBoxButtonSize="md"
+ *   listOptionSize="md"
+ *   labelSize="md"
  * />
  * ```
  *
@@ -74,6 +84,7 @@ const Select = ({
     operationsIDs,
     rejectedOperationIDs,
     listBoxStyles = "",
+    listBoxButtonStyles = "",
     listBoxButtonSize = "md",
     listOptionStyles = "",
     listOptionSize = "md",
@@ -107,7 +118,8 @@ const Select = ({
         {
             "animate-warning": hasOperation,
             "animate-danger": isRejected,
-        }
+        },
+        listBoxButtonStyles
     );
 
     return (

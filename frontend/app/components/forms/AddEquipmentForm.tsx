@@ -7,19 +7,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
+import AccessoryCreationError from "@/errors/accessory-error";
 import { accessorySchema, equipmentSchema, requiredFileSchema } from "@/schemas";
 
 import { useCreateAddEquipmentOperationMutation } from "@/redux/features/equipmentApiSlice";
 import { useCreateAccessoryMutation } from "@/redux/features/accessoryApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
+import { closeModal } from "@/redux/features/modalSlice";
+import { useAppDispatch } from "@/redux/hooks";
+
+import { displaySingularAccessoryType } from "@/utils/format";
+import { useModality } from "@/hooks/use-modality";
 
 import { Button, Spinner } from "@/components/common";
 import { Form, Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { useAppDispatch } from "@/redux/hooks";
-import { closeModal } from "@/redux/features/modalSlice";
-import { useModality } from "@/hooks/use-modality";
-import { displayPluralAccessoryType, displaySingularAccessoryType } from "@/utils/format";
 
 const addAccessorySchema = accessorySchema.extend({
     equipment_photo: requiredFileSchema,

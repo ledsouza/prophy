@@ -656,7 +656,7 @@ class Command(BaseCommand):
                 equipments = EquipmentOperation.objects.all()
                 for equipment in equipments:
                     modality = equipment.modality
-                    if modality.accessory_type != Modality.AccessoryType.NONE:
+                    if modality.accessory_type == Modality.AccessoryType.NONE:
                         continue
                     Accessory.objects.create(
                         equipment=equipment,

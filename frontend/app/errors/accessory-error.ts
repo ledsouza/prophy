@@ -4,3 +4,5 @@ class AccessoryCreationError extends Error {
         this.name = "AccessoryCreationError";
     }
 }
+
+export default AccessoryCreationError;

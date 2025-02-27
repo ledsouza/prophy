@@ -7,25 +7,30 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
+import AccessoryCreationError from "@/errors/accessory-error";
 import { accessorySchema, equipmentSchema, optionalFileSchema } from "@/schemas";
 
-import { isErrorWithMessages } from "@/redux/services/helpers";
 import {
     EquipmentDTO,
+    EquipmentOperationDTO,
     useCreateEditEquipmentOperationMutation,
 } from "@/redux/features/equipmentApiSlice";
-import { AccessoryDTO, useGetAccessoriesQuery } from "@/redux/features/accessoryApiSlice";
+import {
+    AccessoryDTO,
+    useCreateAccessoryMutation,
+    useGetAccessoriesQuery,
+} from "@/redux/features/accessoryApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useAppDispatch } from "@/redux/hooks";
 
 import { fetchPhoto } from "@/utils/media";
+import { displaySingularAccessoryType } from "@/utils/format";
 import { useModality } from "@/hooks/use-modality";
 
 import { Button, Spinner } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { Form, Input, Select } from "@/components/forms";
-import { displaySingularAccessoryType } from "@/utils/format";
 
 const editAccessorySchema = accessorySchema
     .extend({
@@ -74,9 +79,6 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
     const [equipmentLabelPhotoFile, setEquipmentLabelPhotoFile] = useState<File | null>(null);
 
     const [filteredAccessories, setFilteredAccessories] = useState<AccessoryDTO[]>([]);
-    const [filteredFormAccessories, setFilteredFormAccessories] = useState<
-        z.infer<typeof editAccessorySchema>[]
-    >([]);
 
     const [editAccessories, setEditAccessories] = useState(false);
 
@@ -100,7 +102,6 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
             model: originalEquipment.model,
             series_number: originalEquipment.series_number,
             anvisa_registry: originalEquipment.anvisa_registry,
-            accessories: filteredFormAccessories,
         },
     });
 
@@ -119,6 +120,7 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
     } = useModality(setValue, originalEquipment.modality);
 
     const [createEditEquipmentOperation] = useCreateEditEquipmentOperationMutation();
+    const [createAccessory] = useCreateAccessoryMutation();
 
     const handleAccessoryPhoto = async (endpoint: string) => {
         const accessoryPhoto = await fetchPhoto(endpoint);
@@ -200,6 +202,110 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
 
         // Return true only if both equipment and accessories are the same
         return sameEquipment && sameAccessories;
+    };
+
+    const createEquipmentForm = (data: EditEquipmentFields) => {
+        const equipmentFormData = new FormData();
+
+        // Handle text fields
+        equipmentFormData.append("original_equipment", originalEquipment.id.toString());
+        equipmentFormData.append("unit", originalEquipment.unit.toString());
+        equipmentFormData.append("modality", data.modality.toString());
+        equipmentFormData.append("manufacturer", data.manufacturer);
+        equipmentFormData.append("model", data.model);
+        equipmentFormData.append("series_number", data.series_number);
+        equipmentFormData.append("anvisa_registry", data.anvisa_registry);
+
+        // Handle file uploads - check if files exist before appending
+        if (data.equipment_photo?.[0]) {
+            equipmentFormData.append("equipment_photo", data.equipment_photo[0]);
+        } else if (equipmentPhotoFile) {
+            equipmentFormData.append("equipment_photo", equipmentPhotoFile);
+        }
+
+        if (data.label_photo?.[0]) {
+            equipmentFormData.append("label_photo", data.label_photo[0]);
+        } else if (equipmentLabelPhotoFile) {
+            equipmentFormData.append("label_photo", equipmentLabelPhotoFile);
+        }
+
+        return equipmentFormData;
+    };
+
+    const createAccessoryForm = () => {
+        const accessoriesFormData: FormData[] = [];
+        const accessoriesFields = getValues("accessories");
+
+        // Set the accessories to check if there is any change in the data
+        accessoriesFields.forEach(async (accessory, index) => {
+            const accessoryFormData = new FormData();
+            accessoryFormData.append("model", accessory.model);
+            accessoryFormData.append("series_number", accessory.series_number);
+
+            // Check if the user uploaded a new photo to append.
+            // Otherwise, use the original photo.
+            if (accessory.equipment_photo?.[0]) {
+                accessoryFormData.append("equipment_photo", accessory.equipment_photo[0]);
+            } else if (filteredAccessories[index]?.equipment_photo) {
+                const equipmentPhotoFile = await handleAccessoryPhoto(
+                    filteredAccessories[index].equipment_photo
+                );
+                accessoryFormData.append("equipment_photo", equipmentPhotoFile);
+            }
+
+            if (accessory.label_photo?.[0]) {
+                accessoryFormData.append("label_photo", accessory.label_photo[0]);
+            } else if (filteredAccessories[index]?.label_photo) {
+                const equipmentLabelPhotoFile = await handleAccessoryPhoto(
+                    filteredAccessories[index].label_photo
+                );
+                accessoryFormData.append("label_photo", equipmentLabelPhotoFile);
+            }
+
+            accessoriesFormData.push(accessoryFormData);
+        });
+
+        return accessoriesFormData;
+    };
+
+    const updateAccessoryForm = (accessoriesForm: FormData[], equipment: EquipmentOperationDTO) => {
+        const updatedAccessoriesForm = accessoriesForm.map((formData) => {
+            formData.append("manufacturer", equipment.manufacturer);
+            formData.append("category", accessoryType ? accessoryType : AccessoryType.NONE);
+            formData.append("equipment", equipment.id.toString());
+            return formData;
+        });
+        return updatedAccessoriesForm;
+    };
+
+    const handleCreateAccessory = async (accessoriesForm: FormData[]) => {
+        const creationPromises = accessoriesForm.map(async (formData) => {
+            try {
+                const response = await createAccessory(formData);
+                if (response.error) {
+                    return { success: false, error: JSON.stringify(response.error) };
+                }
+                return { success: true, data: response };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error instanceof Error ? error.message : JSON.stringify(error),
+                };
+            }
+        });
+
+        // Wait for all creation attempts to complete
+        const results = await Promise.all(creationPromises);
+
+        // Collect all errors from failed attempts
+        const errors = results.filter((result) => !result.success).map((result) => result.error);
+
+        // If there are any errors, throw a single error with all details
+        if (errors.length > 0) {
+            throw new AccessoryCreationError(`Errors creating accessories: ${errors.join(", ")}`);
+        }
+
+        return results;
     };
 
     const renderEquipmentInputs = () => {
@@ -482,84 +588,41 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
             return;
         }
 
-        const equipmentFormData = new FormData();
-        const accessoriesFormData: FormData[] = [];
-
-        // Handle text fields
-        equipmentFormData.append("original_equipment", originalEquipment.id.toString());
-        equipmentFormData.append("unit", originalEquipment.unit.toString());
-        equipmentFormData.append("modality", data.modality.toString());
-        equipmentFormData.append("manufacturer", data.manufacturer);
-        equipmentFormData.append("model", data.model);
-        equipmentFormData.append("series_number", data.series_number);
-        equipmentFormData.append("anvisa_registry", data.anvisa_registry);
-
-        // Set the accessories to check if there is any change in the data
-        fields.forEach(async (accessory, index) => {
-            const accessoryFormData = new FormData();
-            accessoryFormData.append("model", accessory.model);
-            accessoryFormData.append("series_number", accessory.series_number);
-
-            // Check if the user uploaded a new photo to append.
-            // Otherwise, use the original photo.
-            if (accessory.equipment_photo?.[0]) {
-                accessoryFormData.append("equipment_photo", accessory.equipment_photo[0]);
-            } else if (filteredAccessories[index].equipment_photo) {
-                const equipmentPhotoFile = await handleAccessoryPhoto(
-                    filteredAccessories[index].equipment_photo
-                );
-                accessoryFormData.append("equipment_photo", equipmentPhotoFile);
-            }
-
-            if (accessory.label_photo?.[0]) {
-                accessoryFormData.append("label_photo", accessory.label_photo[0]);
-            } else if (filteredAccessories[index].label_photo) {
-                const equipmentLabelPhotoFile = await handleAccessoryPhoto(
-                    filteredAccessories[index].label_photo
-                );
-                accessoryFormData.append("label_photo", equipmentLabelPhotoFile);
-            }
-
-            accessoriesFormData.push(accessoryFormData);
-        });
-
-        // Handle file uploads - check if files exist before appending
-        if (data.equipment_photo?.[0]) {
-            equipmentFormData.append("equipment_photo", data.equipment_photo[0]);
-        } else if (equipmentPhotoFile) {
-            equipmentFormData.append("equipment_photo", equipmentPhotoFile);
-        }
-
-        if (data.label_photo?.[0]) {
-            equipmentFormData.append("label_photo", data.label_photo[0]);
-        } else if (equipmentLabelPhotoFile) {
-            equipmentFormData.append("label_photo", equipmentLabelPhotoFile);
-        }
+        const equipmentFormData = createEquipmentForm(data);
+        const accessoriesFormData = createAccessoryForm();
 
         if (isSameData(equipmentFormData, accessoriesFormData)) {
-            return toast.warning("Nenhuma alteração foi detectada nos dados.");
+            toast.warning("Nenhuma alteração foi detectada nos dados.");
+            return;
         }
 
-        console.log(data);
+        try {
+            const equipmentResponse = await createEditEquipmentOperation(equipmentFormData);
 
-        // try {
-        //     const response = await createEditEquipmentOperation(equipmentFormData);
-        //     console.log(response);
+            if (equipmentResponse.error) {
+                throw new Error(`Error creating equipment: ${equipmentResponse.error}`);
+            }
 
-        //     if (response.error) {
-        //         if (isErrorWithMessages(response.error)) {
-        //             toast.error(response.error.data.messages[0]);
-        //             return;
-        //         }
+            const updatedAcessoriesFormData = updateAccessoryForm(
+                accessoriesFormData,
+                equipmentResponse.data
+            );
+            await handleCreateAccessory(updatedAcessoriesFormData);
 
-        //         return toast.error("Algo deu errado. Tente novamente mais tarde.");
-        //     }
-
-        //     toast.success("Requisição enviada com sucesso!");
-        //     dispatch(closeModal());
-        // } catch (error) {
-        //     toast.error("Algo deu errado. Tente novamente mais tarde.");
-        // }
+            toast.success("Requisição enviada com sucesso!");
+            dispatch(closeModal());
+        } catch (error) {
+            if (error instanceof AccessoryCreationError) {
+                console.error("Accessory creation error:", error.message);
+                toast.error("Erro ao criar acessório. Verifique os dados e tente novamente.");
+            } else if (error instanceof Error) {
+                console.error("Failed to create equipment:", error.message);
+                toast.error("Algo deu errado. Tente novamente mais tarde.");
+            } else {
+                console.error("Failed to create equipment:", error);
+                toast.error("Algo deu errado. Tente novamente mais tarde.");
+            }
+        }
     };
 
     // Convert accessories to form data type
@@ -568,12 +631,13 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
             return;
         }
 
-        setFilteredFormAccessories(
+        setValue(
+            "accessories",
             filteredAccessories.map((accessory) => ({
                 model: accessory.model,
                 series_number: accessory.series_number,
-                equipment_photo: new FileList(),
-                label_photo: new FileList(),
+                equipment_photo: null,
+                label_photo: null,
                 original_equipment_photo: accessory.equipment_photo || undefined,
                 original_label_photo: accessory.label_photo || undefined,
             }))

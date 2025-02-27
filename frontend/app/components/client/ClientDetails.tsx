@@ -49,15 +49,10 @@ function ClientDetails({
     const dispatch = useAppDispatch();
     const { isStaff } = useStaff();
 
-    const [reviewOperationsIDs, setReviewOperationsIDs] = useState<Set<number>>(
-        new Set()
-    );
-    const [rejectedOperationsIDs, setRejectedOperationsIDs] = useState<
-        Set<number>
-    >(new Set());
+    const [reviewOperationsIDs, setReviewOperationsIDs] = useState<Set<number>>(new Set());
+    const [rejectedOperationsIDs, setRejectedOperationsIDs] = useState<Set<number>>(new Set());
 
-    const { data: units, isLoading: isPaginatingUnits } =
-        useListAllUnitsQuery();
+    const { data: units, isLoading: isPaginatingUnits } = useListAllUnitsQuery();
 
     const { data: clientsOperations, isLoading: isLoadingClientsOperations } =
         useListAllClientsOperationsQuery();
@@ -65,10 +60,8 @@ function ClientDetails({
     const { data: unitsOperations, isLoading: isLoadingUnitsOperations } =
         useListAllUnitsOperationsQuery();
 
-    const {
-        data: equipmentsOperations,
-        isLoading: isLoadingEquipmentsOperations,
-    } = useListAllEquipmentsOperationsQuery();
+    const { data: equipmentsOperations, isLoading: isLoadingEquipmentsOperations } =
+        useListAllEquipmentsOperationsQuery();
 
     const [deleteClientOperation] = useDeleteClientOperationMutation();
 
@@ -82,9 +75,7 @@ function ClientDetails({
         setLoadingCancel(true);
 
         try {
-            const response = await deleteClientOperation(
-                selectedClientInOperation.id
-            );
+            const response = await deleteClientOperation(selectedClientInOperation.id);
             if (isResponseError(response)) {
                 if (response.error.status === 404) {
                     return toast.error(
@@ -130,8 +121,7 @@ function ClientDetails({
 
         const clientIDsFromClientOpsReview = (
             clientsOperations?.filter(
-                (operation) =>
-                    operation.operation_status === OperationStatus.REVIEW
+                (operation) => operation.operation_status === OperationStatus.REVIEW
             ) || []
         )
             .map((operation) => operation.original_client)
@@ -143,8 +133,7 @@ function ClientDetails({
         } else {
             clientIDsFromClientOpsRejected = (
                 clientsOperations?.filter(
-                    (operation) =>
-                        operation.operation_status === OperationStatus.REJECTED
+                    (operation) => operation.operation_status === OperationStatus.REJECTED
                 ) || []
             )
                 .map((operation) => operation.original_client)
@@ -153,8 +142,7 @@ function ClientDetails({
 
         const clientIDsFromUnitOpsReview = (
             unitsOperations?.filter(
-                (operation) =>
-                    operation.operation_status === OperationStatus.REVIEW
+                (operation) => operation.operation_status === OperationStatus.REVIEW
             ) || []
         ).map((operation) => operation.client);
 
@@ -164,8 +152,7 @@ function ClientDetails({
         } else {
             clientIDsFromUnitOpsRejected = (
                 unitsOperations?.filter(
-                    (operation) =>
-                        operation.operation_status === OperationStatus.REJECTED
+                    (operation) => operation.operation_status === OperationStatus.REJECTED
                 ) || []
             ).map((operation) => operation.client);
         }
@@ -173,8 +160,7 @@ function ClientDetails({
         const unitIDsFromEquipmentOpsReview = new Set(
             (
                 equipmentsOperations?.filter(
-                    (operation) =>
-                        operation.operation_status === OperationStatus.REVIEW
+                    (operation) => operation.operation_status === OperationStatus.REVIEW
                 ) || []
             ).map((operation) => operation.unit)
         );
@@ -185,8 +171,7 @@ function ClientDetails({
                 (
                     equipmentsOperations?.filter(
                         (operation) =>
-                            operation.operation_status ===
-                                OperationStatus.REJECTED &&
+                            operation.operation_status === OperationStatus.REJECTED &&
                             operation.operation_type !== OperationType.ADD
                     ) || []
                 ).map((operation) => operation.unit)
@@ -195,9 +180,7 @@ function ClientDetails({
             unitIDsFromEquipmentOpsRejected = new Set(
                 (
                     equipmentsOperations?.filter(
-                        (operation) =>
-                            operation.operation_status ===
-                            OperationStatus.REJECTED
+                        (operation) => operation.operation_status === OperationStatus.REJECTED
                     ) || []
                 ).map((operation) => operation.unit)
             );
@@ -211,12 +194,8 @@ function ClientDetails({
             unitIDsFromEquipmentOpsRejected.has(unit.id)
         );
 
-        const clientIDsFromUnitsReview = relevantUnitsReview.map(
-            (unit) => unit.client
-        );
-        const clientIDsFromUnitsRejected = relevantUnitsRejected.map(
-            (unit) => unit.client
-        );
+        const clientIDsFromUnitsReview = relevantUnitsReview.map((unit) => unit.client);
+        const clientIDsFromUnitsRejected = relevantUnitsRejected.map((unit) => unit.client);
 
         const aggregatedClientIDsReview = [
             ...clientIDsFromClientOpsReview,
@@ -248,12 +227,7 @@ function ClientDetails({
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
-            <Typography
-                element="h2"
-                size="title2"
-                className="font-bold"
-                dataTestId="client-header"
-            >
+            <Typography element="h2" size="title2" className="font-bold" dataTestId="client-header">
                 {title}
             </Typography>
 
@@ -265,6 +239,7 @@ function ClientDetails({
                     operationsIDs={reviewOperationsIDs}
                     rejectedOperationIDs={rejectedOperationsIDs}
                     listBoxStyles="mb-4"
+                    listBoxButtonStyles="pl-2"
                     listBoxButtonSize="lg"
                     dataTestId="client-options"
                 />
@@ -279,8 +254,7 @@ function ClientDetails({
                 </Typography>
                 <div className="flex flex-col gap-2 w-full mt-2">
                     {selectedClientInOperation &&
-                        selectedClientInOperation.operation_status ===
-                            OperationStatus.REJECTED &&
+                        selectedClientInOperation.operation_status === OperationStatus.REJECTED &&
                         !isStaff && (
                             <>
                                 <Typography variant="danger">
@@ -298,8 +272,7 @@ function ClientDetails({
                         )}
 
                     {selectedClientInOperation &&
-                        selectedClientInOperation.operation_status ===
-                            OperationStatus.REJECTED &&
+                        selectedClientInOperation.operation_status === OperationStatus.REJECTED &&
                         isStaff && (
                             <Button
                                 variant="secondary"
@@ -312,8 +285,7 @@ function ClientDetails({
                         )}
 
                     {selectedClientInOperation &&
-                        selectedClientInOperation.operation_status ===
-                            OperationStatus.REVIEW && (
+                        selectedClientInOperation.operation_status === OperationStatus.REVIEW && (
                             <>
                                 <Typography variant="secondary">
                                     Requisição de alteração em análise
@@ -321,9 +293,7 @@ function ClientDetails({
                                 <Button
                                     variant={isStaff ? "primary" : "danger"}
                                     className="flex-grow"
-                                    onClick={
-                                        isStaff ? handleReview : handleCancel
-                                    }
+                                    onClick={isStaff ? handleReview : handleCancel}
                                     disabled={loadingCancel}
                                     data-testid={
                                         isStaff
@@ -331,9 +301,7 @@ function ClientDetails({
                                             : "btn-cancel-edit-client"
                                     }
                                 >
-                                    {isStaff
-                                        ? "Revisar requisição"
-                                        : "Cancelar requisição"}
+                                    {isStaff ? "Revisar requisição" : "Cancelar requisição"}
                                 </Button>
                             </>
                         )}
