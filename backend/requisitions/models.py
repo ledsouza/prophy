@@ -290,6 +290,10 @@ class EquipmentOperation(BaseOperation, Equipment):
         """
         Update the original equipment accessories.
         """
+        original_accessories = Accessory.objects.filter(
+            equipment=self.original_equipment)
+        original_accessories.delete()
+
         accessories = Accessory.objects.filter(equipment=self.equipment_ptr)
         for accessory in accessories:
             accessory.equipment = self.original_equipment

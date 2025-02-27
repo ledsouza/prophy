@@ -2,23 +2,23 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Mamografia",
-    "manufacturer": "GE",
-    "model": "EUM-782",
-    "series_number": "yuWe-992493",
-    "anvisa_registry": "MUyLtxawleLZc",
+    "manufacturer": "Philips",
+    "model": "ANIMI-482",
+    "series_number": "SipZ-106605",
+    "anvisa_registry": "XTWWynySwJHOC",
     "equipment_photo": "/media/equipments/photos/mamografia.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_tx1CbQm.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_jIShI22.jpg",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Mamografia",
-    "manufacturer": "GE",
-    "model": "EXERCITATIONEM-617",
-    "series_number": "FYCH-219739",
-    "anvisa_registry": "WpMWCrmbRdYBE",
-    "equipment_photo": "/media/equipments/photos/mamografia_GyOG3Qg.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_xaEcYIy.jpg",
+    "manufacturer": "Toshiba",
+    "model": "REPREHENDERIT-165",
+    "series_number": "wLEj-174909",
+    "anvisa_registry": "SolbKicHOjHCR",
+    "equipment_photo": "/media/equipments/photos/mamografia_DHIdx4s.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_EeHJkPM.jpg",
     "id": 1001
   }
 }
