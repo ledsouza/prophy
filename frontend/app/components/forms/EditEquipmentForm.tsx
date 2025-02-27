@@ -171,12 +171,6 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
                 return false;
             }
 
-            // If the length is equal and accessoriesFormData length is zero
-            // there is no reason to compare any data
-            if (accessoriesFormData.length === 0) {
-                return true;
-            }
-
             const originalAccessory = filteredAccessories[index];
 
             // Check each field in the accessory form data
@@ -232,18 +226,14 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         return equipmentFormData;
     };
 
-    const createAccessoryForm = () => {
-        const accessoriesFormData: FormData[] = [];
+    const createAccessoryForm = async () => {
         const accessoriesFields = getValues("accessories");
 
-        // Set the accessories to check if there is any change in the data
-        accessoriesFields.forEach(async (accessory, index) => {
+        const accessoriesFormDataPromises = accessoriesFields.map(async (accessory, index) => {
             const accessoryFormData = new FormData();
             accessoryFormData.append("model", accessory.model);
             accessoryFormData.append("series_number", accessory.series_number);
 
-            // Check if the user uploaded a new photo to append.
-            // Otherwise, use the original photo.
             if (accessory.equipment_photo?.[0]) {
                 accessoryFormData.append("equipment_photo", accessory.equipment_photo[0]);
             } else if (filteredAccessories[index]?.equipment_photo) {
@@ -262,9 +252,10 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
                 accessoryFormData.append("label_photo", equipmentLabelPhotoFile);
             }
 
-            accessoriesFormData.push(accessoryFormData);
+            return accessoryFormData;
         });
 
+        const accessoriesFormData = await Promise.all(accessoriesFormDataPromises);
         return accessoriesFormData;
     };
 
@@ -589,7 +580,7 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         }
 
         const equipmentFormData = createEquipmentForm(data);
-        const accessoriesFormData = createAccessoryForm();
+        const accessoriesFormData = await createAccessoryForm();
 
         if (isSameData(equipmentFormData, accessoriesFormData)) {
             toast.warning("Nenhuma alteração foi detectada nos dados.");
