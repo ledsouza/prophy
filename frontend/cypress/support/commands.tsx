@@ -24,9 +24,7 @@ declare global {
              * Custom command to select nested DOM element by data-testid attributes.
              * @example cy.getByNestedTestId(['greeting', 'hello'])
              */
-            getByNestedTestId(
-                testIds: string[]
-            ): Chainable<JQuery<HTMLElement>>;
+            getByNestedTestId(testIds: string[]): Chainable<JQuery<HTMLElement>>;
 
             /**
              * Custom command to select an option in a custom combobox.
@@ -127,9 +125,7 @@ Cypress.Commands.add("selectCombobox", (id, option) => {
 });
 
 Cypress.Commands.add("login", (cpf, password) => {
-    cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as(
-        "loginRequest"
-    );
+    cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as("loginRequest");
 
     cy.getByTestId("cpf-input").type(cpf);
     cy.getByTestId("password-input").type(password);
@@ -151,9 +147,7 @@ Cypress.Commands.add("loginSession", (cpf: string, password: string) => {
     cy.session(
         [cpf, password],
         () => {
-            cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as(
-                "loginRequest"
-            );
+            cy.intercept("POST", "http://localhost:8000/api/jwt/create/").as("loginRequest");
 
             cy.visit("/auth/login");
             cy.getByTestId("cpf-input").type(cpf);
@@ -236,7 +230,7 @@ Cypress.Commands.add("addUnit", () => {
         });
     });
 });
-
+// TODO: Update body request and type for new models
 Cypress.Commands.add("addEquipment", () => {
     cy.getFMIAccessToken().then((accessToken) => {
         cy.fixture("default-units.json").then((units) => {
@@ -248,9 +242,7 @@ Cypress.Commands.add("addEquipment", () => {
                 },
                 body: {
                     name: `TEST EQUIPMENT ${faker.number.int()}`,
-                    modality: `TEST EQUIPMENT ${faker.number.int({
-                        max: 100,
-                    })}`,
+                    modality: 1,
                     model: `TEST EQUIPMENT ${faker.number.int({ max: 100 })}`,
                     manufacturer: `TEST EQUIPMENT ${faker.number.int({
                         max: 100,
@@ -258,7 +250,7 @@ Cypress.Commands.add("addEquipment", () => {
                     unit: units.unit1.id,
                     operation_status: OperationStatus.ACCEPTED,
                     operation_type: OperationType.ADD,
-                } as Omit<EquipmentOperationDTO, "id">,
+                },
             }).then((response) => {
                 cy.wrap(response.body).as("newEquipment");
             });

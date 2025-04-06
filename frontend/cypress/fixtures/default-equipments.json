@@ -2,23 +2,23 @@
   "equipment1": {
     "unit": 1000,
     "modality": "Mamografia",
-    "manufacturer": "Philips",
-    "model": "ANIMI-482",
-    "series_number": "SipZ-106605",
-    "anvisa_registry": "XTWWynySwJHOC",
+    "manufacturer": "Toshiba",
+    "model": "FACERE-127",
+    "series_number": "GNsu-996625",
+    "anvisa_registry": "BEHSwXJpUodYf",
     "equipment_photo": "/media/equipments/photos/mamografia.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_jIShI22.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_TFtGbZM.jpg",
     "id": 1000
   },
   "equipment2": {
     "unit": 1000,
     "modality": "Mamografia",
     "manufacturer": "Toshiba",
-    "model": "REPREHENDERIT-165",
-    "series_number": "wLEj-174909",
-    "anvisa_registry": "SolbKicHOjHCR",
-    "equipment_photo": "/media/equipments/photos/mamografia_DHIdx4s.jpg",
-    "label_photo": "/media/equipments/labels/serial-number_EeHJkPM.jpg",
+    "model": "EXERCITATIONEM-710",
+    "series_number": "gGhZ-511497",
+    "anvisa_registry": "mlXOLNgWauBmi",
+    "equipment_photo": "/media/equipments/photos/mamografia_jxbIUF7.jpg",
+    "label_photo": "/media/equipments/labels/serial-number_0kghKLB.jpg",
     "id": 1001
   }
 }

@@ -1,10 +1,9 @@
 import { equipmentFormErrors } from "cypress/support/e2e";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { OperationStatus } from "@/enums";
-import {
-    EquipmentDTO,
-    EquipmentOperationDTO,
-} from "@/redux/features/equipmentApiSlice";
+import { EquipmentDTO, EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
+import { AccessoryType, ModalityDTO } from "@/redux/features/modalityApiSlice";
+import { AccessoryDTO } from "@/redux/features/accessoryApiSlice";
 
 function createEditEquipmentOperation() {
     cy.intercept("POST", `${Cypress.env("apiUrl")}/equipments/operations/`).as(
@@ -15,9 +14,7 @@ function createEditEquipmentOperation() {
         max: 9999,
     })}`;
     cy.wrap(newManufacturer).as("newManufacturer");
-    cy.getByTestId("equipment-manufacturer-input")
-        .clear()
-        .type(newManufacturer);
+    cy.getByTestId("equipment-manufacturer-input").clear().type(newManufacturer);
     cy.getByTestId("submit-btn").click();
 
     cy.wait("@createEditEquipmentOperation").then((interception) => {
@@ -61,18 +58,22 @@ function createAddEquipmentOperation() {
         "createAddEquipmentOperation"
     );
 
+    const newModality: ModalityDTO = {
+        id: 1,
+        name: "Raio X Convencional",
+        accessory_type: AccessoryType.DETECTOR,
+    };
+
     const newEquipment: Omit<EquipmentDTO, "id" | "unit"> = {
-        modality: faker.lorem.word(),
+        modality: newModality,
         manufacturer: faker.lorem.word(),
         model: faker.lorem.word(),
         series_number: faker.lorem.word(),
         anvisa_registry: faker.lorem.word(),
     };
 
-    cy.getByTestId("equipment-modality-input").type(newEquipment.modality);
-    cy.getByTestId("equipment-manufacturer-input").type(
-        newEquipment.manufacturer
-    );
+    cy.getByTestId("equipment-modality-input").type(newEquipment.modality.name);
+    cy.getByTestId("equipment-manufacturer-input").type(newEquipment.manufacturer);
     cy.getByTestId("equipment-model-input").type(newEquipment.model);
     cy.getByTestId("equipment-series-number-input").type(
         newEquipment.series_number ? newEquipment.series_number : ""
@@ -80,12 +81,8 @@ function createAddEquipmentOperation() {
     cy.getByTestId("equipment-anvisa-registry-input").type(
         newEquipment.anvisa_registry ? newEquipment.anvisa_registry : ""
     );
-    cy.getByTestId("equipment-photo-input").selectFile(
-        "cypress/fixtures/mamografia.jpg"
-    );
-    cy.getByTestId("equipment-label-input").selectFile(
-        "cypress/fixtures/serial-number-label.jpg"
-    );
+    cy.getByTestId("equipment-photo-input").selectFile("cypress/fixtures/mamografia.jpg");
+    cy.getByTestId("equipment-label-input").selectFile("cypress/fixtures/serial-number-label.jpg");
     cy.getByTestId("submit-btn").click();
 
     cy.wait("@createAddEquipmentOperation").then((interception) => {
@@ -122,10 +119,7 @@ function createDeleteEquipmentOperation() {
     );
 
     cy.get<EquipmentOperationDTO>("@newEquipment").then((newEquipment) => {
-        cy.getByNestedTestId([
-            `equipment-card-${newEquipment.id}`,
-            "btn-delete-operation",
-        ]).click();
+        cy.getByNestedTestId([`equipment-card-${newEquipment.id}`, "btn-delete-operation"]).click();
     });
 
     cy.getByTestId("btn-confirm-delete-unit").click();
@@ -175,9 +169,7 @@ function answerEquipmentOperation(operationStatus: OperationStatus, note = "") {
         cy.get("@FMIToken").then((FMIToken) => {
             cy.request({
                 method: "PUT",
-                url: `${Cypress.env(
-                    "apiUrl"
-                )}/equipments/operations/${operationID}/`,
+                url: `${Cypress.env("apiUrl")}/equipments/operations/${operationID}/`,
                 body: {
                     operation_status: operationStatus,
                     note: note,
@@ -217,9 +209,7 @@ describe("Client Manager Equipment CRUD", () => {
         context("Failure Scenario", () => {
             it("should display an error message when the user submits without changing any field", () => {
                 cy.getByTestId("submit-btn").click();
-                cy.contains(
-                    "Nenhuma alteração foi detectada nos dados."
-                ).should("be.visible");
+                cy.contains("Nenhuma alteração foi detectada nos dados.").should("be.visible");
             });
 
             it("should display an error message when modality input is empty", () => {
@@ -247,9 +237,7 @@ describe("Client Manager Equipment CRUD", () => {
             });
 
             it("should display an error message when file has more than 5MB", () => {
-                cy.getByTestId("equipment-photo-input").selectFile(
-                    "cypress/fixtures/5MB.jpg"
-                );
+                cy.getByTestId("equipment-photo-input").selectFile("cypress/fixtures/5MB.jpg");
                 cy.getByTestId("submit-btn").click();
                 cy.getByTestId("validation-error")
                     .should("exist")
@@ -268,9 +256,7 @@ describe("Client Manager Equipment CRUD", () => {
                     ]).click();
                 });
 
-                cy.contains("Requisição cancelada com sucesso!").should(
-                    "be.visible"
-                );
+                cy.contains("Requisição cancelada com sucesso!").should("be.visible");
             });
 
             it("should successfully receive a rejected operation", () => {
@@ -287,9 +273,7 @@ describe("Client Manager Equipment CRUD", () => {
                 });
 
                 cy.contains(note).should("be.visible");
-                cy.getByTestId("btn-confirm-reject-equipment")
-                    .should("exist")
-                    .click();
+                cy.getByTestId("btn-confirm-reject-equipment").should("exist").click();
             });
 
             it("should successfully receive an accepted operation", () => {
@@ -298,9 +282,10 @@ describe("Client Manager Equipment CRUD", () => {
                 accessUnitDetailPage();
                 cy.fixture("default-equipments.json").then((equipments) => {
                     cy.get("@newManufacturer").then((newManufacturer) => {
-                        cy.getByTestId(
-                            `equipment-card-${equipments.equipment1.id}`
-                        ).should("contain", newManufacturer);
+                        cy.getByTestId(`equipment-card-${equipments.equipment1.id}`).should(
+                            "contain",
+                            newManufacturer
+                        );
                     });
                 });
             });
@@ -335,9 +320,7 @@ describe("Client Manager Equipment CRUD", () => {
             });
 
             it("should display an error message when file has more than 5MB", () => {
-                cy.getByTestId("equipment-photo-input").selectFile(
-                    "cypress/fixtures/5MB.jpg"
-                );
+                cy.getByTestId("equipment-photo-input").selectFile("cypress/fixtures/5MB.jpg");
                 cy.getByTestId("submit-btn").click();
                 cy.getByTestId("validation-error")
                     .should("exist")
@@ -351,74 +334,55 @@ describe("Client Manager Equipment CRUD", () => {
             });
 
             it("should successfully cancel the operation", () => {
-                cy.get<EquipmentOperationDTO>("@equipmentOperation").then(
-                    (equipmentOperation) => {
-                        cy.getByNestedTestId([
-                            `equipment-card-${equipmentOperation.id}`,
-                            "btn-cancel-operation",
-                        ])
-                            .should("exist")
-                            .click();
-                        cy.contains("Requisição cancelada com sucesso!").should(
-                            "be.visible"
-                        );
-                        cy.getByTestId(
-                            `equipment-card-${equipmentOperation.id}`
-                        ).should("not.exist");
-                    }
-                );
+                cy.get<EquipmentOperationDTO>("@equipmentOperation").then((equipmentOperation) => {
+                    cy.getByNestedTestId([
+                        `equipment-card-${equipmentOperation.id}`,
+                        "btn-cancel-operation",
+                    ])
+                        .should("exist")
+                        .click();
+                    cy.contains("Requisição cancelada com sucesso!").should("be.visible");
+                    cy.getByTestId(`equipment-card-${equipmentOperation.id}`).should("not.exist");
+                });
             });
 
             it("should successfully receive a rejected operation", () => {
-                cy.get<EquipmentOperationDTO>("@equipmentOperation").then(
-                    (equipmentOperation) => {
-                        cy.wrap(equipmentOperation.id).as("operationID");
-                        const note = "REJEITADA";
-                        answerEquipmentOperation(
-                            OperationStatus.REJECTED,
-                            note
-                        );
-                        accessUnitDetailPage();
-                        cy.getByNestedTestId([
-                            `equipment-card-${equipmentOperation.id}`,
-                            "btn-reject-operation",
-                        ])
-                            .should("exist")
-                            .click();
-                        cy.contains(note).should("be.visible");
-                        cy.getByTestId("btn-confirm-reject-equipment")
-                            .should("exist")
-                            .click();
-                        cy.getByTestId(
-                            `equipment-card-${equipmentOperation.id}`
-                        ).should("not.exist");
-                    }
-                );
+                cy.get<EquipmentOperationDTO>("@equipmentOperation").then((equipmentOperation) => {
+                    cy.wrap(equipmentOperation.id).as("operationID");
+                    const note = "REJEITADA";
+                    answerEquipmentOperation(OperationStatus.REJECTED, note);
+                    accessUnitDetailPage();
+                    cy.getByNestedTestId([
+                        `equipment-card-${equipmentOperation.id}`,
+                        "btn-reject-operation",
+                    ])
+                        .should("exist")
+                        .click();
+                    cy.contains(note).should("be.visible");
+                    cy.getByTestId("btn-confirm-reject-equipment").should("exist").click();
+                    cy.getByTestId(`equipment-card-${equipmentOperation.id}`).should("not.exist");
+                });
             });
 
             it("should successfully receive an accepted operation", () => {
-                cy.get<EquipmentOperationDTO>("@equipmentOperation").then(
-                    (equipmentOperation) => {
-                        cy.wrap(equipmentOperation.id).as("operationID");
-                        answerEquipmentOperation(OperationStatus.ACCEPTED);
-                        accessUnitDetailPage();
-                        cy.getByTestId(
-                            `equipment-card-${equipmentOperation.id}`
-                        ).should("exist");
-                        cy.getByNestedTestId([
-                            `equipment-card-${equipmentOperation.id}`,
-                            "btn-reject-operation",
-                        ]).should("not.exist");
-                        cy.getByNestedTestId([
-                            `equipment-card-${equipmentOperation.id}`,
-                            "btn-details",
-                        ]).should("exist");
-                        cy.getByNestedTestId([
-                            `equipment-card-${equipmentOperation.id}`,
-                            "btn-edit-operation",
-                        ]).should("exist");
-                    }
-                );
+                cy.get<EquipmentOperationDTO>("@equipmentOperation").then((equipmentOperation) => {
+                    cy.wrap(equipmentOperation.id).as("operationID");
+                    answerEquipmentOperation(OperationStatus.ACCEPTED);
+                    accessUnitDetailPage();
+                    cy.getByTestId(`equipment-card-${equipmentOperation.id}`).should("exist");
+                    cy.getByNestedTestId([
+                        `equipment-card-${equipmentOperation.id}`,
+                        "btn-reject-operation",
+                    ]).should("not.exist");
+                    cy.getByNestedTestId([
+                        `equipment-card-${equipmentOperation.id}`,
+                        "btn-details",
+                    ]).should("exist");
+                    cy.getByNestedTestId([
+                        `equipment-card-${equipmentOperation.id}`,
+                        "btn-edit-operation",
+                    ]).should("exist");
+                });
             });
         });
     });
@@ -431,67 +395,51 @@ describe("Client Manager Equipment CRUD", () => {
         });
 
         it("should successfully cancel the operation", () => {
-            cy.get<EquipmentOperationDTO>("@newEquipment").then(
-                (newEquipment) => {
-                    cy.getByNestedTestId([
-                        `equipment-card-${newEquipment.id}`,
-                        "btn-cancel-operation",
-                    ]).click();
-                    cy.contains("Requisição cancelada com sucesso!").should(
-                        "be.visible"
-                    );
-                    cy.getByNestedTestId([
-                        `equipment-card-${newEquipment.id}`,
-                        "btn-cancel-operation",
-                    ]).should("not.exist");
-                }
-            );
+            cy.get<EquipmentOperationDTO>("@newEquipment").then((newEquipment) => {
+                cy.getByNestedTestId([
+                    `equipment-card-${newEquipment.id}`,
+                    "btn-cancel-operation",
+                ]).click();
+                cy.contains("Requisição cancelada com sucesso!").should("be.visible");
+                cy.getByNestedTestId([
+                    `equipment-card-${newEquipment.id}`,
+                    "btn-cancel-operation",
+                ]).should("not.exist");
+            });
         });
 
         it("should successfully receive a rejected operation", () => {
-            cy.get<EquipmentOperationDTO>("@newEquipment").then(
-                (newEquipment) => {
-                    cy.get<EquipmentOperationDTO>("@equipmentOperation").then(
-                        (equipmentOperation) => {
-                            cy.wrap(equipmentOperation.id).as("operationID");
-                        }
-                    );
-                    const note = "REJEITADA";
-                    answerEquipmentOperation(OperationStatus.REJECTED, note);
-                    accessUnitDetailPage();
+            cy.get<EquipmentOperationDTO>("@newEquipment").then((newEquipment) => {
+                cy.get<EquipmentOperationDTO>("@equipmentOperation").then((equipmentOperation) => {
+                    cy.wrap(equipmentOperation.id).as("operationID");
+                });
+                const note = "REJEITADA";
+                answerEquipmentOperation(OperationStatus.REJECTED, note);
+                accessUnitDetailPage();
 
-                    cy.getByNestedTestId([
-                        `equipment-card-${newEquipment.id}`,
-                        "btn-reject-operation",
-                    ]).click();
-                    cy.contains(note).should("be.visible");
-                    cy.getByTestId("btn-confirm-reject-equipment")
-                        .should("exist")
-                        .click();
-                    cy.getByNestedTestId([
-                        `equipment-card-${newEquipment.id}`,
-                        "btn-reject-operation",
-                    ]).should("not.exist");
-                }
-            );
+                cy.getByNestedTestId([
+                    `equipment-card-${newEquipment.id}`,
+                    "btn-reject-operation",
+                ]).click();
+                cy.contains(note).should("be.visible");
+                cy.getByTestId("btn-confirm-reject-equipment").should("exist").click();
+                cy.getByNestedTestId([
+                    `equipment-card-${newEquipment.id}`,
+                    "btn-reject-operation",
+                ]).should("not.exist");
+            });
         });
 
         it("should successfully receive an accepted operation", () => {
-            cy.get<EquipmentOperationDTO>("@newEquipment").then(
-                (newEquipment) => {
-                    cy.get<EquipmentOperationDTO>("@equipmentOperation").then(
-                        (equipmentOperation) => {
-                            cy.wrap(equipmentOperation.id).as("operationID");
-                        }
-                    );
-                    answerEquipmentOperation(OperationStatus.ACCEPTED);
-                    accessUnitDetailPage();
+            cy.get<EquipmentOperationDTO>("@newEquipment").then((newEquipment) => {
+                cy.get<EquipmentOperationDTO>("@equipmentOperation").then((equipmentOperation) => {
+                    cy.wrap(equipmentOperation.id).as("operationID");
+                });
+                answerEquipmentOperation(OperationStatus.ACCEPTED);
+                accessUnitDetailPage();
 
-                    cy.getByTestId(`equipment-card-${newEquipment.id}`).should(
-                        "not.exist"
-                    );
-                }
-            );
+                cy.getByTestId(`equipment-card-${newEquipment.id}`).should("not.exist");
+            });
         });
     });
 });
