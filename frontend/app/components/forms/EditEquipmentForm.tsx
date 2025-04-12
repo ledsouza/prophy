@@ -31,6 +31,7 @@ import { useModality } from "@/hooks/use-modality";
 import { Button, Spinner } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { Form, Input, Select } from "@/components/forms";
+import useRequireAuth from "@/hooks/use-require-auth";
 
 const editAccessorySchema = accessorySchema
     .extend({
@@ -74,6 +75,8 @@ type EditEquipmentFormProps = {
 
 const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
     const dispatch = useAppDispatch();
+
+    const { userData } = useRequireAuth();
 
     const [equipmentPhotoFile, setEquipmentPhotoFile] = useState<File | null>(null);
     const [equipmentLabelPhotoFile, setEquipmentLabelPhotoFile] = useState<File | null>(null);
@@ -302,25 +305,26 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
     const renderEquipmentInputs = () => {
         return (
             <>
-                {modalityOptions && selectedModality ? (
-                    <Select
-                        options={modalityOptions}
-                        selectedData={selectedModality}
-                        setSelect={setSelectedModality}
-                        label="Modalidade"
-                        labelSize="sm"
-                        listBoxButtonSize="sm"
-                        listOptionSize="sm"
-                        dataTestId="equipment-modality-select"
-                    />
-                ) : (
-                    <div className="flex flex-col items-center">
-                        <Spinner md />
-                        <Typography element="p" size="md" className="text-center">
-                            Carregando opções de modalidade...
-                        </Typography>
-                    </div>
-                )}
+                {userData?.role !== "GGC" &&
+                    (modalityOptions && selectedModality ? (
+                        <Select
+                            options={modalityOptions}
+                            selectedData={selectedModality}
+                            setSelect={setSelectedModality}
+                            label="Modalidade"
+                            labelSize="sm"
+                            listBoxButtonSize="sm"
+                            listOptionSize="sm"
+                            dataTestId="equipment-modality-select"
+                        />
+                    ) : (
+                        <div className="flex flex-col items-center">
+                            <Spinner md />
+                            <Typography element="p" size="md" className="text-center">
+                                Carregando opções de modalidade...
+                            </Typography>
+                        </div>
+                    ))}
 
                 <Input
                     {...register("manufacturer")}
