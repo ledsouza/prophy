@@ -29,11 +29,7 @@ import {
     EditEquipmentForm,
     ReviewDeleteUnitForm,
 } from "@/components/forms";
-import {
-    UnitDetails,
-    EquipmentDetails,
-    EquipmentList,
-} from "@/components/client";
+import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
 import { OperationType } from "@/enums";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 import { ModalDeleteEquipment, ModalDeleteUnit } from "@/components/modals";
@@ -44,27 +40,16 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const {
-        isModalOpen,
-        currentModal,
-        selectedUnitOperation,
-        selectedEquipment,
-    } = useAppSelector((state) => state.modal);
+    const { isModalOpen, currentModal, selectedUnitOperation, selectedEquipment } = useAppSelector(
+        (state) => state.modal
+    );
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
-    const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<
-        EquipmentDTO[]
-    >([]);
-    const [searchedEquipments, setSearchedEquipments] = useState<
-        EquipmentDTO[]
-    >([]);
+    const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<EquipmentDTO[]>([]);
+    const [searchedEquipments, setSearchedEquipments] = useState<EquipmentDTO[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const {
-        data: units,
-        isLoading: isLoadingUnits,
-        error: errorUnits,
-    } = useListAllUnitsQuery();
+    const { data: units, isLoading: isLoadingUnits, error: errorUnits } = useListAllUnitsQuery();
 
     const {
         data: unitsOperations,
@@ -95,9 +80,7 @@ function UnitPage() {
         );
     };
 
-    const handleSearchInputChange = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
     };
 
@@ -145,9 +128,7 @@ function UnitPage() {
             if (searchTerm.length > 0) {
                 setSearchedEquipments(
                     filteredEquipmentsByUnit.filter((equipment) =>
-                        equipment.model
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase())
+                        equipment.model.toLowerCase().includes(searchTerm.toLowerCase())
                     )
                 );
             } else {
@@ -167,12 +148,7 @@ function UnitPage() {
         return <Spinner fullscreen />;
     }
 
-    if (
-        errorUnits ||
-        errorUnitsOperations ||
-        errorEquipments ||
-        errorEquipmentsOperations
-    ) {
+    if (errorUnits || errorUnitsOperations || errorEquipments || errorEquipmentsOperations) {
         return (
             <div className="flex flex-col items-center justify-center h-screen gap-8">
                 <Typography
@@ -184,8 +160,8 @@ function UnitPage() {
                     Ocorreu um problema ao carregar os dados.
                 </Typography>
                 <Typography element="p" size="lg">
-                    Aguarde alguns minutos e tente novamente. Se o problema
-                    persistir, entre em contato conosco.
+                    Aguarde alguns minutos e tente novamente. Se o problema persistir, entre em
+                    contato conosco.
                 </Typography>
                 <Button onClick={() => router.back()} data-testid="btn-back">
                     Voltar
@@ -210,18 +186,11 @@ function UnitPage() {
 
                 <UnitDetails
                     unit={selectedUnit}
-                    unitOperation={getUnitOperation(
-                        selectedUnit,
-                        unitsOperations
-                    )}
+                    unitOperation={getUnitOperation(selectedUnit, unitsOperations)}
                 />
 
                 <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
-                    <Typography
-                        element="h2"
-                        size="title2"
-                        className="font-bold"
-                    >
+                    <Typography element="h2" size="title2" className="font-bold">
                         Equipamentos
                     </Typography>
 
@@ -239,10 +208,7 @@ function UnitPage() {
                         filteredEquipmentsByUnit={filteredEquipmentsByUnit}
                     />
 
-                    <Button
-                        onClick={handleModalAddEquipment}
-                        data-testid="btn-add-equipment"
-                    >
+                    <Button onClick={handleModalAddEquipment} data-testid="btn-add-equipment">
                         Adicionar equipamento
                     </Button>
                 </div>
@@ -258,58 +224,54 @@ function UnitPage() {
                     }
                 >
                     {currentModal === Modals.EDIT_UNIT && (
-                        <EditUnitForm unit={selectedUnit} />
+                        <EditUnitForm
+                            title="Atualização de dados"
+                            description={`Por favor, edite os campos que deseja atualizar,
+                            certificando-se de preencher as informações corretamente.`}
+                            unit={selectedUnit}
+                        />
                     )}
 
-                    {currentModal === Modals.REVIEW_EDIT_UNIT &&
-                        selectedUnit && (
-                            <div className="flex flex-row">
-                                <EditUnitForm
-                                    title="Alterações requisitadas"
-                                    reviewMode
-                                    unit={selectedUnitOperation as UnitDTO}
-                                />
+                    {currentModal === Modals.REVIEW_EDIT_UNIT && selectedUnit && (
+                        <div className="flex flex-row">
+                            <EditUnitForm
+                                title="Alterações requisitadas"
+                                reviewMode
+                                unit={selectedUnitOperation as UnitDTO}
+                            />
 
-                                <EditUnitForm
-                                    title="Informações atuais"
-                                    disabled
-                                    unit={selectedUnit}
-                                />
-                            </div>
-                        )}
+                            <EditUnitForm title="Informações atuais" disabled unit={selectedUnit} />
+                        </div>
+                    )}
 
                     {currentModal === Modals.DELETE_UNIT && <ModalDeleteUnit />}
 
-                    {currentModal === Modals.REVIEW_DELETE_UNIT &&
-                        selectedUnitOperation && (
-                            <ReviewDeleteUnitForm
-                                title="O cliente deseja remover esta unidade. Você concorda?"
-                                unitOperationID={selectedUnitOperation.id}
-                            />
-                        )}
-
-                    {currentModal === Modals.ADD_EQUIPMENT && (
-                        <AddEquipmentForm unitId={unitId} />
+                    {currentModal === Modals.REVIEW_DELETE_UNIT && selectedUnitOperation && (
+                        <ReviewDeleteUnitForm
+                            title="O cliente deseja remover esta unidade. Você concorda?"
+                            unitOperationID={selectedUnitOperation.id}
+                        />
                     )}
 
-                    {currentModal === Modals.EDIT_EQUIPMENT &&
-                        selectedEquipment && (
-                            <EditEquipmentForm
-                                originalEquipment={selectedEquipment}
-                            />
-                        )}
+                    {currentModal === Modals.ADD_EQUIPMENT && <AddEquipmentForm unitId={unitId} />}
 
-                    {currentModal === Modals.DELETE_EQUIPMENT && (
-                        <ModalDeleteEquipment />
+                    {currentModal === Modals.EDIT_EQUIPMENT && selectedEquipment && (
+                        <EditEquipmentForm
+                            title="Atualização de dados"
+                            description="Por favor, edite os campos que deseja atualizar,
+                            certificando-se de preencher as informações corretamente."
+                            equipment={selectedEquipment}
+                        />
                     )}
 
-                    {currentModal === Modals.EQUIPMENT_DETAILS &&
-                        selectedEquipment && (
-                            <EquipmentDetails
-                                equipment={selectedEquipment}
-                                onClose={() => dispatch(closeModal())}
-                            />
-                        )}
+                    {currentModal === Modals.DELETE_EQUIPMENT && <ModalDeleteEquipment />}
+
+                    {currentModal === Modals.EQUIPMENT_DETAILS && selectedEquipment && (
+                        <EquipmentDetails
+                            equipment={selectedEquipment}
+                            onClose={() => dispatch(closeModal())}
+                        />
+                    )}
                 </Modal>
             </main>
         );

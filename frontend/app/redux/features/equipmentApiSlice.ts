@@ -1,11 +1,6 @@
 import { OperationType } from "@/enums";
 import { ModalityDTO } from "./modalityApiSlice";
-import {
-    apiSlice,
-    ListQueryParams,
-    Operation,
-    PaginatedResponse,
-} from "../services/apiSlice";
+import { apiSlice, ListQueryParams, Operation, PaginatedResponse } from "../services/apiSlice";
 import { forEach } from "lodash";
 
 export type EquipmentDTO = {
@@ -30,10 +25,7 @@ export type EquipmentOperationDTO = EquipmentDTO &
 
 const equipmentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        listEquipments: builder.query<
-            PaginatedResponse<EquipmentDTO>,
-            ListQueryParams
-        >({
+        listEquipments: builder.query<PaginatedResponse<EquipmentDTO>, ListQueryParams>({
             query: ({ page = 1 }) => ({
                 url: "equipments/",
                 method: "GET",
@@ -65,8 +57,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
 
                     if (response.error) return { error: response.error };
 
-                    const data =
-                        response.data as PaginatedResponse<EquipmentDTO>;
+                    const data = response.data as PaginatedResponse<EquipmentDTO>;
                     allEquipments = [...allEquipments, ...data.results];
                     hasNextPage = data.next !== null;
                     currentPage++;
@@ -76,10 +67,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Equipment", id: "LIST" }],
         }),
-        listAllEquipmentsOperations: builder.query<
-            EquipmentOperationDTO[],
-            void
-        >({
+        listAllEquipmentsOperations: builder.query<EquipmentOperationDTO[], void>({
             async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
                 let allEquipmentsOperations: EquipmentOperationDTO[] = [];
                 let currentPage = 1;
@@ -94,12 +82,8 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
 
                     if (response.error) return { error: response.error };
 
-                    const data =
-                        response.data as PaginatedResponse<EquipmentOperationDTO>;
-                    allEquipmentsOperations = [
-                        ...allEquipmentsOperations,
-                        ...data.results,
-                    ];
+                    const data = response.data as PaginatedResponse<EquipmentOperationDTO>;
+                    allEquipmentsOperations = [...allEquipmentsOperations, ...data.results];
                     hasNextPage = data.next !== null;
                     currentPage++;
                 }
@@ -108,10 +92,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "EquipmentOperation", id: "LIST" }],
         }),
-        createAddEquipmentOperation: builder.mutation<
-            EquipmentOperationDTO,
-            FormData
-        >({
+        createAddEquipmentOperation: builder.mutation<EquipmentOperationDTO, FormData>({
             query: (formData) => {
                 formData.append("operation_type", OperationType.ADD);
 
@@ -120,10 +101,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                     if (value instanceof File) hasFile = true;
                 });
 
-                console.log(
-                    "formData transformed to object:\n",
-                    Object.fromEntries(formData)
-                );
+                console.log("formData transformed to object:\n", Object.fromEntries(formData));
 
                 if (!hasFile) {
                     return {
@@ -147,10 +125,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 { type: "Equipment", id: "LIST" },
             ],
         }),
-        createEditEquipmentOperation: builder.mutation<
-            EquipmentOperationDTO,
-            FormData
-        >({
+        createEditEquipmentOperation: builder.mutation<EquipmentOperationDTO, FormData>({
             query: (formData) => {
                 formData.append("operation_type", OperationType.EDIT);
                 return {
@@ -165,10 +140,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 { type: "Equipment", id: "LIST" },
             ],
         }),
-        createDeleteEquipmentOperation: builder.mutation<
-            EquipmentOperationDTO,
-            Number
-        >({
+        createDeleteEquipmentOperation: builder.mutation<EquipmentOperationDTO, Number>({
             query: (equipmentID) => ({
                 url: "equipments/operations/",
                 method: "POST",
@@ -189,6 +161,20 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 { type: "Equipment", id: "LIST" },
             ],
         }),
+        editEquipment: builder.mutation<
+            EquipmentOperationDTO,
+            {
+                equipmentID: number;
+                equipmentData: FormData;
+            }
+        >({
+            query: ({ equipmentID, equipmentData }) => ({
+                url: `equipments/operations/${equipmentID}`,
+                method: "PUT",
+                body: equipmentData,
+                formData: true,
+            }),
+        }),
     }),
 });
 
@@ -200,4 +186,5 @@ export const {
     useCreateEditEquipmentOperationMutation,
     useCreateDeleteEquipmentOperationMutation,
     useDeleteEquipmentOperationMutation,
+    useEditEquipmentMutation,
 } = equipmentApiSlice;

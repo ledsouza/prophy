@@ -17,9 +17,9 @@ import {
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
 
-import { ComboBox, Form, Input, Textarea } from "@/components/forms";
+import { ComboBox, Form, Input, Textarea, FormButtons } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Button, Spinner } from "@/components/common";
+import { Spinner } from "@/components/common";
 import { unitSchema } from "@/schemas";
 import { OperationStatus } from "@/enums";
 import { useAppDispatch } from "@/redux/hooks";
@@ -34,13 +34,7 @@ type EditUnitFormProps = {
     unit: UnitDTO;
 };
 
-const EditUnitForm = ({
-    title,
-    description,
-    disabled,
-    reviewMode,
-    unit,
-}: EditUnitFormProps) => {
+const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUnitFormProps) => {
     const dispatch = useAppDispatch();
 
     const {
@@ -78,14 +72,10 @@ const EditUnitForm = ({
     const [createEditUnitOperation] = useCreateEditUnitOperationMutation();
     const [editUnit] = useEditUnitMutation();
 
-    function isDataUnchanged(
-        submittedData: EditUnitFields,
-        originalData: UnitDTO
-    ) {
+    function isDataUnchanged(submittedData: EditUnitFields, originalData: UnitDTO) {
         return Object.entries(submittedData).every(
             ([key, value]) =>
-                value.toLowerCase() ===
-                originalData[key as keyof UnitDTO]?.toString().toLowerCase()
+                value.toLowerCase() === originalData[key as keyof UnitDTO]?.toString().toLowerCase()
         );
     }
 
@@ -199,11 +189,7 @@ const EditUnitForm = ({
                             name: estado.nome,
                             sigla: estado.sigla,
                         }))}
-                        errorMessage={
-                            errors.state
-                                ? "Estado da instituição é obrigatório."
-                                : ""
-                        }
+                        errorMessage={errors.state ? "Estado da instituição é obrigatório." : ""}
                         placeholder="Digite o estado e selecione"
                         selectedValue={selectedEstado}
                         onChange={handleEstadoChange}
@@ -223,11 +209,7 @@ const EditUnitForm = ({
                             id: municipio.id,
                             name: municipio.nome,
                         }))}
-                        errorMessage={
-                            errors.city
-                                ? "Cidade da instituição é obrigatória."
-                                : ""
-                        }
+                        errorMessage={errors.city ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Digite a cidade e selecione"
                         selectedValue={selectedMunicipio}
                         onChange={handleMunicipioChange}
@@ -239,11 +221,7 @@ const EditUnitForm = ({
                 ) : (
                     <Input
                         disabled
-                        errorMessage={
-                            errors.city
-                                ? "Cidade da instituição é obrigatória."
-                                : ""
-                        }
+                        errorMessage={errors.city ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Selecione um estado"
                         data-testid="unit-city-input"
                     >
@@ -264,97 +242,15 @@ const EditUnitForm = ({
         );
     };
 
-    const renderButtons = () => {
-        if (isRejected) {
-            return (
-                <div className="flex gap-2 py-4">
-                    <Button
-                        type="button"
-                        onClick={() => setIsRejected(false)}
-                        variant="secondary"
-                        className="w-full"
-                        data-testid="back-btn"
-                    >
-                        Voltar
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        data-testid="submit-rejection-btn"
-                        className="w-full"
-                    >
-                        Enviar
-                    </Button>
-                </div>
-            );
-        }
-
-        if (!disabled && reviewMode) {
-            return (
-                <div className="flex gap-2 py-4">
-                    <Button
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={() => {
-                            setIsRejected(true);
-                        }}
-                        variant="danger"
-                        className="w-full"
-                        data-testid="reject-btn"
-                    >
-                        Rejeitar
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        data-testid="submit-btn"
-                        className="w-full"
-                    >
-                        Aceitar
-                    </Button>
-                </div>
-            );
-        }
-
-        if (disabled) {
-            return <br />;
-        }
-
-        return (
-            <div className="flex gap-2 py-4">
-                <Button
-                    type="button"
-                    disabled={isSubmitting}
-                    onClick={() => dispatch(closeModal())}
-                    variant="secondary"
-                    className="w-full"
-                    data-testid="cancel-btn"
-                >
-                    Cancelar
-                </Button>
-                <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    data-testid="submit-btn"
-                    className="w-full"
-                >
-                    {needReview ? "Requisitar" : "Atualizar"}
-                </Button>
-            </div>
-        );
-    };
-
     // Load original unit state and city from IBGE API
     useEffect(() => {
         if (isLoadingIBGE) {
             const estado = estados?.find(
-                (estado) =>
-                    estado.sigla?.toLowerCase() === unit.state.toLowerCase()
+                (estado) => estado.sigla?.toLowerCase() === unit.state.toLowerCase()
             );
 
             const municipio = municipios?.find(
-                (municipio) =>
-                    municipio.nome.toLowerCase() === unit.city.toLowerCase()
+                (municipio) => municipio.nome.toLowerCase() === unit.city.toLowerCase()
             );
 
             if (estado) {
@@ -388,33 +284,28 @@ const EditUnitForm = ({
             <Form onSubmit={handleSubmit(onSubmit)}>
                 {!isRejected ? (
                     <>
-                        <Typography
-                            element="h3"
-                            size="title3"
-                            className="font-semibold"
-                        >
+                        <Typography element="h3" size="title3" className="font-semibold">
                             {title}
                         </Typography>
-                        <Typography
-                            element="p"
-                            size="md"
-                            className="text-justify"
-                        >
+                        <Typography element="p" size="md" className="text-justify">
                             {description}
                         </Typography>
                     </>
                 ) : (
-                    <Typography
-                        element="h3"
-                        size="title3"
-                        className="font-semibold"
-                    >
+                    <Typography element="h3" size="title3" className="font-semibold">
                         Por favor, justifique o motivo da rejeição
                     </Typography>
                 )}
 
                 {renderInputs()}
-                {renderButtons()}
+                <FormButtons
+                    isRejected={isRejected}
+                    setIsRejected={setIsRejected}
+                    disabled={disabled}
+                    reviewMode={reviewMode}
+                    isSubmitting={isSubmitting}
+                    needReview={needReview}
+                />
             </Form>
         </div>
     );

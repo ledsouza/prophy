@@ -14,6 +14,7 @@ import {
     EquipmentDTO,
     EquipmentOperationDTO,
     useCreateEditEquipmentOperationMutation,
+    useEditEquipmentMutation,
 } from "@/redux/features/equipmentApiSlice";
 import {
     AccessoryDTO,
@@ -27,11 +28,12 @@ import { useAppDispatch } from "@/redux/hooks";
 import { fetchPhoto } from "@/utils/media";
 import { displaySingularAccessoryType } from "@/utils/format";
 import { useModality } from "@/hooks/use-modality";
+import useRequireAuth from "@/hooks/use-require-auth";
+import { useNeedReview } from "@/hooks";
 
 import { Button, Spinner } from "@/components/common";
 import { Typography } from "@/components/foundation";
-import { Form, Input, Select } from "@/components/forms";
-import useRequireAuth from "@/hooks/use-require-auth";
+import { Form, Input, Select, FormButtons } from "@/components/forms";
 
 const editAccessorySchema = accessorySchema
     .extend({
@@ -70,10 +72,20 @@ const editEquipmentSchema = equipmentSchema.extend({
 export type EditEquipmentFields = z.infer<typeof editEquipmentSchema>;
 
 type EditEquipmentFormProps = {
-    originalEquipment: EquipmentDTO;
+    title?: string;
+    description?: string;
+    disabled?: boolean;
+    reviewMode?: boolean;
+    equipment: EquipmentDTO;
 };
 
-const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
+const EditEquipmentForm = ({
+    title,
+    description,
+    reviewMode,
+    disabled,
+    equipment,
+}: EditEquipmentFormProps) => {
     const dispatch = useAppDispatch();
 
     const { userData } = useRequireAuth();
@@ -101,10 +113,10 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
     } = useForm<EditEquipmentFields>({
         resolver: zodResolver(editEquipmentSchema),
         defaultValues: {
-            manufacturer: originalEquipment.manufacturer,
-            model: originalEquipment.model,
-            series_number: originalEquipment.series_number,
-            anvisa_registry: originalEquipment.anvisa_registry,
+            manufacturer: equipment.manufacturer,
+            model: equipment.model,
+            series_number: equipment.series_number,
+            anvisa_registry: equipment.anvisa_registry,
         },
     });
 
@@ -113,6 +125,9 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         name: "accessories",
     });
 
+    const { needReview } = useNeedReview();
+    const [isRejected, setIsRejected] = useState(false);
+
     const {
         modalityOptions,
         selectedModality,
@@ -120,9 +135,10 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         accessoryType,
         isErrorModalities,
         isLoadingModalities,
-    } = useModality(setValue, originalEquipment.modality);
+    } = useModality(setValue, equipment.modality);
 
     const [createEditEquipmentOperation] = useCreateEditEquipmentOperationMutation();
+    const [editEquipment] = useEditEquipmentMutation();
     const [createAccessory] = useCreateAccessoryMutation();
 
     const handleAccessoryPhoto = async (endpoint: string) => {
@@ -152,17 +168,15 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
                     return true;
                     // modality is an object field
                 } else if (key === "modality") {
-                    return value === originalEquipment.modality.id.toString();
+                    return value === equipment.modality.id.toString();
                 } else {
                     return (
                         value.toLowerCase() ===
-                        originalEquipment[key as keyof EquipmentDTO]?.toString().toLowerCase()
+                        equipment[key as keyof EquipmentDTO]?.toString().toLowerCase()
                     );
                 }
             } else if (value instanceof File) {
-                const originalFile = originalEquipment[key as keyof EquipmentDTO] as
-                    | string
-                    | undefined;
+                const originalFile = equipment[key as keyof EquipmentDTO] as string | undefined;
                 return value.name === originalFile?.split("/").pop();
             }
         });
@@ -205,8 +219,8 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         const equipmentFormData = new FormData();
 
         // Handle text fields
-        equipmentFormData.append("original_equipment", originalEquipment.id.toString());
-        equipmentFormData.append("unit", originalEquipment.unit.toString());
+        equipmentFormData.append("original_equipment", equipment.id.toString());
+        equipmentFormData.append("unit", equipment.unit.toString());
         equipmentFormData.append("modality", data.modality.toString());
         equipmentFormData.append("manufacturer", data.manufacturer);
         equipmentFormData.append("model", data.model);
@@ -376,9 +390,9 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
                     Foto do equipamento
                 </Input>
 
-                {originalEquipment.equipment_photo && (
+                {equipment.equipment_photo && (
                     <Typography element="p" size="sm">
-                        Nome do arquivo atual: {originalEquipment.equipment_photo.split("/").pop()}
+                        Nome do arquivo atual: {equipment.equipment_photo.split("/").pop()}
                     </Typography>
                 )}
 
@@ -392,9 +406,9 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
                     Foto do rótulo do equipamento
                 </Input>
 
-                {originalEquipment.label_photo && (
+                {equipment.label_photo && (
                     <Typography element="p" size="sm">
-                        Nome do arquivo atual: {originalEquipment.label_photo.split("/").pop()}
+                        Nome do arquivo atual: {equipment.label_photo.split("/").pop()}
                     </Typography>
                 )}
             </>
@@ -482,26 +496,14 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         // If there are no accessories and the user is not editing them
         if (accessoryType === AccessoryType.NONE && !editAccessories) {
             return (
-                <div className="flex gap-2 py-4">
-                    <Button
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={() => dispatch(closeModal())}
-                        variant="secondary"
-                        data-testid="cancel-btn"
-                        className="w-full"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        data-testid="submit-btn"
-                        className="w-full"
-                    >
-                        Requisitar
-                    </Button>
-                </div>
+                <FormButtons
+                    isRejected={isRejected}
+                    setIsRejected={setIsRejected}
+                    disabled={disabled}
+                    reviewMode={reviewMode}
+                    isSubmitting={isSubmitting}
+                    needReview={needReview}
+                />
             );
         }
 
@@ -519,26 +521,14 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
                     >
                         Acessórios
                     </Button>
-                    <div className="flex gap-2 py-4">
-                        <Button
-                            type="button"
-                            disabled={isSubmitting}
-                            onClick={() => dispatch(closeModal())}
-                            variant="secondary"
-                            data-testid="cancel-btn"
-                            className="w-full"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            data-testid="submit-btn"
-                            className="w-full"
-                        >
-                            Requisitar
-                        </Button>
-                    </div>
+                    <FormButtons
+                        isRejected={isRejected}
+                        setIsRejected={setIsRejected}
+                        disabled={disabled}
+                        reviewMode={reviewMode}
+                        isSubmitting={isSubmitting}
+                        needReview={needReview}
+                    />
                 </div>
             );
         }
@@ -592,7 +582,12 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         }
 
         try {
-            const equipmentResponse = await createEditEquipmentOperation(equipmentFormData);
+            const equipmentResponse = needReview
+                ? await createEditEquipmentOperation(equipmentFormData)
+                : await editEquipment({
+                      equipmentID: equipment.id,
+                      equipmentData: equipmentFormData,
+                  });
 
             if (equipmentResponse.error) {
                 throw new Error(`Error creating equipment: ${equipmentResponse.error}`);
@@ -645,47 +640,47 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
             return;
         }
         setFilteredAccessories(
-            accessories.filter((accessory) => accessory.equipment === originalEquipment.id)
+            accessories.filter((accessory) => accessory.equipment === equipment.id)
         );
     }, [accessories]);
 
     // Fetch accessories photos from the server
     useEffect(() => {
-        if (originalEquipment.equipment_photo) {
+        if (equipment.equipment_photo) {
             try {
-                handleEquipmentPhoto(originalEquipment.equipment_photo);
+                handleEquipmentPhoto(equipment.equipment_photo);
             } catch (error) {
                 toast.error("Erro ao carregar a foto do equipamento.");
             }
         }
 
-        if (originalEquipment.label_photo) {
+        if (equipment.label_photo) {
             try {
-                handleEquipmentPhoto(originalEquipment.label_photo);
+                handleEquipmentPhoto(equipment.label_photo);
             } catch (error) {
                 toast.error("Erro ao carregar a foto do rótulo do equipamento.");
             }
         }
-    }, [originalEquipment]);
+    }, [equipment]);
 
     // Fetch equipment photos from the server
     useEffect(() => {
-        if (originalEquipment.equipment_photo) {
+        if (equipment.equipment_photo) {
             try {
-                handleEquipmentPhoto(originalEquipment.equipment_photo);
+                handleEquipmentPhoto(equipment.equipment_photo);
             } catch (error) {
                 toast.error("Erro ao carregar a foto do equipamento.");
             }
         }
 
-        if (originalEquipment.label_photo) {
+        if (equipment.label_photo) {
             try {
-                handleEquipmentLabelPhoto(originalEquipment.label_photo);
+                handleEquipmentLabelPhoto(equipment.label_photo);
             } catch (error) {
                 toast.error("Erro ao carregar a foto do rótulo do equipamento.");
             }
         }
-    }, [originalEquipment]);
+    }, [equipment]);
 
     if (isErrorModalities || isErrorAccessories) {
         toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -697,13 +692,10 @@ const EditEquipmentForm = ({ originalEquipment }: EditEquipmentFormProps) => {
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <Typography element="h3" size="title3" className="font-semibold">
-                    Informe os dados do equipamento
+                    {title}
                 </Typography>
                 <Typography element="p" size="md" className="text-justify">
-                    Por favor, preencha os campos abaixo com as informações do equipamento,
-                    certificando-se de preencher as informações corretamente. Após a submissão, o
-                    formulário será enviado para análise de um físico médico responsável, que fará a
-                    revisão e validação das informações fornecidas.
+                    {description}
                 </Typography>
 
                 {!editAccessories && renderEquipmentInputs()}
