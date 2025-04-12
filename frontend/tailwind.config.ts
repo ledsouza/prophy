@@ -31,9 +31,9 @@ const config: Config = {
             keyframes: {
                 warning: {
                     "0%, 100%": {
-                        "box-shadow": "0 0 0 2px rgb(234 179 8 / 0.6)",
+                        "box-shadow": "0 0 0 2px rgb(161 98 7 / 0.6)",
                     },
-                    "50%": { "box-shadow": "0 0 0 2px rgb(234 179 8 / 0.1)" },
+                    "50%": { "box-shadow": "0 0 0 2px rgb(161 98 7 / 0.1)" },
                 },
                 danger: {
                     "0%, 100%": {
