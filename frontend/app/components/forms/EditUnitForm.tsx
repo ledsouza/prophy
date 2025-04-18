@@ -110,8 +110,8 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
             }
 
             // If review is not required, the user is either an internal medical physicist or a Prophy manager.
-            // The user may be editing information or reviewing an operation.
-            // If `isRejected` is false, the user accepted the operation or updated some information.
+            // The user may be editing data or reviewing an operation.
+            // If `isRejected` is false, the user accepted the operation or updated some data.
             let successMessage;
             if (!needReview) {
                 successMessage = isRejected

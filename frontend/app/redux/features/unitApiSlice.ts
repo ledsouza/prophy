@@ -89,12 +89,8 @@ const unitApiSlice = apiSlice.injectEndpoints({
 
                     if (response.error) return { error: response.error };
 
-                    const data =
-                        response.data as PaginatedResponse<UnitOperationDTO>;
-                    allUnitsOperations = [
-                        ...allUnitsOperations,
-                        ...data.results,
-                    ];
+                    const data = response.data as PaginatedResponse<UnitOperationDTO>;
+                    allUnitsOperations = [...allUnitsOperations, ...data.results];
                     hasNextPage = data.next !== null;
                     currentPage++;
                 }
@@ -105,10 +101,7 @@ const unitApiSlice = apiSlice.injectEndpoints({
         }),
         createAddUnitOperation: builder.mutation<
             UnitOperationDTO,
-            Omit<
-                UnitOperationDTO,
-                "id" | "user" | "operation_type" | "operation_status"
-            >
+            Omit<UnitOperationDTO, "id" | "user" | "operation_type" | "operation_status">
         >({
             query: (unitData) => ({
                 url: "units/operations/",
@@ -125,10 +118,7 @@ const unitApiSlice = apiSlice.injectEndpoints({
         }),
         createEditUnitOperation: builder.mutation<
             UnitOperationDTO,
-            Omit<
-                UnitOperationDTO,
-                "id" | "user" | "operation_type" | "operation_status"
-            >
+            Omit<UnitOperationDTO, "id" | "user" | "operation_type" | "operation_status">
         >({
             query: (unitData) => ({
                 url: "units/operations/",
@@ -159,7 +149,7 @@ const unitApiSlice = apiSlice.injectEndpoints({
         }),
         deleteUnitOperation: builder.mutation<APIDeleteResponse, number>({
             query: (unitId) => ({
-                url: `units/operations/${unitId}`,
+                url: `units/operations/${unitId}/`,
                 method: "DELETE",
             }),
             invalidatesTags: [
@@ -169,10 +159,7 @@ const unitApiSlice = apiSlice.injectEndpoints({
         }),
         createUnit: builder.mutation<
             UnitOperationDTO,
-            Omit<
-                UnitOperationDTO,
-                "id" | "user" | "status" | "operation_type" | "operation_status"
-            >
+            Omit<UnitOperationDTO, "id" | "user" | "status" | "operation_type" | "operation_status">
         >({
             query: (unitData) => ({
                 url: "units/operations/",

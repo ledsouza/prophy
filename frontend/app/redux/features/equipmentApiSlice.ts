@@ -153,7 +153,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
         }),
         deleteEquipmentOperation: builder.mutation<void, number>({
             query: (equipmentId) => ({
-                url: `equipments/operations/${equipmentId}`,
+                url: `equipments/operations/${equipmentId}/`,
                 method: "DELETE",
             }),
             invalidatesTags: [
@@ -169,11 +169,15 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
             }
         >({
             query: ({ equipmentID, equipmentData }) => ({
-                url: `equipments/operations/${equipmentID}`,
+                url: `equipments/operations/${equipmentID}/`,
                 method: "PUT",
                 body: equipmentData,
                 formData: true,
             }),
+            invalidatesTags: (result, error, { equipmentID }) => [
+                { type: "Equipment", id: equipmentID },
+                { type: "Equipment", id: "LIST" },
+            ],
         }),
     }),
 });

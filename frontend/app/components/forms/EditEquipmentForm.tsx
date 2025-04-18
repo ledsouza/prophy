@@ -20,6 +20,7 @@ import {
     AccessoryDTO,
     useCreateAccessoryMutation,
     useGetAccessoriesQuery,
+    useUpdateAccessoryMutation,
 } from "@/redux/features/accessoryApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 import { closeModal } from "@/redux/features/modalSlice";
@@ -37,6 +38,7 @@ import { Form, Input, Select, FormButtons } from "@/components/forms";
 
 const editAccessorySchema = accessorySchema
     .extend({
+        id: z.number().optional(),
         equipment_photo: optionalFileSchema,
         label_photo: optionalFileSchema,
         original_equipment_photo: z.string().optional(),
@@ -140,6 +142,7 @@ const EditEquipmentForm = ({
     const [createEditEquipmentOperation] = useCreateEditEquipmentOperationMutation();
     const [editEquipment] = useEditEquipmentMutation();
     const [createAccessory] = useCreateAccessoryMutation();
+    const [updateAccessory] = useUpdateAccessoryMutation();
 
     const handleAccessoryPhoto = async (endpoint: string) => {
         const accessoryPhoto = await fetchPhoto(endpoint);
@@ -181,13 +184,13 @@ const EditEquipmentForm = ({
             }
         });
 
-        const sameAccessories = accessoriesFormData.every((accessoryFormData, index) => {
-            // Ensure we have a corresponding filtered accessory
-            // If the length is different, that means the user removed or added an accessory
-            if (accessoriesFormData.length !== filteredAccessories.length) {
-                return false;
-            }
+        // First check if the number of accessories has changed
+        if (accessoriesFormData.length !== filteredAccessories.length) {
+            return false; // Different number of accessories means data has changed
+        }
 
+        // Then check if any individual accessory has changed
+        const sameAccessories = accessoriesFormData.every((accessoryFormData, index) => {
             const originalAccessory = filteredAccessories[index];
 
             // Check each field in the accessory form data
@@ -276,41 +279,65 @@ const EditEquipmentForm = ({
         return accessoriesFormData;
     };
 
-    const updateAccessoryForm = (accessoriesForm: FormData[], equipment: EquipmentOperationDTO) => {
-        const updatedAccessoriesForm = accessoriesForm.map((formData) => {
+    const handleAccessories = async (
+        accessoriesForm: FormData[],
+        equipment: EquipmentOperationDTO
+    ) => {
+        const accessoriesFields = getValues("accessories");
+
+        const promises = accessoriesForm.map(async (formData, index) => {
+            // Add common fields
             formData.append("manufacturer", equipment.manufacturer);
             formData.append("category", accessoryType ? accessoryType : AccessoryType.NONE);
             formData.append("equipment", equipment.id.toString());
-            return formData;
-        });
-        return updatedAccessoriesForm;
-    };
 
-    const handleCreateAccessory = async (accessoriesForm: FormData[]) => {
-        const creationPromises = accessoriesForm.map(async (formData) => {
-            try {
-                const response = await createAccessory(formData);
-                if (response.error) {
-                    return { success: false, error: JSON.stringify(response.error) };
+            // Check if this is an existing accessory (has ID) or a new one
+            const accessory = accessoriesFields[index];
+
+            if (accessory.id) {
+                // This is an existing accessory - update it
+                try {
+                    const response = await updateAccessory({
+                        accessoryID: accessory.id,
+                        accessoryData: formData,
+                    });
+
+                    if (response.error) {
+                        return { success: false, error: JSON.stringify(response.error) };
+                    }
+                    return { success: true, data: response };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error instanceof Error ? error.message : JSON.stringify(error),
+                    };
                 }
-                return { success: true, data: response };
-            } catch (error) {
-                return {
-                    success: false,
-                    error: error instanceof Error ? error.message : JSON.stringify(error),
-                };
+            } else {
+                // This is a new accessory - create it
+                try {
+                    const response = await createAccessory(formData);
+                    if (response.error) {
+                        return { success: false, error: JSON.stringify(response.error) };
+                    }
+                    return { success: true, data: response };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error instanceof Error ? error.message : JSON.stringify(error),
+                    };
+                }
             }
         });
 
-        // Wait for all creation attempts to complete
-        const results = await Promise.all(creationPromises);
+        // Wait for all operations to complete
+        const results = await Promise.all(promises);
 
         // Collect all errors from failed attempts
         const errors = results.filter((result) => !result.success).map((result) => result.error);
 
         // If there are any errors, throw a single error with all details
         if (errors.length > 0) {
-            throw new AccessoryCreationError(`Errors creating accessories: ${errors.join(", ")}`);
+            throw new AccessoryCreationError(`Errors processing accessories: ${errors.join(", ")}`);
         }
 
         return results;
@@ -576,7 +603,7 @@ const EditEquipmentForm = ({
         const equipmentFormData = createEquipmentForm(data);
         const accessoriesFormData = await createAccessoryForm();
 
-        if (isSameData(equipmentFormData, accessoriesFormData)) {
+        if (!reviewMode && isSameData(equipmentFormData, accessoriesFormData)) {
             toast.warning("Nenhuma alteração foi detectada nos dados.");
             return;
         }
@@ -593,13 +620,18 @@ const EditEquipmentForm = ({
                 throw new Error(`Error creating equipment: ${equipmentResponse.error}`);
             }
 
-            const updatedAcessoriesFormData = updateAccessoryForm(
-                accessoriesFormData,
-                equipmentResponse.data
-            );
-            await handleCreateAccessory(updatedAcessoriesFormData);
+            await handleAccessories(accessoriesFormData, equipmentResponse.data);
 
-            toast.success("Requisição enviada com sucesso!");
+            // If review is not required, the user is either an internal medical physicist or a Prophy manager.
+            // The user may be editing data or reviewing an operation.
+            // If `isRejected` is false, the user accepted the operation or updated some data.
+            let successMessage;
+            if (!needReview) {
+                successMessage = isRejected
+                    ? "Revisão concluída! O cliente será notificado da rejeição."
+                    : "Dados atualizados com sucesso!";
+            }
+            toast.success(successMessage);
             dispatch(closeModal());
         } catch (error) {
             if (error instanceof AccessoryCreationError) {
@@ -624,6 +656,7 @@ const EditEquipmentForm = ({
         setValue(
             "accessories",
             filteredAccessories.map((accessory) => ({
+                id: accessory.id,
                 model: accessory.model,
                 series_number: accessory.series_number,
                 equipment_photo: null,
