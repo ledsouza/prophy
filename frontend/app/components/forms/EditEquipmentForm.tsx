@@ -19,6 +19,7 @@ import {
 import {
     AccessoryDTO,
     useCreateAccessoryMutation,
+    useDeleteAccessoryMutation, // <-- Import delete hook
     useGetAccessoriesQuery,
     useUpdateAccessoryMutation,
 } from "@/redux/features/accessoryApiSlice";
@@ -94,6 +95,7 @@ const EditEquipmentForm = ({
 
     const [equipmentPhotoFile, setEquipmentPhotoFile] = useState<File | null>(null);
     const [equipmentLabelPhotoFile, setEquipmentLabelPhotoFile] = useState<File | null>(null);
+    const [removedAccessoryIds, setRemovedAccessoryIds] = useState<number[]>([]); // <-- Add state for removed IDs
 
     const [filteredAccessories, setFilteredAccessories] = useState<AccessoryDTO[]>([]);
 
@@ -143,6 +145,7 @@ const EditEquipmentForm = ({
     const [editEquipment] = useEditEquipmentMutation();
     const [createAccessory] = useCreateAccessoryMutation();
     const [updateAccessory] = useUpdateAccessoryMutation();
+    const [deleteAccessory] = useDeleteAccessoryMutation(); // <-- Instantiate delete hook
 
     const handleAccessoryPhoto = async (endpoint: string) => {
         const accessoryPhoto = await fetchPhoto(endpoint);
@@ -163,7 +166,23 @@ const EditEquipmentForm = ({
         setEditAccessories(true);
     };
 
+    // New function to handle accessory removal and track IDs
+    const handleRemoveAccessory = (index: number) => {
+        const accessories = getValues("accessories");
+        const accessoryToRemove = accessories[index];
+
+        if (accessoryToRemove && accessoryToRemove.id) {
+            setRemovedAccessoryIds((prevIds) => [...prevIds, accessoryToRemove.id!]);
+        }
+        remove(index); // Call the original remove function from useFieldArray
+    };
+
     const isSameData = (equipmentFormData: FormData, accessoriesFormData: FormData[]) => {
+        // Check if any accessories were removed
+        if (removedAccessoryIds.length > 0) {
+            return false;
+        }
+
         const sameEquipment = Array.from(equipmentFormData.entries()).every(([key, value]) => {
             if (typeof value === "string") {
                 // No reason to compare data that the user doesn't change
@@ -453,7 +472,7 @@ const EditEquipmentForm = ({
                     <Button
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => remove(accessoryIndex)}
+                        onClick={() => handleRemoveAccessory(accessoryIndex)} // <-- Use new handler
                         variant="secondary"
                         data-testid="cancel-btn"
                         className="w-full"
@@ -609,6 +628,24 @@ const EditEquipmentForm = ({
         }
 
         try {
+            // Handle accessory deletions first
+            if (removedAccessoryIds.length > 0) {
+                const deletionPromises = removedAccessoryIds.map((id) => deleteAccessory(id));
+                const deletionResults = await Promise.all(deletionPromises);
+
+                // Check for errors during deletion
+                const deletionErrors = deletionResults.filter((result) => "error" in result);
+                if (deletionErrors.length > 0) {
+                    console.error("Errors deleting accessories:", deletionErrors);
+                    toast.error("Erro ao remover um ou mais acessórios. Tente novamente.");
+                    // Optionally reset removed IDs if you want the user to retry deletion
+                    setRemovedAccessoryIds([]);
+                    return; // Stop submission if deletion fails
+                }
+                // Clear the IDs from state after successful deletion
+                setRemovedAccessoryIds([]);
+            }
+
             const equipmentResponse = needReview
                 ? await createEditEquipmentOperation(equipmentFormData)
                 : await editEquipment({
