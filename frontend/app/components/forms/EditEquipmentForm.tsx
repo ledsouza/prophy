@@ -269,8 +269,6 @@ const EditEquipmentForm = ({
             ? equipmentFormData.append("operation_status", OperationStatus.REJECTED)
             : equipmentFormData.append("operation_status", OperationStatus.ACCEPTED);
 
-        console.log(equipmentFormData);
-
         return equipmentFormData;
     };
 
