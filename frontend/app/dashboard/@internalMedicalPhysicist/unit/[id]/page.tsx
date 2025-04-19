@@ -40,9 +40,13 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const { isModalOpen, currentModal, selectedUnitOperation, selectedEquipment } = useAppSelector(
-        (state) => state.modal
-    );
+    const {
+        isModalOpen,
+        currentModal,
+        selectedUnitOperation,
+        selectedEquipment,
+        selectedEquipmentOperation,
+    } = useAppSelector((state) => state.modal);
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
     const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<EquipmentDTO[]>([]);
@@ -254,6 +258,16 @@ function UnitPage() {
                     )}
 
                     {currentModal === Modals.ADD_EQUIPMENT && <AddEquipmentForm unitId={unitId} />}
+
+                    {currentModal === Modals.REVIEW_ADD_EQUIPMENT && selectedEquipmentOperation && (
+                        <EditEquipmentForm
+                            title="Equipamento requisitado"
+                            description={`Verifique as informações. Se identificar algum erro,
+                            você pode editá-las ou rejeitá-las completamente.`}
+                            reviewMode
+                            equipment={selectedEquipmentOperation as EquipmentDTO}
+                        />
+                    )}
 
                     {currentModal === Modals.EDIT_EQUIPMENT && selectedEquipment && (
                         <EditEquipmentForm

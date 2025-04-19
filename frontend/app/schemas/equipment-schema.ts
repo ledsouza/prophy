@@ -19,6 +19,13 @@ const equipmentSchema = z.object({
         message: "Registro na ANVISA deve ter no máximo 30 caracteres.",
     }),
     accessories: z.array(accessorySchema),
+    note: z
+        .string()
+        .optional()
+        .transform((value) => value?.trim())
+        .refine((value) => value === undefined || value.length > 0, {
+            message: "A justificativa é obrigatória.",
+        }),
 });
 
 export default equipmentSchema;

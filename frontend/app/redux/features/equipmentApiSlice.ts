@@ -101,8 +101,6 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                     if (value instanceof File) hasFile = true;
                 });
 
-                console.log("formData transformed to object:\n", Object.fromEntries(formData));
-
                 if (!hasFile) {
                     return {
                         url: "equipments/operations/",
@@ -174,8 +172,8 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                 body: equipmentData,
                 formData: true,
             }),
-            invalidatesTags: (result, error, { equipmentID }) => [
-                { type: "Equipment", id: equipmentID },
+            invalidatesTags: [
+                { type: "EquipmentOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
             ],
         }),

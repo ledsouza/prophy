@@ -12,9 +12,16 @@ import {
 import { Typography } from "@/components/foundation";
 import { CardButtons, CardStatus } from "@/components/client";
 import { useAppDispatch } from "@/redux/hooks";
-import { Modals, openModal, setEquipment } from "@/redux/features/modalSlice";
+import {
+    Modals,
+    openModal,
+    setEquipment,
+    setEquipmentOperation,
+} from "@/redux/features/modalSlice";
 import { toast } from "react-toastify";
 import { isResponseError } from "@/redux/services/helpers";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import { shouldHideRejectedAddOperation } from "@/utils/operations";
 
 type EquipmentCardProps = {
     equipment: EquipmentDTO;
@@ -22,12 +29,11 @@ type EquipmentCardProps = {
     dataTestId?: string | undefined;
 };
 
-function EquipmentCard({
-    equipment,
-    equipmentOperation,
-    dataTestId,
-}: EquipmentCardProps) {
+function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentCardProps) {
     const dispatch = useAppDispatch();
+
+    const { data: userData } = useRetrieveUserQuery();
+    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
 
     const [status, setStatus] = useState<OperationStatus>();
     const [hasOperation, setHasOperation] = useState(false);
@@ -58,17 +64,41 @@ function EquipmentCard({
         dispatch(openModal(Modals.REJECT_EQUIPMENT));
     }
 
+    function handleReviewAdd() {
+        if (equipmentOperation) {
+            dispatch(setEquipmentOperation(equipmentOperation));
+            dispatch(openModal(Modals.REVIEW_ADD_EQUIPMENT));
+        } else {
+            toast.error("Algo deu errado! Tente novamente mais tarde.");
+        }
+    }
+
+    function handleReviewEdit() {
+        if (equipmentOperation) {
+            dispatch(setEquipment(equipment));
+            dispatch(setEquipmentOperation(equipmentOperation));
+            dispatch(openModal(Modals.REVIEW_EDIT_EQUIPMENT));
+        } else {
+            toast.error("Algo deu errado! Tente novamente mais tarde.");
+        }
+    }
+
+    function handleReviewDelete() {
+        if (equipmentOperation) {
+            dispatch(setEquipmentOperation(equipmentOperation));
+            dispatch(openModal(Modals.REVIEW_DELETE_EQUIPMENT));
+        } else {
+            toast.error("Algo deu errado! Tente novamente mais tarde.");
+        }
+    }
+
     async function handleCancelEquipmentOperation() {
         if (!equipmentOperation) {
-            return toast.error(
-                "Algo deu errado! Não foi possível obter a requisição associada."
-            );
+            return toast.error("Algo deu errado! Não foi possível obter a requisição associada.");
         }
 
         try {
-            const response = await deleteEquipmentOperation(
-                equipmentOperation.id
-            );
+            const response = await deleteEquipmentOperation(equipmentOperation.id);
             if (isResponseError(response)) {
                 if (response.error.status === 404) {
                     return toast.error(
@@ -94,9 +124,7 @@ function EquipmentCard({
 
     useEffect(() => {
         setStatus(
-            equipmentOperation
-                ? equipmentOperation.operation_status
-                : OperationStatus.ACCEPTED
+            equipmentOperation ? equipmentOperation.operation_status : OperationStatus.ACCEPTED
         );
     }, [equipmentOperation]);
 
@@ -112,6 +140,10 @@ function EquipmentCard({
             setIsRejected(false);
         }
     }, [status]);
+
+    if (shouldHideRejectedAddOperation(isStaff, equipmentOperation)) {
+        return;
+    }
 
     return (
         <div className={containerStyle} data-testid={dataTestId}>
@@ -145,9 +177,9 @@ function EquipmentCard({
                     onDelete={handleDelete}
                     onEdit={handleEdit}
                     onReject={handleReject}
-                    onReviewAdd={() => {}}
-                    onReviewDelete={() => {}}
-                    onReviewEdit={() => {}}
+                    onReviewAdd={handleReviewAdd}
+                    onReviewDelete={handleReviewDelete}
+                    onReviewEdit={handleReviewEdit}
                 />
             </div>
         </div>

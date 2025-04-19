@@ -3,7 +3,7 @@ import cn from "classnames";
 
 import { useRouter } from "next/navigation";
 
-import { OperationStatus, OperationType } from "@/enums";
+import { OperationStatus } from "@/enums";
 
 import {
     UnitDTO,
@@ -15,15 +15,11 @@ import { CardButtons, CardStatus } from "@/components/client";
 import { Typography } from "@/components/foundation";
 import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
 import { useAppDispatch } from "@/redux/hooks";
-import {
-    Modals,
-    openModal,
-    setUnit,
-    setUnitOperation,
-} from "@/redux/features/modalSlice";
+import { Modals, openModal, setUnit, setUnitOperation } from "@/redux/features/modalSlice";
 import { isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import { shouldHideRejectedAddOperation } from "@/utils/operations";
 
 type UnitCardProps = {
     unit: UnitDTO;
@@ -32,12 +28,7 @@ type UnitCardProps = {
     dataTestId?: string | undefined;
 };
 
-function UnitCard({
-    unit,
-    unitOperation,
-    equipmentsCount,
-    dataTestId,
-}: UnitCardProps) {
+function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCardProps) {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
@@ -55,7 +46,7 @@ function UnitCard({
         "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
-            "animate-danger": isRejected,
+            "animate-danger": isRejected && !isStaff,
         }
     );
 
@@ -71,9 +62,7 @@ function UnitCard({
 
     async function handleCancelEdit() {
         if (!unitOperation) {
-            return toast.error(
-                "Requisição não encontrada. Atualize a página e tente novamente."
-            );
+            return toast.error("Requisição não encontrada. Atualize a página e tente novamente.");
         }
 
         try {
@@ -88,9 +77,7 @@ function UnitCard({
                         }
                     );
                 }
-                return toast.error(
-                    "Algo deu errado. Tente novamente mais tarde."
-                );
+                return toast.error("Algo deu errado. Tente novamente mais tarde.");
             }
 
             toast.success("Requisição cancelada com sucesso!");
@@ -133,33 +120,20 @@ function UnitCard({
     }
 
     useEffect(() => {
-        if (
-            isStaff &&
-            unitOperation?.operation_status === OperationStatus.REJECTED
-        ) {
+        if (isStaff && unitOperation?.operation_status === OperationStatus.REJECTED) {
             setStatus(OperationStatus.ACCEPTED);
             return;
         }
-        setStatus(
-            unitOperation
-                ? unitOperation.operation_status
-                : OperationStatus.ACCEPTED
-        );
+        setStatus(unitOperation ? unitOperation.operation_status : OperationStatus.ACCEPTED);
     }, [unitOperation]);
 
     useEffect(() => {
         const unitIDsFromEquipmentOpsReview = equipmentOperations
-            ?.filter(
-                (operation) =>
-                    operation.operation_status === OperationStatus.REVIEW
-            )
+            ?.filter((operation) => operation.operation_status === OperationStatus.REVIEW)
             ?.map((operation) => operation.unit);
 
         const unitIDsFromEquipmentOpsRejected = equipmentOperations
-            ?.filter(
-                (operation) =>
-                    operation.operation_status === OperationStatus.REJECTED
-            )
+            ?.filter((operation) => operation.operation_status === OperationStatus.REJECTED)
             ?.map((operation) => operation.unit);
 
         if (
@@ -180,11 +154,7 @@ function UnitCard({
         }
     }, [status, equipmentOperations]);
 
-    if (
-        isStaff &&
-        unitOperation?.operation_status === OperationStatus.REJECTED &&
-        unitOperation.operation_type === OperationType.ADD
-    ) {
+    if (shouldHideRejectedAddOperation(isStaff, unitOperation)) {
         return;
     }
 
@@ -192,11 +162,7 @@ function UnitCard({
         <div className={containerStyle} data-testid={dataTestId}>
             <div className="flex justify-between pb-4">
                 <div className="flex flex-col">
-                    <Typography
-                        element="h3"
-                        size="title3"
-                        dataTestId="unit-name"
-                    >
+                    <Typography element="h3" size="title3" dataTestId="unit-name">
                         {unit.name}
                     </Typography>
 

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UnitDTO, UnitOperationDTO } from "./unitApiSlice";
-import { EquipmentDTO } from "./equipmentApiSlice";
+import { EquipmentDTO, EquipmentOperationDTO } from "./equipmentApiSlice";
 
 export enum Modals {
     EDIT_CLIENT = "EDIT_CLIENT",
@@ -18,6 +18,9 @@ export enum Modals {
     DELETE_EQUIPMENT = "DELETE_EQUIPMENT",
     REJECT_EQUIPMENT = "REJECT_EQUIPMENT",
     REVIEW_EQUIPMENT = "REVIEW_EQUIPMENT",
+    REVIEW_ADD_EQUIPMENT = "REVIEW_ADD_EQUIPMENT",
+    REVIEW_EDIT_EQUIPMENT = "REVIEW_EDIT_EQUIPMENT",
+    REVIEW_DELETE_EQUIPMENT = "REVIEW_DELETE_EQUIPMENT",
     EQUIPMENT_DETAILS = "EQUIPMENT_DETAILS",
 }
 
@@ -27,6 +30,7 @@ type ModalState = {
     selectedUnit: UnitDTO | null;
     selectedUnitOperation: UnitOperationDTO | null;
     selectedEquipment: EquipmentDTO | null;
+    selectedEquipmentOperation: EquipmentOperationDTO | null;
 };
 
 const initialState: ModalState = {
@@ -35,6 +39,7 @@ const initialState: ModalState = {
     selectedUnit: null,
     selectedUnitOperation: null,
     selectedEquipment: null,
+    selectedEquipmentOperation: null,
 };
 
 /**
@@ -79,6 +84,9 @@ const modalSlice = createSlice({
         setEquipment(state, action: PayloadAction<EquipmentDTO>) {
             state.selectedEquipment = action.payload;
         },
+        setEquipmentOperation(state, action: PayloadAction<EquipmentOperationDTO>) {
+            state.selectedEquipmentOperation = action.payload;
+        },
     },
 });
 
@@ -88,5 +96,6 @@ export const {
     setUnit,
     setUnitOperation,
     setEquipment,
+    setEquipmentOperation,
 } = modalSlice.actions;
 export default modalSlice.reducer;

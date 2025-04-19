@@ -35,7 +35,8 @@ import { useNeedReview } from "@/hooks";
 
 import { Button, Spinner } from "@/components/common";
 import { Typography } from "@/components/foundation";
-import { Form, Input, Select, FormButtons } from "@/components/forms";
+import { Form, Input, Select, FormButtons, Textarea } from "@/components/forms";
+import { OperationStatus } from "@/enums";
 
 const editAccessorySchema = accessorySchema
     .extend({
@@ -247,6 +248,9 @@ const EditEquipmentForm = ({
         equipmentFormData.append("model", data.model);
         equipmentFormData.append("series_number", data.series_number);
         equipmentFormData.append("anvisa_registry", data.anvisa_registry);
+        if (data.note) {
+            equipmentFormData.append("note", data.note);
+        }
 
         // Handle file uploads - check if files exist before appending
         if (data.equipment_photo?.[0]) {
@@ -260,6 +264,12 @@ const EditEquipmentForm = ({
         } else if (equipmentLabelPhotoFile) {
             equipmentFormData.append("label_photo", equipmentLabelPhotoFile);
         }
+
+        isRejected
+            ? equipmentFormData.append("operation_status", OperationStatus.REJECTED)
+            : equipmentFormData.append("operation_status", OperationStatus.ACCEPTED);
+
+        console.log(equipmentFormData);
 
         return equipmentFormData;
     };
@@ -362,6 +372,18 @@ const EditEquipmentForm = ({
     };
 
     const renderEquipmentInputs = () => {
+        if (isRejected) {
+            return (
+                <Textarea
+                    {...register("note")}
+                    rows={18}
+                    errorMessage={errors.note?.message}
+                    placeholder="Justifique o motivo da rejeição"
+                    data-testid="rejection-note-input"
+                ></Textarea>
+            );
+        }
+
         return (
             <>
                 {userData?.role !== "GGC" &&
@@ -460,7 +482,7 @@ const EditEquipmentForm = ({
         );
     };
 
-    const renderAccessoryInputs = (accessoryIndex: number, remove: (index: number) => void) => {
+    const renderAccessoryInputs = (accessoryIndex: number) => {
         return (
             <div key={accessoryIndex} className="flex flex-col gap-4">
                 <div className="flex justify-between gap-24 items-center">
@@ -471,7 +493,7 @@ const EditEquipmentForm = ({
                     <Button
                         type="button"
                         disabled={isSubmitting}
-                        onClick={() => handleRemoveAccessory(accessoryIndex)} // <-- Use new handler
+                        onClick={() => handleRemoveAccessory(accessoryIndex)}
                         variant="secondary"
                         data-testid="cancel-btn"
                         className="w-full"
@@ -556,16 +578,19 @@ const EditEquipmentForm = ({
         if (accessoryType !== AccessoryType.NONE && !editAccessories) {
             return (
                 <div>
-                    <Button
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={handleAddAccessory}
-                        variant="secondary"
-                        data-testid="submit-btn"
-                        className="w-full"
-                    >
-                        Acessórios
-                    </Button>
+                    {!isRejected && (
+                        <Button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={handleAddAccessory}
+                            variant="secondary"
+                            data-testid="accessories-btn"
+                            className="w-full"
+                        >
+                            Acessórios
+                        </Button>
+                    )}
+
                     <FormButtons
                         isRejected={isRejected}
                         setIsRejected={setIsRejected}
@@ -640,7 +665,6 @@ const EditEquipmentForm = ({
                 }
                 setRemovedAccessoryIds([]);
             }
-
             const equipmentResponse = needReview
                 ? await createEditEquipmentOperation(equipmentFormData)
                 : await editEquipment({
@@ -756,16 +780,24 @@ const EditEquipmentForm = ({
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
-                <Typography element="h3" size="title3" className="font-semibold">
-                    {title}
-                </Typography>
-                <Typography element="p" size="md" className="text-justify">
-                    {description}
-                </Typography>
+                {!isRejected ? (
+                    <>
+                        <Typography element="h3" size="title3" className="font-semibold">
+                            {title}
+                        </Typography>
+                        <Typography element="p" size="md" className="text-justify">
+                            {description}
+                        </Typography>
+                    </>
+                ) : (
+                    <Typography element="h3" size="title3" className="font-semibold">
+                        Por favor, justifique o motivo da rejeição
+                    </Typography>
+                )}
 
                 {!editAccessories && renderEquipmentInputs()}
 
-                {editAccessories && fields.map((_, index) => renderAccessoryInputs(index, remove))}
+                {editAccessories && fields.map((_, index) => renderAccessoryInputs(index))}
 
                 {editAccessories && fields.length === 0 && (
                     <Typography element="p" className="font-semibold">
@@ -774,13 +806,14 @@ const EditEquipmentForm = ({
                     </Typography>
                 )}
 
-                {fields.length > 0 && !editAccessories && (
+                {fields.length > 0 && !editAccessories && !isRejected && (
                     <Typography element="p" className="font-semibold">
                         Acessórios adicionados:
                     </Typography>
                 )}
                 {fields.length > 0 &&
                     !editAccessories &&
+                    !isRejected &&
                     fields.map((_, index) => (
                         <div key={index}>
                             <Typography element="p">
