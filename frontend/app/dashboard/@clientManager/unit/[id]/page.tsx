@@ -32,24 +32,10 @@ import { ArrowClockwise } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Button, Modal, Spinner } from "@/components/common";
-import {
-    Input,
-    EditUnitForm,
-    AddEquipmentForm,
-    EditEquipmentForm,
-} from "@/components/forms";
-import {
-    UnitDetails,
-    EquipmentDetails,
-    EquipmentList,
-} from "@/components/client";
+import { Input, EditUnitForm, AddEquipmentForm, EditEquipmentForm } from "@/components/forms";
+import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
 import { OperationStatus, OperationType } from "@/enums";
-import {
-    closeModal,
-    Modals,
-    openModal,
-    setEquipment,
-} from "@/redux/features/modalSlice";
+import { closeModal, Modals, openModal, setEquipment } from "@/redux/features/modalSlice";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -57,24 +43,14 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const { isModalOpen, currentModal, selectedEquipment } = useAppSelector(
-        (state) => state.modal
-    );
+    const { isModalOpen, currentModal, selectedEquipment } = useAppSelector((state) => state.modal);
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
-    const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<
-        EquipmentDTO[]
-    >([]);
-    const [searchedEquipments, setSearchedEquipments] = useState<
-        EquipmentDTO[]
-    >([]);
+    const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<EquipmentDTO[]>([]);
+    const [searchedEquipments, setSearchedEquipments] = useState<EquipmentDTO[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const {
-        data: units,
-        isLoading: isLoadingUnits,
-        error: errorUnits,
-    } = useListAllUnitsQuery();
+    const { data: units, isLoading: isLoadingUnits, error: errorUnits } = useListAllUnitsQuery();
 
     const {
         data: unitsOperations,
@@ -97,14 +73,10 @@ function UnitPage() {
         error: errorEquipments,
     } = useListAllEquipmentsQuery();
 
-    const [
-        createDeleteEquipmentOperation,
-        { isLoading: isLoadingCreateDeleteEquipmentOperation },
-    ] = useCreateDeleteEquipmentOperationMutation();
-    const [
-        deleteEquipmentOperation,
-        { isLoading: isLoadingDeleteEquipmentOperation },
-    ] = useDeleteEquipmentOperationMutation();
+    const [createDeleteEquipmentOperation, { isLoading: isLoadingCreateDeleteEquipmentOperation }] =
+        useCreateDeleteEquipmentOperationMutation();
+    const [deleteEquipmentOperation, { isLoading: isLoadingDeleteEquipmentOperation }] =
+        useDeleteEquipmentOperationMutation();
 
     const handleUpdateData = () => {
         dispatch(
@@ -117,9 +89,7 @@ function UnitPage() {
         );
     };
 
-    const handleSearchInputChange = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
     };
 
@@ -127,9 +97,7 @@ function UnitPage() {
         const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
 
         if (!unitOperation) {
-            return toast.error(
-                "Requisição não encontrada. Atualize a página e tente novamente."
-            );
+            return toast.error("Requisição não encontrada. Atualize a página e tente novamente.");
         }
 
         try {
@@ -170,13 +138,9 @@ function UnitPage() {
         dispatch(openModal(Modals.ADD_EQUIPMENT));
     };
 
-    const handleRequestDeleteEquipment = async (
-        selectedEquipment: EquipmentDTO
-    ) => {
+    const handleRequestDeleteEquipment = async (selectedEquipment: EquipmentDTO) => {
         try {
-            const response = await createDeleteEquipmentOperation(
-                selectedEquipment.id
-            );
+            const response = await createDeleteEquipmentOperation(selectedEquipment.id);
 
             if (response.error) {
                 if (isErrorWithMessages(response.error)) {
@@ -196,24 +160,15 @@ function UnitPage() {
         }
     };
 
-    const handleConfirmRejectEquipment = async (
-        selectedEquipment: EquipmentDTO
-    ) => {
-        const equipmentOperation = getEquipmentOperation(
-            selectedEquipment,
-            equipmentsOperations
-        );
+    const handleConfirmRejectEquipment = async (selectedEquipment: EquipmentDTO) => {
+        const equipmentOperation = getEquipmentOperation(selectedEquipment, equipmentsOperations);
 
         if (!equipmentOperation) {
-            return toast.error(
-                "Requisição não encontrada. Atualize a página e tente novamente."
-            );
+            return toast.error("Requisição não encontrada. Atualize a página e tente novamente.");
         }
 
         try {
-            const response = await deleteEquipmentOperation(
-                equipmentOperation.id
-            );
+            const response = await deleteEquipmentOperation(equipmentOperation.id);
             if (isResponseError(response)) {
                 if (response.error.status === 404) {
                     return toast.error(
@@ -224,9 +179,7 @@ function UnitPage() {
                         }
                     );
                 }
-                return toast.error(
-                    "Algo deu errado. Tente novamente mais tarde."
-                );
+                return toast.error("Algo deu errado. Tente novamente mais tarde.");
             }
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -275,9 +228,7 @@ function UnitPage() {
             if (searchTerm.length > 0) {
                 setSearchedEquipments(
                     filteredEquipmentsByUnit.filter((equipment) =>
-                        equipment.model
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase())
+                        equipment.model.toLowerCase().includes(searchTerm.toLowerCase())
                     )
                 );
             } else {
@@ -297,12 +248,7 @@ function UnitPage() {
         return <Spinner fullscreen />;
     }
 
-    if (
-        errorUnits ||
-        errorUnitsOperations ||
-        errorEquipments ||
-        errorEquipmentsOperations
-    ) {
+    if (errorUnits || errorUnitsOperations || errorEquipments || errorEquipmentsOperations) {
         return (
             <div className="flex flex-col items-center justify-center h-screen gap-8">
                 <Typography
@@ -314,8 +260,8 @@ function UnitPage() {
                     Ocorreu um problema ao carregar os dados.
                 </Typography>
                 <Typography element="p" size="lg">
-                    Aguarde alguns minutos e tente novamente. Se o problema
-                    persistir, entre em contato conosco.
+                    Aguarde alguns minutos e tente novamente. Se o problema persistir, entre em
+                    contato conosco.
                 </Typography>
                 <Button onClick={() => router.back()} data-testid="btn-back">
                     Voltar
@@ -340,18 +286,11 @@ function UnitPage() {
 
                 <UnitDetails
                     unit={selectedUnit}
-                    unitOperation={getUnitOperation(
-                        selectedUnit,
-                        unitsOperations
-                    )}
+                    unitOperation={getUnitOperation(selectedUnit, unitsOperations)}
                 />
 
                 <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
-                    <Typography
-                        element="h2"
-                        size="title2"
-                        className="font-bold"
-                    >
+                    <Typography element="h2" size="title2" className="font-bold">
                         Equipamentos
                     </Typography>
 
@@ -369,10 +308,7 @@ function UnitPage() {
                         filteredEquipmentsByUnit={filteredEquipmentsByUnit}
                     />
 
-                    <Button
-                        onClick={handleModalAddEquipment}
-                        data-testid="btn-add-equipment"
-                    >
+                    <Button onClick={handleModalAddEquipment} data-testid="btn-add-equipment">
                         Adicionar equipamento
                     </Button>
                 </div>
@@ -381,38 +317,23 @@ function UnitPage() {
                     isOpen={isModalOpen}
                     onClose={() => dispatch(closeModal())}
                     className={
-                        currentModal === Modals.EQUIPMENT_DETAILS
-                            ? "max-w-6xl mx-6"
-                            : "max-w-lg"
+                        currentModal === Modals.EQUIPMENT_DETAILS ? "max-w-6xl mx-6" : "max-w-lg"
                     }
                 >
-                    {currentModal === Modals.EDIT_UNIT && (
-                        <EditUnitForm unit={selectedUnit} />
-                    )}
+                    {currentModal === Modals.EDIT_UNIT && <EditUnitForm unit={selectedUnit} />}
 
                     {currentModal === Modals.REJECT_UNIT && (
                         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-                            <Typography
-                                element="h2"
-                                size="title2"
-                                className="mb-6"
-                            >
+                            <Typography element="h2" size="title2" className="mb-6">
                                 Notas do Físico Médico Responsável
                             </Typography>
 
                             <Typography element="p" size="lg">
-                                {
-                                    getUnitOperation(
-                                        selectedUnit,
-                                        unitsOperations
-                                    )?.note
-                                }
+                                {getUnitOperation(selectedUnit, unitsOperations)?.note}
                             </Typography>
 
                             <Button
-                                onClick={() =>
-                                    handleConfirmRejectUnit(selectedUnit)
-                                }
+                                onClick={() => handleConfirmRejectUnit(selectedUnit)}
                                 className="w-full mt-6"
                                 data-testid="btn-confirm-reject-unit"
                             >
@@ -423,11 +344,7 @@ function UnitPage() {
 
                     {currentModal === Modals.DELETE_UNIT && selectedUnit && (
                         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-                            <Typography
-                                element="h2"
-                                size="title2"
-                                className="mb-6"
-                            >
+                            <Typography element="h2" size="title2" className="mb-6">
                                 Tem certeza que deseja excluir esta unidade?
                             </Typography>
 
@@ -444,9 +361,7 @@ function UnitPage() {
 
                                 <Button
                                     variant="danger"
-                                    onClick={() =>
-                                        handleRequestDeleteUnit(selectedUnit)
-                                    }
+                                    onClick={() => handleRequestDeleteUnit(selectedUnit)}
                                     className="w-full mt-6"
                                     data-testid="btn-confirm-delete-unit"
                                 >
@@ -456,103 +371,80 @@ function UnitPage() {
                         </div>
                     )}
 
-                    {currentModal === Modals.ADD_EQUIPMENT && (
-                        <AddEquipmentForm unitId={unitId} />
+                    {currentModal === Modals.ADD_EQUIPMENT && <AddEquipmentForm unitId={unitId} />}
+
+                    {currentModal === Modals.EDIT_EQUIPMENT && selectedEquipment && (
+                        <EditEquipmentForm
+                            title="Atualização de dados"
+                            description={`Por favor, edite os campos que deseja atualizar,
+                        certificando-se de preencher as informações corretamente.
+                        Após a submissão, o formulário será enviado para análise de
+                        um físico médico responsável, que fará a revisão e validação
+                        das informações fornecidas.`}
+                            equipment={selectedEquipment}
+                        />
                     )}
 
-                    {currentModal === Modals.EDIT_EQUIPMENT &&
-                        selectedEquipment && (
-                            <EditEquipmentForm
-                                originalEquipment={selectedEquipment}
-                            />
-                        )}
+                    {currentModal === Modals.DELETE_EQUIPMENT && selectedEquipment && (
+                        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                            <Typography element="h2" size="title2" className="mb-6">
+                                Tem certeza que deseja excluir este equipamento?
+                            </Typography>
 
-                    {currentModal === Modals.DELETE_EQUIPMENT &&
-                        selectedEquipment && (
-                            <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-                                <Typography
-                                    element="h2"
-                                    size="title2"
-                                    className="mb-6"
+                            <div className="flex flex-row gap-2">
+                                <Button
+                                    onClick={() => {
+                                        dispatch(closeModal());
+                                    }}
+                                    className="w-full mt-6"
+                                    data-testid="btn-cancel-delete-unit"
                                 >
-                                    Tem certeza que deseja excluir este
-                                    equipamento?
-                                </Typography>
-
-                                <div className="flex flex-row gap-2">
-                                    <Button
-                                        onClick={() => {
-                                            dispatch(closeModal());
-                                        }}
-                                        className="w-full mt-6"
-                                        data-testid="btn-cancel-delete-unit"
-                                    >
-                                        Cancelar
-                                    </Button>
-
-                                    <Button
-                                        variant="danger"
-                                        onClick={() =>
-                                            handleRequestDeleteEquipment(
-                                                selectedEquipment
-                                            )
-                                        }
-                                        isLoading={
-                                            isLoadingCreateDeleteEquipmentOperation
-                                        }
-                                        className="w-full mt-6"
-                                        data-testid="btn-confirm-delete-unit"
-                                    >
-                                        Confirmar
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-
-                    {currentModal === Modals.REJECT_EQUIPMENT &&
-                        selectedEquipment && (
-                            <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-                                <Typography
-                                    element="h2"
-                                    size="title2"
-                                    className="mb-6"
-                                >
-                                    Notas do Físico Médico Responsável
-                                </Typography>
-
-                                <Typography element="p" size="lg">
-                                    {
-                                        getEquipmentOperation(
-                                            selectedEquipment,
-                                            equipmentsOperations
-                                        )?.note
-                                    }
-                                </Typography>
+                                    Cancelar
+                                </Button>
 
                                 <Button
-                                    onClick={() =>
-                                        handleConfirmRejectEquipment(
-                                            selectedEquipment
-                                        )
-                                    }
-                                    isLoading={
-                                        isLoadingDeleteEquipmentOperation
-                                    }
+                                    variant="danger"
+                                    onClick={() => handleRequestDeleteEquipment(selectedEquipment)}
+                                    isLoading={isLoadingCreateDeleteEquipmentOperation}
                                     className="w-full mt-6"
-                                    data-testid="btn-confirm-reject-equipment"
+                                    data-testid="btn-confirm-delete-unit"
                                 >
                                     Confirmar
                                 </Button>
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                    {currentModal === Modals.EQUIPMENT_DETAILS &&
-                        selectedEquipment && (
-                            <EquipmentDetails
-                                equipment={selectedEquipment}
-                                onClose={() => dispatch(closeModal())}
-                            />
-                        )}
+                    {currentModal === Modals.REJECT_EQUIPMENT && selectedEquipment && (
+                        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                            <Typography element="h2" size="title2" className="mb-6">
+                                Notas do Físico Médico Responsável
+                            </Typography>
+
+                            <Typography element="p" size="lg">
+                                {
+                                    getEquipmentOperation(selectedEquipment, equipmentsOperations)
+                                        ?.note
+                                }
+                            </Typography>
+
+                            <Button
+                                onClick={() => handleConfirmRejectEquipment(selectedEquipment)}
+                                isLoading={isLoadingDeleteEquipmentOperation}
+                                className="w-full mt-6"
+                                data-testid="btn-confirm-reject-equipment"
+                            >
+                                Confirmar
+                            </Button>
+                        </div>
+                    )}
+
+                    {currentModal === Modals.EQUIPMENT_DETAILS && selectedEquipment && (
+                        <EquipmentDetails
+                            equipment={selectedEquipment}
+                            onClose={() => dispatch(closeModal())}
+                        />
+                    )}
                 </Modal>
             </main>
         );
