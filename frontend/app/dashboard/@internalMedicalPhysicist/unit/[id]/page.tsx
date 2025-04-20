@@ -222,7 +222,8 @@ function UnitPage() {
                     onClose={() => dispatch(closeModal())}
                     className={
                         currentModal === Modals.EQUIPMENT_DETAILS ||
-                        currentModal === Modals.REVIEW_EDIT_UNIT
+                        currentModal === Modals.REVIEW_EDIT_UNIT ||
+                        currentModal === Modals.REVIEW_EDIT_EQUIPMENT
                             ? "max-w-6xl mx-6"
                             : "max-w-lg"
                     }
@@ -277,6 +278,24 @@ function UnitPage() {
                             equipment={selectedEquipment}
                         />
                     )}
+
+                    {currentModal === Modals.REVIEW_EDIT_EQUIPMENT &&
+                        selectedEquipmentOperation &&
+                        selectedEquipment && (
+                            <div className="flex flex-row">
+                                <EditEquipmentForm
+                                    title="Alterações requisitadas"
+                                    reviewMode
+                                    equipment={selectedEquipmentOperation as EquipmentDTO}
+                                />
+
+                                <EditEquipmentForm
+                                    title="Informações atuais"
+                                    disabled
+                                    equipment={selectedEquipment}
+                                />
+                            </div>
+                        )}
 
                     {currentModal === Modals.DELETE_EQUIPMENT && <ModalDeleteEquipment />}
 

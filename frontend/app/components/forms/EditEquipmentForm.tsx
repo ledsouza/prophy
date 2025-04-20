@@ -265,9 +265,11 @@ const EditEquipmentForm = ({
             equipmentFormData.append("label_photo", equipmentLabelPhotoFile);
         }
 
-        isRejected
-            ? equipmentFormData.append("operation_status", OperationStatus.REJECTED)
-            : equipmentFormData.append("operation_status", OperationStatus.ACCEPTED);
+        if (!needReview) {
+            isRejected
+                ? equipmentFormData.append("operation_status", OperationStatus.REJECTED)
+                : equipmentFormData.append("operation_status", OperationStatus.ACCEPTED);
+        }
 
         return equipmentFormData;
     };
@@ -671,7 +673,9 @@ const EditEquipmentForm = ({
                   });
 
             if (equipmentResponse.error) {
-                throw new Error(`Error creating equipment: ${equipmentResponse.error}`);
+                throw new Error(
+                    `Error creating equipment: ${JSON.stringify(equipmentResponse.error)}`
+                );
             }
 
             await handleAccessories(accessoriesFormData, equipmentResponse.data);
