@@ -471,7 +471,7 @@ const EditEquipmentForm = ({
                 )}
 
                 {equipment.equipment_photo && (
-                    <Typography element="p" size="sm">
+                    <Typography element="p" size="sm" className="truncate">
                         Nome do arquivo atual: {equipment.equipment_photo.split("/").pop()}
                     </Typography>
                 )}
@@ -494,7 +494,7 @@ const EditEquipmentForm = ({
                 )}
 
                 {equipment.label_photo && (
-                    <Typography element="p" size="sm">
+                    <Typography element="p" size="sm" className="truncate">
                         Nome do arquivo atual: {equipment.label_photo.split("/").pop()}
                     </Typography>
                 )}
@@ -553,7 +553,7 @@ const EditEquipmentForm = ({
                 </Input>
 
                 {filteredAccessories[accessoryIndex]?.equipment_photo && (
-                    <Typography element="p" size="sm">
+                    <Typography element="p" size="sm" className="truncate">
                         Nome do arquivo atual:{" "}
                         {filteredAccessories[accessoryIndex].equipment_photo.split("/").pop()}
                     </Typography>
@@ -570,7 +570,7 @@ const EditEquipmentForm = ({
                 </Input>
 
                 {filteredAccessories[accessoryIndex]?.label_photo && (
-                    <Typography element="p" size="sm">
+                    <Typography element="p" size="sm" className="truncate">
                         Nome do arquivo atual:{" "}
                         {filteredAccessories[accessoryIndex].label_photo.split("/").pop()}
                     </Typography>
