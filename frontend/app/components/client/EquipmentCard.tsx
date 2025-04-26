@@ -45,7 +45,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
         "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
-            "animate-danger": isRejected,
+            "animate-danger": isRejected && !isStaff,
         }
     );
 
@@ -123,6 +123,12 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
     }
 
     useEffect(() => {
+        if (isStaff && equipmentOperation?.operation_status === OperationStatus.REJECTED) {
+            // Staff doesn't see rejected equipments. If equipment exists, it should be showing
+            // the accepted version.
+            setStatus(OperationStatus.ACCEPTED);
+            return;
+        }
         setStatus(
             equipmentOperation ? equipmentOperation.operation_status : OperationStatus.ACCEPTED
         );

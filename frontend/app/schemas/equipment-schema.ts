@@ -1,5 +1,4 @@
 import { z } from "zod";
-import requiredFileSchema from "./required-file-schema";
 import accessorySchema from "./accessory-schema";
 
 const equipmentSchema = z.object({

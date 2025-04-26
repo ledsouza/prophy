@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import cn from "classnames";
 
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+
 import {
     Field,
     Label,
@@ -96,6 +98,9 @@ const Select = ({
     const [hasOperation, setHasOperation] = useState(false);
     const [isRejected, setIsRejected] = useState(false);
 
+    const { data: userData } = useRetrieveUserQuery();
+    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+
     useEffect(() => {
         if (rejectedOperationIDs !== undefined && rejectedOperationIDs.size > 0) {
             setHasOperation(false);
@@ -117,7 +122,7 @@ const Select = ({
         "focus:ring-2 focus:ring-inset focus:ring-primary",
         {
             "animate-warning": hasOperation,
-            "animate-danger": isRejected,
+            "animate-danger": isRejected && !isStaff,
         },
         listBoxButtonStyles
     );
@@ -159,7 +164,8 @@ const Select = ({
                                     "data-[focus]:bg-primary data-[focus]:text-white",
                                     {
                                         "animate-warning": operationsIDs?.has(option.id),
-                                        "animate-danger": rejectedOperationIDs?.has(option.id),
+                                        "animate-danger":
+                                            rejectedOperationIDs?.has(option.id) && !isStaff,
                                     },
                                     listOptionStyles
                                 );

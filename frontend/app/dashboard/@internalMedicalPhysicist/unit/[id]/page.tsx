@@ -286,7 +286,7 @@ function UnitPage() {
                                 <EditEquipmentForm
                                     title="Alterações requisitadas"
                                     reviewMode
-                                    equipment={selectedEquipmentOperation as EquipmentDTO}
+                                    equipment={selectedEquipmentOperation}
                                 />
 
                                 <EditEquipmentForm

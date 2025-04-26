@@ -80,7 +80,7 @@ type EditEquipmentFormProps = {
     description?: string;
     disabled?: boolean;
     reviewMode?: boolean;
-    equipment: EquipmentDTO;
+    equipment: EquipmentDTO | EquipmentOperationDTO;
 };
 
 const EditEquipmentForm = ({
@@ -241,7 +241,9 @@ const EditEquipmentForm = ({
         const equipmentFormData = new FormData();
 
         // Handle text fields
-        equipmentFormData.append("original_equipment", equipment.id.toString());
+        if (needReview) {
+            equipmentFormData.append("original_equipment", equipment.id.toString());
+        }
         equipmentFormData.append("unit", equipment.unit.toString());
         equipmentFormData.append("modality", data.modality.toString());
         equipmentFormData.append("manufacturer", data.manufacturer);
@@ -322,7 +324,7 @@ const EditEquipmentForm = ({
             // Check if this is an existing accessory (has ID) or a new one
             const accessory = accessoriesFields[index];
 
-            if (accessory.id) {
+            if (accessory.id && !needReview) {
                 // This is an existing accessory - update it
                 try {
                     const response = await updateAccessory({
@@ -396,6 +398,7 @@ const EditEquipmentForm = ({
                             labelSize="sm"
                             listBoxButtonSize="sm"
                             listOptionSize="sm"
+                            disabled={disabled}
                             dataTestId="equipment-modality-select"
                         />
                     ) : (
@@ -412,6 +415,7 @@ const EditEquipmentForm = ({
                     type="text"
                     errorMessage={errors.manufacturer?.message}
                     placeholder="Digite o nome do fabricante"
+                    disabled={disabled}
                     data-testid="equipment-manufacturer-input"
                 >
                     Fabricante
@@ -422,6 +426,7 @@ const EditEquipmentForm = ({
                     type="text"
                     errorMessage={errors.model?.message}
                     placeholder="Digite o nome do modelo"
+                    disabled={disabled}
                     data-testid="equipment-model-input"
                 >
                     Modelo
@@ -432,6 +437,7 @@ const EditEquipmentForm = ({
                     type="text"
                     errorMessage={errors.series_number?.message}
                     placeholder="Digite o número de série, se houver"
+                    disabled={disabled}
                     data-testid="equipment-series-number-input"
                 >
                     Número de série
@@ -442,20 +448,27 @@ const EditEquipmentForm = ({
                     type="text"
                     errorMessage={errors.anvisa_registry?.message}
                     placeholder="Digite o registro na ANVISA, se houver"
+                    disabled={disabled}
                     data-testid="equipment-anvisa-registry-input"
                 >
                     Registro na ANVISA
                 </Input>
 
-                <Input
-                    {...register("equipment_photo")}
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png"
-                    errorMessage={errors.equipment_photo?.message}
-                    data-testid="equipment-photo-input"
-                >
-                    Foto do equipamento
-                </Input>
+                {!disabled ? (
+                    <Input
+                        {...register("equipment_photo")}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        errorMessage={errors.equipment_photo?.message}
+                        data-testid="equipment-photo-input"
+                    >
+                        Foto do equipamento
+                    </Input>
+                ) : (
+                    <Typography element="p" size="sm" className="font-medium">
+                        Foto do equipamento
+                    </Typography>
+                )}
 
                 {equipment.equipment_photo && (
                     <Typography element="p" size="sm">
@@ -463,15 +476,22 @@ const EditEquipmentForm = ({
                     </Typography>
                 )}
 
-                <Input
-                    {...register("label_photo")}
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png"
-                    errorMessage={errors.label_photo?.message}
-                    data-testid="equipment-label-input"
-                >
-                    Foto do rótulo do equipamento
-                </Input>
+                {!disabled ? (
+                    <Input
+                        {...register("label_photo")}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        errorMessage={errors.label_photo?.message}
+                        disabled={disabled}
+                        data-testid="equipment-label-input"
+                    >
+                        Foto do rótulo do equipamento
+                    </Input>
+                ) : (
+                    <Typography element="p" size="sm" className="font-medium">
+                        Foto do rótulo do equipamento
+                    </Typography>
+                )}
 
                 {equipment.label_photo && (
                     <Typography element="p" size="sm">
@@ -578,7 +598,7 @@ const EditEquipmentForm = ({
         if (accessoryType !== AccessoryType.NONE && !editAccessories) {
             return (
                 <div>
-                    {!isRejected && (
+                    {!isRejected && !disabled && (
                         <Button
                             type="button"
                             disabled={isSubmitting}

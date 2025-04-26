@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import { OperationStatus } from "@/enums";
 import { defaultOperationStatusOrder } from "@/constants/ordering";
@@ -11,6 +11,7 @@ import {
 
 import { Typography } from "@/components/foundation";
 import { EquipmentCard } from "@/components/client";
+import { Spinner } from "../common";
 
 type EquipmentListProps = {
     searchedEquipments: EquipmentDTO[];
@@ -28,20 +29,14 @@ const EquipmentList = ({
     OperationStatusOrder = defaultOperationStatusOrder,
     emptyStateMessage = {
         noEquipmentsRegistered: "Nenhum equipamento registrado",
-        noEquipmentsFound:
-            "Nenhum equipamento encontrado para o termo pesquisado",
+        noEquipmentsFound: "Nenhum equipamento encontrado para o termo pesquisado",
     },
 }: EquipmentListProps) => {
-    const { data: equipmentsOperations } =
+    const { data: equipmentsOperations, isLoading: isLoadingEquipmentsOperations } =
         useListAllEquipmentsOperationsQuery();
 
-    const handleEquipmentStatus = (
-        equipment: EquipmentDTO
-    ): OperationStatus => {
-        const equipmentOperation = getEquipmentOperation(
-            equipment,
-            equipmentsOperations
-        );
+    const handleEquipmentStatus = (equipment: EquipmentDTO): OperationStatus => {
+        const equipmentOperation = getEquipmentOperation(equipment, equipmentsOperations);
 
         if (equipmentOperation) {
             return equipmentOperation.operation_status as OperationStatus;
@@ -61,10 +56,7 @@ const EquipmentList = ({
                     <EquipmentCard
                         key={equipment.id}
                         equipment={equipment}
-                        equipmentOperation={getEquipmentOperation(
-                            equipment,
-                            equipmentsOperations
-                        )}
+                        equipmentOperation={getEquipmentOperation(equipment, equipmentsOperations)}
                         dataTestId={`equipment-card-${equipment.id}`}
                     />
                 ))
@@ -75,8 +67,7 @@ const EquipmentList = ({
                     dataTestId="equipment-not-found"
                     className="justify-center text-center"
                 >
-                    {filteredEquipmentsByUnit &&
-                    filteredEquipmentsByUnit.length === 0
+                    {filteredEquipmentsByUnit && filteredEquipmentsByUnit.length === 0
                         ? emptyStateMessage.noEquipmentsRegistered
                         : emptyStateMessage.noEquipmentsFound}
                 </Typography>

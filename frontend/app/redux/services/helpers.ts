@@ -1,25 +1,18 @@
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { UnitDTO, UnitOperationDTO } from "../features/unitApiSlice";
-import {
-    EquipmentDTO,
-    EquipmentOperationDTO,
-} from "../features/equipmentApiSlice";
+import { EquipmentDTO, EquipmentOperationDTO } from "../features/equipmentApiSlice";
 
 /**
  * Type predicate to narrow an unknown error to `FetchBaseQueryError`
  */
-export function isFetchBaseQueryError(
-    error: unknown
-): error is FetchBaseQueryError {
+export function isFetchBaseQueryError(error: unknown): error is FetchBaseQueryError {
     return typeof error === "object" && error != null && "status" in error;
 }
 
 /**
  * Type predicate to narrow an unknown error to an object with a string 'message' property
  */
-export function isErrorWithMessages(
-    error: unknown
-): error is { data: { messages: string[] } } {
+export function isErrorWithMessages(error: unknown): error is { data: { messages: string[] } } {
     return (
         typeof error === "object" &&
         error != null &&
@@ -41,13 +34,9 @@ export function isResponseError(
     );
 }
 
-export const getEquipmentsCount = (
-    unit: UnitDTO,
-    equipments: EquipmentDTO[] | undefined
-) => {
+export const getEquipmentsCount = (unit: UnitDTO, equipments: EquipmentDTO[] | undefined) => {
     if (equipments) {
-        return equipments.filter((equipment) => equipment.unit === unit.id)
-            .length;
+        return equipments.filter((equipment) => equipment.unit === unit.id).length;
     } else {
         return 0;
     }
@@ -59,9 +48,7 @@ export const getUnitOperation = (
 ) => {
     // Add operations has the same id of the entity
     // because they don't have a original entity associated with them
-    const AddUnitOperation = unitsOperations?.find(
-        (operation) => operation.id === unit.id
-    );
+    const AddUnitOperation = unitsOperations?.find((operation) => operation.id === unit.id);
 
     if (AddUnitOperation) {
         return AddUnitOperation;
@@ -69,9 +56,7 @@ export const getUnitOperation = (
 
     // Return for other types of operations
     // because they have a original entity associated with them
-    return unitsOperations?.find(
-        (operation) => operation.original_unit === unit.id
-    );
+    return unitsOperations?.find((operation) => operation.original_unit === unit.id);
 };
 
 export const getEquipmentOperation = (
@@ -90,7 +75,5 @@ export const getEquipmentOperation = (
 
     // Return for other types of operations
     // because they have a original entity associated with them
-    return equipmentsOperations?.find(
-        (operation) => operation.original_equipment === equipment.id
-    );
+    return equipmentsOperations?.find((operation) => operation.original_equipment === equipment.id);
 };
