@@ -80,15 +80,13 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     }
 
     function handleDelete() {
-        if (!unitOperation) {
-            return toast.error("Algo deu errado! Tente novamente mais tarde.");
-        }
-        dispatch(setUnitOperation(unitOperation));
+        dispatch(setUnit(unit));
         dispatch(openModal(Modals.DELETE_UNIT));
     }
 
     function handleReview() {
         if (!unitOperation) {
+            console.log("Couldn't handleReview in UnitDetails");
             return toast.error("Algo deu errado! Tente novamente mais tarde.");
         }
         dispatch(setUnitOperation(unitOperation));
