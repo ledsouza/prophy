@@ -17,12 +17,7 @@ import { OperationStatus, OperationType } from "@/enums";
 import { isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
 import { useAppDispatch } from "@/redux/hooks";
-import {
-    Modals,
-    openModal,
-    setUnit,
-    setUnitOperation,
-} from "@/redux/features/modalSlice";
+import { Modals, openModal, setUnit, setUnitOperation } from "@/redux/features/modalSlice";
 import { useStaff } from "@/hooks";
 
 type UnitDetailsProps = {
@@ -40,9 +35,7 @@ enum ButtonsState {
 function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const dispatch = useAppDispatch();
     const { isStaff } = useStaff();
-    const [buttonsState, setButtonsState] = useState<ButtonsState>(
-        ButtonsState.REVIEWNONSTAFF
-    );
+    const [buttonsState, setButtonsState] = useState<ButtonsState>(ButtonsState.REVIEWNONSTAFF);
     const [loadingCancel, setLoadingCancel] = useState(false);
 
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
@@ -66,9 +59,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                         }
                     );
                 }
-                return toast.error(
-                    "Algo deu errado. Tente novamente mais tarde."
-                );
+                return toast.error("Algo deu errado. Tente novamente mais tarde.");
             }
 
             toast.success("Requisição cancelada com sucesso!");
@@ -80,13 +71,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     }
 
     function handleEdit() {
-        if (!unitOperation) {
-            console.log(
-                "Couldn't run handEdit in UnitDetail because unitOperation is undefined"
-            );
-            return toast.error("Algo deu errado! Tente novamente mais tarde.");
-        }
-        dispatch(setUnitOperation(unitOperation));
+        dispatch(setUnit(unit));
         dispatch(openModal(Modals.EDIT_UNIT));
     }
 
@@ -114,20 +99,11 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
 
     // Set the buttons that should be rendered
     useEffect(() => {
-        if (
-            unitOperation?.operation_status === OperationStatus.REVIEW &&
-            !isStaff
-        ) {
+        if (unitOperation?.operation_status === OperationStatus.REVIEW && !isStaff) {
             setButtonsState(ButtonsState.REVIEWNONSTAFF);
-        } else if (
-            unitOperation?.operation_status === OperationStatus.REVIEW &&
-            isStaff
-        ) {
+        } else if (unitOperation?.operation_status === OperationStatus.REVIEW && isStaff) {
             setButtonsState(ButtonsState.REVIEWSTAFF);
-        } else if (
-            unitOperation?.operation_status === OperationStatus.REJECTED &&
-            !isStaff
-        ) {
+        } else if (unitOperation?.operation_status === OperationStatus.REJECTED && !isStaff) {
             setButtonsState(ButtonsState.REJECTED);
         } else {
             setButtonsState(ButtonsState.EDIT);
@@ -136,11 +112,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
-            <Button
-                href="/dashboard"
-                variant="secondary"
-                dataTestId="btn-go-back"
-            >
+            <Button href="/dashboard" variant="secondary" dataTestId="btn-go-back">
                 <div className="flex flex-row gap-2 justify-center align-middle text-center">
                     <ArrowFatLineLeft size="1.8em" />
                     <Typography size="md">Voltar</Typography>
@@ -173,8 +145,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                     {buttonsState === ButtonsState.REVIEWNONSTAFF && (
                         <>
                             <Typography variant="secondary">
-                                {unitOperation?.operation_type ===
-                                OperationType.EDIT
+                                {unitOperation?.operation_type === OperationType.EDIT
                                     ? "Requisição de alteração em análise"
                                     : "Requisição de remoção em análise"}
                             </Typography>
@@ -193,8 +164,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                     {buttonsState === ButtonsState.REVIEWSTAFF && (
                         <>
                             <Typography variant="secondary">
-                                {unitOperation?.operation_type ===
-                                OperationType.EDIT
+                                {unitOperation?.operation_type === OperationType.EDIT
                                     ? "Requisição de alteração em análise"
                                     : "Requisição de remoção em análise"}
                             </Typography>
@@ -213,8 +183,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                     {buttonsState === ButtonsState.REJECTED && (
                         <>
                             <Typography variant="danger">
-                                {unitOperation?.operation_type ===
-                                OperationType.EDIT
+                                {unitOperation?.operation_type === OperationType.EDIT
                                     ? "Requisição de alteração rejeitada"
                                     : "Requisição de remoção rejeitada"}
                             </Typography>
@@ -263,11 +232,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                 </Typography>
 
                 {unit.user ? (
-                    <Typography
-                        element="p"
-                        size="md"
-                        dataTestId="unit-manager-user"
-                    >
+                    <Typography element="p" size="md" dataTestId="unit-manager-user">
                         {unit.user.name}
                         <br />
                         {formatPhoneNumber(unit.user.phone)}
@@ -276,13 +241,8 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                     </Typography>
                 ) : (
                     <div className="flex flex-col gap-2">
-                        <Typography
-                            element="p"
-                            size="md"
-                            dataTestId="empty-unit-manager-user"
-                        >
-                            Nenhum gerente de unidade foi designado. Deseja
-                            atribuir um agora?
+                        <Typography element="p" size="md" dataTestId="empty-unit-manager-user">
+                            Nenhum gerente de unidade foi designado. Deseja atribuir um agora?
                         </Typography>
                         <Button dataTestId="btn-add-unit-manager">
                             Atribuir gerente de unidade

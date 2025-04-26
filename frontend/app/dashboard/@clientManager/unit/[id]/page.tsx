@@ -320,7 +320,17 @@ function UnitPage() {
                         currentModal === Modals.EQUIPMENT_DETAILS ? "max-w-6xl mx-6" : "max-w-lg"
                     }
                 >
-                    {currentModal === Modals.EDIT_UNIT && <EditUnitForm unit={selectedUnit} />}
+                    {currentModal === Modals.EDIT_UNIT && (
+                        <EditUnitForm
+                            title="Atualização de dados"
+                            description={`Por favor, edite os campos que deseja atualizar,
+                            certificando-se de preencher as informações corretamente.
+                            Após a submissão, o formulário será enviado para análise de
+                            um físico médico responsável, que fará a revisão e validação
+                            das informações fornecidas.`}
+                            unit={selectedUnit}
+                        />
+                    )}
 
                     {currentModal === Modals.REJECT_UNIT && (
                         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
