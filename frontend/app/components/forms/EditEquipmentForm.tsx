@@ -804,7 +804,7 @@ const EditEquipmentForm = ({
         }
 
         try {
-            if (removedAccessoryIds.length > 0) {
+            if (!needReview && removedAccessoryIds.length > 0) {
                 const deletionPromises = removedAccessoryIds.map((id) => deleteAccessory(id));
                 const deletionResults = await Promise.all(deletionPromises);
 
@@ -967,7 +967,7 @@ const EditEquipmentForm = ({
 
                 {fields.length > 0 && !editAccessories && !isRejected && (
                     <Typography element="p" className="font-semibold">
-                        Acessórios adicionados:
+                        Acessórios:
                     </Typography>
                 )}
                 {fields.length > 0 &&
