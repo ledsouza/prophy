@@ -17,6 +17,46 @@ const equipmentSchema = z.object({
     anvisa_registry: z.string().max(30, {
         message: "Registro na ANVISA deve ter no máximo 30 caracteres.",
     }),
+    channels: z
+        .string()
+        .max(10, {
+            message: "Canais deve ter no máximo 10 caracteres.",
+        })
+        .optional(),
+    official_max_load: z
+        .union([
+            z.number().int().positive().optional(),
+            z
+                .string()
+                .transform((val) => (val === "" ? undefined : parseInt(val, 10)))
+                .optional(),
+        ])
+        .optional(),
+    usual_max_load: z
+        .union([
+            z.number().int().positive().optional(),
+            z
+                .string()
+                .transform((val) => (val === "" ? undefined : parseInt(val, 10)))
+                .optional(),
+        ])
+        .optional(),
+    purchase_installation_date: z.string().optional(),
+    maintenance_responsable: z
+        .string()
+        .max(50, {
+            message: "Responsável pela manutenção deve ter no máximo 50 caracteres.",
+        })
+        .optional(),
+    email_maintenance_responsable: z
+        .union([z.string().email({ message: "E-mail inválido." }), z.string().length(0)])
+        .optional(),
+    phone_maintenance_responsable: z
+        .string()
+        .max(13, {
+            message: "Telefone deve ter no máximo 13 caracteres.",
+        })
+        .optional(),
     accessories: z.array(accessorySchema),
     note: z
         .string()

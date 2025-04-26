@@ -122,6 +122,13 @@ const EditEquipmentForm = ({
             model: equipment.model,
             series_number: equipment.series_number,
             anvisa_registry: equipment.anvisa_registry,
+            channels: equipment.channels || "",
+            official_max_load: equipment.official_max_load || undefined,
+            usual_max_load: equipment.usual_max_load || undefined,
+            purchase_installation_date: equipment.purchase_installation_date || "",
+            maintenance_responsable: equipment.maintenance_responsable || "",
+            email_maintenance_responsable: equipment.email_maintenance_responsable || "",
+            phone_maintenance_responsable: equipment.phone_maintenance_responsable || "",
         },
     });
 
@@ -250,6 +257,33 @@ const EditEquipmentForm = ({
         equipmentFormData.append("model", data.model);
         equipmentFormData.append("series_number", data.series_number);
         equipmentFormData.append("anvisa_registry", data.anvisa_registry);
+
+        // Add additional fields if user has appropriate role
+        if (!reviewMode && !needReview && (userData?.role === "FMI" || userData?.role === "GP")) {
+            if (data.channels) equipmentFormData.append("channels", data.channels);
+            if (data.official_max_load)
+                equipmentFormData.append("official_max_load", data.official_max_load.toString());
+            if (data.usual_max_load)
+                equipmentFormData.append("usual_max_load", data.usual_max_load.toString());
+            if (data.purchase_installation_date)
+                equipmentFormData.append(
+                    "purchase_installation_date",
+                    data.purchase_installation_date
+                );
+            if (data.maintenance_responsable)
+                equipmentFormData.append("maintenance_responsable", data.maintenance_responsable);
+            if (data.email_maintenance_responsable)
+                equipmentFormData.append(
+                    "email_maintenance_responsable",
+                    data.email_maintenance_responsable
+                );
+            if (data.phone_maintenance_responsable)
+                equipmentFormData.append(
+                    "phone_maintenance_responsable",
+                    data.phone_maintenance_responsable
+                );
+        }
+
         if (data.note) {
             equipmentFormData.append("note", data.note);
         }
@@ -498,6 +532,93 @@ const EditEquipmentForm = ({
                         Nome do arquivo atual: {equipment.label_photo.split("/").pop()}
                     </Typography>
                 )}
+
+                {!reviewMode &&
+                    !disabled &&
+                    !needReview &&
+                    (userData?.role === "FMI" || userData?.role === "GP") && (
+                        <div className="flex flex-col gap-2 mt-6 border-t pt-4">
+                            <Typography element="h3" size="title3" className="font-semibold mb-4">
+                                Informações adicionais do equipamento
+                            </Typography>
+
+                            <Input
+                                {...register("channels")}
+                                type="text"
+                                errorMessage={errors.channels?.message}
+                                placeholder="Digite o número de canais"
+                                disabled={disabled}
+                                data-testid="equipment-channels-input"
+                            >
+                                Canais
+                            </Input>
+
+                            <Input
+                                {...register("official_max_load")}
+                                type="number"
+                                errorMessage={errors.official_max_load?.message}
+                                placeholder="Digite a carga máxima oficial"
+                                disabled={disabled}
+                                data-testid="equipment-official-max-load-input"
+                            >
+                                Carga máxima oficial
+                            </Input>
+
+                            <Input
+                                {...register("usual_max_load")}
+                                type="number"
+                                errorMessage={errors.usual_max_load?.message}
+                                placeholder="Digite a carga máxima usual"
+                                disabled={disabled}
+                                data-testid="equipment-usual-max-load-input"
+                            >
+                                Carga máxima usual
+                            </Input>
+
+                            <Input
+                                {...register("purchase_installation_date")}
+                                type="date"
+                                errorMessage={errors.purchase_installation_date?.message}
+                                disabled={disabled}
+                                data-testid="equipment-purchase-installation-date-input"
+                            >
+                                Data de instalação da compra
+                            </Input>
+
+                            <Input
+                                {...register("maintenance_responsable")}
+                                type="text"
+                                errorMessage={errors.maintenance_responsable?.message}
+                                placeholder="Digite o nome do responsável pela manutenção"
+                                disabled={disabled}
+                                data-testid="equipment-maintenance-responsable-input"
+                            >
+                                Responsável pela manutenção
+                            </Input>
+
+                            <Input
+                                {...register("email_maintenance_responsable")}
+                                type="email"
+                                errorMessage={errors.email_maintenance_responsable?.message}
+                                placeholder="Digite o e-mail do responsável pela manutenção"
+                                disabled={disabled}
+                                data-testid="equipment-email-maintenance-responsable-input"
+                            >
+                                E-mail do responsável pela manutenção
+                            </Input>
+
+                            <Input
+                                {...register("phone_maintenance_responsable")}
+                                type="text"
+                                errorMessage={errors.phone_maintenance_responsable?.message}
+                                placeholder="Digite o telefone do responsável pela manutenção"
+                                disabled={disabled}
+                                data-testid="equipment-phone-maintenance-responsable-input"
+                            >
+                                Telefone do responsável pela manutenção
+                            </Input>
+                        </div>
+                    )}
             </>
         );
     };

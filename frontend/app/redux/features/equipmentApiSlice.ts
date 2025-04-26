@@ -12,6 +12,10 @@ export type EquipmentDTO = {
     anvisa_registry?: string;
     equipment_photo?: string;
     label_photo?: string;
+    channels?: string;
+    official_max_load?: number;
+    usual_max_load?: number;
+    purchase_installation_date?: string;
     maintenance_responsable?: string;
     email_maintenance_responsable?: string;
     phone_maintenance_responsable?: string;
