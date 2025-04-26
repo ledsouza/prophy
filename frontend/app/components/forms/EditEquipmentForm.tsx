@@ -281,6 +281,7 @@ const EditEquipmentForm = ({
 
         const accessoriesFormDataPromises = accessoriesFields.map(async (accessory, index) => {
             const accessoryFormData = new FormData();
+            accessoryFormData.append("manufacturer", accessory.manufacturer);
             accessoryFormData.append("model", accessory.model);
             accessoryFormData.append("series_number", accessory.series_number);
 
@@ -317,7 +318,6 @@ const EditEquipmentForm = ({
 
         const promises = accessoriesForm.map(async (formData, index) => {
             // Add common fields
-            formData.append("manufacturer", equipment.manufacturer);
             formData.append("category", accessoryType ? accessoryType : AccessoryType.NONE);
 
             // Check if this is an existing accessory (has ID) or a new one
@@ -523,6 +523,16 @@ const EditEquipmentForm = ({
                 </div>
 
                 <Input
+                    {...register(`accessories.${accessoryIndex}.manufacturer`)}
+                    type="text"
+                    errorMessage={errors.accessories?.[accessoryIndex]?.manufacturer?.message}
+                    placeholder="Digite o nome do fabricante"
+                    data-testid="accessory-manufacturer-input"
+                >
+                    Fabricante
+                </Input>
+
+                <Input
                     {...register(`accessories.${accessoryIndex}.model`)}
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.model?.message}
@@ -632,6 +642,7 @@ const EditEquipmentForm = ({
                     onClick={() =>
                         append({
                             model: "",
+                            manufacturer: "",
                             series_number: "",
                             equipment_photo: new DataTransfer().files,
                             label_photo: new DataTransfer().files,
@@ -740,6 +751,7 @@ const EditEquipmentForm = ({
             filteredAccessories.map((accessory) => ({
                 id: accessory.id,
                 model: accessory.model,
+                manufacturer: accessory.manufacturer,
                 series_number: accessory.series_number,
                 equipment_photo: null,
                 label_photo: null,
