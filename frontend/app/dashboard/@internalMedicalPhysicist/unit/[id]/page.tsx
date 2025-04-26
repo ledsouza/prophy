@@ -28,6 +28,7 @@ import {
     AddEquipmentForm,
     EditEquipmentForm,
     ReviewDeleteUnitForm,
+    ReviewDeleteEquipmentForm,
 } from "@/components/forms";
 import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
 import { OperationType } from "@/enums";
@@ -298,6 +299,14 @@ function UnitPage() {
                         )}
 
                     {currentModal === Modals.DELETE_EQUIPMENT && <ModalDeleteEquipment />}
+
+                    {currentModal === Modals.REVIEW_DELETE_EQUIPMENT &&
+                        selectedEquipmentOperation && (
+                            <ReviewDeleteEquipmentForm
+                                title="O cliente deseja remover este equipamento. Você concorda?"
+                                equipmentOperationID={selectedEquipmentOperation.id}
+                            />
+                        )}
 
                     {currentModal === Modals.EQUIPMENT_DETAILS && selectedEquipment && (
                         <EquipmentDetails
