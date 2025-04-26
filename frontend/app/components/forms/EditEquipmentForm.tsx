@@ -311,7 +311,7 @@ const EditEquipmentForm = ({
 
     const handleAccessories = async (
         accessoriesForm: FormData[],
-        equipment: EquipmentOperationDTO
+        equipment: EquipmentDTO | EquipmentOperationDTO
     ) => {
         const accessoriesFields = getValues("accessories");
 
@@ -319,7 +319,6 @@ const EditEquipmentForm = ({
             // Add common fields
             formData.append("manufacturer", equipment.manufacturer);
             formData.append("category", accessoryType ? accessoryType : AccessoryType.NONE);
-            formData.append("equipment", equipment.id.toString());
 
             // Check if this is an existing accessory (has ID) or a new one
             const accessory = accessoriesFields[index];
@@ -344,6 +343,7 @@ const EditEquipmentForm = ({
                 }
             } else {
                 // This is a new accessory - create it
+                formData.append("equipment", equipment.id.toString());
                 try {
                     const response = await createAccessory(formData);
                     if (response.error) {
@@ -685,6 +685,7 @@ const EditEquipmentForm = ({
                 }
                 setRemovedAccessoryIds([]);
             }
+
             const equipmentResponse = needReview
                 ? await createEditEquipmentOperation(equipmentFormData)
                 : await editEquipment({
@@ -698,7 +699,10 @@ const EditEquipmentForm = ({
                 );
             }
 
-            await handleAccessories(accessoriesFormData, equipmentResponse.data);
+            // The backend will handle accessories when reviewMode is true
+            if (!reviewMode) {
+                await handleAccessories(accessoriesFormData, equipmentResponse.data);
+            }
 
             // If review is not required, the user is either an internal medical physicist or a Prophy manager.
             // The user may be editing data or reviewing an operation.

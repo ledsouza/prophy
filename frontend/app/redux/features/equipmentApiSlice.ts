@@ -175,6 +175,7 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: [
                 { type: "EquipmentOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
+                { type: "Accessory", id: "LIST" },
             ],
         }),
     }),
