@@ -22,8 +22,7 @@ SECRET_KEY = getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS",
-                       "127.0.0.1,localhost".split(","))
+ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost".split(","))
 
 
 CORS_ALLOWED_ORIGINS = [
@@ -46,8 +45,8 @@ INSTALLED_APPS = [
     "djoser",
     "corsheaders",
     "rest_framework_simplejwt",
-    'django_filters',
-    'drf_yasg',
+    "django_filters",
+    "drf_yasg",
     "users",
     "clients_management",
     "requisitions",
@@ -70,7 +69,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [path.join(BASE_DIR, 'templates')],
+        "DIRS": [path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -135,6 +134,8 @@ STATIC_ROOT = BASE_DIR.joinpath("static")
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR.joinpath("media")
 
+FRONTEND_URL = getenv("FRONTEND_URL")
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -144,6 +145,8 @@ DJOSER = {
     "TOKEN_MODEL": None,
     "USER_CREATE_PASSWORD_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_URL": "password-reset/{uid}/{token}",
+    "EMAIL_FRONTEND_DOMAIN": FRONTEND_URL.split("/")[-1],
+    "EMAIL_FRONTEND_SITE_NAME": "Prophy",
 }
 
 AUTH_COOKIE = "access"
@@ -154,16 +157,16 @@ AUTH_COOKIE_PATH = "/"
 AUTH_COOKIE_SAMESITE = "Lax"
 
 SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header',
-            'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
         }
     },
-    'USE_SESSION_AUTH': False,
-    'DEFAULT_MODEL_RENDERING': 'example'
+    "USE_SESSION_AUTH": False,
+    "DEFAULT_MODEL_RENDERING": "example",
 }
 
 REST_FRAMEWORK = {
@@ -173,8 +176,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
     # 'DEFAULT_THROTTLE_CLASSES': [
     #     'rest_framework.throttling.AnonRateThrottle',
     #     'rest_framework.throttling.UserRateThrottle'
@@ -184,8 +187,6 @@ REST_FRAMEWORK = {
     #     'user': '1000/day'
     # }
 }
-
-FRONTEND_URL = getenv("FRONTEND_URL")
 
 # Email Settings
 
