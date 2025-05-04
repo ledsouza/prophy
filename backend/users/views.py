@@ -219,7 +219,8 @@ class UnitManagerViewSet(DjoserUserViewSet):
         user's email address upon successful creation.
 
         Args:
-            request: The HTTP request object, containing user data and required fields 'cpf', 'email', and 'name'.
+            request: The HTTP request object, containing user data and required fields
+                    'cpf', 'email', 'name', 'phone', and 'unit_id'.
 
         Returns:
             Response: A JSON response with a success message and the new user's email if creation
@@ -228,6 +229,7 @@ class UnitManagerViewSet(DjoserUserViewSet):
 
         Raises:
             HTTP_403_FORBIDDEN: If the request user does not have permission to create a Unit Manager.
+            ValidationError: If the unit with the given ID does not exist.
         """
         if (
             request.user.role != UserAccount.Role.CLIENT_GENERAL_MANAGER
@@ -246,6 +248,7 @@ class UnitManagerViewSet(DjoserUserViewSet):
                 "email": request.data.get("email"),
                 "name": request.data.get("name"),
                 "phone": request.data.get("phone"),
+                "unit_id": request.data.get("unit_id"),
             }
         )
         serializer.is_valid(raise_exception=True)
@@ -265,6 +268,7 @@ class UnitManagerViewSet(DjoserUserViewSet):
                 {
                     "detail": "Unit manager user created. Password reset email sent.",
                     "email": user.email,
+                    "user_id": user.id,
                 },
                 status=status.HTTP_201_CREATED,
             )
@@ -274,6 +278,7 @@ class UnitManagerViewSet(DjoserUserViewSet):
             {
                 "detail": "User created but could not send password reset email",
                 "email": user.email,
+                "user_id": user.id,
             },
             status=status.HTTP_206_PARTIAL_CONTENT,
         )
