@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv_file = BASE_DIR.joinpath(".env.local")
+dotenv_file = BASE_DIR.joinpath(".env")
 
 if path.isfile(dotenv_file):
     load_dotenv(dotenv_file)
@@ -188,7 +188,16 @@ REST_FRAMEWORK = {
     # }
 }
 
-# Email Settings
+# AWS
+AWS_ACCESS_KEY_ID = getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = getenv("AWS_SECRET_ACCESS_KEY")
+
+if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
+    raise Exception(
+        "AWS credentials are required. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables."
+    )
+
+# Email
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_HOST = "localhost"
