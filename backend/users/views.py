@@ -209,6 +209,58 @@ class LogoutView(APIView):
 
 
 class UnitManagerViewSet(DjoserUserViewSet):
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["cpf", "email", "name", "phone", "unit_id"],
+            properties={
+                "cpf": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="CPF of the unit manager",
+                ),
+                "email": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Email address of the unit manager",
+                ),
+                "name": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Full name of the unit manager",
+                ),
+                "phone": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Phone number of the unit manager",
+                ),
+                "unit_id": openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="ID of the unit that the manager will be associated with",
+                ),
+            },
+        ),
+        responses={
+            201: openapi.Response(
+                description="User created",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Details about the response",
+                        ),
+                        "email": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="E-mail of the created user",
+                        ),
+                        "user_id": openapi.Schema(
+                            type=openapi.TYPE_NUMBER,
+                            description="ID of the created user",
+                        ),
+                    },
+                ),
+            ),
+            400: "Bad request: validation error",
+            403: "Forbidden: only Client Managers or Prophy Managers can create Unit Managers",
+        },
+    )
     @action(["post"], detail=False, url_path="create-unit-manager")
     def create_unit_manager(self, request, *args, **kwargs):
         """

@@ -32,10 +32,16 @@ import { ArrowClockwise } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Button, Modal, Spinner } from "@/components/common";
-import { Input, EditUnitForm, AddEquipmentForm, EditEquipmentForm } from "@/components/forms";
+import {
+    Input,
+    EditUnitForm,
+    AddEquipmentForm,
+    EditEquipmentForm,
+    RegisterUnitManagerForm,
+} from "@/components/forms";
 import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
-import { OperationStatus, OperationType } from "@/enums";
-import { closeModal, Modals, openModal, setEquipment } from "@/redux/features/modalSlice";
+import { OperationType } from "@/enums";
+import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -453,6 +459,14 @@ function UnitPage() {
                         <EquipmentDetails
                             equipment={selectedEquipment}
                             onClose={() => dispatch(closeModal())}
+                        />
+                    )}
+
+                    {currentModal === Modals.ADD_UNIT_MANAGER && (
+                        <RegisterUnitManagerForm
+                            unitID={selectedUnit.id}
+                            title="Cadastro do Gerente de Unidade"
+                            description="Uma vez atribuído, o responsável receberá, no e-mail cadastrado, um link para a definição de sua senha e obtenção de acesso."
                         />
                     )}
                 </Modal>

@@ -151,7 +151,9 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                     placeholder="Digite o nome da unidade"
                     disabled={disabled}
                     data-testid="unit-name-input"
-                ></Input>
+                >
+                    Nome
+                </Input>
                 <Input
                     {...register("cnpj")}
                     type="text"

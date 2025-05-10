@@ -18,12 +18,19 @@ export type UserDTO = {
     role: "FMI" | "FME" | "GP" | "GGC" | "GU" | "C";
 };
 
+type RegisterUnitManagerResponse = {
+    detail: string;
+    email: string;
+    userID: number;
+};
+
+type RegisterUnitManagerRequest = Omit<UserAuth, "password" | "re_password"> & {
+    unit_id: number;
+};
+
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<
-            void,
-            Omit<UserAuth, "email" | "name" | "phone">
-        >({
+        login: builder.mutation<void, Omit<UserAuth, "email" | "name" | "phone">>({
             query: ({ cpf, password }) => ({
                 url: "jwt/create/",
                 method: "POST",
@@ -58,6 +65,20 @@ const authApiSlice = apiSlice.injectEndpoints({
                 body: { cpf, email, phone, name, password, re_password },
             }),
         }),
+        registerUnitManager: builder.mutation<
+            RegisterUnitManagerResponse,
+            RegisterUnitManagerRequest
+        >({
+            query: (requestBody) => ({
+                url: "users/create-unit-manager/",
+                method: "POST",
+                body: requestBody,
+            }),
+            invalidatesTags: [
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+            ],
+        }),
     }),
 });
 
@@ -68,4 +89,5 @@ export const {
     useRetrieveUserQuery,
     useGetByIdQuery,
     useRegisterMutation,
+    useRegisterUnitManagerMutation,
 } = authApiSlice;

@@ -95,6 +95,11 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
             : dispatch(openModal(Modals.REVIEW_DELETE_UNIT));
     }
 
+    const handleUnitManager = () => {
+        dispatch(setUnit(unit));
+        dispatch(openModal(Modals.ADD_UNIT_MANAGER));
+    };
+
     // Set the buttons that should be rendered
     useEffect(() => {
         if (unitOperation?.operation_status === OperationStatus.REVIEW && !isStaff) {
@@ -242,7 +247,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                         <Typography element="p" size="md" dataTestId="empty-unit-manager-user">
                             Nenhum gerente de unidade foi designado. Deseja atribuir um agora?
                         </Typography>
-                        <Button dataTestId="btn-add-unit-manager">
+                        <Button onClick={handleUnitManager} dataTestId="btn-add-unit-manager">
                             Atribuir gerente de unidade
                         </Button>
                     </div>

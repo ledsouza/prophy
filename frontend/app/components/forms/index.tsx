@@ -15,3 +15,4 @@ export { default as AddEquipmentForm } from "./AddEquipmentForm";
 export { default as EditEquipmentForm } from "./EditEquipmentForm";
 export { default as ReviewDeleteEquipmentForm } from "./ReviewDeleteEquipmentForm";
 export { default as FormButtons } from "./FormButtons";
+export { default as RegisterUnitManagerForm } from "./RegisterUnitManagerForm";
