@@ -13,9 +13,6 @@ dotenv_file = BASE_DIR.joinpath(".env")
 if path.isfile(dotenv_file):
     load_dotenv(dotenv_file)
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 
@@ -191,6 +188,7 @@ REST_FRAMEWORK = {
 # AWS
 AWS_ACCESS_KEY_ID = getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = getenv("AWS_SECRET_ACCESS_KEY")
+AWS_SES_REGION_NAME = getenv("AWS_SES_REGION_NAME", "sa-east-1")
 
 if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
     raise Exception(
@@ -199,10 +197,8 @@ if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
 
 # Email
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-EMAIL_HOST = "localhost"
-EMAIL_PORT = "8025"
-DEFAULT_FROM_EMAIL = "ledevsouza@gmail.com"
+EMAIL_BACKEND = "django_ses.SESBackend"
+DEFAULT_FROM_EMAIL = "leandro.souza.159@gmail.com"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
