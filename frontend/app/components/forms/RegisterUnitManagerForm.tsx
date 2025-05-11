@@ -9,11 +9,7 @@ import { Button } from "../common";
 import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useRegisterUnitManagerMutation } from "@/redux/features/authApiSlice";
-import {
-    getErrorMessage,
-    getErrorStatus,
-    getStatusErrorMessage,
-} from "@/redux/services/errorHandling";
+import { handleApiError } from "@/redux/services/errorHandling";
 
 export type RegisterFields = z.infer<typeof unitManagerSchema>;
 
@@ -47,15 +43,7 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
             );
             dispatch(closeModal());
         } catch (error) {
-            const status = getErrorStatus(error);
-
-            if (status) {
-                toast.error(getStatusErrorMessage(status));
-            } else {
-                toast.error(getErrorMessage(error));
-            }
-
-            console.error("Registration error:", error);
+            handleApiError(error, "Registration error");
         }
     };
 
@@ -74,7 +62,7 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                     {...register("name")}
                     type="text"
                     errorMessage={errors.name?.message}
-                    placeholder="Digite o nome do gerente de unidade"
+                    placeholder="Digite o nome completo do gerente de unidade"
                     data-testid="unit-manager-name-input"
                 >
                     Nome

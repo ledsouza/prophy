@@ -105,3 +105,22 @@ export function getStatusErrorMessage(status: number): string {
             return `Erro ${status}. Tente novamente mais tarde.`;
     }
 }
+
+import { toast } from "react-toastify";
+
+/**
+ * Handles API errors by displaying a toast notification and logging the error.
+ * @param error The error object caught from an API call.
+ * @param contextMessage An optional message to provide context for the console log.
+ */
+export function handleApiError(error: unknown, contextMessage: string = "API Error"): void {
+    console.error(contextMessage + ":", error); // Log first to capture raw error
+
+    const status = getErrorStatus(error);
+
+    if (status) {
+        toast.error(getStatusErrorMessage(status));
+    } else {
+        toast.error(getErrorMessage(error));
+    }
+}

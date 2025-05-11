@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,9 @@ import { Typography } from "@/components/foundation";
 import { Form, Input } from "@/components/forms";
 import { Button } from "@/components/common";
 import { checkPasswordScore } from "@/utils/validation";
+import { useResetPasswordMutation } from "@/redux/features/authApiSlice";
+import { toast } from "react-toastify";
+import { handleApiError } from "@/redux/services/errorHandling";
 
 const resetPasswordSchema = z
     .object({
@@ -38,6 +41,8 @@ export type ResetPasswordFields = z.infer<typeof resetPasswordSchema>;
 
 const ResetPasswordForm = () => {
     const params = useParams<{ uid: string; token: string }>();
+    const router = useRouter();
+    const [resetPassword] = useResetPasswordMutation();
 
     const {
         register,
@@ -47,17 +52,25 @@ const ResetPasswordForm = () => {
         resolver: zodResolver(resetPasswordSchema),
     });
 
-    // TODO: onSubmit will be defined here later
     const handleFormSubmit: SubmitHandler<ResetPasswordFields> = async (data) => {
-        // Placeholder for now
-        console.log("Form submitted", data);
-        // Actual submission logic will be added later
+        try {
+            await resetPassword({
+                ...data,
+                uid: params.uid,
+                token: params.token,
+            }).unwrap();
+
+            toast.success("Senha criada com sucesso. Você já pode acessar sua conta.");
+            router.replace("/auth/login");
+        } catch (error) {
+            handleApiError(error, "Reset password error");
+        }
     };
 
     return (
         <Form onSubmit={handleSubmit(handleFormSubmit)}>
             <Typography element="h3" size="title3">
-                Definir senha
+                Redefinir senha
             </Typography>
             <Input
                 {...register("new_password")}
