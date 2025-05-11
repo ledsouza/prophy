@@ -34,7 +34,8 @@ enum ButtonsState {
 
 function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const dispatch = useAppDispatch();
-    const { isStaff } = useStaff();
+    const { isStaff, userData } = useStaff();
+    const isGGC = userData?.role === "GGC";
     const [buttonsState, setButtonsState] = useState<ButtonsState>(ButtonsState.REVIEWNONSTAFF);
     const [loadingCancel, setLoadingCancel] = useState(false);
 
@@ -245,11 +246,15 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                 ) : (
                     <div className="flex flex-col gap-2">
                         <Typography element="p" size="md" dataTestId="empty-unit-manager-user">
-                            Nenhum gerente de unidade foi designado. Deseja atribuir um agora?
+                            {isGGC
+                                ? "Nenhum gerente de unidade foi designado. Deseja atribuir um agora?"
+                                : "Nenhum gerente de unidade foi designado."}
                         </Typography>
-                        <Button onClick={handleUnitManager} dataTestId="btn-add-unit-manager">
-                            Atribuir gerente de unidade
-                        </Button>
+                        {isGGC && (
+                            <Button onClick={handleUnitManager} dataTestId="btn-add-unit-manager">
+                                Atribuir gerente de unidade
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
