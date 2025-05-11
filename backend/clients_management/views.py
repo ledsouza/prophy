@@ -11,8 +11,14 @@ from drf_yasg import openapi
 
 from users.models import UserAccount
 from clients_management.models import Proposal, Client, Modality, Accessory
-from clients_management.serializers import (CNPJSerializer, ClientSerializer, UnitSerializer,
-                                            EquipmentSerializer, ModalitySerializer, AccessorySerializer)
+from clients_management.serializers import (
+    CNPJSerializer,
+    ClientSerializer,
+    UnitSerializer,
+    EquipmentSerializer,
+    ModalitySerializer,
+    AccessorySerializer,
+)
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 from requisitions.serializers import EquipmentOperation
 
@@ -21,6 +27,7 @@ class LatestProposalStatusView(APIView):
     """
     Check the approval status of the latest contract proposal with a given CNPJ.
     """
+
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
@@ -37,54 +44,58 @@ class LatestProposalStatusView(APIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'status': openapi.Schema(
+                        "status": openapi.Schema(
                             type=openapi.TYPE_BOOLEAN,
-                            description="Approval status of the latest proposal"
+                            description="Approval status of the latest proposal",
                         )
-                    }
-                )
+                    },
+                ),
             ),
             404: openapi.Response(
                 description="Proposal not found",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'error': openapi.Schema(
+                        "error": openapi.Schema(
                             type=openapi.TYPE_STRING,
-                            description="Error message indicating no proposals found"
+                            description="Error message indicating no proposals found",
                         )
-                    }
-                )
+                    },
+                ),
             ),
             400: openapi.Response(
                 description="Invalid CNPJ format or missing data",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'cnpj': openapi.Schema(
+                        "cnpj": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Items(type=openapi.TYPE_STRING),
-                            description="Validation error details for CNPJ"
+                            description="Validation error details for CNPJ",
                         )
-                    }
-                )
-            )
-        }
+                    },
+                ),
+            ),
+        },
     )
     def post(self, request: Request) -> Response:
         serializer = CNPJSerializer(data=request.data)
 
         if serializer.is_valid():
-            cnpj = serializer.validated_data['cnpj']
+            cnpj = serializer.validated_data["cnpj"]
 
             try:
-                latest_client = Proposal.objects.filter(
-                    cnpj=cnpj
-                ).latest('date')
-                return Response({'status': latest_client.approved_client()}, status=status.HTTP_200_OK)
+                latest_client = Proposal.objects.filter(cnpj=cnpj).latest("date")
+                return Response(
+                    {"status": latest_client.approved_client()},
+                    status=status.HTTP_200_OK,
+                )
 
             except Proposal.DoesNotExist:
-                return Response({'error': 'Nenhum cliente foi encontrado com esse cnpj.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "Nenhum cliente foi encontrado com esse cnpj."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -104,39 +115,39 @@ class ClientStatusView(APIView):
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'status': openapi.Schema(
+                        "status": openapi.Schema(
                             type=openapi.TYPE_BOOLEAN,
-                            description="Indicates whether the client exists"
+                            description="Indicates whether the client exists",
                         )
-                    }
-                )
+                    },
+                ),
             ),
             400: openapi.Response(
                 description="Invalid CNPJ format or missing data",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'cnpj': openapi.Schema(
+                        "cnpj": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Items(type=openapi.TYPE_STRING),
-                            description="Validation error details for CNPJ"
+                            description="Validation error details for CNPJ",
                         )
-                    }
-                )
-            )
-        }
+                    },
+                ),
+            ),
+        },
     )
     def post(self, request: Request) -> Response:
         serializer = CNPJSerializer(data=request.data)
 
         if serializer.is_valid():
-            cnpj = serializer.validated_data['cnpj']
+            cnpj = serializer.validated_data["cnpj"]
 
             try:
                 _ = Client.objects.get(cnpj=cnpj)
-                return Response({'status': True}, status=status.HTTP_200_OK)
+                return Response({"status": True}, status=status.HTTP_200_OK)
             except Client.DoesNotExist:
-                return Response({'status': False}, status=status.HTTP_200_OK)
+                return Response({"status": False}, status=status.HTTP_200_OK)
 
 
 class ClientViewSet(viewsets.ViewSet):
@@ -145,6 +156,7 @@ class ClientViewSet(viewsets.ViewSet):
 
     Provides actions for listing and creating clients.
     """
+
     @swagger_auto_schema(
         operation_summary="List active and accepted clients",
         operation_description="""
@@ -170,27 +182,40 @@ class ClientViewSet(viewsets.ViewSet):
                 name="cnpj",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter clients by CNPJ."
+                description="Filter clients by CNPJ.",
             )
         ],
         responses={
             200: openapi.Response(
                 description="Paginated list of active and accepted clients",
-                schema=ClientSerializer(many=True)
+                schema=ClientSerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def list(self, request):
         user = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = ClientOperation.objects.all()
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            user_managed_unit_operations = UnitOperation.objects.filter(
+                user=user, client__active=True, operation_status="A"
+            )
+            client_ids_from_units = user_managed_unit_operations.values_list(
+                "client_id", flat=True
+            ).distinct()
+            queryset = ClientOperation.objects.filter(
+                pk__in=client_ids_from_units,
+                active=True,
+                operation_status="A",
+            )
         else:
             queryset = ClientOperation.objects.filter(
-                users=user, active=True, operation_status="A")
+                users=user, active=True, operation_status="A"
+            )
 
-        cnpj = request.query_params.get('cnpj')
+        cnpj = request.query_params.get("cnpj")
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
 
@@ -235,11 +260,11 @@ class UnitViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Paginated list of active and accepted units",
-                schema=ClientSerializer(many=True)
+                schema=ClientSerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def list(self, request):
         user = request.user
@@ -247,7 +272,8 @@ class UnitViewSet(viewsets.ViewSet):
             queryset = UnitOperation.objects.all()
         else:
             queryset = UnitOperation.objects.filter(
-                client__users=user, client__active=True, operation_status="A")
+                client__users=user, client__active=True, operation_status="A"
+            )
 
         queryset = queryset.order_by("client")
 
@@ -290,11 +316,11 @@ class EquipmentViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Paginated list of accepted equipments",
-                schema=ClientSerializer(many=True)
+                schema=ClientSerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def list(self, request):
         user = request.user
@@ -302,7 +328,10 @@ class EquipmentViewSet(viewsets.ViewSet):
             queryset = EquipmentOperation.objects.all()
         else:
             queryset = EquipmentOperation.objects.filter(
-                unit__client__users=user, unit__client__active=True, operation_status="A")
+                unit__client__users=user,
+                unit__client__active=True,
+                operation_status="A",
+            )
 
         queryset = queryset.order_by("unit")
 
@@ -329,11 +358,11 @@ class ModalityViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="List of all modalities",
-                schema=ModalitySerializer(many=True)
+                schema=ModalitySerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def list(self, request):
         """
@@ -349,24 +378,23 @@ class ModalityViewSet(viewsets.ViewSet):
         request_body=ModalitySerializer,
         responses={
             201: openapi.Response(
-                description="Modality created successfully",
-                schema=ModalitySerializer
+                description="Modality created successfully", schema=ModalitySerializer
             ),
             400: openapi.Response(
                 description="Invalid input data",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'error': openapi.Schema(
+                        "error": openapi.Schema(
                             type=openapi.TYPE_STRING,
-                            description="Validation error details"
+                            description="Validation error details",
                         )
-                    }
-                )
+                    },
+                ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def create(self, request):
         """
@@ -384,36 +412,34 @@ class ModalityViewSet(viewsets.ViewSet):
         request_body=ModalitySerializer,
         responses={
             200: openapi.Response(
-                description="Modality updated successfully",
-                schema=ModalitySerializer
+                description="Modality updated successfully", schema=ModalitySerializer
             ),
             400: openapi.Response(
                 description="Invalid input data",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'error': openapi.Schema(
+                        "error": openapi.Schema(
                             type=openapi.TYPE_STRING,
-                            description="Validation error details"
+                            description="Validation error details",
                         )
-                    }
-                )
+                    },
+                ),
             ),
             404: openapi.Response(
                 description="Modality not found",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'detail': openapi.Schema(
-                            type=openapi.TYPE_STRING,
-                            description="Error message"
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
                         )
-                    }
-                )
+                    },
+                ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def update(self, request, pk=None):
         """
@@ -422,10 +448,12 @@ class ModalityViewSet(viewsets.ViewSet):
         try:
             modality = Modality.objects.get(pk=pk)
         except Modality.DoesNotExist:
-            return Response({"detail": "Modalidade não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Modalidade não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        serializer = ModalitySerializer(
-            modality, data=request.data, partial=True)
+        serializer = ModalitySerializer(modality, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -435,24 +463,21 @@ class ModalityViewSet(viewsets.ViewSet):
         operation_summary="Delete a modality",
         operation_description="Delete an existing modality instance by its ID.",
         responses={
-            204: openapi.Response(
-                description="Modality deleted successfully"
-            ),
+            204: openapi.Response(description="Modality deleted successfully"),
             404: openapi.Response(
                 description="Modality not found",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'message': openapi.Schema(
-                            type=openapi.TYPE_STRING,
-                            description="Error message"
+                        "message": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
                         )
-                    }
-                )
+                    },
+                ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def destroy(self, request, pk=None):
         """
@@ -461,7 +486,10 @@ class ModalityViewSet(viewsets.ViewSet):
         try:
             modality = Modality.objects.get(pk=pk)
         except Modality.DoesNotExist:
-            return Response({"detail": "Modalidade não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Modalidade não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         modality.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -479,11 +507,11 @@ class AccessoryViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="List of all accessories",
-                schema=AccessorySerializer(many=True)
+                schema=AccessorySerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def list(self, request):
         """
@@ -493,8 +521,7 @@ class AccessoryViewSet(viewsets.ViewSet):
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = Accessory.objects.all()
         else:
-            queryset = Accessory.objects.filter(
-                equipment__unit__client__users=user)
+            queryset = Accessory.objects.filter(equipment__unit__client__users=user)
 
         serializer = AccessorySerializer(queryset, many=True)
         return Response(serializer.data)
@@ -505,13 +532,12 @@ class AccessoryViewSet(viewsets.ViewSet):
         request_body=AccessorySerializer,
         responses={
             201: openapi.Response(
-                description="Accessory created successfully",
-                schema=AccessorySerializer
+                description="Accessory created successfully", schema=AccessorySerializer
             ),
             400: "Invalid input data",
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def create(self, request):
         """
@@ -529,14 +555,13 @@ class AccessoryViewSet(viewsets.ViewSet):
         request_body=AccessorySerializer,
         responses={
             200: openapi.Response(
-                description="Accessory updated successfully",
-                schema=AccessorySerializer
+                description="Accessory updated successfully", schema=AccessorySerializer
             ),
             400: "Invalid input data",
             404: "Accessory not found",
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def update(self, request, pk=None):
         """
@@ -545,10 +570,12 @@ class AccessoryViewSet(viewsets.ViewSet):
         try:
             accessory = Accessory.objects.get(pk=pk)
         except Accessory.DoesNotExist:
-            return Response({"detail": "Acessório não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Acessório não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        serializer = AccessorySerializer(
-            accessory, data=request.data, partial=True)
+        serializer = AccessorySerializer(accessory, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -561,8 +588,8 @@ class AccessoryViewSet(viewsets.ViewSet):
             204: "Accessory deleted successfully",
             404: "Accessory not found",
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def destroy(self, request, pk=None):
         """
@@ -571,7 +598,10 @@ class AccessoryViewSet(viewsets.ViewSet):
         try:
             accessory = Accessory.objects.get(pk=pk)
         except Accessory.DoesNotExist:
-            return Response({"detail": "Acessório não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Acessório não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         accessory.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

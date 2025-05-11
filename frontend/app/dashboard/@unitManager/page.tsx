@@ -30,7 +30,7 @@ import { Button, Modal, Spinner } from "@/components/common";
 import { ClientDetails, UnitList } from "@/components/client";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 
-function ClientPage() {
+function UnitManagerPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
@@ -369,4 +369,4 @@ function ClientPage() {
     );
 }
 
-export default ClientPage;
+export default UnitManagerPage;

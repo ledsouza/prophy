@@ -47,7 +47,7 @@ function ClientDetails({
     selectedClientInOperation,
 }: ClientDetailsProps) {
     const dispatch = useAppDispatch();
-    const { isStaff } = useStaff();
+    const { isStaff, userData } = useStaff();
 
     const [reviewOperationsIDs, setReviewOperationsIDs] = useState<Set<number>>(new Set());
     const [rejectedOperationsIDs, setRejectedOperationsIDs] = useState<Set<number>>(new Set());
@@ -225,6 +225,8 @@ function ClientDetails({
         return <Spinner md />;
     }
 
+    const isUnitManager = userData?.role === "GU";
+
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
             <Typography element="h2" size="title2" className="font-bold" dataTestId="client-header">
@@ -255,7 +257,8 @@ function ClientDetails({
                 <div className="flex flex-col gap-2 w-full mt-2">
                     {selectedClientInOperation &&
                         selectedClientInOperation.operation_status === OperationStatus.REJECTED &&
-                        !isStaff && (
+                        !isStaff &&
+                        !isUnitManager && (
                             <>
                                 <Typography variant="danger">
                                     Requisição de alteração rejeitada
@@ -273,7 +276,8 @@ function ClientDetails({
 
                     {selectedClientInOperation &&
                         selectedClientInOperation.operation_status === OperationStatus.REJECTED &&
-                        isStaff && (
+                        isStaff &&
+                        !isUnitManager && (
                             <Button
                                 variant="secondary"
                                 className="flex-grow"
@@ -285,7 +289,8 @@ function ClientDetails({
                         )}
 
                     {selectedClientInOperation &&
-                        selectedClientInOperation.operation_status === OperationStatus.REVIEW && (
+                        selectedClientInOperation.operation_status === OperationStatus.REVIEW &&
+                        !isUnitManager && (
                             <>
                                 <Typography variant="secondary">
                                     Requisição de alteração em análise
@@ -306,7 +311,7 @@ function ClientDetails({
                             </>
                         )}
 
-                    {!selectedClientInOperation && (
+                    {!selectedClientInOperation && !isUnitManager && (
                         <Button
                             variant="secondary"
                             className="flex-grow"
