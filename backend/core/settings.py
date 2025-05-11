@@ -141,7 +141,7 @@ SIMPLE_JWT = {
 DJOSER = {
     "TOKEN_MODEL": None,
     "USER_CREATE_PASSWORD_RETYPE": True,
-    "PASSWORD_RESET_CONFIRM_URL": "password-reset/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_URL": "auth/password-reset/{uid}/{token}",
     "EMAIL_FRONTEND_DOMAIN": FRONTEND_URL.split("/")[-1],
     "EMAIL_FRONTEND_SITE_NAME": "Prophy",
 }

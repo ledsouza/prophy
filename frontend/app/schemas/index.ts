@@ -1,3 +1,4 @@
+export { default as registerSchema } from "./register-schema";
 export { default as clientSchema } from "./client-schema";
 export { default as unitSchema } from "./unit-schema";
 export { default as requiredFileSchema } from "./required-file-schema";
