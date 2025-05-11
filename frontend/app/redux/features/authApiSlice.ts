@@ -28,6 +28,13 @@ type RegisterUnitManagerRequest = Omit<UserAuth, "password" | "re_password"> & {
     unit_id: number;
 };
 
+type ResetPasswordRequest = {
+    uid: string;
+    token: string;
+    new_password: string;
+    re_new_password: string;
+};
+
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         login: builder.mutation<void, Omit<UserAuth, "email" | "name" | "phone">>({
@@ -79,6 +86,13 @@ const authApiSlice = apiSlice.injectEndpoints({
                 { type: "Unit", id: "LIST" },
             ],
         }),
+        resetPassword: builder.mutation<void, ResetPasswordRequest>({
+            query: (requestBody) => ({
+                url: "/users/reset_password_confirm/",
+                method: "POST",
+                body: requestBody,
+            }),
+        }),
     }),
 });
 
@@ -90,4 +104,5 @@ export const {
     useGetByIdQuery,
     useRegisterMutation,
     useRegisterUnitManagerMutation,
+    useResetPasswordMutation,
 } = authApiSlice;
