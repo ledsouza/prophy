@@ -213,51 +213,58 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                         >
                             Editar
                         </Button>
-                        <Button
-                            variant="danger"
-                            onClick={handleDelete}
-                            className="flex-grow"
-                            data-testid="btn-delete-unit"
-                        >
-                            Remover
-                        </Button>
-                    </div>
-                )}
-            </div>
-
-            <div>
-                <Typography
-                    element="h3"
-                    size="title3"
-                    className="font-bold"
-                    dataTestId="unit-manager-header"
-                >
-                    Gerente de Unidade
-                </Typography>
-
-                {unit.user ? (
-                    <Typography element="p" size="md" dataTestId="unit-manager-user">
-                        {unit.user.name}
-                        <br />
-                        {formatPhoneNumber(unit.user.phone)}
-                        <br />
-                        {unit.user.email}
-                    </Typography>
-                ) : (
-                    <div className="flex flex-col gap-2">
-                        <Typography element="p" size="md" dataTestId="empty-unit-manager-user">
-                            {isGGC
-                                ? "Nenhum gerente de unidade foi designado. Deseja atribuir um agora?"
-                                : "Nenhum gerente de unidade foi designado."}
-                        </Typography>
-                        {isGGC && (
-                            <Button onClick={handleUnitManager} dataTestId="btn-add-unit-manager">
-                                Atribuir gerente de unidade
+                        {userData?.role !== "GU" && (
+                            <Button
+                                variant="danger"
+                                onClick={handleDelete}
+                                className="flex-grow"
+                                data-testid="btn-delete-unit"
+                            >
+                                Remover
                             </Button>
                         )}
                     </div>
                 )}
             </div>
+
+            {userData?.role !== "GU" && (
+                <div>
+                    <Typography
+                        element="h3"
+                        size="title3"
+                        className="font-bold"
+                        dataTestId="unit-manager-header"
+                    >
+                        Gerente de Unidade
+                    </Typography>
+
+                    {unit.user ? (
+                        <Typography element="p" size="md" dataTestId="unit-manager-user">
+                            {unit.user.name}
+                            <br />
+                            {formatPhoneNumber(unit.user.phone)}
+                            <br />
+                            {unit.user.email}
+                        </Typography>
+                    ) : (
+                        <div className="flex flex-col gap-2">
+                            <Typography element="p" size="md" dataTestId="empty-unit-manager-user">
+                                {isGGC
+                                    ? "Nenhum gerente de unidade foi designado. Deseja atribuir um agora?"
+                                    : "Nenhum gerente de unidade foi designado."}
+                            </Typography>
+                            {isGGC && (
+                                <Button
+                                    onClick={handleUnitManager}
+                                    dataTestId="btn-add-unit-manager"
+                                >
+                                    Atribuir gerente de unidade
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

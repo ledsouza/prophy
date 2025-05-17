@@ -535,9 +535,12 @@ class AccessoryViewSet(viewsets.ViewSet):
         """
         Return a list of all accessories.
         """
-        user = request.user
+        user: UserAccount = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = Accessory.objects.all()
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            units = UnitOperation.objects.filter(user=user)
+            queryset = Accessory.objects.filter(equipment__unit__in=units)
         else:
             queryset = Accessory.objects.filter(equipment__unit__client__users=user)
 

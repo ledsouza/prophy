@@ -10,9 +10,12 @@ from drf_yasg import openapi
 
 from users.models import UserAccount
 from requisitions.serializers import (
-    ClientOperationSerializer, UnitOperationSerializer,
-    UnitOperationDeleteSerializer, EquipmentOperationSerializer,
-    EquipmentOperationDeleteSerializer)
+    ClientOperationSerializer,
+    UnitOperationSerializer,
+    UnitOperationDeleteSerializer,
+    EquipmentOperationSerializer,
+    EquipmentOperationDeleteSerializer,
+)
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 
 
@@ -43,20 +46,44 @@ class ClientOperationViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Paginated list of client operations",
-                schema=ClientOperationSerializer(many=True)
+                schema=ClientOperationSerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def list(self, request):
-        user = request.user
+        user: UserAccount = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = ClientOperation.objects.filter(
-                operation_status__in=["REV", "R"])
+                operation_status__in=[
+                    UnitOperation.OperationStatus.REVIEW,
+                    UnitOperation.OperationStatus.REJECTED,
+                ]
+            )
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            user_managed_unit_operations = UnitOperation.objects.filter(
+                user=user,
+                operation_status__in=[
+                    UnitOperation.OperationStatus.REVIEW,
+                    UnitOperation.OperationStatus.REJECTED,
+                ],
+            )
+            client_ids_from_units = user_managed_unit_operations.values_list(
+                "client_id", flat=True
+            ).distinct()
+            queryset = ClientOperation.objects.filter(
+                pk__in=client_ids_from_units,
+                active=True,
+                operation_status__in=[
+                    ClientOperation.OperationStatus.REVIEW,
+                    ClientOperation.OperationStatus.REJECTED,
+                ],
+            )
         else:
             queryset = ClientOperation.objects.filter(
-                users=user, operation_status__in=["REV", "R"])
+                users=user, operation_status__in=["REV", "R"]
+            )
 
         # Pagination
         paginator = PageNumberPagination()
@@ -88,7 +115,7 @@ class ClientOperationViewSet(viewsets.ViewSet):
         responses={
             201: openapi.Response(
                 description="Client operation created successfully",
-                schema=ClientOperationSerializer()
+                schema=ClientOperationSerializer(),
             ),
             400: openapi.Response(
                 description="Invalid request body provided",
@@ -98,19 +125,15 @@ class ClientOperationViewSet(viewsets.ViewSet):
                         "cnpj": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),
-                            description="List of validation errors for the CNPJ field"
+                            description="List of validation errors for the CNPJ field",
                         )
                     },
-                    example={
-                        "cnpj": [
-                            "Este campo é obrigatório."
-                        ]
-                    }
-                )
+                    example={"cnpj": ["Este campo é obrigatório."]},
+                ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     @transaction.atomic
     def create(self, request):
@@ -122,11 +145,16 @@ class ClientOperationViewSet(viewsets.ViewSet):
             try:
                 new_client = serializer.save()
             except ValidationError as error:
-                return Response({"message": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             try:
-                original_users = ClientOperation.objects.get(
-                    id=request.data["original_client"]).users.all().values_list('id', flat=True)
+                original_users = (
+                    ClientOperation.objects.get(id=request.data["original_client"])
+                    .users.all()
+                    .values_list("id", flat=True)
+                )
                 new_client.users.set(original_users)
             except ClientOperation.DoesNotExist:
                 # If original_client does not exist, this is an ADD operation
@@ -149,18 +177,19 @@ class ClientOperationViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Updated client operation",
-                schema=ClientOperationSerializer()
+                schema=ClientOperationSerializer(),
             ),
             400: "Invalid request body provided",
             401: "Unauthorized access",
             403: "Permission denied",
-            404: "Client operation not found"
-        }
+            404: "Client operation not found",
+        },
     )
     def update(self, request, pk=None):
         instance = ClientOperation.objects.get(pk=pk)
         serializer = ClientOperationSerializer(
-            instance, data=request.data, partial=True)
+            instance, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -177,14 +206,14 @@ class ClientOperationViewSet(viewsets.ViewSet):
                     "application/json": {
                         "message": "Operação deletada com sucesso.",
                         "id": 123,
-                        "operation_type": "Editar"
+                        "operation_type": "Editar",
                     }
-                }
+                },
             ),
             401: "Unauthorized access",
             403: "Permission denied",
-            404: "Client operation not found"
-        }
+            404: "Client operation not found",
+        },
     )
     def destroy(self, request, pk=None):
         try:
@@ -192,17 +221,17 @@ class ClientOperationViewSet(viewsets.ViewSet):
         except ClientOperation.DoesNotExist:
             return Response(
                 {"message": "Operação não encontrada."},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         instance.delete()
         return Response(
             {
-                'message': 'Operação deletada com sucesso.',
-                'id': instance.id,
-                'operation_type': instance.get_operation_type_display()
+                "message": "Operação deletada com sucesso.",
+                "id": instance.id,
+                "operation_type": instance.get_operation_type_display(),
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
 
@@ -233,20 +262,37 @@ class UnitOperationViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Paginated list of unit operations",
-                schema=UnitOperationSerializer(many=True)
+                schema=UnitOperationSerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def list(self, request):
-        user = request.user
+        user: UserAccount = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = UnitOperation.objects.filter(
-                operation_status__in=["REV", "R"])
+                operation_status__in=[
+                    UnitOperation.OperationStatus.REVIEW,
+                    UnitOperation.OperationStatus.REJECTED,
+                ]
+            )
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            queryset = UnitOperation.objects.filter(
+                original_unit__user=user,
+                operation_status__in=[
+                    UnitOperation.OperationStatus.REVIEW,
+                    UnitOperation.OperationStatus.REJECTED,
+                ],
+            )
         else:
             queryset = UnitOperation.objects.filter(
-                client__users=user, operation_status__in=["REV", "R"])
+                client__users=user,
+                operation_status__in=[
+                    UnitOperation.OperationStatus.REVIEW,
+                    UnitOperation.OperationStatus.REJECTED,
+                ],
+            )
 
         # Pagination
         paginator = PageNumberPagination()
@@ -280,7 +326,7 @@ class UnitOperationViewSet(viewsets.ViewSet):
         responses={
             201: openapi.Response(
                 description="Unit operation created successfully",
-                schema=UnitOperationSerializer()
+                schema=UnitOperationSerializer(),
             ),
             401: "Unauthorized access",
             403: "Permission denied",
@@ -292,17 +338,13 @@ class UnitOperationViewSet(viewsets.ViewSet):
                         "cnpj": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),
-                            description="List of validation errors for the CNPJ field"
+                            description="List of validation errors for the CNPJ field",
                         )
                     },
-                    example={
-                        "cnpj": [
-                            "Este campo é obrigatório."
-                        ]
-                    }
-                )
-            )
-        }
+                    example={"cnpj": ["Este campo é obrigatório."]},
+                ),
+            ),
+        },
     )
     def create(self, request):
         data = request.data
@@ -317,7 +359,9 @@ class UnitOperationViewSet(viewsets.ViewSet):
             try:
                 serializer.save()
             except ValidationError as error:
-                return Response({"message": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -335,23 +379,23 @@ class UnitOperationViewSet(viewsets.ViewSet):
         request_body=UnitOperationSerializer,
         responses={
             200: openapi.Response(
-                description="Updated unit operation",
-                schema=UnitOperationSerializer()
+                description="Updated unit operation", schema=UnitOperationSerializer()
             ),
             400: "Invalid request body provided",
             401: "Unauthorized access",
             403: "Permission denied",
-            404: "Unit operation not found"
-        }
+            404: "Unit operation not found",
+        },
     )
     def update(self, request, pk=None):
         try:
             operation = UnitOperation.objects.get(pk=pk)
         except UnitOperation.DoesNotExist:
-            return Response({"detail": "Operação não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Operação não encontrada."}, status=status.HTTP_404_NOT_FOUND
+            )
 
-        serializer = UnitOperationSerializer(
-            operation, data=request.data, partial=True)
+        serializer = UnitOperationSerializer(operation, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -370,14 +414,14 @@ class UnitOperationViewSet(viewsets.ViewSet):
                     "application/json": {
                         "message": "Operação deletada com sucesso.",
                         "id": 123,
-                        "operation_type": "Editar"
+                        "operation_type": "Editar",
                     }
-                }
+                },
             ),
             401: "Unauthorized access",
             403: "Permission denied",
-            404: "Unit operation not found"
-        }
+            404: "Unit operation not found",
+        },
     )
     def destroy(self, request, pk=None):
         try:
@@ -385,17 +429,17 @@ class UnitOperationViewSet(viewsets.ViewSet):
         except UnitOperation.DoesNotExist:
             return Response(
                 {"message": "Operação não encontrada."},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         instance.delete()
         return Response(
             {
-                'message': 'Operação deletada com sucesso.',
-                'id': instance.id,
-                'operation_type': instance.get_operation_type_display()
+                "message": "Operação deletada com sucesso.",
+                "id": instance.id,
+                "operation_type": instance.get_operation_type_display(),
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
 
@@ -427,20 +471,37 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Paginated list of equipment operations",
-                schema=EquipmentOperationSerializer(many=True)
+                schema=EquipmentOperationSerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied"
-        }
+            403: "Permission denied",
+        },
     )
     def list(self, request):
-        user = request.user
+        user: UserAccount = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = EquipmentOperation.objects.filter(
-                operation_status__in=["REV", "R"])
+                operation_status__in=[
+                    EquipmentOperation.OperationStatus.REVIEW,
+                    EquipmentOperation.OperationStatus.REJECTED,
+                ]
+            )
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            queryset = EquipmentOperation.objects.filter(
+                unit__user=user,
+                operation_status__in=[
+                    EquipmentOperation.OperationStatus.REVIEW,
+                    EquipmentOperation.OperationStatus.REJECTED,
+                ],
+            )
         else:
             queryset = EquipmentOperation.objects.filter(
-                unit__client__users=user, operation_status__in=["REV", "R"])
+                unit__client__users=user,
+                operation_status__in=[
+                    EquipmentOperation.OperationStatus.REVIEW,
+                    EquipmentOperation.OperationStatus.REJECTED,
+                ],
+            )
 
         # Pagination
         paginator = PageNumberPagination()
@@ -472,7 +533,7 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         responses={
             201: openapi.Response(
                 description="Equipment operation created successfully",
-                schema=EquipmentOperationSerializer()
+                schema=EquipmentOperationSerializer(),
             ),
             401: "Unauthorized access",
             403: "Permission denied",
@@ -484,17 +545,13 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
                         "operation_type": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),
-                            description="List of validation errors"
+                            description="List of validation errors",
                         )
                     },
-                    example={
-                        "operation_type": [
-                            "Este campo é obrigatório."
-                        ]
-                    }
-                )
-            )
-        }
+                    example={"operation_type": ["Este campo é obrigatório."]},
+                ),
+            ),
+        },
     )
     def create(self, request):
         data = request.data
@@ -528,18 +585,19 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         responses={
             200: openapi.Response(
                 description="Equipment operation updated successfully",
-                schema=EquipmentOperationSerializer()
+                schema=EquipmentOperationSerializer(),
             ),
             400: openapi.Response(description="Invalid request body provided"),
             401: "Unauthorized access",
             403: "Permission denied",
-            404: openapi.Response(description="Equipment operation not found")
-        }
+            404: openapi.Response(description="Equipment operation not found"),
+        },
     )
     def update(self, request, pk=None):
         instance = EquipmentOperation.objects.get(pk=pk)
         serializer = EquipmentOperationSerializer(
-            instance, data=request.data, partial=True)
+            instance, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -554,14 +612,14 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
                     "application/json": {
                         "message": "Operação deletada com sucesso.",
                         "id": 123,
-                        "operation_type": "Editar"
+                        "operation_type": "Editar",
                     }
-                }
+                },
             ),
             401: "Unauthorized access",
             403: "Permission denied",
-            404: openapi.Response(description="Equipment operation not found")
-        }
+            404: openapi.Response(description="Equipment operation not found"),
+        },
     )
     def destroy(self, request, pk=None):
         try:
@@ -569,15 +627,15 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         except EquipmentOperation.DoesNotExist:
             return Response(
                 {"message": "Operação não encontrada."},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         instance.delete()
         return Response(
             {
-                'message': 'Operação deletada com sucesso.',
-                'id': instance.id,
-                'operation_type': instance.get_operation_type_display()
+                "message": "Operação deletada com sucesso.",
+                "id": instance.id,
+                "operation_type": instance.get_operation_type_display(),
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
