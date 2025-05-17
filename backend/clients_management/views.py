@@ -200,7 +200,9 @@ class ClientViewSet(viewsets.ViewSet):
             queryset = ClientOperation.objects.all()
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             user_managed_unit_operations = UnitOperation.objects.filter(
-                user=user, client__active=True, operation_status="A"
+                user=user,
+                client__active=True,
+                operation_status=UnitOperation.OperationStatus.ACCEPTED,
             )
             client_ids_from_units = user_managed_unit_operations.values_list(
                 "client_id", flat=True
@@ -208,11 +210,13 @@ class ClientViewSet(viewsets.ViewSet):
             queryset = ClientOperation.objects.filter(
                 pk__in=client_ids_from_units,
                 active=True,
-                operation_status="A",
+                operation_status=ClientOperation.OperationStatus.ACCEPTED,
             )
         else:
             queryset = ClientOperation.objects.filter(
-                users=user, active=True, operation_status="A"
+                users=user,
+                active=True,
+                operation_status=ClientOperation.OperationStatus.ACCEPTED,
             )
 
         cnpj = request.query_params.get("cnpj")
@@ -270,9 +274,17 @@ class UnitViewSet(viewsets.ViewSet):
         user = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = UnitOperation.objects.all()
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            queryset = UnitOperation.objects.filter(
+                user=user,
+                client__active=True,
+                operation_status=UnitOperation.OperationStatus.ACCEPTED,
+            )
         else:
             queryset = UnitOperation.objects.filter(
-                client__users=user, client__active=True, operation_status="A"
+                client__users=user,
+                client__active=True,
+                operation_status=UnitOperation.OperationStatus.ACCEPTED,
             )
 
         queryset = queryset.order_by("client")
@@ -323,14 +335,20 @@ class EquipmentViewSet(viewsets.ViewSet):
         },
     )
     def list(self, request):
-        user = request.user
+        user: UserAccount = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = EquipmentOperation.objects.all()
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            queryset = EquipmentOperation.objects.filter(
+                unit__user=user,
+                unit__client__active=True,
+                operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
+            )
         else:
             queryset = EquipmentOperation.objects.filter(
                 unit__client__users=user,
                 unit__client__active=True,
-                operation_status="A",
+                operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
             )
 
         queryset = queryset.order_by("unit")
