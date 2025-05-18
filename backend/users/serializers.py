@@ -1,11 +1,25 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 import secrets
+from djoser.serializers import UserDeleteSerializer
 
 from users.models import UserAccount
 from clients_management.models import Unit
 
 User = get_user_model()
+
+
+class CustomUserDeleteSerializer(UserDeleteSerializer):
+    """
+    Custom serializer for user deletion that doesn't require the current password.
+    """
+
+    # Remove the current_password field by setting it to None
+    current_password = None
+
+    def validate(self, attrs):
+        # Skip the password validation by returning attrs directly
+        return attrs
 
 
 class UnitManagerUserSerializer(serializers.ModelSerializer):

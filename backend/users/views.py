@@ -11,7 +11,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 
-from users.serializers import UnitManagerUserSerializer
+from users.serializers import UnitManagerUserSerializer, CustomUserDeleteSerializer
 from users.email import UnitManagerPasswordResetEmail
 from users.models import UserAccount
 
@@ -208,7 +208,20 @@ class LogoutView(APIView):
         return response
 
 
-class UnitManagerViewSet(DjoserUserViewSet):
+class ExtendedUserViewSet(DjoserUserViewSet):
+    """
+    Extended user viewset that inherits from Djoser's UserViewSet.
+
+    This viewset provides all the standard user endpoints from Djoser,
+    plus additional functionality for unit manager creation and
+    customized user deletion without password verification.
+    """
+
+    def get_serializer_class(self):
+        if self.action == "destroy":
+            return CustomUserDeleteSerializer
+        return super().get_serializer_class()
+
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,

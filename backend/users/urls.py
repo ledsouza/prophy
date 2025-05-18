@@ -5,11 +5,11 @@ from .views import (
     CustomTokenRefreshView,
     CustomTokenVerifyView,
     LogoutView,
-    UnitManagerViewSet,
+    ExtendedUserViewSet,
 )
 
 router = DefaultRouter()
-router.register("users", UnitManagerViewSet, basename="user")
+router.register("users", ExtendedUserViewSet, basename="user")
 
 urlpatterns = [
     path("jwt/create/", CustomTokenObtainPairView.as_view()),
