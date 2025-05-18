@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -20,6 +20,19 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 User = get_user_model()
+
+
+class IsAdminOrClientManager(permissions.BasePermission):
+    """
+    Custom permission to allow both PROPHY_MANAGER and CLIENT_GENERAL_MANAGER users to delete users.
+    """
+
+    def has_permission(self, request, view):
+        # Allow if user is staff (PROPHY_MANAGER) or has CLIENT_GENERAL_MANAGER role
+        return (
+            request.user.is_staff
+            or request.user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER
+        )
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -216,6 +229,12 @@ class ExtendedUserViewSet(DjoserUserViewSet):
     plus additional functionality for unit manager creation and
     customized user deletion without password verification.
     """
+
+    def get_permissions(self):
+        permissions = super().get_permissions()
+        if self.action == "destroy":
+            return [IsAdminOrClientManager()]
+        return permissions
 
     def get_serializer_class(self):
         if self.action == "destroy":

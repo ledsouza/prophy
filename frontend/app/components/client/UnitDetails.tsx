@@ -17,7 +17,7 @@ import { OperationStatus, OperationType } from "@/enums";
 import { isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
 import { useAppDispatch } from "@/redux/hooks";
-import { Modals, openModal, setUnit, setUnitOperation } from "@/redux/features/modalSlice";
+import { Modals, openModal, setUnit, setUnitOperation, setUser } from "@/redux/features/modalSlice";
 import { useStaff } from "@/hooks";
 
 type UnitDetailsProps = {
@@ -96,9 +96,14 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
             : dispatch(openModal(Modals.REVIEW_DELETE_UNIT));
     }
 
-    const handleUnitManager = () => {
+    const handleAddUnitManager = () => {
         dispatch(setUnit(unit));
         dispatch(openModal(Modals.ADD_UNIT_MANAGER));
+    };
+
+    const handleDeleteUnitManager = () => {
+        dispatch(setUser(unit.user));
+        dispatch(openModal(Modals.REMOVE_UNIT_MANAGER));
     };
 
     // Set the buttons that should be rendered
@@ -239,13 +244,23 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                     </Typography>
 
                     {unit.user ? (
-                        <Typography element="p" size="md" dataTestId="unit-manager-user">
-                            {unit.user.name}
-                            <br />
-                            {formatPhoneNumber(unit.user.phone)}
-                            <br />
-                            {unit.user.email}
-                        </Typography>
+                        <div className="flex flex-col gap-4">
+                            <Typography element="p" size="md" dataTestId="unit-manager-user">
+                                {unit.user.name}
+                                <br />
+                                {formatPhoneNumber(unit.user.phone)}
+                                <br />
+                                {unit.user.email}
+                            </Typography>
+
+                            <Button
+                                onClick={handleDeleteUnitManager}
+                                variant="danger"
+                                dataTestId="btn-delete-unit-manager"
+                            >
+                                Remover gerente de unidade
+                            </Button>
+                        </div>
                     ) : (
                         <div className="flex flex-col gap-2">
                             <Typography element="p" size="md" dataTestId="empty-unit-manager-user">
@@ -255,7 +270,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                             </Typography>
                             {isGGC && (
                                 <Button
-                                    onClick={handleUnitManager}
+                                    onClick={handleAddUnitManager}
                                     dataTestId="btn-add-unit-manager"
                                 >
                                     Atribuir gerente de unidade

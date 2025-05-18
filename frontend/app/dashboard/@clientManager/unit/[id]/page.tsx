@@ -42,6 +42,8 @@ import {
 import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
 import { OperationType } from "@/enums";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
+import { useDeleterUserMutation, UserDTO } from "@/redux/features/authApiSlice";
+import { handleApiError } from "@/redux/services/errorHandling";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -49,7 +51,9 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const { isModalOpen, currentModal, selectedEquipment } = useAppSelector((state) => state.modal);
+    const { isModalOpen, currentModal, selectedEquipment, selectedUser } = useAppSelector(
+        (state) => state.modal
+    );
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
     const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<EquipmentDTO[]>([]);
@@ -83,6 +87,8 @@ function UnitPage() {
         useCreateDeleteEquipmentOperationMutation();
     const [deleteEquipmentOperation, { isLoading: isLoadingDeleteEquipmentOperation }] =
         useDeleteEquipmentOperationMutation();
+
+    const [deleteUser, { isLoading: isLoadingDeleteUser }] = useDeleterUserMutation();
 
     const handleUpdateData = () => {
         dispatch(
@@ -192,6 +198,16 @@ function UnitPage() {
         }
 
         dispatch(closeModal());
+    };
+
+    const handleRemoveUnitManager = async (selectedUser: UserDTO) => {
+        try {
+            await deleteUser(selectedUser.id).unwrap();
+            toast.success("Gerente removido com sucesso!");
+            dispatch(closeModal());
+        } catch (error) {
+            handleApiError(error, "Removing unit manager error");
+        }
     };
 
     // Set selected unit
@@ -468,6 +484,36 @@ function UnitPage() {
                             title="Cadastro do Gerente de Unidade"
                             description="Uma vez atribuído, o responsável receberá, no e-mail cadastrado, um link para a definição de sua senha e obtenção de acesso."
                         />
+                    )}
+
+                    {currentModal === Modals.REMOVE_UNIT_MANAGER && selectedUser && (
+                        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+                            <Typography element="h2" size="title2" className="mb-6">
+                                Tem certeza que deseja remover este gerente?
+                            </Typography>
+
+                            <div className="flex flex-row gap-2">
+                                <Button
+                                    onClick={() => {
+                                        dispatch(closeModal());
+                                    }}
+                                    className="w-full mt-6"
+                                    data-testid="btn-cancel-delete-unit-manager"
+                                >
+                                    Cancelar
+                                </Button>
+
+                                <Button
+                                    variant="danger"
+                                    onClick={() => handleRemoveUnitManager(selectedUser)}
+                                    isLoading={isLoadingDeleteUser}
+                                    className="w-full mt-6"
+                                    data-testid="btn-confirm-delete-unit-manager"
+                                >
+                                    Confirmar
+                                </Button>
+                            </div>
+                        </div>
                     )}
                 </Modal>
             </main>

@@ -1,13 +1,12 @@
 from rest_framework import serializers
-from clients_management.models import (Client, Unit, Equipment, Modality,
-                                       Accessory)
+from clients_management.models import Client, Unit, Equipment, Modality, Accessory
 from users.models import UserAccount
 
 
 class UserNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount
-        fields = ["name", "role", "email", "phone"]
+        fields = ["id", "cpf", "name", "role", "email", "phone"]
 
 
 class CNPJSerializer(serializers.Serializer):
@@ -24,8 +23,12 @@ class ClientSerializer(serializers.ModelSerializer):
     def to_representation(self, instance: Client):
         representation = super().to_representation(instance)
         representation["users"] = [
-            {"name": user["name"], "role": user["role"],
-                "email": user["email"], "phone": user["phone"]}
+            {
+                "name": user["name"],
+                "role": user["role"],
+                "email": user["email"],
+                "phone": user["phone"],
+            }
             for user in representation["users"]
         ]
         return representation
@@ -49,7 +52,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
         representation["modality"] = {
             "id": instance.modality.id,
             "name": instance.modality.name,
-            "accessory_type": instance.modality.accessory_type
+            "accessory_type": instance.modality.accessory_type,
         }
         return representation
 
@@ -57,10 +60,10 @@ class EquipmentSerializer(serializers.ModelSerializer):
 class ModalitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Modality
-        fields = '__all__'
+        fields = "__all__"
 
 
 class AccessorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Accessory
-        fields = '__all__'
+        fields = "__all__"
