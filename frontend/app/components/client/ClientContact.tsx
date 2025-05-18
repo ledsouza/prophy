@@ -18,7 +18,7 @@ function ClientContact({ client }: ClientContactProps) {
     const fisicoMedicoExterno = getUserByRole(client, "FME");
     const comercial = getUserByRole(client, "C");
 
-    if (userData?.role === "GGC" || userData?.role === "GU") {
+    if (userData?.role === "GGC" || userData?.role === "GU" || userData?.role === "FME") {
         return (
             <>
                 <div>
@@ -57,7 +57,7 @@ function ClientContact({ client }: ClientContactProps) {
                                 </div>
                             )}
 
-                            {fisicoMedicoExterno && (
+                            {fisicoMedicoExterno && userData.role !== "FME" && (
                                 <div data-testid="fisico-medico-externo">
                                     <Typography element="p" size="md">
                                         {fisicoMedicoExterno.name}
