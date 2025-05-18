@@ -18,7 +18,7 @@ function ClientContact({ client }: ClientContactProps) {
     const fisicoMedicoExterno = getUserByRole(client, "FME");
     const comercial = getUserByRole(client, "C");
 
-    if (userData?.role === "GGC") {
+    if (userData?.role === "GGC" || userData?.role === "GU") {
         return (
             <>
                 <div>
@@ -31,9 +31,7 @@ function ClientContact({ client }: ClientContactProps) {
                         Físico Médico Responsável
                     </Typography>
 
-                    {gerenteProphy ||
-                    fisicoMedicoInterno ||
-                    fisicoMedicoExterno ? (
+                    {gerenteProphy || fisicoMedicoInterno || fisicoMedicoExterno ? (
                         <div className="flex flex-col gap-3">
                             {gerenteProphy && (
                                 <div data-testid="gerente-prophy">
@@ -52,9 +50,7 @@ function ClientContact({ client }: ClientContactProps) {
                                     <Typography element="p" size="md">
                                         {fisicoMedicoInterno.name}
                                         <br />
-                                        {formatPhoneNumber(
-                                            fisicoMedicoInterno.phone
-                                        )}
+                                        {formatPhoneNumber(fisicoMedicoInterno.phone)}
                                         <br />
                                         {fisicoMedicoInterno.email}
                                     </Typography>
@@ -66,9 +62,7 @@ function ClientContact({ client }: ClientContactProps) {
                                     <Typography element="p" size="md">
                                         {fisicoMedicoExterno.name}
                                         <br />
-                                        {formatPhoneNumber(
-                                            fisicoMedicoExterno.phone
-                                        )}
+                                        {formatPhoneNumber(fisicoMedicoExterno.phone)}
                                         <br />
                                         {fisicoMedicoExterno.email}
                                     </Typography>
@@ -77,9 +71,8 @@ function ClientContact({ client }: ClientContactProps) {
                         </div>
                     ) : (
                         <Typography dataTestId="empty-responsable-medical-physicist">
-                            Designaremos um físico médico para esta instituição
-                            e, em breve, disponibilizaremos os dados de contato
-                            do profissional responsável.
+                            Designaremos um físico médico para esta instituição e, em breve,
+                            disponibilizaremos os dados de contato do profissional responsável.
                         </Typography>
                     )}
                 </div>
@@ -105,9 +98,8 @@ function ClientContact({ client }: ClientContactProps) {
                         </Typography>
                     ) : (
                         <Typography dataTestId="empty-comercial">
-                            Designaremos um gerente comercial para esta
-                            instituição e, em breve, disponibilizaremos os dados
-                            de contato do profissional responsável.
+                            Designaremos um gerente comercial para esta instituição e, em breve,
+                            disponibilizaremos os dados de contato do profissional responsável.
                         </Typography>
                     )}
                 </div>
@@ -166,9 +158,8 @@ function ClientContact({ client }: ClientContactProps) {
                         </Typography>
                     ) : (
                         <Typography dataTestId="empty-comercial">
-                            Designaremos um gerente comercial para este cliente
-                            e, em breve, disponibilizaremos os dados de contato
-                            do profissional responsável.
+                            Designaremos um gerente comercial para este cliente e, em breve,
+                            disponibilizaremos os dados de contato do profissional responsável.
                         </Typography>
                     )}
                 </div>
