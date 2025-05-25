@@ -4,31 +4,21 @@ import { useRouter } from "next/navigation";
 import { SubmitHandler } from "react-hook-form";
 import { toast } from "react-toastify";
 
-import { OperationType, OperationStatus } from "@/enums";
-
 import { useAppDispatch } from "@/redux/hooks";
-import {
-    useLoginMutation,
-    useRegisterMutation,
-} from "@/redux/features/authApiSlice";
+import { useLoginMutation, useRegisterMutation } from "@/redux/features/authApiSlice";
 import { useCreateClientMutation } from "@/redux/features/clientApiSlice";
 import { useCreateUnitMutation } from "@/redux/features/unitApiSlice";
 import { setAuth } from "@/redux/features/authSlice";
 
-import {
-    RegisterFields,
-    registerSchema,
-} from "@/components/forms/RegisterForm";
+import { RegisterFields } from "@/components/forms/RegisterForm";
+import { registerSchema } from "@/schemas";
 
 type RegisterFormProps = {
     validatedCNPJ: string;
     setIsModalOpen: (value: boolean) => void;
 };
 
-const useRegistrationForm = ({
-    validatedCNPJ,
-    setIsModalOpen,
-}: RegisterFormProps) => {
+const useRegistrationForm = ({ validatedCNPJ, setIsModalOpen }: RegisterFormProps) => {
     const [registerUser] = useRegisterMutation();
     const [login] = useLoginMutation();
     const [createClient] = useCreateClientMutation();
