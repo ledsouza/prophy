@@ -36,6 +36,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const dispatch = useAppDispatch();
     const { isStaff, userData } = useStaff();
     const isGGC = userData?.role === "GGC";
+    const isGU = userData?.role === "GU";
     const [buttonsState, setButtonsState] = useState<ButtonsState>(ButtonsState.REVIEWNONSTAFF);
     const [loadingCancel, setLoadingCancel] = useState(false);
 
@@ -158,15 +159,17 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                                     ? "Requisição de alteração em análise"
                                     : "Requisição de remoção em análise"}
                             </Typography>
-                            <Button
-                                variant="danger"
-                                className="flex-grow"
-                                onClick={handleCancel}
-                                disabled={loadingCancel}
-                                data-testid="btn-cancel-unit-operation"
-                            >
-                                Cancelar requisição
-                            </Button>
+                            {(!isGU || unitOperation?.operation_type !== OperationType.DELETE) && (
+                                <Button
+                                    variant="danger"
+                                    className="flex-grow"
+                                    onClick={handleCancel}
+                                    disabled={loadingCancel}
+                                    data-testid="btn-cancel-unit-operation"
+                                >
+                                    Cancelar requisição
+                                </Button>
+                            )}
                         </>
                     )}
 

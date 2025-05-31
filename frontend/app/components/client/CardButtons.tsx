@@ -1,14 +1,16 @@
 import { OperationStatus, OperationType } from "@/enums";
 
-import { EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
-import { UnitOperationDTO } from "@/redux/features/unitApiSlice";
+import { EquipmentDTO, EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
+import { UnitDTO, UnitOperationDTO } from "@/redux/features/unitApiSlice";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 import { PencilLine, Trash } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
+import { isUnit } from "@/utils/type-checks";
 
 type CardButtonsProps = {
+    entity: UnitDTO | EquipmentDTO;
     operation: UnitOperationDTO | EquipmentOperationDTO | undefined;
     status: OperationStatus | undefined;
     onDetails: () => void;
@@ -22,6 +24,7 @@ type CardButtonsProps = {
 };
 
 function CardButtons({
+    entity,
     operation,
     status,
     onDetails,
@@ -39,11 +42,7 @@ function CardButtons({
     return (
         <>
             {operation?.operation_type !== OperationType.ADD && (
-                <Button
-                    variant="secondary"
-                    onClick={onDetails}
-                    data-testid="btn-details"
-                >
+                <Button variant="secondary" onClick={onDetails} data-testid="btn-details">
                     Acessar detalhes
                 </Button>
             )}
@@ -58,13 +57,15 @@ function CardButtons({
                         >
                             <PencilLine size={20} />
                         </Button>
-                        <Button
-                            variant="danger"
-                            onClick={onDelete}
-                            data-testid="btn-delete-operation"
-                        >
-                            <Trash size={20} />
-                        </Button>
+                        {(!isUnit(entity) || userData?.role !== "GU") && (
+                            <Button
+                                variant="danger"
+                                onClick={onDelete}
+                                data-testid="btn-delete-operation"
+                            >
+                                <Trash size={20} />
+                            </Button>
+                        )}
                     </>
                 )}
 
@@ -122,7 +123,8 @@ function CardButtons({
 
                 {status === OperationStatus.REVIEW &&
                     operation?.operation_type === OperationType.DELETE &&
-                    !isStaff && (
+                    !isStaff &&
+                    (!isUnit(entity) || userData?.role !== "GU") && (
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}

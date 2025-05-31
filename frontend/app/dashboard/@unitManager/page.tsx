@@ -91,10 +91,6 @@ function ClientPage() {
         }
     };
 
-    const handleModalAddUnit = () => {
-        dispatch(openModal(Modals.ADD_UNIT));
-    };
-
     const handleCreateDeleteUnitOperation = async (selectedUnit: UnitDTO) => {
         try {
             const response = await createDeleteUnitOperation(selectedUnit.id);
