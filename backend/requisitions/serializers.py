@@ -51,6 +51,15 @@ class EquipmentOperationSerializer(serializers.ModelSerializer):
         model = EquipmentOperation
         fields = "__all__"
 
+    def to_representation(self, instance: EquipmentOperation):
+        representation = super().to_representation(instance)
+        representation["modality"] = {
+            "id": instance.modality.id,
+            "name": instance.modality.name,
+            "accessory_type": instance.modality.accessory_type,
+        }
+        return representation
+
 
 class EquipmentOperationDeleteSerializer(serializers.ModelSerializer):
     class Meta:
