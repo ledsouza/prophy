@@ -14,6 +14,7 @@ import {
     UnitDTO,
     useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
+    useEditUnitMutation,
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
@@ -42,7 +43,6 @@ import {
 import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
 import { OperationType } from "@/enums";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
-import { useDeleterUserMutation, UserDTO } from "@/redux/features/authApiSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
 
 function UnitPage() {
@@ -76,6 +76,7 @@ function UnitPage() {
 
     const [createDeleteUnitOperation] = useCreateDeleteUnitOperationMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
+    const [updateUnit, { isLoading: isLoadingUpdateUnit }] = useEditUnitMutation();
 
     const {
         data: equipments,
@@ -87,8 +88,6 @@ function UnitPage() {
         useCreateDeleteEquipmentOperationMutation();
     const [deleteEquipmentOperation, { isLoading: isLoadingDeleteEquipmentOperation }] =
         useDeleteEquipmentOperationMutation();
-
-    const [deleteUser, { isLoading: isLoadingDeleteUser }] = useDeleterUserMutation();
 
     const handleUpdateData = () => {
         dispatch(
@@ -200,9 +199,14 @@ function UnitPage() {
         dispatch(closeModal());
     };
 
-    const handleRemoveUnitManager = async (selectedUser: UserDTO) => {
+    const handleRemoveUnitManager = async (selectedUnit: UnitDTO) => {
         try {
-            await deleteUser(selectedUser.id).unwrap();
+            await updateUnit({
+                unitID: selectedUnit.id,
+                unitData: {
+                    user: null,
+                },
+            }).unwrap();
             toast.success("Gerente removido com sucesso!");
             dispatch(closeModal());
         } catch (error) {
@@ -505,8 +509,8 @@ function UnitPage() {
 
                                 <Button
                                     variant="danger"
-                                    onClick={() => handleRemoveUnitManager(selectedUser)}
-                                    isLoading={isLoadingDeleteUser}
+                                    onClick={() => handleRemoveUnitManager(selectedUnit)}
+                                    isLoading={isLoadingUpdateUnit}
                                     className="w-full mt-6"
                                     data-testid="btn-confirm-delete-unit-manager"
                                 >

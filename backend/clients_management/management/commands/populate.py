@@ -19,7 +19,8 @@ fake = Faker("pt_BR")
 
 BASE_DIR = settings.BASE_DIR
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "..", "..", "..", ".."))
+project_root = os.path.abspath(
+    os.path.join(current_dir, "..", "..", "..", ".."))
 
 
 CPF_ADMIN = "03446254005"
@@ -104,7 +105,8 @@ def write_json_file(data: dict, file_path: str) -> None:
     parent_directory = os.path.dirname(file_path)
     if (
         parent_directory
-    ):  # Check if parent_directory is not an empty string (e.g., for files in cwd)
+        # Check if parent_directory is not an empty string (e.g., for files in cwd)
+    ):
         os.makedirs(parent_directory, exist_ok=True)
 
     with open(file_path, "w", encoding="utf-8") as json_file:
@@ -127,7 +129,8 @@ class Command(BaseCommand):
             approved_cnpjs, users, default_clients, default_units, default_equipments
         )
         self.stdout.write(
-            self.style.SUCCESS("Database populated and fixture created successfully!")
+            self.style.SUCCESS(
+                "Database populated and fixture created successfully!")
         )
 
     def create_groups(self):
@@ -145,6 +148,7 @@ class Command(BaseCommand):
             UserAccount.Role.CLIENT_GENERAL_MANAGER: [
                 "view Cliente",
                 "view Unidade",
+                "change Operação de Unidade",
                 "view Equipamento",
             ],
             UserAccount.Role.UNIT_MANAGER: ["view Unidade", "view Equipamento"],
@@ -183,7 +187,8 @@ class Command(BaseCommand):
                 for name_substring in permission_names:
                     try:
                         # Using base_permissions queryset to find specific permissions
-                        perm = base_permissions.get(name__contains=name_substring)
+                        perm = base_permissions.get(
+                            name__contains=name_substring)
                         permissions_to_assign.append(perm)
                     except Permission.DoesNotExist:
                         self.stdout.write(
@@ -203,7 +208,8 @@ class Command(BaseCommand):
             elif (
                 role_value != UserAccount.Role.PROPHY_MANAGER
             ):  # Avoid clearing for prophy manager if map was empty
-                group.permissions.clear()  # Clear permissions if no specific ones are defined and it's not prophy_manager
+                # Clear permissions if no specific ones are defined and it's not prophy_manager
+                group.permissions.clear()
 
     def populate_users(self, num_users=10):
         """Populates the User model with example data."""
@@ -536,7 +542,8 @@ class Command(BaseCommand):
     def populate_modalities(self):
         for modality in MODALITIES:
             accessory_type = get_accessory_type(modality)
-            Modality.objects.create(name=modality, accessory_type=accessory_type)
+            Modality.objects.create(
+                name=modality, accessory_type=accessory_type)
 
     def populate_equipments(self, num_equipments_per_units=3):
         """Populates the Equipment model with example data."""
@@ -549,7 +556,8 @@ class Command(BaseCommand):
         with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
             with EQUIPMENT_LABEL_PHOTO_PATH.open(mode="rb") as f_label:
                 photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
-                label_file = File(f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
+                label_file = File(
+                    f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
 
                 def _create_equipment_fixture_data(eq_obj):
                     """Helper function to create a dictionary for equipment fixture data."""
@@ -629,7 +637,8 @@ class Command(BaseCommand):
         with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
             with EQUIPMENT_LABEL_PHOTO_PATH.open(mode="rb") as f_label:
                 photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
-                label_file = File(f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
+                label_file = File(
+                    f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
 
                 equipments = EquipmentOperation.objects.all()
                 for equipment in equipments:
@@ -698,7 +707,8 @@ class Command(BaseCommand):
                 contact_phone=fake_phone_number(),
                 email=fake.email(),
                 date=fake.date(),
-                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                value=fake.pydecimal(
+                    left_digits=5, right_digits=2, positive=True),
                 contract_type=choice(contract_type_choices),
                 status=Proposal.Status.ACCEPTED,
             )
@@ -712,7 +722,8 @@ class Command(BaseCommand):
                 contact_phone=fake_phone_number(),
                 email=fake.email(),
                 date=fake.date(),
-                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                value=fake.pydecimal(
+                    left_digits=5, right_digits=2, positive=True),
                 contract_type=choice(contract_type_choices),
                 status=choice(status_choices_all),
             )
