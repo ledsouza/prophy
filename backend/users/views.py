@@ -10,6 +10,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from django_filters.rest_framework import DjangoFilterBackend
 
 from users.serializers import UnitManagerUserSerializer, CustomUserDeleteSerializer
 from users.email import UnitManagerPasswordResetEmail
@@ -222,13 +223,8 @@ class LogoutView(APIView):
 
 
 class ExtendedUserViewSet(DjoserUserViewSet):
-    """
-    Extended user viewset that inherits from Djoser's UserViewSet.
-
-    This viewset provides all the standard user endpoints from Djoser,
-    plus additional functionality for unit manager creation and
-    customized user deletion without password verification.
-    """
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['cpf']
 
     def get_permissions(self):
         permissions = super().get_permissions()

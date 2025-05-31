@@ -59,15 +59,6 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                 </Typography>
 
                 <Input
-                    {...register("name")}
-                    type="text"
-                    errorMessage={errors.name?.message}
-                    placeholder="Digite o nome completo do gerente de unidade"
-                    data-testid="unit-manager-name-input"
-                >
-                    Nome
-                </Input>
-                <Input
                     {...register("cpf")}
                     type="text"
                     errorMessage={errors.cpf?.message}
@@ -75,6 +66,15 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                     data-testid="unit-manager-cpf-input"
                 >
                     CPF
+                </Input>
+                <Input
+                    {...register("name")}
+                    type="text"
+                    errorMessage={errors.name?.message}
+                    placeholder="Digite o nome completo do gerente de unidade"
+                    data-testid="unit-manager-name-input"
+                >
+                    Nome
                 </Input>
                 <Input
                     {...register("email")}
