@@ -8,13 +8,10 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-dotenv_file = BASE_DIR.joinpath(".env.local")
+dotenv_file = BASE_DIR.joinpath(".env")
 
 if path.isfile(dotenv_file):
     load_dotenv(dotenv_file)
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = getenv("DJANGO_SECRET_KEY", get_random_secret_key())
@@ -22,8 +19,7 @@ SECRET_KEY = getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS",
-                       "127.0.0.1,localhost".split(","))
+ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost".split(","))
 
 
 CORS_ALLOWED_ORIGINS = [
@@ -46,8 +42,8 @@ INSTALLED_APPS = [
     "djoser",
     "corsheaders",
     "rest_framework_simplejwt",
-    'django_filters',
-    'drf_yasg',
+    "django_filters",
+    "drf_yasg",
     "users",
     "clients_management",
     "requisitions",
@@ -70,7 +66,7 @@ ROOT_URLCONF = "core.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [path.join(BASE_DIR, 'templates')],
+        "DIRS": [path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -135,6 +131,8 @@ STATIC_ROOT = BASE_DIR.joinpath("static")
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR.joinpath("media")
 
+FRONTEND_URL = getenv("FRONTEND_URL")
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -143,7 +141,9 @@ SIMPLE_JWT = {
 DJOSER = {
     "TOKEN_MODEL": None,
     "USER_CREATE_PASSWORD_RETYPE": True,
-    "PASSWORD_RESET_CONFIRM_URL": "password-reset/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_URL": "auth/password-reset/{uid}/{token}",
+    "EMAIL_FRONTEND_DOMAIN": FRONTEND_URL.split("/")[-1],
+    "EMAIL_FRONTEND_SITE_NAME": "Prophy",
 }
 
 AUTH_COOKIE = "access"
@@ -154,16 +154,16 @@ AUTH_COOKIE_PATH = "/"
 AUTH_COOKIE_SAMESITE = "Lax"
 
 SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header',
-            'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
         }
     },
-    'USE_SESSION_AUTH': False,
-    'DEFAULT_MODEL_RENDERING': 'example'
+    "USE_SESSION_AUTH": False,
+    "DEFAULT_MODEL_RENDERING": "example",
 }
 
 REST_FRAMEWORK = {
@@ -173,8 +173,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
     # 'DEFAULT_THROTTLE_CLASSES': [
     #     'rest_framework.throttling.AnonRateThrottle',
     #     'rest_framework.throttling.UserRateThrottle'
@@ -185,14 +185,20 @@ REST_FRAMEWORK = {
     # }
 }
 
-FRONTEND_URL = getenv("FRONTEND_URL")
+# AWS
+AWS_ACCESS_KEY_ID = getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = getenv("AWS_SECRET_ACCESS_KEY")
+AWS_SES_REGION_NAME = getenv("AWS_SES_REGION_NAME", "sa-east-1")
 
-# Email Settings
+if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
+    raise Exception(
+        "AWS credentials are required. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables."
+    )
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-EMAIL_HOST = "localhost"
-EMAIL_PORT = "8025"
-DEFAULT_FROM_EMAIL = "ledevsouza@gmail.com"
+# Email
+
+EMAIL_BACKEND = "django_ses.SESBackend"
+DEFAULT_FROM_EMAIL = "leandro.souza.159@gmail.com"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

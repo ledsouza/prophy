@@ -176,6 +176,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
 
             <div className="flex gap-10 justify-between pt-4">
                 <CardButtons
+                    entity={equipment}
                     operation={equipmentOperation}
                     status={status}
                     onDetails={handleEquipmentDetails}

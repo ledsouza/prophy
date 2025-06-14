@@ -17,7 +17,7 @@ import { OperationStatus, OperationType } from "@/enums";
 import { isResponseError } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
 import { useAppDispatch } from "@/redux/hooks";
-import { Modals, openModal, setUnit, setUnitOperation } from "@/redux/features/modalSlice";
+import { Modals, openModal, setUnit, setUnitOperation, setUser } from "@/redux/features/modalSlice";
 import { useStaff } from "@/hooks";
 
 type UnitDetailsProps = {
@@ -34,7 +34,9 @@ enum ButtonsState {
 
 function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const dispatch = useAppDispatch();
-    const { isStaff } = useStaff();
+    const { isStaff, userData } = useStaff();
+    const isGGC = userData?.role === "GGC";
+    const isGU = userData?.role === "GU";
     const [buttonsState, setButtonsState] = useState<ButtonsState>(ButtonsState.REVIEWNONSTAFF);
     const [loadingCancel, setLoadingCancel] = useState(false);
 
@@ -95,6 +97,18 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
             : dispatch(openModal(Modals.REVIEW_DELETE_UNIT));
     }
 
+    const handleAddUnitManager = () => {
+        dispatch(setUnit(unit));
+        dispatch(openModal(Modals.ADD_UNIT_MANAGER));
+    };
+
+    const handleDeleteUnitManager = () => {
+        if (unit.user) {
+            dispatch(setUser(unit.user));
+            dispatch(openModal(Modals.REMOVE_UNIT_MANAGER));
+        }
+    };
+
     // Set the buttons that should be rendered
     useEffect(() => {
         if (unitOperation?.operation_status === OperationStatus.REVIEW && !isStaff) {
@@ -147,15 +161,17 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                                     ? "Requisição de alteração em análise"
                                     : "Requisição de remoção em análise"}
                             </Typography>
-                            <Button
-                                variant="danger"
-                                className="flex-grow"
-                                onClick={handleCancel}
-                                disabled={loadingCancel}
-                                data-testid="btn-cancel-unit-operation"
-                            >
-                                Cancelar requisição
-                            </Button>
+                            {(!isGU || unitOperation?.operation_type !== OperationType.DELETE) && (
+                                <Button
+                                    variant="danger"
+                                    className="flex-grow"
+                                    onClick={handleCancel}
+                                    disabled={loadingCancel}
+                                    data-testid="btn-cancel-unit-operation"
+                                >
+                                    Cancelar requisição
+                                </Button>
+                            )}
                         </>
                     )}
 
@@ -207,47 +223,68 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                         >
                             Editar
                         </Button>
-                        <Button
-                            variant="danger"
-                            onClick={handleDelete}
-                            className="flex-grow"
-                            data-testid="btn-delete-unit"
-                        >
-                            Remover
-                        </Button>
+                        {userData?.role !== "GU" && (
+                            <Button
+                                variant="danger"
+                                onClick={handleDelete}
+                                className="flex-grow"
+                                data-testid="btn-delete-unit"
+                            >
+                                Remover
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
 
-            <div>
-                <Typography
-                    element="h3"
-                    size="title3"
-                    className="font-bold"
-                    dataTestId="unit-manager-header"
-                >
-                    Gerente de Unidade
-                </Typography>
-
-                {unit.user ? (
-                    <Typography element="p" size="md" dataTestId="unit-manager-user">
-                        {unit.user.name}
-                        <br />
-                        {formatPhoneNumber(unit.user.phone)}
-                        <br />
-                        {unit.user.email}
+            {userData?.role !== "GU" && (
+                <div>
+                    <Typography
+                        element="h3"
+                        size="title3"
+                        className="font-bold"
+                        dataTestId="unit-manager-header"
+                    >
+                        Gerente de Unidade
                     </Typography>
-                ) : (
-                    <div className="flex flex-col gap-2">
-                        <Typography element="p" size="md" dataTestId="empty-unit-manager-user">
-                            Nenhum gerente de unidade foi designado. Deseja atribuir um agora?
-                        </Typography>
-                        <Button dataTestId="btn-add-unit-manager">
-                            Atribuir gerente de unidade
-                        </Button>
-                    </div>
-                )}
-            </div>
+
+                    {unit.user ? (
+                        <div className="flex flex-col gap-4">
+                            <Typography element="p" size="md" dataTestId="unit-manager-user">
+                                {unit.user.name}
+                                <br />
+                                {formatPhoneNumber(unit.user.phone)}
+                                <br />
+                                {unit.user.email}
+                            </Typography>
+
+                            <Button
+                                onClick={handleDeleteUnitManager}
+                                variant="danger"
+                                dataTestId="btn-delete-unit-manager"
+                            >
+                                Remover gerente de unidade
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-2">
+                            <Typography element="p" size="md" dataTestId="empty-unit-manager-user">
+                                {isGGC
+                                    ? "Nenhum gerente de unidade foi designado. Deseja atribuir um agora?"
+                                    : "Nenhum gerente de unidade foi designado."}
+                            </Typography>
+                            {isGGC && (
+                                <Button
+                                    onClick={handleAddUnitManager}
+                                    dataTestId="btn-add-unit-manager"
+                                >
+                                    Atribuir gerente de unidade
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

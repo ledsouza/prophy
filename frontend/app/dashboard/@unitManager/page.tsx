@@ -91,10 +91,6 @@ function ClientPage() {
         }
     };
 
-    const handleModalAddUnit = () => {
-        dispatch(openModal(Modals.ADD_UNIT));
-    };
-
     const handleCreateDeleteUnitOperation = async (selectedUnit: UnitDTO) => {
         try {
             const response = await createDeleteUnitOperation(selectedUnit.id);
@@ -256,10 +252,6 @@ function ClientPage() {
                 )}
 
                 <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
-
-                <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
-                    Adicionar unidade
-                </Button>
             </div>
 
             <Modal isOpen={isModalOpen} onClose={() => dispatch(closeModal())} className="max-w-lg">

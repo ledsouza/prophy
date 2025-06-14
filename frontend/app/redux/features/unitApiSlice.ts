@@ -17,7 +17,7 @@ export type UnitDTO = {
     address: string;
     state: string;
     city: string;
-    user: Pick<UserDTO, "name" | "role" | "email" | "phone">;
+    user: UserDTO | number | null;
     client: number;
 };
 
@@ -175,7 +175,7 @@ const unitApiSlice = apiSlice.injectEndpoints({
                 { type: "Unit", id: "LIST" },
             ],
         }),
-        editUnit: builder.mutation<
+        updateUnit: builder.mutation<
             UnitOperationDTO,
             {
                 unitID: number;
@@ -204,5 +204,5 @@ export const {
     useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
     useCreateUnitMutation,
-    useEditUnitMutation,
+    useUpdateUnitMutation,
 } = unitApiSlice;

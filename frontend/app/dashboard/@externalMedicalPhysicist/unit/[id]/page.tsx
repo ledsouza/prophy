@@ -14,7 +14,6 @@ import {
     UnitDTO,
     useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
-    useUpdateUnitMutation,
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
@@ -43,6 +42,7 @@ import {
 import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
 import { OperationType } from "@/enums";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
+import { useDeleterUserMutation, UserDTO } from "@/redux/features/authApiSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
 
 function UnitPage() {
@@ -76,7 +76,6 @@ function UnitPage() {
 
     const [createDeleteUnitOperation] = useCreateDeleteUnitOperationMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
-    const [updateUnit, { isLoading: isLoadingUpdateUnit }] = useUpdateUnitMutation();
 
     const {
         data: equipments,
@@ -88,6 +87,8 @@ function UnitPage() {
         useCreateDeleteEquipmentOperationMutation();
     const [deleteEquipmentOperation, { isLoading: isLoadingDeleteEquipmentOperation }] =
         useDeleteEquipmentOperationMutation();
+
+    const [deleteUser, { isLoading: isLoadingDeleteUser }] = useDeleterUserMutation();
 
     const handleUpdateData = () => {
         dispatch(
@@ -199,14 +200,9 @@ function UnitPage() {
         dispatch(closeModal());
     };
 
-    const handleRemoveUnitManager = async (selectedUnit: UnitDTO) => {
+    const handleRemoveUnitManager = async (selectedUser: UserDTO) => {
         try {
-            await updateUnit({
-                unitID: selectedUnit.id,
-                unitData: {
-                    user: null,
-                },
-            }).unwrap();
+            await deleteUser(selectedUser.id).unwrap();
             toast.success("Gerente removido com sucesso!");
             dispatch(closeModal());
         } catch (error) {
@@ -486,8 +482,7 @@ function UnitPage() {
                         <RegisterUnitManagerForm
                             unitID={selectedUnit.id}
                             title="Cadastro do Gerente de Unidade"
-                            description={`Se o usuário já for cadastrado, basta inserir o CPF e as outras informações serão preenchidas automaticamente.
-                            Caso contrário, preencha os dados completos e ele receberá um e-mail de notificação de cadastro com um link para definir a senha.`}
+                            description="Uma vez atribuído, o responsável receberá, no e-mail cadastrado, um link para a definição de sua senha e obtenção de acesso."
                         />
                     )}
 
@@ -510,8 +505,8 @@ function UnitPage() {
 
                                 <Button
                                     variant="danger"
-                                    onClick={() => handleRemoveUnitManager(selectedUnit)}
-                                    isLoading={isLoadingUpdateUnit}
+                                    onClick={() => handleRemoveUnitManager(selectedUser)}
+                                    isLoading={isLoadingDeleteUser}
                                     className="w-full mt-6"
                                     data-testid="btn-confirm-delete-unit-manager"
                                 >

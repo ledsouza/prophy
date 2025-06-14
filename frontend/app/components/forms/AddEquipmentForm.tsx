@@ -79,17 +79,13 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
 
     const [addAccessory, setAddAccessory] = useState(false);
 
-    const handleCreateAccessory = async (
-        accessory: AccessoryFields,
-        manufacturer: string,
-        equipmentID: number
-    ) => {
+    const handleCreateAccessory = async (accessory: AccessoryFields, equipmentID: number) => {
         if (!accessoryType) {
             throw new Error("Accessory type not set.");
         }
 
         const accessoryFormData = new FormData();
-        accessoryFormData.append("manufacturer", manufacturer);
+        accessoryFormData.append("manufacturer", accessory.manufacturer);
         accessoryFormData.append("model", accessory.model);
         accessoryFormData.append("series_number", accessory.series_number);
         accessoryFormData.append("equipment_photo", accessory.equipment_photo[0]);
@@ -109,18 +105,14 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         }
     };
 
-    const handleCreateAccessories = async (
-        accessories: AccessoryFields[],
-        manufacturer: string,
-        equipmentID: number
-    ) => {
+    const handleCreateAccessories = async (accessories: AccessoryFields[], equipmentID: number) => {
         if (accessories.length === 0) {
             return;
         }
 
         await Promise.all(
             accessories.map(async (accessory) => {
-                await handleCreateAccessory(accessory, manufacturer, equipmentID);
+                await handleCreateAccessory(accessory, equipmentID);
             })
         );
     };
@@ -152,11 +144,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 throw new Error(`Error creating equipment: ${equipmentResponse.error}`);
             }
 
-            await handleCreateAccessories(
-                data.accessories,
-                data.manufacturer,
-                equipmentResponse.data.id
-            );
+            await handleCreateAccessories(data.accessories, equipmentResponse.data.id);
 
             toast.success("Requisição enviada com sucesso!");
             dispatch(closeModal());
@@ -177,6 +165,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     const handleAddAccessory = () => {
         if (fields.length === 0) {
             append({
+                manufacturer: "",
                 model: "",
                 series_number: "",
                 equipment_photo: new DataTransfer().files,
@@ -293,11 +282,21 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 </div>
 
                 <Input
+                    {...register(`accessories.${accessoryIndex}.manufacturer`)}
+                    type="text"
+                    errorMessage={errors.accessories?.[accessoryIndex]?.manufacturer?.message}
+                    placeholder="Digite o nome do fabricante"
+                    data-testid={`equipment-manufacturer-input-${accessoryIndex}`}
+                >
+                    Fabricante
+                </Input>
+
+                <Input
                     {...register(`accessories.${accessoryIndex}.model`)}
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.model?.message}
                     placeholder="Digite o nome do modelo"
-                    data-testid="equipment-model-input"
+                    data-testid={`equipment-model-input-${accessoryIndex}`}
                 >
                     Modelo
                 </Input>
@@ -307,7 +306,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.series_number?.message}
                     placeholder="Digite o número de série, se houver"
-                    data-testid="equipment-series-number-input"
+                    data-testid={`equipment-series-number-input-${accessoryIndex}`}
                 >
                     Número de série
                 </Input>
@@ -317,7 +316,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     type="file"
                     accept="image/jpeg,image/jpg,image/png"
                     errorMessage={errors.accessories?.[accessoryIndex]?.equipment_photo?.message}
-                    data-testid="equipment-photo-input"
+                    data-testid={`equipment-photo-input-${accessoryIndex}`}
                 >
                     Foto do equipamento
                 </Input>
@@ -327,7 +326,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     type="file"
                     accept="image/jpeg,image/jpg,image/png"
                     errorMessage={errors.accessories?.[accessoryIndex]?.label_photo?.message}
-                    data-testid="equipment-label-input"
+                    data-testid={`equipment-label-input-${accessoryIndex}`}
                 >
                     Foto do rótulo do equipamento
                 </Input>
@@ -405,6 +404,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     disabled={isSubmitting}
                     onClick={() =>
                         append({
+                            manufacturer: "",
                             model: "",
                             series_number: "",
                             equipment_photo: new DataTransfer().files,

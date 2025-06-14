@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,10 +34,11 @@ import { useModality } from "@/hooks/use-modality";
 import useRequireAuth from "@/hooks/use-require-auth";
 import { useNeedReview } from "@/hooks";
 
-import { Button, Spinner } from "@/components/common";
+import { Button, Spinner, Modal } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { Form, Input, Select, FormButtons, Textarea } from "@/components/forms";
 import { OperationStatus } from "@/enums";
+import { XCircle } from "@phosphor-icons/react";
 
 const editAccessorySchema = accessorySchema
     .extend({
@@ -75,6 +77,12 @@ const editEquipmentSchema = equipmentSchema.extend({
 
 export type EditEquipmentFields = z.infer<typeof editEquipmentSchema>;
 
+type ViewImageButtonProps = {
+    imageEndpoint: string;
+    imageTitle: string;
+    className?: string;
+};
+
 type EditEquipmentFormProps = {
     title?: string;
     description?: string;
@@ -97,6 +105,11 @@ const EditEquipmentForm = ({
     const [equipmentPhotoFile, setEquipmentPhotoFile] = useState<File | null>(null);
     const [equipmentLabelPhotoFile, setEquipmentLabelPhotoFile] = useState<File | null>(null);
     const [removedAccessoryIds, setRemovedAccessoryIds] = useState<number[]>([]);
+
+    // Image modal state
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [currentImageUrl, setCurrentImageUrl] = useState<string>("");
+    const [currentImageTitle, setCurrentImageTitle] = useState<string>("");
 
     const [filteredAccessories, setFilteredAccessories] = useState<AccessoryDTO[]>([]);
 
@@ -160,14 +173,13 @@ const EditEquipmentForm = ({
         return accessoryPhoto;
     };
 
-    const handleEquipmentPhoto = async (endpoint: string) => {
-        const equipmentPhoto = await fetchPhoto(endpoint);
-        setEquipmentPhotoFile(equipmentPhoto);
-    };
-
-    const handleEquipmentLabelPhoto = async (endpoint: string) => {
-        const equipmentPhoto = await fetchPhoto(endpoint);
-        setEquipmentLabelPhotoFile(equipmentPhoto);
+    const handleEquipmentPhotoFetch = async (endpoint: string, isLabelPhoto: boolean = false) => {
+        const photo = await fetchPhoto(endpoint);
+        if (isLabelPhoto) {
+            setEquipmentLabelPhotoFile(photo);
+        } else {
+            setEquipmentPhotoFile(photo);
+        }
     };
 
     const handleAddAccessory = () => {
@@ -182,6 +194,12 @@ const EditEquipmentForm = ({
             setRemovedAccessoryIds((prevIds) => [...prevIds, accessoryToRemove.id!]);
         }
         remove(index);
+    };
+
+    const handleViewImage = (imageEndpoint: string, title: string) => {
+        setCurrentImageUrl(process.env.NEXT_PUBLIC_HOST + imageEndpoint);
+        setCurrentImageTitle(title);
+        setImageModalOpen(true);
     };
 
     const isSameData = (equipmentFormData: FormData, accessoriesFormData: FormData[]) => {
@@ -407,6 +425,21 @@ const EditEquipmentForm = ({
         return results;
     };
 
+    const ViewImageButton = ({ imageEndpoint, imageTitle, className }: ViewImageButtonProps) => {
+        return (
+            (reviewMode || disabled) && (
+                <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => handleViewImage(imageEndpoint, imageTitle)}
+                    className={`whitespace-nowrap ${className || ""}`}
+                >
+                    Ver imagem
+                </Button>
+            )
+        );
+    };
+
     const renderEquipmentInputs = () => {
         if (isRejected) {
             return (
@@ -488,50 +521,52 @@ const EditEquipmentForm = ({
                     Registro na ANVISA
                 </Input>
 
-                {!disabled ? (
-                    <Input
-                        {...register("equipment_photo")}
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png"
-                        errorMessage={errors.equipment_photo?.message}
-                        data-testid="equipment-photo-input"
-                    >
-                        Foto do equipamento
-                    </Input>
-                ) : (
+                <div className="flex flex-col gap-4">
                     <Typography element="p" size="sm" className="font-medium">
                         Foto do equipamento
                     </Typography>
-                )}
 
-                {equipment.equipment_photo && (
-                    <Typography element="p" size="sm" className="truncate">
-                        Nome do arquivo atual: {equipment.equipment_photo.split("/").pop()}
-                    </Typography>
-                )}
+                    {!disabled && (
+                        <Input
+                            {...register("equipment_photo")}
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png"
+                            errorMessage={errors.equipment_photo?.message}
+                            data-testid="equipment-photo-input"
+                        />
+                    )}
 
-                {!disabled ? (
-                    <Input
-                        {...register("label_photo")}
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png"
-                        errorMessage={errors.label_photo?.message}
-                        disabled={disabled}
-                        data-testid="equipment-label-input"
-                    >
-                        Foto do rótulo do equipamento
-                    </Input>
-                ) : (
+                    {equipment.equipment_photo && (
+                        <ViewImageButton
+                            imageEndpoint={equipment.equipment_photo}
+                            imageTitle="Foto do equipamento"
+                        />
+                    )}
+                </div>
+
+                <div className="flex flex-col gap-4">
                     <Typography element="p" size="sm" className="font-medium">
                         Foto do rótulo do equipamento
                     </Typography>
-                )}
 
-                {equipment.label_photo && (
-                    <Typography element="p" size="sm" className="truncate">
-                        Nome do arquivo atual: {equipment.label_photo.split("/").pop()}
-                    </Typography>
-                )}
+                    {!disabled && (
+                        <Input
+                            {...register("label_photo")}
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png"
+                            errorMessage={errors.label_photo?.message}
+                            disabled={disabled}
+                            data-testid="equipment-label-input"
+                        />
+                    )}
+
+                    {equipment.label_photo && (
+                        <ViewImageButton
+                            imageEndpoint={equipment.label_photo}
+                            imageTitle="Foto do rótulo do equipamento"
+                        />
+                    )}
+                </div>
 
                 {!reviewMode &&
                     !disabled &&
@@ -631,16 +666,18 @@ const EditEquipmentForm = ({
                         {displaySingularAccessoryType(accessoryType!)}&nbsp;{accessoryIndex + 1}
                     </Typography>
 
-                    <Button
-                        type="button"
-                        disabled={isSubmitting}
-                        onClick={() => handleRemoveAccessory(accessoryIndex)}
-                        variant="secondary"
-                        data-testid="cancel-btn"
-                        className="w-full"
-                    >
-                        Remover este acessório
-                    </Button>
+                    {!disabled && (
+                        <Button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={() => handleRemoveAccessory(accessoryIndex)}
+                            variant="secondary"
+                            data-testid="cancel-btn"
+                            className="w-full"
+                        >
+                            Remover este acessório
+                        </Button>
+                    )}
                 </div>
 
                 <Input
@@ -648,6 +685,7 @@ const EditEquipmentForm = ({
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.manufacturer?.message}
                     placeholder="Digite o nome do fabricante"
+                    disabled={disabled}
                     data-testid="accessory-manufacturer-input"
                 >
                     Fabricante
@@ -658,6 +696,7 @@ const EditEquipmentForm = ({
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.model?.message}
                     placeholder="Digite o nome do modelo"
+                    disabled={disabled}
                     data-testid="equipment-model-input"
                 >
                     Modelo
@@ -668,44 +707,61 @@ const EditEquipmentForm = ({
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.series_number?.message}
                     placeholder="Digite o número de série, se houver"
+                    disabled={disabled}
                     data-testid="equipment-series-number-input"
                 >
                     Número de série
                 </Input>
 
-                <Input
-                    {...register(`accessories.${accessoryIndex}.equipment_photo`)}
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png"
-                    errorMessage={errors.accessories?.[accessoryIndex]?.equipment_photo?.message}
-                    data-testid="equipment-photo-input"
-                >
+                <Typography element="p" size="sm" className="font-medium">
                     Foto do equipamento
-                </Input>
+                </Typography>
+                <div className="flex flex-col gap-4">
+                    {!disabled && (
+                        <Input
+                            {...register(`accessories.${accessoryIndex}.equipment_photo`)}
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png"
+                            errorMessage={
+                                errors.accessories?.[accessoryIndex]?.equipment_photo?.message
+                            }
+                            disabled={disabled}
+                            data-testid="equipment-photo-input"
+                        />
+                    )}
 
-                {filteredAccessories[accessoryIndex]?.equipment_photo && (
-                    <Typography element="p" size="sm" className="truncate">
-                        Nome do arquivo atual:{" "}
-                        {filteredAccessories[accessoryIndex].equipment_photo.split("/").pop()}
-                    </Typography>
-                )}
+                    {filteredAccessories[accessoryIndex]?.equipment_photo && (
+                        <ViewImageButton
+                            imageEndpoint={filteredAccessories[accessoryIndex].equipment_photo}
+                            imageTitle={`Foto do acessório ${filteredAccessories[accessoryIndex].model}`}
+                        />
+                    )}
+                </div>
 
-                <Input
-                    {...register(`accessories.${accessoryIndex}.label_photo`)}
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png"
-                    errorMessage={errors.accessories?.[accessoryIndex]?.label_photo?.message}
-                    data-testid="equipment-label-input"
-                >
+                <Typography element="p" size="sm" className="font-medium">
                     Foto do rótulo do equipamento
-                </Input>
+                </Typography>
+                <div className="flex flex-col gap-4">
+                    {!disabled && (
+                        <Input
+                            {...register(`accessories.${accessoryIndex}.label_photo`)}
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png"
+                            errorMessage={
+                                errors.accessories?.[accessoryIndex]?.label_photo?.message
+                            }
+                            disabled={disabled}
+                            data-testid="equipment-label-input"
+                        />
+                    )}
 
-                {filteredAccessories[accessoryIndex]?.label_photo && (
-                    <Typography element="p" size="sm" className="truncate">
-                        Nome do arquivo atual:{" "}
-                        {filteredAccessories[accessoryIndex].label_photo.split("/").pop()}
-                    </Typography>
-                )}
+                    {filteredAccessories[accessoryIndex]?.label_photo && (
+                        <ViewImageButton
+                            imageEndpoint={filteredAccessories[accessoryIndex].label_photo}
+                            imageTitle={`Foto do rótulo do acessório ${accessoryIndex + 1}`}
+                        />
+                    )}
+                </div>
             </div>
         );
     };
@@ -729,7 +785,7 @@ const EditEquipmentForm = ({
         if (accessoryType !== AccessoryType.NONE && !editAccessories) {
             return (
                 <div>
-                    {!isRejected && !disabled && (
+                    {!isRejected && (
                         <Button
                             type="button"
                             disabled={isSubmitting}
@@ -751,6 +807,21 @@ const EditEquipmentForm = ({
                         needReview={needReview}
                     />
                 </div>
+            );
+        }
+
+        if (disabled) {
+            return (
+                <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setEditAccessories(false)}
+                    variant="primary"
+                    data-testid="cancel-btn"
+                    className="w-full"
+                >
+                    Voltar
+                </Button>
             );
         }
 
@@ -788,6 +859,33 @@ const EditEquipmentForm = ({
             </div>
         );
     };
+
+    const ImageViewModal = () => (
+        <Modal
+            isOpen={imageModalOpen}
+            onClose={() => setImageModalOpen(false)}
+            className="sm:max-w-4xl"
+        >
+            <div className="relative">
+                <button
+                    onClick={() => setImageModalOpen(false)}
+                    className="absolute right-2 top-2 p-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full transition-colors z-10 shadow-lg"
+                    data-testid="btn-close-modal"
+                    aria-label="Fechar modal"
+                >
+                    <XCircle size={24} className="text-primary" />
+                </button>
+
+                <Image
+                    src={currentImageUrl}
+                    alt={currentImageTitle}
+                    width={800}
+                    height={600}
+                    className="w-full h-full object-contain"
+                />
+            </div>
+        </Modal>
+    );
 
     const onSubmit: SubmitHandler<EditEquipmentFields> = async (data) => {
         if (isLoadingModalities) {
@@ -839,7 +937,7 @@ const EditEquipmentForm = ({
             // If review is not required, the user is either an internal medical physicist or a Prophy manager.
             // The user may be editing data or reviewing an operation.
             // If `isRejected` is false, the user accepted the operation or updated some data.
-            let successMessage;
+            let successMessage = "Requisição enviada com sucesso!";
             if (!needReview) {
                 successMessage = isRejected
                     ? "Revisão concluída! O cliente será notificado da rejeição."
@@ -892,30 +990,11 @@ const EditEquipmentForm = ({
         );
     }, [accessories]);
 
-    // Fetch accessories photos from the server
-    useEffect(() => {
-        if (equipment.equipment_photo) {
-            try {
-                handleEquipmentPhoto(equipment.equipment_photo);
-            } catch (error) {
-                toast.error("Erro ao carregar a foto do equipamento.");
-            }
-        }
-
-        if (equipment.label_photo) {
-            try {
-                handleEquipmentPhoto(equipment.label_photo);
-            } catch (error) {
-                toast.error("Erro ao carregar a foto do rótulo do equipamento.");
-            }
-        }
-    }, [equipment]);
-
     // Fetch equipment photos from the server
     useEffect(() => {
         if (equipment.equipment_photo) {
             try {
-                handleEquipmentPhoto(equipment.equipment_photo);
+                handleEquipmentPhotoFetch(equipment.equipment_photo, false);
             } catch (error) {
                 toast.error("Erro ao carregar a foto do equipamento.");
             }
@@ -923,7 +1002,7 @@ const EditEquipmentForm = ({
 
         if (equipment.label_photo) {
             try {
-                handleEquipmentLabelPhoto(equipment.label_photo);
+                handleEquipmentPhotoFetch(equipment.label_photo, true);
             } catch (error) {
                 toast.error("Erro ao carregar a foto do rótulo do equipamento.");
             }
@@ -965,37 +1044,39 @@ const EditEquipmentForm = ({
                     </Typography>
                 )}
 
-                {fields.length > 0 && !editAccessories && !isRejected && (
-                    <Typography element="p" className="font-semibold">
-                        Acessórios:
-                    </Typography>
-                )}
-                {fields.length > 0 &&
-                    !editAccessories &&
-                    !isRejected &&
-                    fields.map((_, index) => (
-                        <div key={index}>
-                            <Typography element="p">
-                                {getValues(`accessories.${index}.model`) === ""
-                                    ? displaySingularAccessoryType(accessoryType!) +
-                                      " " +
-                                      (index + 1)
-                                    : getValues(`accessories.${index}.model`)}
-                                {getValues(`accessories.${index}.series_number`) === ""
-                                    ? ""
-                                    : " - " + getValues(`accessories.${index}.series_number`)}
-                            </Typography>
+                <div className="flex flex-col gap-2">
+                    {fields.length > 0 && !editAccessories && !isRejected && (
+                        <Typography element="p" className="font-semibold">
+                            Acessórios:
+                        </Typography>
+                    )}
+                    {fields.length > 0 &&
+                        !editAccessories &&
+                        !isRejected &&
+                        fields.map((_, index) => (
+                            <div key={index}>
+                                <Typography element="p">
+                                    {getValues(`accessories.${index}.model`) === ""
+                                        ? displaySingularAccessoryType(accessoryType!) +
+                                          " " +
+                                          (index + 1)
+                                        : getValues(`accessories.${index}.model`)}
+                                    {getValues(`accessories.${index}.series_number`) === ""
+                                        ? ""
+                                        : " - " + getValues(`accessories.${index}.series_number`)}
+                                </Typography>
 
-                            <Typography element="span" variant="danger">
-                                {errors?.accessories?.[index]
-                                    ? "Há campos inválidos nesse acessório. Acesse os acessórios para corrigir."
-                                    : null}
-                            </Typography>
-                        </div>
-                    ))}
-
+                                <Typography element="span" variant="danger">
+                                    {errors?.accessories?.[index]
+                                        ? "Há campos inválidos nesse acessório. Acesse os acessórios para corrigir."
+                                        : null}
+                                </Typography>
+                            </div>
+                        ))}
+                </div>
                 {renderButtons()}
             </Form>
+            <ImageViewModal />
         </div>
     );
 };

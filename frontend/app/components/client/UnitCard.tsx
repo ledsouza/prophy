@@ -185,6 +185,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
 
             <div className="flex gap-10 justify-between pt-4">
                 <CardButtons
+                    entity={unit}
                     operation={unitOperation}
                     status={status}
                     onDetails={() => router.push(`/dashboard/unit/${unit.id}`)}

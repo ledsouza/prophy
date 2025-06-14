@@ -14,7 +14,6 @@ import {
     UnitDTO,
     useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
-    useUpdateUnitMutation,
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
@@ -43,7 +42,6 @@ import {
 import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
 import { OperationType } from "@/enums";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
-import { handleApiError } from "@/redux/services/errorHandling";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -51,9 +49,7 @@ function UnitPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
 
-    const { isModalOpen, currentModal, selectedEquipment, selectedUser } = useAppSelector(
-        (state) => state.modal
-    );
+    const { isModalOpen, currentModal, selectedEquipment } = useAppSelector((state) => state.modal);
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
     const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<EquipmentDTO[]>([]);
@@ -76,7 +72,6 @@ function UnitPage() {
 
     const [createDeleteUnitOperation] = useCreateDeleteUnitOperationMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
-    const [updateUnit, { isLoading: isLoadingUpdateUnit }] = useUpdateUnitMutation();
 
     const {
         data: equipments,
@@ -197,21 +192,6 @@ function UnitPage() {
         }
 
         dispatch(closeModal());
-    };
-
-    const handleRemoveUnitManager = async (selectedUnit: UnitDTO) => {
-        try {
-            await updateUnit({
-                unitID: selectedUnit.id,
-                unitData: {
-                    user: null,
-                },
-            }).unwrap();
-            toast.success("Gerente removido com sucesso!");
-            dispatch(closeModal());
-        } catch (error) {
-            handleApiError(error, "Removing unit manager error");
-        }
     };
 
     // Set selected unit
@@ -486,39 +466,8 @@ function UnitPage() {
                         <RegisterUnitManagerForm
                             unitID={selectedUnit.id}
                             title="Cadastro do Gerente de Unidade"
-                            description={`Se o usuário já for cadastrado, basta inserir o CPF e as outras informações serão preenchidas automaticamente.
-                            Caso contrário, preencha os dados completos e ele receberá um e-mail de notificação de cadastro com um link para definir a senha.`}
+                            description="Uma vez atribuído, o responsável receberá, no e-mail cadastrado, um link para a definição de sua senha e obtenção de acesso."
                         />
-                    )}
-
-                    {currentModal === Modals.REMOVE_UNIT_MANAGER && selectedUser && (
-                        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
-                            <Typography element="h2" size="title2" className="mb-6">
-                                Tem certeza que deseja remover este gerente?
-                            </Typography>
-
-                            <div className="flex flex-row gap-2">
-                                <Button
-                                    onClick={() => {
-                                        dispatch(closeModal());
-                                    }}
-                                    className="w-full mt-6"
-                                    data-testid="btn-cancel-delete-unit-manager"
-                                >
-                                    Cancelar
-                                </Button>
-
-                                <Button
-                                    variant="danger"
-                                    onClick={() => handleRemoveUnitManager(selectedUnit)}
-                                    isLoading={isLoadingUpdateUnit}
-                                    className="w-full mt-6"
-                                    data-testid="btn-confirm-delete-unit-manager"
-                                >
-                                    Confirmar
-                                </Button>
-                            </div>
-                        </div>
                     )}
                 </Modal>
             </main>

@@ -87,12 +87,8 @@ const EditClientForm = ({
     ): boolean => {
         return Object.keys(editData).every(
             (key) =>
-                editData[
-                    key as keyof Omit<EditClientFields, "note">
-                ].toLowerCase() ===
-                client[
-                    key as keyof Omit<ClientDTO, "users" | "id">
-                ].toLowerCase()
+                editData[key as keyof Omit<EditClientFields, "note">].toLowerCase() ===
+                client[key as keyof Omit<ClientDTO, "users" | "id">].toLowerCase()
         );
     };
 
@@ -199,11 +195,7 @@ const EditClientForm = ({
                             name: estado.nome,
                             sigla: estado.sigla,
                         }))}
-                        errorMessage={
-                            errors.state
-                                ? "Estado da instituição é obrigatório."
-                                : ""
-                        }
+                        errorMessage={errors.state ? "Estado da instituição é obrigatório." : ""}
                         placeholder="Digite o estado e selecione"
                         selectedValue={selectedEstado}
                         onChange={handleEstadoChange}
@@ -223,27 +215,19 @@ const EditClientForm = ({
                             id: municipio.id,
                             name: municipio.nome,
                         }))}
-                        errorMessage={
-                            errors.city
-                                ? "Cidade da instituição é obrigatória."
-                                : ""
-                        }
+                        errorMessage={errors.city ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Digite a cidade e selecione"
                         selectedValue={selectedMunicipio}
                         onChange={handleMunicipioChange}
                         disabled={disabled}
                         data-testid="institution-city-input"
                     >
-                        {disabled ? <br /> : "Endereço"}
+                        {disabled ? <br /> : "Cidade"}
                     </ComboBox>
                 ) : (
                     <Input
                         disabled
-                        errorMessage={
-                            errors.city
-                                ? "Cidade da instituição é obrigatória."
-                                : ""
-                        }
+                        errorMessage={errors.city ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Selecione um estado"
                         data-testid="institution-city-input"
                     >
@@ -351,13 +335,11 @@ const EditClientForm = ({
     useEffect(() => {
         if (isInitialLoad) {
             const estado = estados?.find(
-                (estado) =>
-                    estado.sigla?.toLowerCase() === client.state.toLowerCase()
+                (estado) => estado.sigla?.toLowerCase() === client.state.toLowerCase()
             );
 
             const municipio = municipios?.find(
-                (municipio) =>
-                    municipio.nome.toLowerCase() === client.city.toLowerCase()
+                (municipio) => municipio.nome.toLowerCase() === client.city.toLowerCase()
             );
 
             if (estado) {
@@ -391,27 +373,15 @@ const EditClientForm = ({
             <Form onSubmit={handleSubmit(onSubmit)}>
                 {!isRejected ? (
                     <>
-                        <Typography
-                            element="h3"
-                            size="title3"
-                            className="font-semibold"
-                        >
+                        <Typography element="h3" size="title3" className="font-semibold">
                             {title}
                         </Typography>
-                        <Typography
-                            element="p"
-                            size="md"
-                            className="text-justify"
-                        >
+                        <Typography element="p" size="md" className="text-justify">
                             {description}
                         </Typography>
                     </>
                 ) : (
-                    <Typography
-                        element="h3"
-                        size="title3"
-                        className="font-semibold"
-                    >
+                    <Typography element="h3" size="title3" className="font-semibold">
                         Por favor, justifique o motivo da rejeição
                     </Typography>
                 )}

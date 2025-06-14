@@ -12,7 +12,7 @@ import { closeModal } from "@/redux/features/modalSlice";
 import {
     UnitDTO,
     useCreateEditUnitOperationMutation,
-    useEditUnitMutation,
+    useUpdateUnitMutation,
 } from "@/redux/features/unitApiSlice";
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
@@ -70,7 +70,7 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
     const [isRejected, setIsRejected] = useState(false);
 
     const [createEditUnitOperation] = useCreateEditUnitOperationMutation();
-    const [editUnit] = useEditUnitMutation();
+    const [editUnit] = useUpdateUnitMutation();
 
     function isDataUnchanged(submittedData: EditUnitFields, originalData: UnitDTO) {
         return Object.entries(submittedData).every(
@@ -112,7 +112,7 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
             // If review is not required, the user is either an internal medical physicist or a Prophy manager.
             // The user may be editing data or reviewing an operation.
             // If `isRejected` is false, the user accepted the operation or updated some data.
-            let successMessage;
+            let successMessage = "Requisição enviada com sucesso!";
             if (!needReview) {
                 successMessage = isRejected
                     ? "Revisão concluída! O cliente será notificado da rejeição."
@@ -151,7 +151,9 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                     placeholder="Digite o nome da unidade"
                     disabled={disabled}
                     data-testid="unit-name-input"
-                ></Input>
+                >
+                    Nome
+                </Input>
                 <Input
                     {...register("cnpj")}
                     type="text"

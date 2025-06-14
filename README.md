@@ -117,6 +117,29 @@ To run this Django project, specific environment variables must be configured in
 -   **Values**: A comma-separated list of allowed hostnames.
 -   **Example**: `DJANGO_ALLOWED_HOSTS='127.0.0.1,localhost'`
 
+#### AWS Credentials for Email Services
+
+The application uses AWS Simple Email Service (SES) for sending emails. The following environment variables are required to configure AWS SES:
+
+6. **AWS_ACCESS_KEY_ID**
+
+-   **Description**: Your AWS access key ID.
+-   **Purpose**: Required for authenticating API requests to AWS services, including SES.
+-   **Example**: `AWS_ACCESS_KEY_ID='your_aws_access_key_id'`
+
+7. **AWS_SECRET_ACCESS_KEY**
+
+-   **Description**: Your AWS secret access key.
+-   **Purpose**: Required for authenticating API requests to AWS services, including SES.
+-   **Example**: `AWS_SECRET_ACCESS_KEY='your_aws_secret_access_key'`
+
+8. **AWS_SES_REGION_NAME**
+
+-   **Description**: The AWS region where your SES service is configured.
+-   **Purpose**: Specifies the AWS region for SES.
+-   **Default**: `sa-east-1`
+-   **Example**: `AWS_SES_REGION_NAME='us-east-1'`
+
 #### Environment Variables for Frontend
 
 To run the frontend application, only one variable must be set in a `.env` file located at `frontend` folder.
@@ -164,7 +187,7 @@ python manage.py runserver
 2. In a different terminal and inside the `frontend` folder, run:
 
 ```bash
-npm run build && npm run start``
+npm run build && npm run start
 ```
 
 If the environment variables were correctly set up, the application should be running in your local machine!

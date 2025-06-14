@@ -1,4 +1,4 @@
-import { apiSlice } from "../services/apiSlice";
+import { apiSlice, PaginatedResponse } from "../services/apiSlice";
 
 type UserAuth = {
     cpf: string;
@@ -18,12 +18,26 @@ export type UserDTO = {
     role: "FMI" | "FME" | "GP" | "GGC" | "GU" | "C";
 };
 
+type RegisterUnitManagerResponse = {
+    detail: string;
+    email: string;
+    userID: number;
+};
+
+type RegisterUnitManagerRequest = Omit<UserAuth, "password" | "re_password"> & {
+    unit_id: number;
+};
+
+type ResetPasswordRequest = {
+    uid: string;
+    token: string;
+    new_password: string;
+    re_new_password: string;
+};
+
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<
-            void,
-            Omit<UserAuth, "email" | "name" | "phone">
-        >({
+        login: builder.mutation<void, Omit<UserAuth, "email" | "name" | "phone">>({
             query: ({ cpf, password }) => ({
                 url: "jwt/create/",
                 method: "POST",
@@ -51,12 +65,49 @@ const authApiSlice = apiSlice.injectEndpoints({
                 method: "GET",
             }),
         }),
+        getByCPF: builder.query<PaginatedResponse<UserDTO>, string>({
+            query: (cpf) => ({
+                url: `users/?cpf=${cpf}`,
+                method: "GET",
+            }),
+        }),
         register: builder.mutation<any, UserAuth>({
             query: ({ cpf, email, phone, name, password, re_password }) => ({
                 url: "users/",
                 method: "POST",
                 body: { cpf, email, phone, name, password, re_password },
             }),
+        }),
+        registerUnitManager: builder.mutation<
+            RegisterUnitManagerResponse,
+            RegisterUnitManagerRequest
+        >({
+            query: (requestBody) => ({
+                url: "users/create-unit-manager/",
+                method: "POST",
+                body: requestBody,
+            }),
+            invalidatesTags: [
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+            ],
+        }),
+        resetPassword: builder.mutation<void, ResetPasswordRequest>({
+            query: (requestBody) => ({
+                url: "/users/reset_password_confirm/",
+                method: "POST",
+                body: requestBody,
+            }),
+        }),
+        deleterUser: builder.mutation<void, number>({
+            query: (userID) => ({
+                url: `/users/${userID}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [
+                { type: "UnitOperation", id: "LIST" },
+                { type: "Unit", id: "LIST" },
+            ],
         }),
     }),
 });
@@ -67,5 +118,10 @@ export const {
     useVerifyMutation,
     useRetrieveUserQuery,
     useGetByIdQuery,
+    useGetByCPFQuery,
+    useLazyGetByCPFQuery,
     useRegisterMutation,
+    useRegisterUnitManagerMutation,
+    useResetPasswordMutation,
+    useDeleterUserMutation,
 } = authApiSlice;
