@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 
 import { debounce } from "lodash";
 import { toast } from "react-toastify";
@@ -21,6 +21,7 @@ import { handleApiError } from "@/redux/services/errorHandling";
 import { Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Button } from "@/components/common";
+import { useUpdateUnitMutation } from "@/redux/features/unitApiSlice";
 
 export type RegisterFields = z.infer<typeof unitManagerSchema>;
 
@@ -34,6 +35,8 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
     const dispatch = useAppDispatch();
     const [registerUnitManager] = useRegisterUnitManagerMutation();
     const [triggerGetByCPF, { isLoading: isCPFChecking }] = useLazyGetByCPFQuery();
+    const [updateUnit] = useUpdateUnitMutation();
+    const [registeredUser, setRegisteredUser] = useState<number | null>(null);
 
     const {
         register,
@@ -64,6 +67,7 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                         setValue("email", user.email);
                         setValue("phone", user.phone);
                         toast.info("Usuário já cadastrado. Dados preenchidos automaticamente.");
+                        setRegisteredUser(user.id);
                     }
                 } catch (error) {
                     console.error("Erro ao verificar CPF:", error);
@@ -80,14 +84,19 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
         }
 
         try {
-            const result = await registerUnitManager({
-                ...data,
-                unit_id: unitID,
-            }).unwrap();
+            registeredUser
+                ? updateUnit({
+                      unitID: unitID,
+                      unitData: {
+                          user: registeredUser,
+                      },
+                  })
+                : await registerUnitManager({
+                      ...data,
+                      unit_id: unitID,
+                  }).unwrap();
 
-            toast.success(
-                `Gerente de unidade registrado com sucesso. Um email foi enviado para ${result.email}`
-            );
+            toast.success("Gerente de unidade registrado com sucesso.");
             dispatch(closeModal());
         } catch (error) {
             handleApiError(error, "Registration error");

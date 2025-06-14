@@ -17,7 +17,7 @@ export type UnitDTO = {
     address: string;
     state: string;
     city: string;
-    user: UserDTO | null;
+    user: UserDTO | number | null;
     client: number;
 };
 
