@@ -103,8 +103,10 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     };
 
     const handleDeleteUnitManager = () => {
-        dispatch(setUser(unit.user));
-        dispatch(openModal(Modals.REMOVE_UNIT_MANAGER));
+        if (unit.user) {
+            dispatch(setUser(unit.user));
+            dispatch(openModal(Modals.REMOVE_UNIT_MANAGER));
+        }
     };
 
     // Set the buttons that should be rendered
