@@ -237,6 +237,19 @@ class ExtendedUserViewSet(DjoserUserViewSet):
             return CustomUserDeleteSerializer
         return super().get_serializer_class()
 
+    def get_queryset(self):
+        user: UserAccount = self.request.user
+
+        if self.action == "list":
+            if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
+                return UserAccount.objects.filter(role=UserAccount.Role.UNIT_MANAGER)
+            elif user.is_staff or user.role == UserAccount.Role.PROPHY_MANAGER:
+                return UserAccount.objects.all()
+            else:
+                return UserAccount.objects.filter(id=user.id)
+
+        return super().get_queryset()
+
     @swagger_auto_schema(
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
