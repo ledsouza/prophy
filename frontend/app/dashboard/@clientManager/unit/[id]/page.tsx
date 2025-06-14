@@ -486,7 +486,8 @@ function UnitPage() {
                         <RegisterUnitManagerForm
                             unitID={selectedUnit.id}
                             title="Cadastro do Gerente de Unidade"
-                            description="Uma vez atribuído, o responsável receberá, no e-mail cadastrado, um link para a definição de sua senha e obtenção de acesso."
+                            description={`Se o usuário já for cadastrado, basta inserir o CPF e as outras informações serão preenchidas automaticamente.
+                            Caso contrário, preencha os dados completos e ele receberá um e-mail de notificação de cadastro com um link para definir a senha.`}
                         />
                     )}
 
