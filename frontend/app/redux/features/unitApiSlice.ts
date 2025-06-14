@@ -175,7 +175,7 @@ const unitApiSlice = apiSlice.injectEndpoints({
                 { type: "Unit", id: "LIST" },
             ],
         }),
-        editUnit: builder.mutation<
+        updateUnit: builder.mutation<
             UnitOperationDTO,
             {
                 unitID: number;
@@ -204,5 +204,5 @@ export const {
     useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
     useCreateUnitMutation,
-    useEditUnitMutation,
+    useUpdateUnitMutation,
 } = unitApiSlice;

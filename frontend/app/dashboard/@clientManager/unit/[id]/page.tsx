@@ -14,7 +14,7 @@ import {
     UnitDTO,
     useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
-    useEditUnitMutation,
+    useUpdateUnitMutation,
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
@@ -76,7 +76,7 @@ function UnitPage() {
 
     const [createDeleteUnitOperation] = useCreateDeleteUnitOperationMutation();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
-    const [updateUnit, { isLoading: isLoadingUpdateUnit }] = useEditUnitMutation();
+    const [updateUnit, { isLoading: isLoadingUpdateUnit }] = useUpdateUnitMutation();
 
     const {
         data: equipments,

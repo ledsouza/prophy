@@ -14,7 +14,7 @@ import { Form, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import { useEffect, useState } from "react";
-import { useEditUnitMutation } from "@/redux/features/unitApiSlice";
+import { useUpdateUnitMutation } from "@/redux/features/unitApiSlice";
 import { OperationStatus } from "@/enums";
 import { isErrorWithMessages } from "@/redux/services/helpers";
 import { toast } from "react-toastify";
@@ -28,15 +28,12 @@ type ReviewDeleteUnitFormProps = {
     unitOperationID: number;
 };
 
-const ReviewDeleteUnitForm = ({
-    title,
-    unitOperationID,
-}: ReviewDeleteUnitFormProps) => {
+const ReviewDeleteUnitForm = ({ title, unitOperationID }: ReviewDeleteUnitFormProps) => {
     const dispatch = useAppDispatch();
 
     const [isRejected, setIsRejected] = useState(false);
 
-    const [updateUnitOperation] = useEditUnitMutation();
+    const [updateUnitOperation] = useUpdateUnitMutation();
 
     const {
         register,

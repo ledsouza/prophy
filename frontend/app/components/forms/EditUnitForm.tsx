@@ -12,7 +12,7 @@ import { closeModal } from "@/redux/features/modalSlice";
 import {
     UnitDTO,
     useCreateEditUnitOperationMutation,
-    useEditUnitMutation,
+    useUpdateUnitMutation,
 } from "@/redux/features/unitApiSlice";
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
@@ -70,7 +70,7 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
     const [isRejected, setIsRejected] = useState(false);
 
     const [createEditUnitOperation] = useCreateEditUnitOperationMutation();
-    const [editUnit] = useEditUnitMutation();
+    const [editUnit] = useUpdateUnitMutation();
 
     function isDataUnchanged(submittedData: EditUnitFields, originalData: UnitDTO) {
         return Object.entries(submittedData).every(
