@@ -23,7 +23,7 @@ faker = "^28.1.0"
 validate-docbr = "^1.10.0"
 django-filter = "^24.3"
 drf-yasg = "^1.21.7"
-setuptools = "^75.1.0"
+setuptools = "^78.1.1"
 aiosmtpd = "^1.4.6"
 django-ses = "^4.3.0"
 
