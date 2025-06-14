@@ -1,15 +1,26 @@
-import { z } from "zod";
-import { unitManagerSchema } from "@/schemas";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+"use client";
+
+import { useEffect, useCallback } from "react";
+
+import { debounce } from "lodash";
 import { toast } from "react-toastify";
-import { Form, Input } from "@/components/forms";
-import { Typography } from "@/components/foundation";
-import { Button } from "../common";
+import { SubmitHandler, useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+import { unitManagerSchema } from "@/schemas";
+
 import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
-import { useRegisterUnitManagerMutation } from "@/redux/features/authApiSlice";
+import {
+    useRegisterUnitManagerMutation,
+    useLazyGetByCPFQuery,
+} from "@/redux/features/authApiSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
+
+import { Form, Input } from "@/components/forms";
+import { Typography } from "@/components/foundation";
+import { Button } from "@/components/common";
 
 export type RegisterFields = z.infer<typeof unitManagerSchema>;
 
@@ -22,16 +33,52 @@ type RegisterUnitManagerFormProps = {
 const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitManagerFormProps) => {
     const dispatch = useAppDispatch();
     const [registerUnitManager] = useRegisterUnitManagerMutation();
+    const [triggerGetByCPF, { isLoading: isCPFChecking }] = useLazyGetByCPFQuery();
 
     const {
         register,
         handleSubmit,
+        control,
+        setValue,
         formState: { errors, isSubmitting },
     } = useForm<RegisterFields>({
         resolver: zodResolver(unitManagerSchema),
     });
 
+    const cpfValue = useWatch({
+        control: control,
+        name: "cpf",
+    });
+
+    const debouncedCPFCheck = useCallback(
+        debounce(async (cpf: string) => {
+            const cpfSchema = unitManagerSchema.shape.cpf;
+            const result = cpfSchema.safeParse(cpf);
+
+            if (result.success) {
+                try {
+                    const response = await triggerGetByCPF(cpf).unwrap();
+                    if (response.results && response.results.length > 0) {
+                        const user = response.results[0];
+                        setValue("name", user.name);
+                        setValue("email", user.email);
+                        setValue("phone", user.phone);
+                        toast.info("Usuário já cadastrado. Dados preenchidos automaticamente.");
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar CPF:", error);
+                }
+            }
+        }, 500),
+        [triggerGetByCPF]
+    );
+
     const onSubmit: SubmitHandler<RegisterFields> = async (data) => {
+        if (isCPFChecking) {
+            toast.warn("Por favor, aguarde a verificação do CPF terminar.");
+            return;
+        }
+
         try {
             const result = await registerUnitManager({
                 ...data,
@@ -46,6 +93,16 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
             handleApiError(error, "Registration error");
         }
     };
+
+    useEffect(() => {
+        if (cpfValue) {
+            debouncedCPFCheck(cpfValue);
+        }
+        // Cleanup function to cancel the debounce timer if the component unmounts
+        return () => {
+            debouncedCPFCheck.cancel();
+        };
+    }, [cpfValue, debouncedCPFCheck]);
 
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
@@ -63,9 +120,10 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                     type="text"
                     errorMessage={errors.cpf?.message}
                     placeholder="Digite o CPF do gerente de unidade"
+                    disabled={isCPFChecking}
                     data-testid="unit-manager-cpf-input"
                 >
-                    CPF
+                    CPF {isCPFChecking && <span className="text-gray-500">(verificando...)</span>}
                 </Input>
                 <Input
                     {...register("name")}

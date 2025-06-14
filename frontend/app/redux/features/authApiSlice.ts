@@ -1,4 +1,4 @@
-import { apiSlice } from "../services/apiSlice";
+import { apiSlice, PaginatedResponse } from "../services/apiSlice";
 
 type UserAuth = {
     cpf: string;
@@ -65,6 +65,12 @@ const authApiSlice = apiSlice.injectEndpoints({
                 method: "GET",
             }),
         }),
+        getByCPF: builder.query<PaginatedResponse<UserDTO>, string>({
+            query: (cpf) => ({
+                url: `users/?cpf=${cpf}`,
+                method: "GET",
+            }),
+        }),
         register: builder.mutation<any, UserAuth>({
             query: ({ cpf, email, phone, name, password, re_password }) => ({
                 url: "users/",
@@ -112,6 +118,8 @@ export const {
     useVerifyMutation,
     useRetrieveUserQuery,
     useGetByIdQuery,
+    useGetByCPFQuery,
+    useLazyGetByCPFQuery,
     useRegisterMutation,
     useRegisterUnitManagerMutation,
     useResetPasswordMutation,
