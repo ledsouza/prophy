@@ -73,9 +73,9 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                     const response = await triggerGetByCPF(cpf).unwrap();
                     if (response.results && response.results.length > 0) {
                         const user = response.results[0];
-                        setValue("name", user.name);
-                        setValue("email", user.email);
-                        setValue("phone", user.phone);
+                        setValue("name", user.name, { shouldValidate: true });
+                        setValue("email", user.email, { shouldValidate: true });
+                        setValue("phone", user.phone, { shouldValidate: true });
                         setRegisteredUser(user);
                         toast.info("Usuário já cadastrado. Dados preenchidos automaticamente.");
                     }
