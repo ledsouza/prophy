@@ -15,6 +15,7 @@ import { closeModal } from "@/redux/features/modalSlice";
 import {
     useRegisterUnitManagerMutation,
     useLazyGetByCPFQuery,
+    UserDTO,
 } from "@/redux/features/authApiSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
 
@@ -36,7 +37,7 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
     const [registerUnitManager] = useRegisterUnitManagerMutation();
     const [triggerGetByCPF, { isLoading: isCPFChecking }] = useLazyGetByCPFQuery();
     const [updateUnit] = useUpdateUnitMutation();
-    const [registeredUser, setRegisteredUser] = useState<number | null>(null);
+    const [registeredUser, setRegisteredUser] = useState<UserDTO | null>(null);
 
     const {
         register,
@@ -66,8 +67,8 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                         setValue("name", user.name);
                         setValue("email", user.email);
                         setValue("phone", user.phone);
+                        setRegisteredUser(user);
                         toast.info("Usuário já cadastrado. Dados preenchidos automaticamente.");
-                        setRegisteredUser(user.id);
                     }
                 } catch (error) {
                     console.error("Erro ao verificar CPF:", error);
@@ -83,12 +84,13 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
             return;
         }
 
+        const isRegisteredUser = registeredUser?.cpf === data.cpf;
         try {
-            registeredUser
+            isRegisteredUser && registeredUser
                 ? updateUnit({
                       unitID: unitID,
                       unitData: {
-                          user: registeredUser,
+                          user: registeredUser.id,
                       },
                   })
                 : await registerUnitManager({
