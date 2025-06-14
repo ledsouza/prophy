@@ -47,6 +47,12 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
         formState: { errors, isSubmitting },
     } = useForm<RegisterFields>({
         resolver: zodResolver(unitManagerSchema),
+        defaultValues: {
+            cpf: "",
+            name: "",
+            email: "",
+            phone: "",
+        },
     });
 
     const cpfValue = useWatch({
