@@ -173,14 +173,13 @@ const EditEquipmentForm = ({
         return accessoryPhoto;
     };
 
-    const handleEquipmentPhoto = async (endpoint: string) => {
-        const equipmentPhoto = await fetchPhoto(endpoint);
-        setEquipmentPhotoFile(equipmentPhoto);
-    };
-
-    const handleEquipmentLabelPhoto = async (endpoint: string) => {
-        const equipmentPhoto = await fetchPhoto(endpoint);
-        setEquipmentLabelPhotoFile(equipmentPhoto);
+    const handleEquipmentPhotoFetch = async (endpoint: string, isLabelPhoto: boolean = false) => {
+        const photo = await fetchPhoto(endpoint);
+        if (isLabelPhoto) {
+            setEquipmentLabelPhotoFile(photo);
+        } else {
+            setEquipmentPhotoFile(photo);
+        }
     };
 
     const handleAddAccessory = () => {
@@ -991,30 +990,11 @@ const EditEquipmentForm = ({
         );
     }, [accessories]);
 
-    // Fetch accessories photos from the server
-    useEffect(() => {
-        if (equipment.equipment_photo) {
-            try {
-                handleEquipmentPhoto(equipment.equipment_photo);
-            } catch (error) {
-                toast.error("Erro ao carregar a foto do equipamento.");
-            }
-        }
-
-        if (equipment.label_photo) {
-            try {
-                handleEquipmentPhoto(equipment.label_photo);
-            } catch (error) {
-                toast.error("Erro ao carregar a foto do rótulo do equipamento.");
-            }
-        }
-    }, [equipment]);
-
     // Fetch equipment photos from the server
     useEffect(() => {
         if (equipment.equipment_photo) {
             try {
-                handleEquipmentPhoto(equipment.equipment_photo);
+                handleEquipmentPhotoFetch(equipment.equipment_photo, false);
             } catch (error) {
                 toast.error("Erro ao carregar a foto do equipamento.");
             }
@@ -1022,7 +1002,7 @@ const EditEquipmentForm = ({
 
         if (equipment.label_photo) {
             try {
-                handleEquipmentLabelPhoto(equipment.label_photo);
+                handleEquipmentPhotoFetch(equipment.label_photo, true);
             } catch (error) {
                 toast.error("Erro ao carregar a foto do rótulo do equipamento.");
             }
