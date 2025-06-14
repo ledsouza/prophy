@@ -54,6 +54,9 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
         name: "cpf",
     });
 
+    // Check if the current CPF matches a registered user's CPF
+    const isRegisteredUserMatch = registeredUser?.cpf === cpfValue;
+
     const debouncedCPFCheck = useCallback(
         debounce(async (cpf: string) => {
             const cpfSchema = unitManagerSchema.shape.cpf;
@@ -84,9 +87,8 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
             return;
         }
 
-        const isRegisteredUser = registeredUser?.cpf === data.cpf;
         try {
-            isRegisteredUser && registeredUser
+            isRegisteredUserMatch && registeredUser
                 ? updateUnit({
                       unitID: unitID,
                       unitData: {
@@ -141,6 +143,7 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                     type="text"
                     errorMessage={errors.name?.message}
                     placeholder="Digite o nome completo do gerente de unidade"
+                    disabled={isRegisteredUserMatch}
                     data-testid="unit-manager-name-input"
                 >
                     Nome
@@ -150,6 +153,7 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                     type="text"
                     errorMessage={errors.email?.message}
                     placeholder="Digite o email do gerente de unidade"
+                    disabled={isRegisteredUserMatch}
                     data-testid="unit-manager-email-input"
                 >
                     E-mail
@@ -159,6 +163,7 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                     type="text"
                     errorMessage={errors.phone?.message}
                     placeholder="Digite o número de celular do gerente de unidade"
+                    disabled={isRegisteredUserMatch}
                     data-testid="unit-manager-phone-input"
                 >
                     Número do celular
