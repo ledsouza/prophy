@@ -166,6 +166,10 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
                         {unit.name}
                     </Typography>
 
+                    <Typography dataTestId="unit-name">{`${unit.address}`}</Typography>
+
+                    <Typography dataTestId="unit-name">{`${unit.state} - ${unit.city}`}</Typography>
+
                     <Typography dataTestId="equipments-counts">
                         Quantidade de Equipamentos:{" "}
                         <Typography element="span" className="font-semibold">

@@ -103,7 +103,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     };
 
     const handleDeleteUnitManager = () => {
-        if (unit.user) {
+        if (unit.user && typeof unit.user === "object") {
             dispatch(setUser(unit.user));
             dispatch(openModal(Modals.REMOVE_UNIT_MANAGER));
         }
@@ -150,7 +150,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                     <br />
                     <b>E-mail:</b> {unit.email}
                     <br />
-                    <b>Endereço:</b> {unit.address}
+                    <b>Endereço:</b> {`${unit.address}, ${unit.state} - ${unit.city}`}
                 </Typography>
 
                 <div className="flex flex-col gap-2 w-full mt-2">
@@ -248,7 +248,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                         Gerente de Unidade
                     </Typography>
 
-                    {unit.user ? (
+                    {unit.user && typeof unit.user === "object" ? (
                         <div className="flex flex-col gap-4">
                             <Typography element="p" size="md" dataTestId="unit-manager-user">
                                 {unit.user.name}

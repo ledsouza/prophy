@@ -252,7 +252,8 @@ function ClientDetails({
                     <br />
                     <b>E-mail:</b> {filteredClient?.email}
                     <br />
-                    <b>Endereço:</b> {filteredClient?.address}
+                    <b>Endereço:</b>{" "}
+                    {`${filteredClient?.address}, ${filteredClient.city} - ${filteredClient.state}`}
                 </Typography>
                 <div className="flex flex-col gap-2 w-full mt-2">
                     {selectedClientInOperation &&
