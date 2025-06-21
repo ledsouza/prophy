@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
-import { Warning } from "@phosphor-icons/react";
+import { Warning, FileText } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 
 import {
     ClientDTO,
@@ -31,6 +32,7 @@ import { ComboBox, Select } from "@/components/forms";
 import { Button, Spinner } from "@/components/common";
 
 function SearchClientPage() {
+    const router = useRouter();
     const { data: clients, isLoading, error } = useListAllClientsQuery();
     const { data: clientsOperations } = useListAllClientsOperationsQuery();
     const { data: unitsOperations } = useListAllUnitsOperationsQuery();
@@ -294,6 +296,10 @@ function SearchClientPage() {
         setHasSearched(true);
     };
 
+    const handleViewProposals = (cnpj: string) => {
+        router.push(`/dashboard/proposals?cnpj=${cnpj}`);
+    };
+
     if (isLoading) {
         return <Spinner fullscreen />;
     }
@@ -447,22 +453,19 @@ function SearchClientPage() {
                                         CNPJ
                                     </th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        E-mail
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Cidade
+                                        Endereço
                                     </th>
                                     <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                                         Usuários
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                                        Ações
                                     </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {filteredResults.map((client, clientIndex) => (
-                                    <tr
-                                        key={`client-row-${clientIndex}-${client.id}`}
-                                        className="hover:bg-gray-50"
-                                    >
+                                    <tr key={clientIndex} className="hover:bg-gray-50">
                                         <td className="px-4 py-3 text-sm text-gray-900">
                                             {client.name}
                                         </td>
@@ -470,19 +473,13 @@ function SearchClientPage() {
                                             {cnpjMask(client.cnpj)}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-900">
-                                            {client.email}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-900">
-                                            {client.city}
+                                            {`${client.address} - ${client.state}, ${client.city}`}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-900">
                                             {client.users.length > 0 ? (
                                                 <div className="space-y-1">
                                                     {client.users.map((user, userIndex) => (
-                                                        <div
-                                                            key={`user-${clientIndex}-${userIndex}-${user.email}`}
-                                                            className="text-xs"
-                                                        >
+                                                        <div key={userIndex} className="text-xs">
                                                             <span className="font-medium">
                                                                 {user.role === "FMI" &&
                                                                     "Físico Médico Interno"}
@@ -505,6 +502,16 @@ function SearchClientPage() {
                                                     Nenhum usuário
                                                 </span>
                                             )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-900">
+                                            <Button
+                                                variant="primary"
+                                                onClick={() => handleViewProposals(client.cnpj)}
+                                                className="flex items-center gap-2 px-2 py-1 text-xs"
+                                            >
+                                                <FileText size={16} />
+                                                Propostas
+                                            </Button>
                                         </td>
                                     </tr>
                                 ))}

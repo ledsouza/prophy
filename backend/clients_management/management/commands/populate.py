@@ -696,6 +696,59 @@ class Command(BaseCommand):
             status=Proposal.Status.ACCEPTED,
         )
 
+        # Create proposals for all existing clients to ensure each client has at least one proposal
+        existing_clients = Client.objects.all()
+        for i, client in enumerate(existing_clients):
+            # Use different statuses for variety in testing
+            status = status_choices_all[i % len(status_choices_all)]
+
+            Proposal.objects.create(
+                cnpj=client.cnpj,
+                city=client.city,
+                state=client.state,
+                contact_name=fake.name(),
+                contact_phone=fake_phone_number(),
+                email=fake.email(),
+                date=fake.date(),
+                value=fake.pydecimal(
+                    left_digits=5, right_digits=2, positive=True),
+                contract_type=choice(contract_type_choices),
+                status=status_choices_all[0],
+            )
+
+            Proposal.objects.create(
+                cnpj=client.cnpj,
+                city=client.city,
+                state=client.state,
+                contact_name=fake.name(),
+                contact_phone=fake_phone_number(),
+                email=fake.email(),
+                date=fake.date(),
+                value=fake.pydecimal(
+                    left_digits=5, right_digits=2, positive=True),
+                contract_type=choice(contract_type_choices),
+                status=status,
+            )
+
+            Proposal.objects.create(
+                cnpj=client.cnpj,
+                city=client.city,
+                state=client.state,
+                contact_name=fake.name(),
+                contact_phone=fake_phone_number(),
+                email=fake.email(),
+                date=fake.date(),
+                value=fake.pydecimal(
+                    left_digits=5, right_digits=2, positive=True),
+                contract_type=choice(contract_type_choices),
+                status=status,
+            )
+
+            # Track approved proposals for fixture generation
+            if status == Proposal.Status.ACCEPTED:
+                approved_cnpjs.append(client.cnpj)
+
+        # Continue with existing random proposal generation for additional test data
         for _ in range(num_proposals):
             cnpj = fake_cnpj()
 

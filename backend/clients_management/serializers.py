@@ -1,6 +1,12 @@
 from rest_framework import serializers
-from clients_management.models import Client, Unit, Equipment, Modality, Accessory
+from clients_management.models import Client, Unit, Equipment, Modality, Accessory, Proposal
 from users.models import UserAccount
+
+
+class ProposalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Proposal
+        fields = "__all__"
 
 
 class UserNameSerializer(serializers.ModelSerializer):

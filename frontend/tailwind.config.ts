@@ -15,6 +15,7 @@ const config: Config = {
                 quaternary: "rgba(var(--quaternary), <alpha-value>)",
                 danger: "rgba(var(--danger), <alpha-value>)",
                 success: "rgba(var(--success), <alpha-value>)",
+                warning: "rgba(var(--warning), <alpha-value>)",
             },
             backgroundColor: {
                 light: "#F6F8FC",

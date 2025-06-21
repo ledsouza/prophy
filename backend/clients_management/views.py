@@ -18,6 +18,7 @@ from clients_management.serializers import (
     EquipmentSerializer,
     ModalitySerializer,
     AccessorySerializer,
+    ProposalSerializer
 )
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 from requisitions.serializers import EquipmentOperation
@@ -85,7 +86,8 @@ class LatestProposalStatusView(APIView):
             cnpj = serializer.validated_data["cnpj"]
 
             try:
-                latest_client = Proposal.objects.filter(cnpj=cnpj).latest("date")
+                latest_client = Proposal.objects.filter(
+                    cnpj=cnpj).latest("date")
                 return Response(
                     {"status": latest_client.approved_client()},
                     status=status.HTTP_200_OK,
@@ -98,6 +100,82 @@ class LatestProposalStatusView(APIView):
                 )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProposalViewSet(viewsets.ViewSet):
+    """
+    Viewset for managing proposals.
+
+    Provides actions for listing proposals with CNPJ filtering capability.
+    Only accessible by PROPHY_MANAGER users.
+    """
+
+    @swagger_auto_schema(
+        operation_summary="List proposals with CNPJ filtering",
+        operation_description="""
+        Retrieve a paginated list of proposals, optionally filtered by CNPJ.
+        Only accessible by PROPHY_MANAGER users.
+
+        ```json
+        {
+            "count": 123,  // Total number of proposals
+            "next": "http://api.example.com/proposals/?page=2", // Link to next page (if available)
+            "previous": null, // Link to previous page (if available)
+            "results": [
+                {
+                    "id": 1,
+                    "cnpj": "12345678000190",
+                    "contact_name": "John Doe",
+                    "status": "P",
+                    // ... other proposal fields
+                },
+                // ... more proposals on this page
+            ]
+        }
+        ```
+        """,
+        manual_parameters=[
+            openapi.Parameter(
+                name="cnpj",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter proposals by CNPJ.",
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of proposals",
+                schema=ProposalSerializer(many=True),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied - PROPHY_MANAGER role required",
+        },
+    )
+    def list(self, request):
+        user: UserAccount = request.user
+        if not user.role == UserAccount.Role.PROPHY_MANAGER:
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Get all proposals (default ordering by -date is set in model)
+        queryset = Proposal.objects.all()
+
+        # Apply CNPJ filtering if provided
+        cnpj = request.query_params.get("cnpj")
+        if cnpj is not None:
+            queryset = queryset.filter(cnpj=cnpj)
+
+        # Pagination
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = ProposalSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = ProposalSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ClientStatusView(APIView):
@@ -471,7 +549,8 @@ class ModalityViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = ModalitySerializer(modality, data=request.data, partial=True)
+        serializer = ModalitySerializer(
+            modality, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -542,7 +621,8 @@ class AccessoryViewSet(viewsets.ViewSet):
             units = UnitOperation.objects.filter(user=user)
             queryset = Accessory.objects.filter(equipment__unit__in=units)
         else:
-            queryset = Accessory.objects.filter(equipment__unit__client__users=user)
+            queryset = Accessory.objects.filter(
+                equipment__unit__client__users=user)
 
         serializer = AccessorySerializer(queryset, many=True)
         return Response(serializer.data)
@@ -596,7 +676,8 @@ class AccessoryViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = AccessorySerializer(accessory, data=request.data, partial=True)
+        serializer = AccessorySerializer(
+            accessory, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
