@@ -45,7 +45,32 @@ const proposalApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: "Proposal", id: "LIST" }],
         }),
+        listAllProposals: builder.query<ProposalDTO[], void>({
+            async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
+                let allProposals: ProposalDTO[] = [];
+                let currentPage = 1;
+                let hasNextPage = true;
+
+                while (hasNextPage) {
+                    const response = await baseQuery({
+                        url: "proposals/",
+                        method: "GET",
+                        params: { page: currentPage },
+                    });
+
+                    if (response.error) return { error: response.error };
+
+                    const data = response.data as PaginatedResponse<ProposalDTO>;
+                    allProposals = [...allProposals, ...data.results];
+                    hasNextPage = data.next !== null;
+                    currentPage++;
+                }
+
+                return { data: allProposals };
+            },
+            providesTags: [{ type: "Proposal", id: "LIST" }],
+        }),
     }),
 });
 
-export const { useListProposalsQuery } = proposalApiSlice;
+export const { useListProposalsQuery, useListAllProposalsQuery } = proposalApiSlice;

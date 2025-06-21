@@ -12,6 +12,7 @@ import {
     useListAllClientsQuery,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
+import { ProposalDTO, useListAllProposalsQuery } from "@/redux/features/proposalApiSlice";
 import {
     UnitDTO,
     UnitOperationDTO,
@@ -26,6 +27,7 @@ import {
 } from "@/redux/features/equipmentApiSlice";
 import { ComboboxDataProps } from "@/components/forms/ComboBox";
 import { SelectData } from "@/components/forms/Select";
+import { ContractType, ProposalStatus } from "@/enums";
 
 import { Typography } from "@/components/foundation";
 import { ComboBox, Select } from "@/components/forms";
@@ -39,6 +41,7 @@ function SearchClientPage() {
     const { data: equipmentsOperations } = useListAllEquipmentsOperationsQuery();
     const { data: units } = useListAllUnitsQuery();
     const { data: equipments } = useListAllEquipmentsQuery();
+    const { data: proposals, isLoading: proposalsLoading } = useListAllProposalsQuery();
 
     // Filter states
     const [selectedName, setSelectedName] = useState<ComboboxDataProps | null>(null);
@@ -66,21 +69,12 @@ function SearchClientPage() {
                 (client, index, self) => index === self.findIndex((c) => c.id === client.id)
             );
 
-            // Debug logging to check for duplicates in source data
-            if (clients.length !== uniqueClients.length) {
-                console.warn(
-                    `Source data contains ${
-                        clients.length - uniqueClients.length
-                    } duplicate clients`
-                );
-            }
-
             setFilteredResults(uniqueClients);
             setHasSearched(true);
         }
     }, [clients, hasSearched]);
 
-    // Transform clients data for ComboBox components
+    // Transform data for ComboBox components
     const nameOptions = useMemo(() => {
         if (!clients) return [];
         return clients.map((client) => ({
@@ -106,7 +100,6 @@ function SearchClientPage() {
         }));
     }, [clients]);
 
-    // User role options
     const userRoleOptions: SelectData[] = [
         { id: 0, value: "Todos" },
         { id: 1, value: "Físico Médico Interno" },
@@ -117,13 +110,46 @@ function SearchClientPage() {
         { id: 6, value: "Comercial" },
     ];
 
-    // Contract type options
     const contractTypeOptions: SelectData[] = [
         { id: 0, value: "Todos" },
         { id: 1, value: "Anual" },
         { id: 2, value: "Mensal" },
         { id: 3, value: "Semanal" },
     ];
+
+    const getContractTypeFromOptionId = (optionId: number): ContractType | null => {
+        switch (optionId) {
+            case 1:
+                return ContractType.ANNUAL;
+            case 2:
+                return ContractType.MONTHLY;
+            case 3:
+                return ContractType.WEEKLY;
+            default:
+                return null;
+        }
+    };
+
+    const findMostRecentAcceptedProposal = (
+        clientCnpj: string,
+        proposals: ProposalDTO[]
+    ): ProposalDTO | null => {
+        const acceptedProposals = proposals.filter(
+            (proposal) =>
+                proposal.cnpj === clientCnpj && proposal.status === ProposalStatus.ACCEPTED
+        );
+
+        if (acceptedProposals.length === 0) {
+            return null;
+        }
+
+        // Sort by date (most recent first) and return the first one
+        const sorted = acceptedProposals.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+
+        return sorted[0];
+    };
 
     // Operation status options
     const operationStatusOptions: SelectData[] = [
@@ -235,6 +261,25 @@ function SearchClientPage() {
             }
         }
 
+        // Filter by contract type
+        if (selectedContractType.id !== 0) {
+            const targetContractType = getContractTypeFromOptionId(selectedContractType.id);
+
+            if (targetContractType && proposals) {
+                filtered = filtered.filter((client) => {
+                    const mostRecentProposal = findMostRecentAcceptedProposal(
+                        client.cnpj,
+                        proposals
+                    );
+
+                    return (
+                        mostRecentProposal &&
+                        mostRecentProposal.contract_type === targetContractType
+                    );
+                });
+            }
+        }
+
         // Filter by operation status
         if (selectedOperationStatus.id !== 0) {
             if (selectedOperationStatus.id === 1) {
@@ -270,11 +315,6 @@ function SearchClientPage() {
             (client, index, self) => index === self.findIndex((c) => c.id === client.id)
         );
 
-        // Debug logging to check for duplicates
-        if (filtered.length !== uniqueFiltered.length) {
-            console.warn(`Removed ${filtered.length - uniqueFiltered.length} duplicate clients`);
-        }
-
         setFilteredResults(uniqueFiltered);
         setHasSearched(true);
     };
@@ -300,7 +340,7 @@ function SearchClientPage() {
         router.push(`/dashboard/proposals?cnpj=${cnpj}`);
     };
 
-    if (isLoading) {
+    if (isLoading || proposalsLoading) {
         return <Spinner fullscreen />;
     }
 
