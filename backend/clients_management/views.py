@@ -159,10 +159,8 @@ class ProposalViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Get all proposals (default ordering by -date is set in model)
         queryset = Proposal.objects.all()
 
-        # Apply CNPJ filtering if provided
         cnpj = request.query_params.get("cnpj")
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
