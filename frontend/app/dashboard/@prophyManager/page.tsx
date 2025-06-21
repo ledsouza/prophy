@@ -3,8 +3,26 @@
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
+import { Warning } from "@phosphor-icons/react";
 
-import { ClientDTO, useListAllClientsQuery } from "@/redux/features/clientApiSlice";
+import {
+    ClientDTO,
+    ClientOperationDTO,
+    useListAllClientsQuery,
+    useListAllClientsOperationsQuery,
+} from "@/redux/features/clientApiSlice";
+import {
+    UnitDTO,
+    UnitOperationDTO,
+    useListAllUnitsQuery,
+    useListAllUnitsOperationsQuery,
+} from "@/redux/features/unitApiSlice";
+import {
+    EquipmentDTO,
+    EquipmentOperationDTO,
+    useListAllEquipmentsQuery,
+    useListAllEquipmentsOperationsQuery,
+} from "@/redux/features/equipmentApiSlice";
 import { ComboboxDataProps } from "@/components/forms/ComboBox";
 import { SelectData } from "@/components/forms/Select";
 
@@ -14,6 +32,11 @@ import { Button, Spinner } from "@/components/common";
 
 function SearchClientPage() {
     const { data: clients, isLoading, error } = useListAllClientsQuery();
+    const { data: clientsOperations } = useListAllClientsOperationsQuery();
+    const { data: unitsOperations } = useListAllUnitsOperationsQuery();
+    const { data: equipmentsOperations } = useListAllEquipmentsOperationsQuery();
+    const { data: units } = useListAllUnitsQuery();
+    const { data: equipments } = useListAllEquipmentsQuery();
 
     // Filter states
     const [selectedName, setSelectedName] = useState<ComboboxDataProps | null>(null);
@@ -21,6 +44,10 @@ function SearchClientPage() {
     const [selectedCity, setSelectedCity] = useState<ComboboxDataProps | null>(null);
     const [selectedUserRole, setSelectedUserRole] = useState<SelectData>({ id: 0, value: "Todos" });
     const [selectedContractType, setSelectedContractType] = useState<SelectData>({
+        id: 0,
+        value: "Todos",
+    });
+    const [selectedOperationStatus, setSelectedOperationStatus] = useState<SelectData>({
         id: 0,
         value: "Todos",
     });
@@ -96,6 +123,75 @@ function SearchClientPage() {
         { id: 3, value: "Semanal" },
     ];
 
+    // Operation status options
+    const operationStatusOptions: SelectData[] = [
+        { id: 0, value: "Todos" },
+        { id: 1, value: "Com Operações Pendentes" },
+        { id: 2, value: "Sem Operações Pendentes" },
+    ];
+
+    // Helper function to detect ongoing operations
+    const hasOngoingOperations = (
+        client: ClientDTO,
+        clientOps: ClientOperationDTO[] = [],
+        unitOps: UnitOperationDTO[] = [],
+        equipmentOps: EquipmentOperationDTO[] = [],
+        allUnits: UnitDTO[] = [],
+        allEquipments: EquipmentDTO[] = []
+    ): boolean => {
+        // Check direct client operations with REVIEW status
+        const hasClientOps = clientOps.some(
+            (op) =>
+                op.operation_status === "REV" &&
+                (op.original_client === client.id || op.id === client.id)
+        );
+
+        // Find client's units and check for unit operations
+        const clientUnits = allUnits.filter((unit) => unit.client === client.id);
+        const hasUnitOps = unitOps.some(
+            (op) =>
+                op.operation_status === "REV" &&
+                clientUnits.some((unit) => op.original_unit === unit.id || op.id === unit.id)
+        );
+
+        // Find client's equipment and check for equipment operations
+        const clientEquipments = allEquipments.filter((eq) =>
+            clientUnits.some((unit) => eq.unit === unit.id)
+        );
+        const hasEquipmentOps = equipmentOps.some(
+            (op) =>
+                op.operation_status === "REV" &&
+                clientEquipments.some((eq) => op.original_equipment === eq.id || op.id === eq.id)
+        );
+
+        return hasClientOps || hasUnitOps || hasEquipmentOps;
+    };
+
+    // Check if there are any ongoing operations across all clients
+    const hasAnyOngoingOperations = useMemo(() => {
+        if (
+            !clients ||
+            !clientsOperations ||
+            !unitsOperations ||
+            !equipmentsOperations ||
+            !units ||
+            !equipments
+        ) {
+            return false;
+        }
+
+        return clients.some((client) =>
+            hasOngoingOperations(
+                client,
+                clientsOperations,
+                unitsOperations,
+                equipmentsOperations,
+                units,
+                equipments
+            )
+        );
+    }, [clients, clientsOperations, unitsOperations, equipmentsOperations, units, equipments]);
+
     const handleApplyFilters = () => {
         if (!clients) {
             toast.error("Dados dos clientes ainda não foram carregados.");
@@ -137,6 +233,36 @@ function SearchClientPage() {
             }
         }
 
+        // Filter by operation status
+        if (selectedOperationStatus.id !== 0) {
+            if (selectedOperationStatus.id === 1) {
+                // Show only clients with ongoing operations
+                filtered = filtered.filter((client) =>
+                    hasOngoingOperations(
+                        client,
+                        clientsOperations,
+                        unitsOperations,
+                        equipmentsOperations,
+                        units,
+                        equipments
+                    )
+                );
+            } else if (selectedOperationStatus.id === 2) {
+                // Show only clients without ongoing operations
+                filtered = filtered.filter(
+                    (client) =>
+                        !hasOngoingOperations(
+                            client,
+                            clientsOperations,
+                            unitsOperations,
+                            equipmentsOperations,
+                            units,
+                            equipments
+                        )
+                );
+            }
+        }
+
         // Remove any potential duplicates based on ID
         const uniqueFiltered = filtered.filter(
             (client, index, self) => index === self.findIndex((c) => c.id === client.id)
@@ -157,6 +283,7 @@ function SearchClientPage() {
         setSelectedCity(null);
         setSelectedUserRole({ id: 0, value: "Todos" });
         setSelectedContractType({ id: 0, value: "Todos" });
+        setSelectedOperationStatus({ id: 0, value: "Todos" });
         if (clients) {
             // Remove any potential duplicates when clearing filters
             const uniqueClients = clients.filter(
@@ -243,6 +370,37 @@ function SearchClientPage() {
                         label="Tipo de Contrato"
                         dataTestId="filter-contract-type"
                     />
+
+                    {/* Status de Operações Filter */}
+                    <div className="relative">
+                        <div className="flex items-start gap-2">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <label className="block">Status de Operações</label>
+                                    {hasAnyOngoingOperations && (
+                                        <div className="group relative">
+                                            <Warning
+                                                size={16}
+                                                className="text-amber-500 cursor-help"
+                                                weight="fill"
+                                            />
+                                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                                Existem operações pendentes de revisão no sistema
+                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <Select
+                                    options={operationStatusOptions}
+                                    selectedData={selectedOperationStatus}
+                                    setSelect={setSelectedOperationStatus}
+                                    label=""
+                                    dataTestId="filter-operation-status"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Action Buttons */}

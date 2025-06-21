@@ -1,10 +1,5 @@
 import { OperationStatus, OperationType } from "@/enums";
-import {
-    apiSlice,
-    ListQueryParams,
-    Operation,
-    PaginatedResponse,
-} from "../services/apiSlice";
+import { apiSlice, ListQueryParams, Operation, PaginatedResponse } from "../services/apiSlice";
 import { UserDTO } from "./authApiSlice";
 
 export type ClientDTO = {
@@ -28,13 +23,7 @@ export type ClientOperationDTO = ClientDTO &
 type PutClientOperationDTO = Partial<
     Omit<
         ClientOperationDTO,
-        | "id"
-        | "users"
-        | "status"
-        | "operation_type"
-        | "cnpj"
-        | "note"
-        | "original_client"
+        "id" | "users" | "status" | "operation_type" | "cnpj" | "note" | "original_client"
     >
 >;
 
@@ -68,10 +57,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 params: { cnpj, page },
             }),
         }),
-        listClients: builder.query<
-            PaginatedResponse<ClientDTO>,
-            ListQueryParams
-        >({
+        listClients: builder.query<PaginatedResponse<ClientDTO>, ListQueryParams>({
             query: ({ page = 1 }) => ({
                 url: "clients/",
                 method: "GET",
@@ -148,12 +134,8 @@ const clientApiSlice = apiSlice.injectEndpoints({
 
                     if (response.error) return { error: response.error };
 
-                    const data =
-                        response.data as PaginatedResponse<ClientOperationDTO>;
-                    allClientsOperations = [
-                        ...allClientsOperations,
-                        ...data.results,
-                    ];
+                    const data = response.data as PaginatedResponse<ClientOperationDTO>;
+                    allClientsOperations = [...allClientsOperations, ...data.results];
                     hasNextPage = data.next !== null;
                     currentPage++;
                 }
@@ -166,11 +148,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                | "id"
-                | "users"
-                | "status"
-                | "operation_type"
-                | "operation_status"
+                "id" | "users" | "status" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -190,11 +168,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                | "id"
-                | "users"
-                | "status"
-                | "operation_type"
-                | "operation_status"
+                "id" | "users" | "status" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -210,10 +184,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 { type: "Client", id: "LIST" },
             ],
         }),
-        createDeleteClientOperation: builder.mutation<
-            ClientOperationDTO,
-            Number
-        >({
+        createDeleteClientOperation: builder.mutation<ClientOperationDTO, Number>({
             query: (clientID) => ({
                 url: "clients/operations/",
                 method: "POST",
@@ -229,7 +200,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
         }),
         deleteClientOperation: builder.mutation<void, number>({
             query: (clientId) => ({
-                url: `clients/operations/${clientId}`,
+                url: `clients/operations/${clientId}/`,
                 method: "DELETE",
             }),
             invalidatesTags: [{ type: "ClientOperation", id: "LIST" }],
@@ -238,11 +209,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                | "id"
-                | "users"
-                | "status"
-                | "operation_type"
-                | "operation_status"
+                "id" | "users" | "status" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
