@@ -526,7 +526,7 @@ function SearchClientPage() {
 
                 {filteredResults.length === 0 && hasSearched ? (
                     <div className="text-center py-8">
-                        <Typography element="p" size="lg" className="text-gray-primary">
+                        <Typography element="p" size="lg" className="text-gray-secondary">
                             Nenhum cliente encontrado com os filtros aplicados
                         </Typography>
                     </div>
@@ -572,7 +572,7 @@ function SearchClientPage() {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span className="text-gray-primary">
+                                            <span className="text-gray-secondary">
                                                 Nenhum usuário
                                             </span>
                                         ),
@@ -595,7 +595,7 @@ function SearchClientPage() {
                         />
                         {/* Results Summary */}
                         <div className="mt-4 text-center">
-                            <Typography element="p" size="sm" className="text-gray-primary">
+                            <Typography element="p" size="sm" className="text-gray-secondary">
                                 {filteredResults.length} cliente(s) encontrado(s)
                             </Typography>
                         </div>

@@ -168,10 +168,10 @@ function ProposalListPage() {
 
                 {proposals.length === 0 ? (
                     <div className="text-center py-12">
-                        <Typography element="p" size="lg" className="text-gray-500 mb-4">
+                        <Typography element="p" size="lg" className="text-gray-secondary mb-4">
                             Nenhuma proposta encontrada para este cliente
                         </Typography>
-                        <Typography element="p" size="sm" className="text-gray-400">
+                        <Typography element="p" size="sm" className="text-gray-secondary">
                             CNPJ: {cnpjMask(cnpj)}
                         </Typography>
                     </div>
@@ -185,7 +185,7 @@ function ProposalListPage() {
 
                         {/* Results Summary */}
                         <div className="mt-4 text-center">
-                            <Typography element="p" size="sm" className="text-gray-500">
+                            <Typography element="p" size="sm" className="text-gray-secondary">
                                 {proposals.length} proposta(s) encontrada(s)
                             </Typography>
                         </div>
