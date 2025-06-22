@@ -1,53 +1,37 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { toast } from "react-toastify";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
-import { Warning, FileText } from "@phosphor-icons/react";
+import { FileText } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import {
-    ClientDTO,
-    ClientOperationDTO,
-    useListAllClientsQuery,
-    useListAllClientsOperationsQuery,
-} from "@/redux/features/clientApiSlice";
-import { ProposalDTO, useListAllProposalsQuery } from "@/redux/features/proposalApiSlice";
-import {
-    UnitDTO,
-    UnitOperationDTO,
-    useListAllUnitsQuery,
-    useListAllUnitsOperationsQuery,
-} from "@/redux/features/unitApiSlice";
-import {
-    EquipmentDTO,
-    EquipmentOperationDTO,
-    useListAllEquipmentsQuery,
-    useListAllEquipmentsOperationsQuery,
-} from "@/redux/features/equipmentApiSlice";
-import { ComboboxDataProps } from "@/components/forms/ComboBox";
+import { ClientDTO, useListClientsQuery } from "@/redux/features/clientApiSlice";
 import { SelectData } from "@/components/forms/Select";
-import { ContractType, ProposalStatus } from "@/enums";
+import { ITEMS_PER_PAGE } from "@/constants/pagination";
 
 import { Typography } from "@/components/foundation";
-import { ComboBox, Select } from "@/components/forms";
-import { Button, ErrorDisplay, Spinner, Table } from "@/components/common";
+import { Input, Select } from "@/components/forms";
+import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/common";
 
 function SearchClientPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { data: clients, isLoading, error } = useListAllClientsQuery();
-    const { data: clientsOperations } = useListAllClientsOperationsQuery();
-    const { data: unitsOperations } = useListAllUnitsOperationsQuery();
-    const { data: equipmentsOperations } = useListAllEquipmentsOperationsQuery();
-    const { data: units } = useListAllUnitsQuery();
-    const { data: equipments } = useListAllEquipmentsQuery();
-    const { data: proposals, isLoading: proposalsLoading } = useListAllProposalsQuery();
 
-    // Filter states
-    const [selectedName, setSelectedName] = useState<ComboboxDataProps | null>(null);
-    const [selectedCnpj, setSelectedCnpj] = useState<ComboboxDataProps | null>(null);
-    const [selectedCity, setSelectedCity] = useState<ComboboxDataProps | null>(null);
+    // Pagination and filter states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [appliedFilters, setAppliedFilters] = useState({
+        name: "",
+        cnpj: "",
+        city: "",
+        user_role: "",
+        contract_type: "",
+        operation_status: "",
+    });
+
+    // Form filter states (for UI only, before applying)
+    const [selectedName, setSelectedName] = useState("");
+    const [selectedCnpj, setSelectedCnpj] = useState("");
+    const [selectedCity, setSelectedCity] = useState("");
     const [selectedUserRole, setSelectedUserRole] = useState<SelectData>({ id: 0, value: "Todos" });
     const [selectedContractType, setSelectedContractType] = useState<SelectData>({
         id: 0,
@@ -58,84 +42,77 @@ function SearchClientPage() {
         value: "Todos",
     });
 
-    // Results state
-    const [filteredResults, setFilteredResults] = useState<ClientDTO[]>([]);
-    const [hasSearched, setHasSearched] = useState(false);
+    // Build API query parameters
+    const queryParams = useMemo(() => {
+        const params: any = { page: currentPage };
 
+        if (appliedFilters.name) params.name = appliedFilters.name;
+        if (appliedFilters.cnpj) params.cnpj = appliedFilters.cnpj;
+        if (appliedFilters.city) params.city = appliedFilters.city;
+        if (appliedFilters.user_role) params.user_role = appliedFilters.user_role;
+        if (appliedFilters.contract_type) params.contract_type = appliedFilters.contract_type;
+        if (appliedFilters.operation_status)
+            params.operation_status = appliedFilters.operation_status;
+
+        return params;
+    }, [currentPage, appliedFilters]);
+
+    // API query with server-side filtering
+    const { data: clientsData, isLoading, error } = useListClientsQuery(queryParams);
+
+    // Extract clients from paginated response
+    const clients = clientsData?.results || [];
+    const totalClientsCount = clientsData?.count || 0;
+
+    // Handle URL parameters restoration on mount
     useEffect(() => {
-        if (clients) {
-            const params = new URLSearchParams(searchParams);
-            const nameId = params.get("name");
-            const cnpjId = params.get("cnpj");
-            const city = params.get("city");
-            const roleId = params.get("role");
-            const contractTypeId = params.get("contract");
-            const operationStatusId = params.get("status");
+        const params = new URLSearchParams(searchParams);
+        const name = params.get("name") || "";
+        const cnpj = params.get("cnpj") || "";
+        const city = params.get("city") || "";
+        const roleId = params.get("role");
+        const contractTypeId = params.get("contract");
+        const operationStatusId = params.get("status");
+        const pageParam = params.get("page");
 
-            if (nameId) {
-                const name = nameOptions.find((n) => n.id === Number(nameId));
-                if (name) setSelectedName(name);
-            }
-            if (cnpjId) {
-                const cnpj = cnpjOptions.find((c) => c.id === Number(cnpjId));
-                if (cnpj) setSelectedCnpj(cnpj);
-            }
-            if (city) {
-                const cityName = cityOptions.find((c) => c.name === city);
-                if (cityName) setSelectedCity(cityName);
-            }
-            if (roleId) {
-                const role = userRoleOptions.find((r) => r.id === Number(roleId));
-                if (role) setSelectedUserRole(role);
-            }
-            if (contractTypeId) {
-                const contract = contractTypeOptions.find((c) => c.id === Number(contractTypeId));
-                if (contract) setSelectedContractType(contract);
-            }
-            if (operationStatusId) {
-                const status = operationStatusOptions.find(
-                    (s) => s.id === Number(operationStatusId)
-                );
-                if (status) setSelectedOperationStatus(status);
-            }
-
-            if (params.toString()) {
-                handleApplyFilters();
-            } else if (!hasSearched) {
-                const uniqueClients = clients.filter(
-                    (client, index, self) => index === self.findIndex((c) => c.id === client.id)
-                );
-                setFilteredResults(uniqueClients);
-                setHasSearched(true);
+        // Restore page from URL if available
+        if (pageParam) {
+            const page = parseInt(pageParam, 10);
+            if (page > 0 && page !== currentPage) {
+                setCurrentPage(page);
             }
         }
-    }, [clients, hasSearched]);
 
-    // Transform data for ComboBox components
-    const nameOptions = useMemo(() => {
-        if (!clients) return [];
-        return clients.map((client) => ({
-            id: client.id,
-            name: client.name,
-        }));
-    }, [clients]);
+        // Restore filter states from URL
+        setSelectedName(name);
+        setSelectedCnpj(cnpj);
+        setSelectedCity(city);
 
-    const cnpjOptions = useMemo(() => {
-        if (!clients) return [];
-        return clients.map((client) => ({
-            id: client.id,
-            name: client.cnpj,
-        }));
-    }, [clients]);
+        if (roleId) {
+            const role = userRoleOptions.find((r) => r.id === Number(roleId));
+            if (role) setSelectedUserRole(role);
+        }
+        if (contractTypeId) {
+            const contract = contractTypeOptions.find((c) => c.id === Number(contractTypeId));
+            if (contract) setSelectedContractType(contract);
+        }
+        if (operationStatusId) {
+            const status = operationStatusOptions.find((s) => s.id === Number(operationStatusId));
+            if (status) setSelectedOperationStatus(status);
+        }
 
-    const cityOptions = useMemo(() => {
-        if (!clients) return [];
-        const uniqueCities = Array.from(new Set(clients.map((client) => client.city)));
-        return uniqueCities.map((city, index) => ({
-            id: index + 1,
-            name: city,
-        }));
-    }, [clients]);
+        // Apply filters from URL
+        const filters = {
+            name,
+            cnpj,
+            city,
+            user_role: getUserRoleFromOptionId(Number(roleId) || 0),
+            contract_type: getContractTypeFromOptionId(Number(contractTypeId) || 0),
+            operation_status: getOperationStatusFromOptionId(Number(operationStatusId) || 0),
+        };
+
+        setAppliedFilters(filters);
+    }, [searchParams]);
 
     const userRoleOptions: SelectData[] = [
         { id: 0, value: "Todos" },
@@ -154,242 +131,121 @@ function SearchClientPage() {
         { id: 3, value: "Semanal" },
     ];
 
-    const getContractTypeFromOptionId = (optionId: number): ContractType | null => {
-        switch (optionId) {
-            case 1:
-                return ContractType.ANNUAL;
-            case 2:
-                return ContractType.MONTHLY;
-            case 3:
-                return ContractType.WEEKLY;
-            default:
-                return null;
-        }
-    };
-
-    const findMostRecentAcceptedProposal = (
-        clientCnpj: string,
-        proposals: ProposalDTO[]
-    ): ProposalDTO | null => {
-        const acceptedProposals = proposals.filter(
-            (proposal) =>
-                proposal.cnpj === clientCnpj && proposal.status === ProposalStatus.ACCEPTED
-        );
-
-        if (acceptedProposals.length === 0) {
-            return null;
-        }
-
-        // Sort by date (most recent first) and return the first one
-        const sorted = acceptedProposals.sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-
-        return sorted[0];
-    };
-
-    // Operation status options
     const operationStatusOptions: SelectData[] = [
         { id: 0, value: "Todos" },
         { id: 1, value: "Com Operações Pendentes" },
         { id: 2, value: "Sem Operações Pendentes" },
     ];
 
-    // Helper function to detect ongoing operations
-    const hasOngoingOperations = (
-        client: ClientDTO,
-        clientOps: ClientOperationDTO[] = [],
-        unitOps: UnitOperationDTO[] = [],
-        equipmentOps: EquipmentOperationDTO[] = [],
-        allUnits: UnitDTO[] = [],
-        allEquipments: EquipmentDTO[] = []
-    ): boolean => {
-        // Check direct client operations with REVIEW status
-        const hasClientOps = clientOps.some(
-            (op) =>
-                op.operation_status === "REV" &&
-                (op.original_client === client.id || op.id === client.id)
-        );
-
-        // Find client's units and check for unit operations
-        const clientUnits = allUnits.filter((unit) => unit.client === client.id);
-        const hasUnitOps = unitOps.some(
-            (op) =>
-                op.operation_status === "REV" &&
-                clientUnits.some((unit) => op.original_unit === unit.id || op.id === unit.id)
-        );
-
-        // Find client's equipment and check for equipment operations
-        const clientEquipments = allEquipments.filter((eq) =>
-            clientUnits.some((unit) => eq.unit === unit.id)
-        );
-        const hasEquipmentOps = equipmentOps.some(
-            (op) =>
-                op.operation_status === "REV" &&
-                clientEquipments.some((eq) => op.original_equipment === eq.id || op.id === eq.id)
-        );
-
-        return hasClientOps || hasUnitOps || hasEquipmentOps;
+    const getUserRoleFromOptionId = (optionId: number): string => {
+        const roleMap: { [key: number]: string } = {
+            1: "FMI",
+            2: "FME",
+            3: "GP",
+            4: "GGC",
+            5: "GU",
+            6: "C",
+        };
+        return roleMap[optionId] || "";
     };
 
-    // Check if there are any ongoing operations across all clients
-    const hasAnyOngoingOperations = useMemo(() => {
-        if (
-            !clients ||
-            !clientsOperations ||
-            !unitsOperations ||
-            !equipmentsOperations ||
-            !units ||
-            !equipments
-        ) {
-            return false;
-        }
+    const getContractTypeFromOptionId = (optionId: number): string => {
+        const contractMap: { [key: number]: string } = {
+            1: "A",
+            2: "M",
+            3: "W",
+        };
+        return contractMap[optionId] || "";
+    };
 
-        return clients.some((client) =>
-            hasOngoingOperations(
-                client,
-                clientsOperations,
-                unitsOperations,
-                equipmentsOperations,
-                units,
-                equipments
-            )
-        );
-    }, [clients, clientsOperations, unitsOperations, equipmentsOperations, units, equipments]);
+    const getOperationStatusFromOptionId = (optionId: number): string => {
+        const statusMap: { [key: number]: string } = {
+            1: "pending",
+            2: "none",
+        };
+        return statusMap[optionId] || "";
+    };
 
-    const handleApplyFilters = () => {
-        if (!clients) {
-            toast.error("Dados dos clientes ainda não foram carregados.");
-            return;
-        }
+    // Handle page change
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
 
-        let filtered = [...clients];
-
-        // Filter by name
-        if (selectedName) {
-            filtered = filtered.filter((client) => client.id === selectedName.id);
-        }
-
-        // Filter by CNPJ
-        if (selectedCnpj) {
-            filtered = filtered.filter((client) => client.id === selectedCnpj.id);
-        }
-
-        // Filter by city
-        if (selectedCity) {
-            filtered = filtered.filter((client) => client.city === selectedCity.name);
-        }
-
-        // Filter by user role
-        if (selectedUserRole.id !== 0) {
-            const roleMap: { [key: string]: string } = {
-                "Físico Médico Interno": "FMI",
-                "Físico Médico Externo": "FME",
-                "Gerente Prophy": "GP",
-                "Gerente Geral de Cliente": "GGC",
-                "Gerente de Unidade": "GU",
-                Comercial: "C",
-            };
-            const targetRole = roleMap[selectedUserRole.value];
-            if (targetRole) {
-                filtered = filtered.filter((client) =>
-                    client.users.some((user) => user.role === targetRole)
-                );
-            }
-        }
-
-        // Filter by contract type
-        if (selectedContractType.id !== 0) {
-            const targetContractType = getContractTypeFromOptionId(selectedContractType.id);
-
-            if (targetContractType && proposals) {
-                filtered = filtered.filter((client) => {
-                    const mostRecentProposal = findMostRecentAcceptedProposal(
-                        client.cnpj,
-                        proposals
-                    );
-
-                    return (
-                        mostRecentProposal &&
-                        mostRecentProposal.contract_type === targetContractType
-                    );
-                });
-            }
-        }
-
-        // Filter by operation status
-        if (selectedOperationStatus.id !== 0) {
-            if (selectedOperationStatus.id === 1) {
-                // Show only clients with ongoing operations
-                filtered = filtered.filter((client) =>
-                    hasOngoingOperations(
-                        client,
-                        clientsOperations,
-                        unitsOperations,
-                        equipmentsOperations,
-                        units,
-                        equipments
-                    )
-                );
-            } else if (selectedOperationStatus.id === 2) {
-                // Show only clients without ongoing operations
-                filtered = filtered.filter(
-                    (client) =>
-                        !hasOngoingOperations(
-                            client,
-                            clientsOperations,
-                            unitsOperations,
-                            equipmentsOperations,
-                            units,
-                            equipments
-                        )
-                );
-            }
-        }
-
-        // Remove any potential duplicates based on ID
-        const uniqueFiltered = filtered.filter(
-            (client, index, self) => index === self.findIndex((c) => c.id === client.id)
-        );
-
-        setFilteredResults(uniqueFiltered);
-        setHasSearched(true);
-
-        const params = new URLSearchParams();
-        if (selectedName) params.set("name", selectedName.id.toString());
-        if (selectedCnpj) params.set("cnpj", selectedCnpj.id.toString());
-        if (selectedCity) params.set("city", selectedCity.name);
+        // Update URL with new page
+        const params = new URLSearchParams(searchParams);
+        if (selectedName) params.set("name", selectedName);
+        if (selectedCnpj) params.set("cnpj", selectedCnpj);
+        if (selectedCity) params.set("city", selectedCity);
         if (selectedUserRole.id !== 0) params.set("role", selectedUserRole.id.toString());
         if (selectedContractType.id !== 0)
             params.set("contract", selectedContractType.id.toString());
         if (selectedOperationStatus.id !== 0)
             params.set("status", selectedOperationStatus.id.toString());
+        params.set("page", page.toString());
+
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleApplyFilters = () => {
+        // Reset to page 1 when applying new filters
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+
+        // Apply the filters to trigger server-side filtering
+        const filters = {
+            name: selectedName,
+            cnpj: selectedCnpj,
+            city: selectedCity,
+            user_role: getUserRoleFromOptionId(selectedUserRole.id),
+            contract_type: getContractTypeFromOptionId(selectedContractType.id),
+            operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
+        };
+
+        setAppliedFilters(filters);
+
+        const params = new URLSearchParams();
+        if (selectedName) params.set("name", selectedName);
+        if (selectedCnpj) params.set("cnpj", selectedCnpj);
+        if (selectedCity) params.set("city", selectedCity);
+        if (selectedUserRole.id !== 0) params.set("role", selectedUserRole.id.toString());
+        if (selectedContractType.id !== 0)
+            params.set("contract", selectedContractType.id.toString());
+        if (selectedOperationStatus.id !== 0)
+            params.set("status", selectedOperationStatus.id.toString());
+        // Always reset to page 1 when applying filters
+        params.set("page", "1");
         router.push(`?${params.toString()}`);
     };
 
     const handleClearFilters = () => {
-        setSelectedName(null);
-        setSelectedCnpj(null);
-        setSelectedCity(null);
+        setSelectedName("");
+        setSelectedCnpj("");
+        setSelectedCity("");
         setSelectedUserRole({ id: 0, value: "Todos" });
         setSelectedContractType({ id: 0, value: "Todos" });
         setSelectedOperationStatus({ id: 0, value: "Todos" });
-        if (clients) {
-            // Remove any potential duplicates when clearing filters
-            const uniqueClients = clients.filter(
-                (client, index, self) => index === self.findIndex((c) => c.id === client.id)
-            );
-            setFilteredResults(uniqueClients);
-        }
-        setHasSearched(true);
-        router.push("?");
+
+        // Reset to page 1 when clearing filters
+        setCurrentPage(1);
+
+        // Clear applied filters
+        setAppliedFilters({
+            name: "",
+            cnpj: "",
+            city: "",
+            user_role: "",
+            contract_type: "",
+            operation_status: "",
+        });
+
+        router.push("?page=1");
     };
 
     const handleViewProposals = (cnpj: string) => {
         router.push(`/dashboard/proposals?cnpj=${cnpj}`);
     };
 
-    if (isLoading || proposalsLoading) {
+    if (isLoading) {
         return <Spinner fullscreen />;
     }
 
@@ -411,40 +267,30 @@ function SearchClientPage() {
                 </Typography>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    {/* Nome Filter */}
-                    <ComboBox
-                        data={nameOptions}
-                        selectedValue={selectedName}
-                        onChange={setSelectedName}
+                    <Input
+                        value={selectedName}
+                        onChange={(e) => setSelectedName(e.target.value)}
                         placeholder="Digite o nome do cliente"
-                        data-testid="filter-name"
                     >
                         Nome
-                    </ComboBox>
+                    </Input>
 
-                    {/* CNPJ Filter */}
-                    <ComboBox
-                        data={cnpjOptions}
-                        selectedValue={selectedCnpj}
-                        onChange={setSelectedCnpj}
+                    <Input
+                        value={selectedCnpj}
+                        onChange={(e) => setSelectedCnpj(e.target.value)}
                         placeholder="Digite o CNPJ"
-                        data-testid="filter-cnpj"
                     >
                         CNPJ
-                    </ComboBox>
+                    </Input>
 
-                    {/* Cidade Filter */}
-                    <ComboBox
-                        data={cityOptions}
-                        selectedValue={selectedCity}
-                        onChange={setSelectedCity}
+                    <Input
+                        value={selectedCity}
+                        onChange={(e) => setSelectedCity(e.target.value)}
                         placeholder="Digite a cidade"
-                        data-testid="filter-city"
                     >
                         Cidade
-                    </ComboBox>
+                    </Input>
 
-                    {/* Perfil de Usuário Filter */}
                     <Select
                         options={userRoleOptions}
                         selectedData={selectedUserRole}
@@ -453,7 +299,6 @@ function SearchClientPage() {
                         dataTestId="filter-user-role"
                     />
 
-                    {/* Tipo de Contrato Filter */}
                     <Select
                         options={contractTypeOptions}
                         selectedData={selectedContractType}
@@ -462,36 +307,13 @@ function SearchClientPage() {
                         dataTestId="filter-contract-type"
                     />
 
-                    {/* Status de Operações Filter */}
-                    <div className="relative">
-                        <div className="flex items-start gap-2">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <label className="block">Status de Operações</label>
-                                    {hasAnyOngoingOperations && (
-                                        <div className="group relative">
-                                            <Warning
-                                                size={16}
-                                                className="text-amber-500 cursor-help"
-                                                weight="fill"
-                                            />
-                                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                                                Existem operações pendentes de revisão no sistema
-                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                <Select
-                                    options={operationStatusOptions}
-                                    selectedData={selectedOperationStatus}
-                                    setSelect={setSelectedOperationStatus}
-                                    label=""
-                                    dataTestId="filter-operation-status"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                    <Select
+                        options={operationStatusOptions}
+                        selectedData={selectedOperationStatus}
+                        setSelect={setSelectedOperationStatus}
+                        label="Status de Operações"
+                        dataTestId="filter-operation-status"
+                    />
                 </div>
 
                 {/* Action Buttons */}
@@ -499,14 +321,16 @@ function SearchClientPage() {
                     <Button
                         onClick={handleApplyFilters}
                         className="flex-1 sm:flex-initial"
+                        disabled={isLoading}
                         data-testid="btn-apply-filters"
                     >
-                        Aplicar Filtros
+                        {isLoading ? "Carregando..." : "Aplicar Filtros"}
                     </Button>
                     <Button
                         variant="secondary"
                         onClick={handleClearFilters}
                         className="flex-1 sm:flex-initial"
+                        disabled={isLoading}
                         data-testid="btn-clear-filters"
                     >
                         Limpar Filtros
@@ -520,7 +344,7 @@ function SearchClientPage() {
                     Resultados da Busca
                 </Typography>
 
-                {filteredResults.length === 0 && hasSearched ? (
+                {clients.length === 0 && !isLoading ? (
                     <div className="text-center py-8">
                         <Typography element="p" size="lg" className="text-gray-secondary">
                             Nenhum cliente encontrado com os filtros aplicados
@@ -528,73 +352,108 @@ function SearchClientPage() {
                     </div>
                 ) : (
                     <div>
-                        <Table
-                            data={filteredResults}
-                            columns={[
-                                {
-                                    header: "Nome",
-                                    cell: (client: ClientDTO) => client.name,
-                                },
-                                {
-                                    header: "CNPJ",
-                                    cell: (client: ClientDTO) => cnpjMask(client.cnpj),
-                                },
-                                {
-                                    header: "Endereço",
-                                    cell: (client: ClientDTO) =>
-                                        `${client.address} - ${client.state}, ${client.city}`,
-                                },
-                                {
-                                    header: "Usuários",
-                                    cell: (client: ClientDTO) =>
-                                        client.users.length > 0 ? (
-                                            <div className="space-y-1">
-                                                {client.users.map((user, userIndex) => (
-                                                    <div key={userIndex} className="text-xs">
-                                                        <span className="font-medium">
-                                                            {user.role === "FMI" &&
-                                                                "Físico Médico Interno"}
-                                                            {user.role === "FME" &&
-                                                                "Físico Médico Externo"}
-                                                            {user.role === "GP" && "Gerente Prophy"}
-                                                            {user.role === "GGC" &&
-                                                                "Gerente Geral de Cliente"}
-                                                            {user.role === "GU" &&
-                                                                "Gerente de Unidade"}
-                                                            {user.role === "C" && "Comercial"}
-                                                        </span>
-                                                        : {user.name}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <span className="text-gray-secondary">
-                                                Nenhum usuário
-                                            </span>
+                        {isLoading && (
+                            <div className="flex justify-center py-8">
+                                <Spinner />
+                            </div>
+                        )}
+
+                        {!isLoading && (
+                            <Table
+                                data={clients}
+                                columns={[
+                                    {
+                                        header: "Nome",
+                                        cell: (client: ClientDTO) => client.name,
+                                    },
+                                    {
+                                        header: "CNPJ",
+                                        cell: (client: ClientDTO) => cnpjMask(client.cnpj),
+                                    },
+                                    {
+                                        header: "Endereço",
+                                        cell: (client: ClientDTO) =>
+                                            `${client.address} - ${client.state}, ${client.city}`,
+                                    },
+                                    {
+                                        header: "Usuários",
+                                        cell: (client: ClientDTO) =>
+                                            client.users.length > 0 ? (
+                                                <div className="space-y-1">
+                                                    {client.users.map((user, userIndex) => (
+                                                        <div key={userIndex} className="text-xs">
+                                                            <span className="font-medium">
+                                                                {user.role === "FMI" &&
+                                                                    "Físico Médico Interno"}
+                                                                {user.role === "FME" &&
+                                                                    "Físico Médico Externo"}
+                                                                {user.role === "GP" &&
+                                                                    "Gerente Prophy"}
+                                                                {user.role === "GGC" &&
+                                                                    "Gerente Geral de Cliente"}
+                                                                {user.role === "GU" &&
+                                                                    "Gerente de Unidade"}
+                                                                {user.role === "C" && "Comercial"}
+                                                            </span>
+                                                            : {user.name}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-secondary">
+                                                    Nenhum usuário
+                                                </span>
+                                            ),
+                                    },
+                                    {
+                                        header: "Ações",
+                                        cell: (client: ClientDTO) => (
+                                            <Button
+                                                variant="primary"
+                                                onClick={() => handleViewProposals(client.cnpj)}
+                                                className="flex items-center gap-2 px-2 py-1 text-xs"
+                                            >
+                                                <FileText size={16} />
+                                                Propostas
+                                            </Button>
                                         ),
-                                },
-                                {
-                                    header: "Ações",
-                                    cell: (client: ClientDTO) => (
-                                        <Button
-                                            variant="primary"
-                                            onClick={() => handleViewProposals(client.cnpj)}
-                                            className="flex items-center gap-2 px-2 py-1 text-xs"
-                                        >
-                                            <FileText size={16} />
-                                            Propostas
-                                        </Button>
-                                    ),
-                                },
-                            ]}
-                            keyExtractor={(client: ClientDTO) => client.id}
-                        />
+                                    },
+                                ]}
+                                keyExtractor={(client: ClientDTO) => client.id}
+                            />
+                        )}
+
+                        {/* Pagination */}
+                        {!isLoading && totalClientsCount > ITEMS_PER_PAGE && (
+                            <div className="mt-6">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalCount={totalClientsCount}
+                                    itemsPerPage={ITEMS_PER_PAGE}
+                                    onPageChange={handlePageChange}
+                                    isLoading={isLoading}
+                                />
+                            </div>
+                        )}
+
                         {/* Results Summary */}
-                        <div className="mt-4 text-center">
-                            <Typography element="p" size="sm" className="text-gray-secondary">
-                                {filteredResults.length} cliente(s) encontrado(s)
-                            </Typography>
-                        </div>
+                        {!isLoading && (
+                            <div className="mt-4 text-center">
+                                <Typography element="p" size="sm" className="text-gray-secondary">
+                                    {totalClientsCount > 0 && (
+                                        <>
+                                            Mostrando {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
+                                            {Math.min(
+                                                currentPage * ITEMS_PER_PAGE,
+                                                totalClientsCount
+                                            )}{" "}
+                                            de {totalClientsCount} cliente(s)
+                                        </>
+                                    )}
+                                    {totalClientsCount === 0 && "Nenhum cliente encontrado"}
+                                </Typography>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { ArrowLeft } from "@phosphor-icons/react";
@@ -8,9 +8,10 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import { useListProposalsQuery, ProposalDTO } from "@/redux/features/proposalApiSlice";
 
 import { ContractType, ProposalStatus } from "@/enums";
+import { ITEMS_PER_PAGE } from "@/constants/pagination";
 
 import { Typography } from "@/components/foundation";
-import { Button, ErrorDisplay, Spinner, Table } from "@/components/common";
+import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/common";
 
 const getStatusDisplay = (status: string) => {
     switch (status) {
@@ -66,6 +67,32 @@ function ProposalListPage() {
     const searchParams = useSearchParams();
     const cnpj = searchParams.get("cnpj");
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = ITEMS_PER_PAGE;
+
+    // Handle URL parameters restoration on mount
+    useEffect(() => {
+        const pageParam = searchParams.get("page");
+        if (pageParam) {
+            const page = parseInt(pageParam, 10);
+            if (page > 0 && page !== currentPage) {
+                setCurrentPage(page);
+            }
+        }
+    }, [searchParams]);
+
+    // Reset to page 1 when CNPJ changes
+    useEffect(() => {
+        if (cnpj && currentPage !== 1) {
+            setCurrentPage(1);
+            // Update URL to reflect page reset
+            const params = new URLSearchParams(searchParams);
+            params.set("page", "1");
+            router.replace(`?${params.toString()}`);
+        }
+    }, [cnpj]);
+
     // Validate CNPJ parameter
     useEffect(() => {
         if (!cnpj) {
@@ -78,9 +105,20 @@ function ProposalListPage() {
         data: proposalsResponse,
         isLoading,
         error,
-    } = useListProposalsQuery({ cnpj: cnpj || "" }, { skip: !cnpj });
+    } = useListProposalsQuery({ cnpj: cnpj || "", page: currentPage }, { skip: !cnpj });
 
     const proposals = proposalsResponse?.results || [];
+    const totalCount = proposalsResponse?.count || 0;
+
+    // Handle page change
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+
+        // Update URL with new page while preserving CNPJ
+        const params = new URLSearchParams(searchParams);
+        params.set("page", page.toString());
+        router.push(`?${params.toString()}`);
+    };
 
     const handleBackToSearch = () => {
         router.back();
@@ -180,10 +218,30 @@ function ProposalListPage() {
                             keyExtractor={(proposal: ProposalDTO) => proposal.id}
                         />
 
+                        {/* Pagination */}
+                        {totalCount > itemsPerPage && (
+                            <div className="mt-6">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalCount={totalCount}
+                                    itemsPerPage={itemsPerPage}
+                                    onPageChange={handlePageChange}
+                                    isLoading={isLoading}
+                                />
+                            </div>
+                        )}
+
                         {/* Results Summary */}
                         <div className="mt-4 text-center">
                             <Typography element="p" size="sm" className="text-gray-secondary">
-                                {proposals.length} proposta(s) encontrada(s)
+                                {totalCount > 0 && (
+                                    <>
+                                        Mostrando {(currentPage - 1) * itemsPerPage + 1}-
+                                        {Math.min(currentPage * itemsPerPage, totalCount)} de{" "}
+                                        {totalCount} proposta(s) encontrada(s)
+                                    </>
+                                )}
+                                {totalCount === 0 && "Nenhuma proposta encontrada"}
                             </Typography>
                         </div>
                     </div>

@@ -9,6 +9,8 @@ from rest_framework.request import Request
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from django.db.models import Q, Exists, OuterRef, Subquery
+
 from users.models import UserAccount
 from clients_management.models import Proposal, Client, Modality, Accessory
 from clients_management.serializers import (
@@ -259,7 +261,37 @@ class ClientViewSet(viewsets.ViewSet):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 description="Filter clients by CNPJ.",
-            )
+            ),
+            openapi.Parameter(
+                name="name",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter clients by name (case-insensitive contains).",
+            ),
+            openapi.Parameter(
+                name="city",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter clients by city (exact match).",
+            ),
+            openapi.Parameter(
+                name="user_role",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter clients that have users with specific roles. Options: FMI, FME, GP, GGC, GU, C",
+            ),
+            openapi.Parameter(
+                name="contract_type",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter by contract type from most recent accepted proposal. Options: A (Annual), M (Monthly), W (Weekly)",
+            ),
+            openapi.Parameter(
+                name="operation_status",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter by operation status. Options: pending (has ongoing operations), none (no ongoing operations)",
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -295,9 +327,93 @@ class ClientViewSet(viewsets.ViewSet):
                 operation_status=ClientOperation.OperationStatus.ACCEPTED,
             )
 
+        # Apply filters
         cnpj = request.query_params.get("cnpj")
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
+
+        name = request.query_params.get("name")
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+
+        city = request.query_params.get("city")
+        if city is not None:
+            queryset = queryset.filter(city=city)
+
+        user_role = request.query_params.get("user_role")
+        if user_role is not None:
+            # Filter clients that have users with the specified role
+            queryset = queryset.filter(users__role=user_role)
+
+        contract_type = request.query_params.get("contract_type")
+        if contract_type is not None:
+            # Find clients with most recent accepted proposal of specified contract type
+            most_recent_proposals = Proposal.objects.filter(
+                cnpj=OuterRef('cnpj'),
+                status=Proposal.Status.ACCEPTED
+            ).order_by('-date')
+
+            clients_with_contract_type = Proposal.objects.filter(
+                status=Proposal.Status.ACCEPTED,
+                contract_type=contract_type,
+                pk__in=Subquery(most_recent_proposals.values('pk')[:1])
+            ).values_list('cnpj', flat=True)
+
+            queryset = queryset.filter(cnpj__in=clients_with_contract_type)
+
+        operation_status = request.query_params.get("operation_status")
+        if operation_status is not None:
+            if operation_status == "pending":
+                # Show only clients with ongoing operations (REV status)
+                has_client_ops = ClientOperation.objects.filter(
+                    Q(cnpj=OuterRef('cnpj')) | Q(
+                        original_client__cnpj=OuterRef('cnpj')),
+                    operation_status=ClientOperation.OperationStatus.REVIEW
+                )
+
+                has_unit_ops = UnitOperation.objects.filter(
+                    Q(client__cnpj=OuterRef('cnpj')) | Q(
+                        original_unit__client__cnpj=OuterRef('cnpj')),
+                    operation_status=UnitOperation.OperationStatus.REVIEW
+                )
+
+                has_equipment_ops = EquipmentOperation.objects.filter(
+                    Q(unit__client__cnpj=OuterRef('cnpj')) | Q(
+                        original_equipment__unit__client__cnpj=OuterRef('cnpj')),
+                    operation_status=EquipmentOperation.OperationStatus.REVIEW
+                )
+
+                queryset = queryset.filter(
+                    Q(Exists(has_client_ops)) |
+                    Q(Exists(has_unit_ops)) |
+                    Q(Exists(has_equipment_ops))
+                )
+
+            elif operation_status == "none":
+                # Show only clients without ongoing operations
+                has_client_ops = ClientOperation.objects.filter(
+                    Q(cnpj=OuterRef('cnpj')) | Q(
+                        original_client__cnpj=OuterRef('cnpj')),
+                    operation_status=ClientOperation.OperationStatus.REVIEW
+                )
+
+                has_unit_ops = UnitOperation.objects.filter(
+                    Q(client__cnpj=OuterRef('cnpj')) | Q(
+                        original_unit__client__cnpj=OuterRef('cnpj')),
+                    operation_status=UnitOperation.OperationStatus.REVIEW
+                )
+
+                has_equipment_ops = EquipmentOperation.objects.filter(
+                    Q(unit__client__cnpj=OuterRef('cnpj')) | Q(
+                        original_equipment__unit__client__cnpj=OuterRef('cnpj')),
+                    operation_status=EquipmentOperation.OperationStatus.REVIEW
+                )
+
+                queryset = queryset.filter(
+                    ~Q(Exists(has_client_ops)) &
+                    ~Q(Exists(has_unit_ops)) &
+                    ~Q(Exists(has_equipment_ops))
+                )
 
         queryset = queryset.order_by("users")
 

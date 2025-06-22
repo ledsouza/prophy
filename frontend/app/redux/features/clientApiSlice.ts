@@ -57,12 +57,32 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 params: { cnpj, page },
             }),
         }),
-        listClients: builder.query<PaginatedResponse<ClientDTO>, ListQueryParams>({
-            query: ({ page = 1 }) => ({
-                url: "clients/",
-                method: "GET",
-                params: { page },
-            }),
+        listClients: builder.query<
+            PaginatedResponse<ClientDTO>,
+            ListQueryParams & {
+                cnpj?: string;
+                name?: string;
+                city?: string;
+                user_role?: string;
+                contract_type?: string;
+                operation_status?: string;
+            }
+        >({
+            query: ({ page = 1, cnpj, name, city, user_role, contract_type, operation_status }) => {
+                const params: Record<string, any> = { page };
+                if (cnpj) params.cnpj = cnpj;
+                if (name) params.name = name;
+                if (city) params.city = city;
+                if (user_role) params.user_role = user_role;
+                if (contract_type) params.contract_type = contract_type;
+                if (operation_status) params.operation_status = operation_status;
+
+                return {
+                    url: "clients/",
+                    method: "GET",
+                    params,
+                };
+            },
             providesTags: (result) =>
                 result
                     ? [
