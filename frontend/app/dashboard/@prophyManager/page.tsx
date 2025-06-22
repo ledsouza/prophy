@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
-import { FileText } from "@phosphor-icons/react";
+import { FileText, Warning } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ClientDTO, useListClientsQuery } from "@/redux/features/clientApiSlice";
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
+import { usePendingOperations } from "@/hooks";
 
 import { Typography } from "@/components/foundation";
 import { Input, Select } from "@/components/forms";
@@ -16,6 +17,9 @@ import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/c
 function SearchClientPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    // Check for pending operations
+    const { hasPendingOperations, isLoading: isPendingLoading } = usePendingOperations();
 
     // Pagination and filter states
     const [currentPage, setCurrentPage] = useState(1);
@@ -307,13 +311,35 @@ function SearchClientPage() {
                         dataTestId="filter-contract-type"
                     />
 
-                    <Select
-                        options={operationStatusOptions}
-                        selectedData={selectedOperationStatus}
-                        setSelect={setSelectedOperationStatus}
-                        label="Status de Operações"
-                        dataTestId="filter-operation-status"
-                    />
+                    <div className="relative">
+                        <div className="flex items-start gap-2">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <label className="block">Status de Operações</label>
+                                    {hasPendingOperations && !isPendingLoading && (
+                                        <div className="group relative">
+                                            <Warning
+                                                size={16}
+                                                className="text-warning cursor-help"
+                                                weight="fill"
+                                            />
+                                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                                Existem operações pendentes de revisão no sistema
+                                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <Select
+                                    options={operationStatusOptions}
+                                    selectedData={selectedOperationStatus}
+                                    setSelect={setSelectedOperationStatus}
+                                    label=""
+                                    dataTestId="filter-operation-status"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Action Buttons */}

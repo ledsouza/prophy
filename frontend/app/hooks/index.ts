@@ -4,3 +4,4 @@ export { default as useRegistrationForm } from "./use-registration-form";
 export { default as useIBGELocalidades } from "./use-ibge-localidades";
 export { default as useNeedReview } from "./use-need-review";
 export { default as useStaff } from "./use-staff";
+export { default as usePendingOperations } from "./use-pending-operations";
