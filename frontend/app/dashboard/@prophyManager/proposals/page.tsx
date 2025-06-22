@@ -5,12 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { ArrowLeft } from "@phosphor-icons/react";
 
-import { useListProposalsQuery } from "@/redux/features/proposalApiSlice";
+import { useListProposalsQuery, ProposalDTO } from "@/redux/features/proposalApiSlice";
 
 import { ContractType, ProposalStatus } from "@/enums";
 
 import { Typography } from "@/components/foundation";
-import { Button, Spinner } from "@/components/common";
+import { Button, Spinner, Table } from "@/components/common";
 
 const getStatusDisplay = (status: string) => {
     switch (status) {
@@ -117,6 +117,34 @@ function ProposalListPage() {
         return null;
     }
 
+    const columns = [
+        {
+            header: "Data",
+            cell: (proposal: ProposalDTO) => formatDate(proposal.date),
+        },
+        {
+            header: "Valor",
+            cell: (proposal: ProposalDTO) => formatCurrency(proposal.value),
+        },
+        {
+            header: "Tipo de Contrato",
+            cell: (proposal: ProposalDTO) => getContractTypeDisplay(proposal.contract_type),
+        },
+        {
+            header: "Status",
+            cell: (proposal: ProposalDTO) => {
+                const statusInfo = getStatusDisplay(proposal.status);
+                return (
+                    <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
+                    >
+                        {statusInfo.text}
+                    </span>
+                );
+            },
+        },
+    ];
+
     return (
         <main className="flex flex-col gap-6 px-4 md:px-6 lg:px-8 py-4">
             {/* Header Section */}
@@ -154,69 +182,12 @@ function ProposalListPage() {
                         </Typography>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full table-auto">
-                            <thead>
-                                <tr className="bg-gray-50">
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Data
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Nome do Contato
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Telefone
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        E-mail
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Valor
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Tipo de Contrato
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Status
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {proposals.map((proposal) => {
-                                    const statusInfo = getStatusDisplay(proposal.status);
-
-                                    return (
-                                        <tr key={proposal.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-sm text-gray-900">
-                                                {formatDate(proposal.date)}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">
-                                                {proposal.contact_name}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">
-                                                {proposal.contact_phone}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">
-                                                {proposal.email}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                                                {formatCurrency(proposal.value)}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm text-gray-900">
-                                                {getContractTypeDisplay(proposal.contract_type)}
-                                            </td>
-                                            <td className="px-4 py-3 text-sm">
-                                                <span
-                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
-                                                >
-                                                    {statusInfo.text}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                    <div>
+                        <Table
+                            data={proposals}
+                            columns={columns}
+                            keyExtractor={(proposal: ProposalDTO) => proposal.id}
+                        />
 
                         {/* Results Summary */}
                         <div className="mt-4 text-center">

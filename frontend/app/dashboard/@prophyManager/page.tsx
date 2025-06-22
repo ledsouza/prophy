@@ -31,7 +31,7 @@ import { ContractType, ProposalStatus } from "@/enums";
 
 import { Typography } from "@/components/foundation";
 import { ComboBox, Select } from "@/components/forms";
-import { Button, Spinner } from "@/components/common";
+import { Button, Spinner, Table } from "@/components/common";
 
 function SearchClientPage() {
     const router = useRouter();
@@ -477,90 +477,76 @@ function SearchClientPage() {
 
                 {filteredResults.length === 0 && hasSearched ? (
                     <div className="text-center py-8">
-                        <Typography element="p" size="lg" className="text-gray-500">
+                        <Typography element="p" size="lg" className="text-gray-primary">
                             Nenhum cliente encontrado com os filtros aplicados
                         </Typography>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full table-auto">
-                            <thead>
-                                <tr className="bg-gray-50">
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Nome
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        CNPJ
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Endereço
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Usuários
-                                    </th>
-                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                                        Ações
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {filteredResults.map((client, clientIndex) => (
-                                    <tr key={clientIndex} className="hover:bg-gray-50">
-                                        <td className="px-4 py-3 text-sm text-gray-900">
-                                            {client.name}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-900">
-                                            {cnpjMask(client.cnpj)}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-900">
-                                            {`${client.address} - ${client.state}, ${client.city}`}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-900">
-                                            {client.users.length > 0 ? (
-                                                <div className="space-y-1">
-                                                    {client.users.map((user, userIndex) => (
-                                                        <div key={userIndex} className="text-xs">
-                                                            <span className="font-medium">
-                                                                {user.role === "FMI" &&
-                                                                    "Físico Médico Interno"}
-                                                                {user.role === "FME" &&
-                                                                    "Físico Médico Externo"}
-                                                                {user.role === "GP" &&
-                                                                    "Gerente Prophy"}
-                                                                {user.role === "GGC" &&
-                                                                    "Gerente Geral de Cliente"}
-                                                                {user.role === "GU" &&
-                                                                    "Gerente de Unidade"}
-                                                                {user.role === "C" && "Comercial"}
-                                                            </span>
-                                                            : {user.name}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <span className="text-gray-500">
-                                                    Nenhum usuário
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-sm text-gray-900">
-                                            <Button
-                                                variant="primary"
-                                                onClick={() => handleViewProposals(client.cnpj)}
-                                                className="flex items-center gap-2 px-2 py-1 text-xs"
-                                            >
-                                                <FileText size={16} />
-                                                Propostas
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-
+                    <div>
+                        <Table
+                            data={filteredResults}
+                            columns={[
+                                {
+                                    header: "Nome",
+                                    cell: (client: ClientDTO) => client.name,
+                                },
+                                {
+                                    header: "CNPJ",
+                                    cell: (client: ClientDTO) => cnpjMask(client.cnpj),
+                                },
+                                {
+                                    header: "Endereço",
+                                    cell: (client: ClientDTO) =>
+                                        `${client.address} - ${client.state}, ${client.city}`,
+                                },
+                                {
+                                    header: "Usuários",
+                                    cell: (client: ClientDTO) =>
+                                        client.users.length > 0 ? (
+                                            <div className="space-y-1">
+                                                {client.users.map((user, userIndex) => (
+                                                    <div key={userIndex} className="text-xs">
+                                                        <span className="font-medium">
+                                                            {user.role === "FMI" &&
+                                                                "Físico Médico Interno"}
+                                                            {user.role === "FME" &&
+                                                                "Físico Médico Externo"}
+                                                            {user.role === "GP" && "Gerente Prophy"}
+                                                            {user.role === "GGC" &&
+                                                                "Gerente Geral de Cliente"}
+                                                            {user.role === "GU" &&
+                                                                "Gerente de Unidade"}
+                                                            {user.role === "C" && "Comercial"}
+                                                        </span>
+                                                        : {user.name}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-gray-primary">
+                                                Nenhum usuário
+                                            </span>
+                                        ),
+                                },
+                                {
+                                    header: "Ações",
+                                    cell: (client: ClientDTO) => (
+                                        <Button
+                                            variant="primary"
+                                            onClick={() => handleViewProposals(client.cnpj)}
+                                            className="flex items-center gap-2 px-2 py-1 text-xs"
+                                        >
+                                            <FileText size={16} />
+                                            Propostas
+                                        </Button>
+                                    ),
+                                },
+                            ]}
+                            keyExtractor={(client: ClientDTO) => client.id}
+                        />
                         {/* Results Summary */}
                         <div className="mt-4 text-center">
-                            <Typography element="p" size="sm" className="text-gray-500">
+                            <Typography element="p" size="sm" className="text-gray-primary">
                                 {filteredResults.length} cliente(s) encontrado(s)
                             </Typography>
                         </div>
