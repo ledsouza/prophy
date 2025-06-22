@@ -85,6 +85,8 @@ class ClientOperationViewSet(viewsets.ViewSet):
                 users=user, operation_status__in=["REV", "R"]
             )
 
+        queryset = queryset.order_by("id")
+
         # Pagination
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
@@ -151,7 +153,8 @@ class ClientOperationViewSet(viewsets.ViewSet):
 
             try:
                 original_users = (
-                    ClientOperation.objects.get(id=request.data["original_client"])
+                    ClientOperation.objects.get(
+                        id=request.data["original_client"])
                     .users.all()
                     .values_list("id", flat=True)
                 )
@@ -294,6 +297,8 @@ class UnitOperationViewSet(viewsets.ViewSet):
                 ],
             )
 
+        queryset = queryset.order_by("client")
+
         # Pagination
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
@@ -395,7 +400,8 @@ class UnitOperationViewSet(viewsets.ViewSet):
                 {"detail": "Operação não encontrada."}, status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = UnitOperationSerializer(operation, data=request.data, partial=True)
+        serializer = UnitOperationSerializer(
+            operation, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -502,6 +508,8 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
                     EquipmentOperation.OperationStatus.REJECTED,
                 ],
             )
+
+        queryset = queryset.order_by("unit")
 
         # Pagination
         paginator = PageNumberPagination()

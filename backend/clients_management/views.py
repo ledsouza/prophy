@@ -415,7 +415,7 @@ class ClientViewSet(viewsets.ViewSet):
                     ~Q(Exists(has_equipment_ops))
                 )
 
-        queryset = queryset.order_by("users")
+        queryset = queryset.order_by("id")
 
         # Pagination
         paginator = PageNumberPagination()
