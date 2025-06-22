@@ -10,7 +10,7 @@ import { useListProposalsQuery, ProposalDTO } from "@/redux/features/proposalApi
 import { ContractType, ProposalStatus } from "@/enums";
 
 import { Typography } from "@/components/foundation";
-import { Button, Spinner, Table } from "@/components/common";
+import { Button, ErrorDisplay, Spinner, Table } from "@/components/common";
 
 const getStatusDisplay = (status: string) => {
     switch (status) {
@@ -92,17 +92,14 @@ function ProposalListPage() {
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen gap-8">
-                <Typography element="h2" size="title2" className="font-bold text-danger">
-                    Erro ao carregar propostas
-                </Typography>
-                <Typography element="p" size="lg">
-                    Ocorreu um erro ao carregar as propostas. Tente novamente mais tarde.
-                </Typography>
-                <Button onClick={handleBackToSearch} variant="secondary">
-                    Voltar à busca
-                </Button>
-            </div>
+            <ErrorDisplay
+                title="Erro ao carregar propostas"
+                message="Ocorreu um erro ao carregar as propostas. Tente novamente mais tarde."
+                action={{
+                    text: "Voltar à busca",
+                    onClick: handleBackToSearch,
+                }}
+            />
         );
     }
 

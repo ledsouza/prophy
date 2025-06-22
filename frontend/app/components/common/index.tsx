@@ -6,3 +6,4 @@ export { default as List } from "./List";
 export { default as Spinner } from "./Spinner";
 export { default as Modal } from "./Modal";
 export { default as Table } from "./Table";
+export { default as ErrorDisplay } from "./ErrorDisplay";

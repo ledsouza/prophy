@@ -31,7 +31,7 @@ import { ContractType, ProposalStatus } from "@/enums";
 
 import { Typography } from "@/components/foundation";
 import { ComboBox, Select } from "@/components/forms";
-import { Button, Spinner, Table } from "@/components/common";
+import { Button, ErrorDisplay, Spinner, Table } from "@/components/common";
 
 function SearchClientPage() {
     const router = useRouter();
@@ -395,14 +395,10 @@ function SearchClientPage() {
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen gap-8">
-                <Typography element="h2" size="title2" className="font-bold text-danger">
-                    Erro ao carregar dados
-                </Typography>
-                <Typography element="p" size="lg">
-                    Ocorreu um erro ao carregar os dados dos clientes. Tente novamente mais tarde.
-                </Typography>
-            </div>
+            <ErrorDisplay
+                title="Erro ao carregar dados"
+                message="Ocorreu um erro ao carregar os dados dos clientes. Tente novamente mais tarde."
+            />
         );
     }
 
