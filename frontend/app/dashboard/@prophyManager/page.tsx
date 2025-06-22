@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { Warning, FileText } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
     ClientDTO,
@@ -35,6 +35,7 @@ import { Button, Spinner, Table } from "@/components/common";
 
 function SearchClientPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { data: clients, isLoading, error } = useListAllClientsQuery();
     const { data: clientsOperations } = useListAllClientsOperationsQuery();
     const { data: unitsOperations } = useListAllUnitsOperationsQuery();
@@ -61,16 +62,52 @@ function SearchClientPage() {
     const [filteredResults, setFilteredResults] = useState<ClientDTO[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
 
-    // Initialize results with all clients when data loads
     useEffect(() => {
-        if (clients && clients.length > 0 && !hasSearched) {
-            // Remove any potential duplicates when initializing
-            const uniqueClients = clients.filter(
-                (client, index, self) => index === self.findIndex((c) => c.id === client.id)
-            );
+        if (clients) {
+            const params = new URLSearchParams(searchParams);
+            const nameId = params.get("name");
+            const cnpjId = params.get("cnpj");
+            const city = params.get("city");
+            const roleId = params.get("role");
+            const contractTypeId = params.get("contract");
+            const operationStatusId = params.get("status");
 
-            setFilteredResults(uniqueClients);
-            setHasSearched(true);
+            if (nameId) {
+                const name = nameOptions.find((n) => n.id === Number(nameId));
+                if (name) setSelectedName(name);
+            }
+            if (cnpjId) {
+                const cnpj = cnpjOptions.find((c) => c.id === Number(cnpjId));
+                if (cnpj) setSelectedCnpj(cnpj);
+            }
+            if (city) {
+                const cityName = cityOptions.find((c) => c.name === city);
+                if (cityName) setSelectedCity(cityName);
+            }
+            if (roleId) {
+                const role = userRoleOptions.find((r) => r.id === Number(roleId));
+                if (role) setSelectedUserRole(role);
+            }
+            if (contractTypeId) {
+                const contract = contractTypeOptions.find((c) => c.id === Number(contractTypeId));
+                if (contract) setSelectedContractType(contract);
+            }
+            if (operationStatusId) {
+                const status = operationStatusOptions.find(
+                    (s) => s.id === Number(operationStatusId)
+                );
+                if (status) setSelectedOperationStatus(status);
+            }
+
+            if (params.toString()) {
+                handleApplyFilters();
+            } else if (!hasSearched) {
+                const uniqueClients = clients.filter(
+                    (client, index, self) => index === self.findIndex((c) => c.id === client.id)
+                );
+                setFilteredResults(uniqueClients);
+                setHasSearched(true);
+            }
         }
     }, [clients, hasSearched]);
 
@@ -317,6 +354,17 @@ function SearchClientPage() {
 
         setFilteredResults(uniqueFiltered);
         setHasSearched(true);
+
+        const params = new URLSearchParams();
+        if (selectedName) params.set("name", selectedName.id.toString());
+        if (selectedCnpj) params.set("cnpj", selectedCnpj.id.toString());
+        if (selectedCity) params.set("city", selectedCity.name);
+        if (selectedUserRole.id !== 0) params.set("role", selectedUserRole.id.toString());
+        if (selectedContractType.id !== 0)
+            params.set("contract", selectedContractType.id.toString());
+        if (selectedOperationStatus.id !== 0)
+            params.set("status", selectedOperationStatus.id.toString());
+        router.push(`?${params.toString()}`);
     };
 
     const handleClearFilters = () => {
@@ -334,6 +382,7 @@ function SearchClientPage() {
             setFilteredResults(uniqueClients);
         }
         setHasSearched(true);
+        router.push("?");
     };
 
     const handleViewProposals = (cnpj: string) => {

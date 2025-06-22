@@ -25,7 +25,6 @@ const getStatusDisplay = (status: string) => {
     }
 };
 
-// Helper function to format contract type
 const getContractTypeDisplay = (contractType: string) => {
     switch (contractType) {
         case ContractType.ANNUAL:
@@ -39,7 +38,6 @@ const getContractTypeDisplay = (contractType: string) => {
     }
 };
 
-// Helper function to format currency
 const formatCurrency = (value: string): string => {
     const numericValue = parseFloat(value);
     if (isNaN(numericValue)) return "R$ 0,00";
@@ -50,7 +48,6 @@ const formatCurrency = (value: string): string => {
     }).format(numericValue);
 };
 
-// Helper function to format date
 const formatDate = (dateString: string): string => {
     try {
         const date = new Date(dateString);
@@ -77,7 +74,6 @@ function ProposalListPage() {
         }
     }, [cnpj, router]);
 
-    // Fetch proposals data
     const {
         data: proposalsResponse,
         isLoading,
@@ -87,15 +83,13 @@ function ProposalListPage() {
     const proposals = proposalsResponse?.results || [];
 
     const handleBackToSearch = () => {
-        router.push("/dashboard");
+        router.back();
     };
 
-    // Show loading state
     if (isLoading) {
         return <Spinner fullscreen />;
     }
 
-    // Show error state
     if (error) {
         return (
             <div className="flex flex-col items-center justify-center h-screen gap-8">
