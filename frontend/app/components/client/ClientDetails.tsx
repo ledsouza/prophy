@@ -26,7 +26,7 @@ import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentA
 import { useStaff } from "@/hooks";
 import { useAppDispatch } from "@/redux/hooks";
 import { Modals, openModal } from "@/redux/features/modalSlice";
-import { ArrowLeft } from "@phosphor-icons/react";
+import { ArrowFatLineLeft, ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 
 type ClientDetailsProps = {
@@ -245,7 +245,7 @@ function ClientDetails({
                     className="flex items-center gap-2"
                     data-testid="btn-back-to-search"
                 >
-                    <ArrowLeft size={16} />
+                    <ArrowFatLineLeft size={24} />
                     Voltar à busca
                 </Button>
             )}

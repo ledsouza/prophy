@@ -26,7 +26,7 @@ import {
 } from "@/components/forms";
 import { ModalDeleteUnit } from "@/components/modals";
 import { Button, Modal, Spinner } from "@/components/common";
-import { ClientDetails, UnitList, ClientDetailHeader } from "@/components/client";
+import { ClientDetails, UnitList } from "@/components/client";
 
 function ClientDetailPage() {
     const params = useParams();

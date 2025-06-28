@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import { useAppDispatch } from "@/redux/hooks";
 import { Modals, openModal, setUnit, setUnitOperation, setUser } from "@/redux/features/modalSlice";
 import { useStaff } from "@/hooks";
+import { useRouter } from "next/navigation";
 
 type UnitDetailsProps = {
     unit: UnitDTO;
@@ -33,6 +34,7 @@ enum ButtonsState {
 }
 
 function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
+    const router = useRouter();
     const dispatch = useAppDispatch();
     const { isStaff, userData } = useStaff();
     const isGGC = userData?.role === "GGC";
@@ -124,11 +126,14 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
-            <Button href="/dashboard" variant="secondary" dataTestId="btn-go-back">
-                <div className="flex flex-row gap-2 justify-center align-middle text-center">
-                    <ArrowFatLineLeft size="1.8em" />
-                    <Typography size="md">Voltar</Typography>
-                </div>
+            <Button
+                onClick={() => router.back()}
+                variant="secondary"
+                className="flex items-center gap-2"
+                dataTestId="btn-go-back"
+            >
+                <ArrowFatLineLeft size={24} />
+                <Typography size="md">Voltar</Typography>
             </Button>
 
             <div>
