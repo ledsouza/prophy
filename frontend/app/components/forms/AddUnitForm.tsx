@@ -8,13 +8,14 @@ import { unitSchema } from "@/schemas";
 import { isErrorWithMessages } from "@/redux/services/helpers";
 import { useCreateAddUnitOperationMutation } from "@/redux/features/unitApiSlice";
 
-import { useIBGELocalidades } from "@/hooks";
+import { useIBGELocalidades, useNeedReview } from "@/hooks";
 
 import { Typography } from "@/components/foundation";
 import { Spinner, Button } from "@/components/common";
 import { Form, Input, ComboBox } from "@/components/forms";
 import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
+import { OperationStatus } from "@/enums";
 
 export type AddUnitFields = z.infer<typeof unitSchema>;
 
@@ -45,14 +46,22 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
         handleMunicipioChange,
     } = useIBGELocalidades(setValue);
 
+    const { needReview } = useNeedReview();
     const [createAddUnitOperation] = useCreateAddUnitOperationMutation();
 
     const onSubmit: SubmitHandler<AddUnitFields> = async (data) => {
         try {
-            const response = await createAddUnitOperation({
-                ...data,
-                client: clientId,
-            });
+            const response = needReview
+                ? await createAddUnitOperation({
+                      ...data,
+                      client: clientId,
+                      operation_status: OperationStatus.REVIEW,
+                  })
+                : await createAddUnitOperation({
+                      ...data,
+                      client: clientId,
+                      operation_status: OperationStatus.ACCEPTED,
+                  });
 
             if (response.error) {
                 if (isErrorWithMessages(response.error)) {
@@ -61,7 +70,11 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                 }
             }
 
-            toast.success("Requisição enviada com sucesso!");
+            const successMessage = needReview
+                ? "Requisição enviada com sucesso."
+                : "Unidade adicionada com sucesso.";
+
+            toast.success(successMessage);
             dispatch(closeModal());
         } catch (error) {
             toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -71,18 +84,13 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
-                <Typography
-                    element="h3"
-                    size="title3"
-                    className="font-semibold"
-                >
+                <Typography element="h3" size="title3" className="font-semibold">
                     Informe os dados da unidade
                 </Typography>
                 <Typography element="p" size="md" className="text-justify">
-                    Por favor, preencha os campos abaixo com as informações da
-                    unidade, certificando-se de preencher as informações
-                    corretamente. Após a submissão, o formulário será enviado
-                    para análise de um físico médico responsável, que fará a
+                    Por favor, preencha os campos abaixo com as informações da unidade,
+                    certificando-se de preencher as informações corretamente. Após a submissão, o
+                    formulário será enviado para análise de um físico médico responsável, que fará a
                     revisão e validação das informações fornecidas.
                 </Typography>
                 <Input
@@ -128,11 +136,7 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                             name: estado.nome,
                             sigla: estado.sigla,
                         }))}
-                        errorMessage={
-                            errors.state
-                                ? "Estado da instituição é obrigatório."
-                                : ""
-                        }
+                        errorMessage={errors.state ? "Estado da instituição é obrigatório." : ""}
                         placeholder="Digite o estado e selecione"
                         selectedValue={selectedEstado}
                         onChange={handleEstadoChange}
@@ -151,11 +155,7 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                             id: municipio.id,
                             name: municipio.nome,
                         }))}
-                        errorMessage={
-                            errors.state
-                                ? "Cidade da instituição é obrigatória."
-                                : ""
-                        }
+                        errorMessage={errors.state ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Digite a cidade e selecione"
                         selectedValue={selectedMunicipio}
                         onChange={handleMunicipioChange}
@@ -166,11 +166,7 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                 ) : (
                     <Input
                         disabled
-                        errorMessage={
-                            errors.state
-                                ? "Cidade da instituição é obrigatória."
-                                : ""
-                        }
+                        errorMessage={errors.state ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Selecione um estado"
                         data-testid="unit-city-input"
                     >
@@ -204,7 +200,7 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                         data-testid="submit-btn"
                         className="w-full"
                     >
-                        Requisitar
+                        {needReview ? "Requisitar" : "Adicionar"}
                     </Button>
                 </div>
             </Form>

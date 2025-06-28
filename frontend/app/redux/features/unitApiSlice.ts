@@ -101,7 +101,7 @@ const unitApiSlice = apiSlice.injectEndpoints({
         }),
         createAddUnitOperation: builder.mutation<
             UnitOperationDTO,
-            Omit<UnitOperationDTO, "id" | "user" | "operation_type" | "operation_status">
+            Omit<UnitOperationDTO, "id" | "user" | "operation_type">
         >({
             query: (unitData) => ({
                 url: "units/operations/",
