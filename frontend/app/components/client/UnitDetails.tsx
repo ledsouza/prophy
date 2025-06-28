@@ -263,13 +263,15 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                                 {unit.user.email}
                             </Typography>
 
-                            <Button
-                                onClick={handleDeleteUnitManager}
-                                variant="danger"
-                                dataTestId="btn-delete-unit-manager"
-                            >
-                                Remover gerente de unidade
-                            </Button>
+                            {isGGC && (
+                                <Button
+                                    onClick={handleDeleteUnitManager}
+                                    variant="danger"
+                                    dataTestId="btn-delete-unit-manager"
+                                >
+                                    Remover gerente de unidade
+                                </Button>
+                            )}
                         </div>
                     ) : (
                         <div className="flex flex-col gap-2">
