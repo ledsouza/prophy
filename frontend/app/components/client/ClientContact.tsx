@@ -18,7 +18,12 @@ function ClientContact({ client }: ClientContactProps) {
     const fisicoMedicoExterno = getUserByRole(client, "FME");
     const comercial = getUserByRole(client, "C");
 
-    if (userData?.role === "GGC" || userData?.role === "GU" || userData?.role === "FME") {
+    if (
+        userData?.role === "GGC" ||
+        userData?.role === "GU" ||
+        userData?.role === "FME" ||
+        userData?.role === "GP"
+    ) {
         return (
             <>
                 <div>

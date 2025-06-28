@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
-import { FileText, Warning } from "@phosphor-icons/react";
+import { FileText, Info, Warning } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ClientDTO, useListClientsQuery } from "@/redux/features/clientApiSlice";
@@ -249,6 +249,10 @@ function SearchClientPage() {
         router.push(`/dashboard/proposals?cnpj=${cnpj}`);
     };
 
+    const handleViewDetails = (cnpj: string) => {
+        router.push(`/dashboard/client/${cnpj}`);
+    };
+
     if (isLoading) {
         return <Spinner fullscreen />;
     }
@@ -434,14 +438,25 @@ function SearchClientPage() {
                                     {
                                         header: "Ações",
                                         cell: (client: ClientDTO) => (
-                                            <Button
-                                                variant="primary"
-                                                onClick={() => handleViewProposals(client.cnpj)}
-                                                className="flex items-center gap-2 px-2 py-1 text-xs"
-                                            >
-                                                <FileText size={16} />
-                                                Propostas
-                                            </Button>
+                                            <div className="flex flex-col gap-2">
+                                                <Button
+                                                    variant="primary"
+                                                    onClick={() => handleViewDetails(client.cnpj)}
+                                                    className="flex items-center gap-2 text-xs"
+                                                >
+                                                    <Info size={16} />
+                                                    Detalhes
+                                                </Button>
+
+                                                <Button
+                                                    variant="primary"
+                                                    onClick={() => handleViewProposals(client.cnpj)}
+                                                    className="flex items-center gap-2 px-2 py-1 text-xs"
+                                                >
+                                                    <FileText size={16} />
+                                                    Propostas
+                                                </Button>
+                                            </div>
                                         ),
                                     },
                                 ]}

@@ -143,12 +143,14 @@ const Select = ({
                             >
                                 {selectedData.value}
                             </Typography>
-                            <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                                <ChevronUpDownIcon
-                                    aria-hidden="true"
-                                    className="h-5 w-5 text-gray-400"
-                                />
-                            </span>
+                            {!disabled && (
+                                <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                    <ChevronUpDownIcon
+                                        aria-hidden="true"
+                                        className="h-5 w-5 text-gray-400"
+                                    />
+                                </span>
+                            )}
                         </ListboxButton>
 
                         <ListboxOptions

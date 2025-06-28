@@ -26,6 +26,8 @@ import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentA
 import { useStaff } from "@/hooks";
 import { useAppDispatch } from "@/redux/hooks";
 import { Modals, openModal } from "@/redux/features/modalSlice";
+import { ArrowLeft } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
 
 type ClientDetailsProps = {
     title: string;
@@ -35,6 +37,7 @@ type ClientDetailsProps = {
     setSelectedClient: (value: SelectData) => void;
     filteredClient: ClientDTO;
     selectedClientInOperation: ClientOperationDTO | null;
+    hideClientSelector?: boolean;
 };
 
 function ClientDetails({
@@ -45,7 +48,9 @@ function ClientDetails({
     setSelectedClient,
     filteredClient,
     selectedClientInOperation,
+    hideClientSelector = false,
 }: ClientDetailsProps) {
+    const router = useRouter();
     const dispatch = useAppDispatch();
     const { isStaff, userData } = useStaff();
 
@@ -107,6 +112,10 @@ function ClientDetails({
     function handleReview() {
         dispatch(openModal(Modals.REVIEW_CLIENT));
     }
+
+    const handleBack = () => {
+        router.push("/dashboard");
+    };
 
     // Obtaining the id of the clients that has a operation in progress
     useEffect(() => {
@@ -229,6 +238,18 @@ function ClientDetails({
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
+            {hideClientSelector && (
+                <Button
+                    variant="secondary"
+                    onClick={handleBack}
+                    className="flex items-center gap-2"
+                    data-testid="btn-back-to-search"
+                >
+                    <ArrowLeft size={16} />
+                    Voltar à busca
+                </Button>
+            )}
+
             <Typography element="h2" size="title2" className="font-bold" dataTestId="client-header">
                 {title}
             </Typography>
@@ -240,6 +261,7 @@ function ClientDetails({
                     setSelect={setSelectedClient}
                     operationsIDs={reviewOperationsIDs}
                     rejectedOperationIDs={rejectedOperationsIDs}
+                    disabled={hideClientSelector}
                     listBoxStyles="mb-4"
                     listBoxButtonStyles="pl-2"
                     listBoxButtonSize="lg"

@@ -1,22 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 import { apiSlice } from "@/redux/services/apiSlice";
 import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
-import {
-    ClientOperationDTO,
-    useListAllClientsOperationsQuery,
-} from "@/redux/features/clientApiSlice";
-import {
-    UnitDTO,
-    useDeleteUnitOperationMutation,
-    useListAllUnitsOperationsQuery,
-} from "@/redux/features/unitApiSlice";
+import { ClientOperationDTO } from "@/redux/features/clientApiSlice";
+import { UnitDTO, useDeleteUnitOperationMutation } from "@/redux/features/unitApiSlice";
 
-import { useClientDataLoading } from "@/hooks/use-client-data-loading";
+import { useSingleClientLoading } from "@/hooks";
 import { OperationType } from "@/enums";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
@@ -33,26 +26,26 @@ import {
 } from "@/components/forms";
 import { ModalDeleteUnit } from "@/components/modals";
 import { Button, Modal, Spinner } from "@/components/common";
-import { ClientDetails, UnitList } from "@/components/client";
+import { ClientDetails, UnitList, ClientDetailHeader } from "@/components/client";
 
-function ClientPage() {
+function ClientDetailPage() {
+    const params = useParams();
     const router = useRouter();
     const dispatch = useAppDispatch();
+
+    const cnpj = params.cnpj as string;
 
     const {
         isLoading: isLoadingClientData,
         hasNoData,
-        clientOptions,
-        selectedClient,
+        clientNotFound,
         filteredClient,
         filteredUnits,
-        setSelectedClient,
-    } = useClientDataLoading();
-
-    const { data: clientsOperations, isLoading: isLoadingClientsOperations } =
-        useListAllClientsOperationsQuery();
-    const { data: unitsOperations, isLoading: isLoadingUnitsOperations } =
-        useListAllUnitsOperationsQuery();
+        clientsOperations,
+        unitsOperations,
+        isLoadingClientsOperations,
+        isLoadingUnitsOperations,
+    } = useSingleClientLoading(cnpj);
 
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
 
@@ -144,18 +137,39 @@ function ClientPage() {
 
     // Check if the selected client has an operation in progress
     useEffect(() => {
-        if (isLoadingClientsOperations) {
+        if (isLoadingClientsOperations || !filteredClient) {
             return;
         }
 
         const operation = clientsOperations?.find(
-            (operation) => operation.original_client === selectedClient?.id
+            (operation) => operation.original_client === filteredClient?.id
         );
         operation ? setSelectedClientInOperation(operation) : setSelectedClientInOperation(null);
-    }, [isLoadingClientsOperations, clientsOperations, selectedClient]);
+    }, [isLoadingClientsOperations, clientsOperations, filteredClient]);
 
     if (isLoadingClientData || isLoadingUnitsOperations) {
         return <Spinner fullscreen />;
+    }
+
+    if (clientNotFound) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen gap-8">
+                <Typography
+                    element="h2"
+                    size="title2"
+                    className="font-bold"
+                    dataTestId="client-not-found"
+                >
+                    Cliente não encontrado
+                </Typography>
+                <Typography element="p" size="lg">
+                    Não foi possível encontrar um cliente com o CNPJ informado.
+                </Typography>
+                <Button onClick={() => router.push("/dashboard")} data-testid="btn-back-to-search">
+                    Voltar à busca
+                </Button>
+            </div>
+        );
     }
 
     if (hasNoData) {
@@ -181,50 +195,55 @@ function ClientPage() {
     }
 
     return (
-        <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
-            <Button
-                variant="secondary"
-                className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
-                disabled={isLoadingClientData}
-                onClick={handleUpdateData}
-                dataTestId="update-data-btn"
-            >
-                <div className="flex items-center gap-2">
-                    <ArrowClockwise size="24" /> Atualizar
-                </div>
-            </Button>
+        <main className="flex flex-col gap-6 px-4 md:px-6 lg:px-8 py-4">
+            <div className="flex flex-col md:flex-row gap-6">
+                <Button
+                    variant="secondary"
+                    className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
+                    disabled={isLoadingClientData}
+                    onClick={handleUpdateData}
+                    dataTestId="update-data-btn"
+                >
+                    <div className="flex items-center gap-2">
+                        <ArrowClockwise size="24" /> Atualizar
+                    </div>
+                </Button>
 
-            {clientOptions && selectedClient && filteredClient && clientsOperations && (
-                <ClientDetails
-                    title="Informações do cliente"
-                    isLoading={isLoadingClientData}
-                    clientOptions={clientOptions}
-                    selectedClient={selectedClient}
-                    setSelectedClient={setSelectedClient}
-                    filteredClient={filteredClient}
-                    selectedClientInOperation={selectedClientInOperation}
-                />
-            )}
-
-            <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
-                <Typography element="h2" size="title2" className="font-bold">
-                    Unidades
-                </Typography>
-
-                {filteredUnits?.length !== 0 && (
-                    <Input
-                        placeholder="Buscar unidades por nome"
-                        value={searchTerm}
-                        onChange={handleSearchInputChange}
-                        dataTestId="input-search-unit"
+                {filteredClient && clientsOperations && (
+                    <ClientDetails
+                        title="Informações do cliente"
+                        isLoading={isLoadingClientData}
+                        clientOptions={[]} // Empty array since we don't need client selector
+                        selectedClient={{ id: filteredClient.id, value: filteredClient.name }}
+                        setSelectedClient={() => {}} // No-op since client is fixed
+                        filteredClient={filteredClient}
+                        selectedClientInOperation={selectedClientInOperation}
+                        hideClientSelector={true}
                     />
                 )}
 
-                <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
+                <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <Typography element="h2" size="title2" className="font-bold">
+                        Unidades
+                    </Typography>
 
-                <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
-                    Adicionar unidade
-                </Button>
+                    {filteredUnits?.length !== 0 && (
+                        <Input
+                            placeholder="Buscar unidades por nome"
+                            value={searchTerm}
+                            onChange={handleSearchInputChange}
+                            dataTestId="input-search-unit"
+                        />
+                    )}
+
+                    <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
+
+                    {filteredClient && (
+                        <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
+                            Adicionar unidade
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <Modal
@@ -264,8 +283,8 @@ function ClientPage() {
                         </div>
                     )}
 
-                {currentModal === Modals.ADD_UNIT && selectedClient?.id && (
-                    <AddUnitForm clientId={selectedClient.id} />
+                {currentModal === Modals.ADD_UNIT && filteredClient?.id && (
+                    <AddUnitForm clientId={filteredClient.id} />
                 )}
 
                 {currentModal === Modals.REVIEW_ADD_UNIT && selectedUnitOperation && (
@@ -332,4 +351,4 @@ function ClientPage() {
     );
 }
 
-export default ClientPage;
+export default ClientDetailPage;
