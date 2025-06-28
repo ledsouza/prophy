@@ -22,6 +22,8 @@ import { useModality } from "@/hooks/use-modality";
 import { Button, Spinner } from "@/components/common";
 import { Form, Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import { useNeedReview } from "@/hooks";
+import { OperationStatus } from "@/enums";
 
 const addAccessorySchema = accessorySchema.extend({
     equipment_photo: requiredFileSchema,
@@ -73,6 +75,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         isLoadingModalities,
     } = useModality(setValue);
 
+    const { needReview } = useNeedReview();
     const [createAddEquipmentOperation] = useCreateAddEquipmentOperationMutation();
 
     const [createAccessory] = useCreateAccessoryMutation();
@@ -132,6 +135,9 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         formData.append("series_number", data.series_number);
         formData.append("anvisa_registry", data.anvisa_registry);
         formData.append("unit", unitId.toString());
+        if (!needReview) {
+            formData.append("operation_status", OperationStatus.ACCEPTED);
+        }
 
         // Handle file fields
         formData.append("equipment_photo", data.equipment_photo[0]);
@@ -146,7 +152,11 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
 
             await handleCreateAccessories(data.accessories, equipmentResponse.data.id);
 
-            toast.success("Requisição enviada com sucesso!");
+            const successMessage = needReview
+                ? "Requisição enviada com sucesso."
+                : "Equipamento adicionado com sucesso.";
+
+            toast.success(successMessage);
             dispatch(closeModal());
         } catch (error) {
             if (error instanceof AccessoryCreationError) {
@@ -354,7 +364,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                         data-testid="submit-btn"
                         className="w-full"
                     >
-                        Requisitar
+                        {needReview ? "Requisitar" : "Adicionar"}
                     </Button>
                 </div>
             );
@@ -390,7 +400,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                             data-testid="submit-btn"
                             className="w-full"
                         >
-                            Requisitar
+                            {needReview ? "Requisitar" : "Adicionar"}
                         </Button>
                     </div>
                 </div>
