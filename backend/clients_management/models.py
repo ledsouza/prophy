@@ -18,7 +18,9 @@ if TYPE_CHECKING:
     from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 
 
-def get_status(operation: ClientOperation | UnitOperation | EquipmentOperation) -> str | format_html:
+def get_status(
+    operation: ClientOperation | UnitOperation | EquipmentOperation,
+) -> str | format_html:
     """
     Returns the formatted status of a client, unit, or equipment operation.
 
@@ -26,7 +28,7 @@ def get_status(operation: ClientOperation | UnitOperation | EquipmentOperation) 
     or an HTML-formatted status message depending on the operation's type and status.
 
     Args:
-        operation (ClientOperation | UnitOperation | EquipmentOperation): 
+        operation (ClientOperation | UnitOperation | EquipmentOperation):
             The operation object to get status for. Can be any of the operation types.
 
     Returns:
@@ -37,11 +39,17 @@ def get_status(operation: ClientOperation | UnitOperation | EquipmentOperation) 
     if operation.operation_status == "A":
         return operation.get_operation_status_display()
     if operation.operation_type == "A":
-        return format_html(f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para adicionar</div>")
+        return format_html(
+            f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para adicionar</div>"
+        )
     if operation.operation_type == "E":
-        return format_html(f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para editar</div>")
+        return format_html(
+            f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para editar</div>"
+        )
     if operation.operation_type == "D":
-        return format_html(f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para deletar</div>")
+        return format_html(
+            f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para deletar</div>"
+        )
 
 
 class BaseEquipment(models.Model):
@@ -63,14 +71,16 @@ class BaseEquipment(models.Model):
         This is an abstract base class and cannot be instantiated directly.
         It should be inherited by concrete equipment models.
     """
+
     manufacturer = models.CharField("Fabricante", max_length=30)
     model = models.CharField("Modelo", max_length=30)
     series_number = models.CharField(
-        "Número de Série", max_length=30, blank=True, null=True)
+        "Número de Série", max_length=30, blank=True, null=True
+    )
     equipment_photo = models.ImageField(
-        "Foto do equipamento", upload_to="equipments/photos")
-    label_photo = models.ImageField(
-        "Foto da etiqueta", upload_to="equipments/labels")
+        "Foto do equipamento", upload_to="equipments/photos"
+    )
+    label_photo = models.ImageField("Foto da etiqueta", upload_to="equipments/labels")
 
     class Meta:
         abstract = True
@@ -103,27 +113,29 @@ class Client(models.Model):
         verbose_name: "Cliente"
         verbose_name_plural: "Clientes"
     """
+
     users = models.ManyToManyField(
-        UserAccount, related_name="clients", blank=True, verbose_name="Responsáveis")
-    cnpj = models.CharField("CNPJ", max_length=14,
-                            validators=[CNPJValidator()])
+        UserAccount, related_name="clients", blank=True, verbose_name="Responsáveis"
+    )
+    cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
     name = models.CharField("Nome da instituição", max_length=50)
     email = models.EmailField("E-mail da instituição")
-    phone = models.CharField(
-        "Telefone da instituição", max_length=13)
-    address = models.CharField(
-        "Endereço da instituição", max_length=150)
+    phone = models.CharField("Telefone da instituição", max_length=13)
+    address = models.CharField("Endereço da instituição", max_length=150)
     state = models.CharField(
-        "Estado da instituição", max_length=2, choices=STATE_CHOICES)
-    city = models.CharField(
-        "Cidade da instituição", max_length=50)
+        "Estado da instituição", max_length=2, choices=STATE_CHOICES
+    )
+    city = models.CharField("Cidade da instituição", max_length=50)
     active = models.BooleanField("Ativo", default=False)
 
     @admin.display(description="Responsáveis")
     def responsables(self):
         associated_users = self.users.all()
-        associated_users = [f"<strong>{user.get_role_display()}:</strong> {
-            user.name}" for user in associated_users]
+        associated_users = [
+            f"<strong>{user.get_role_display()}:</strong> {
+            user.name}"
+            for user in associated_users
+        ]
         return format_html("<br>".join(associated_users))
 
     @admin.display(description="Status")
@@ -163,20 +175,30 @@ class Unit(models.Model):
         verbose_name: "Unidade"
         verbose_name_plural: "Unidades"
     """
-    user = models.ForeignKey(UserAccount, on_delete=models.SET_NULL,
-                             related_name="unit", blank=True, null=True, verbose_name="Gerente de Unidade")
+
+    user = models.ForeignKey(
+        UserAccount,
+        on_delete=models.SET_NULL,
+        related_name="unit",
+        blank=True,
+        null=True,
+        verbose_name="Gerente de Unidade",
+    )
     client = models.ForeignKey(
-        Client, on_delete=models.CASCADE, related_name="units", blank=True, null=True, verbose_name="Cliente")
+        Client,
+        on_delete=models.CASCADE,
+        related_name="units",
+        blank=True,
+        null=True,
+        verbose_name="Cliente",
+    )
     name = models.CharField("Nome", max_length=50)
-    cnpj = models.CharField("CNPJ", max_length=14,
-                            validators=[CNPJValidator()])
+    cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
     email = models.EmailField("E-mail")
     phone = models.CharField("Telefone", max_length=13)
     address = models.CharField("Endereço", max_length=150)
-    state = models.CharField(
-        "Estado", max_length=2, choices=STATE_CHOICES, blank=True)
-    city = models.CharField("Cidade", max_length=50,
-                            blank=True)
+    state = models.CharField("Estado", max_length=2, choices=STATE_CHOICES, blank=True)
+    city = models.CharField("Cidade", max_length=50, blank=True)
 
     @admin.display(description="Status")
     def status(self):
@@ -210,15 +232,26 @@ class Modality(models.Model):
         Accessory (TextChoices): An inner class defining the available accessory types
             as choices for the accessory field.
     """
+
     class AccessoryType(TextChoices):
-        DETECTOR = "D", "Detector",
-        COIL = "C", "Bobina",
+        DETECTOR = (
+            "D",
+            "Detector",
+        )
+        COIL = (
+            "C",
+            "Bobina",
+        )
         TRANSDUCER = "T", "Transdutor"
         NONE = "N", "Não se aplica"
 
     name = models.CharField("Nome", max_length=50)
     accessory_type = models.CharField(
-        "Tipo de acessório", max_length=1, choices=AccessoryType.choices, default=AccessoryType.NONE)
+        "Tipo de acessório",
+        max_length=1,
+        choices=AccessoryType.choices,
+        default=AccessoryType.NONE,
+    )
 
     class Meta:
         verbose_name = "Modalidade"
@@ -254,25 +287,30 @@ class Equipment(BaseEquipment, models.Model):
         verbose_name_plural (str): Human-readable plural name for the model
     """
 
-    unit = models.ForeignKey(
-        Unit, on_delete=models.CASCADE, related_name="equipments")
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="equipments")
     modality = models.ForeignKey(
-        Modality, on_delete=models.CASCADE, related_name="equipments")
+        Modality, on_delete=models.CASCADE, related_name="equipments"
+    )
     anvisa_registry = models.CharField(
-        "Registro na ANVISA", max_length=30, blank=True, null=True)
+        "Registro na ANVISA", max_length=30, blank=True, null=True
+    )
     channels = models.CharField("Canais", max_length=10, blank=True, null=True)
     official_max_load = models.IntegerField(
-        "Carga máxima oficial", blank=True, null=True)
-    usual_max_load = models.IntegerField(
-        "Carga máxima usual", blank=True, null=True)
+        "Carga máxima oficial", blank=True, null=True
+    )
+    usual_max_load = models.IntegerField("Carga máxima usual", blank=True, null=True)
     purchase_installation_date = models.DateField(
-        "Data de instalação da compra", blank=True, null=True)
+        "Data de instalação da compra", blank=True, null=True
+    )
     maintenance_responsable = models.CharField(
-        "Responsável pela manutenção", max_length=50, blank=True, null=True)
+        "Responsável pela manutenção", max_length=50, blank=True, null=True
+    )
     email_maintenance_responsable = models.EmailField(
-        "E-mail do responsável pela manutenção", blank=True, null=True)
+        "E-mail do responsável pela manutenção", blank=True, null=True
+    )
     phone_maintenance_responsable = models.CharField(
-        "Telefone do responsável pela manutenção", max_length=13, blank=True, null=True)
+        "Telefone do responsável pela manutenção", max_length=13, blank=True, null=True
+    )
 
     @admin.display(description="Cliente")
     def client(self):
@@ -305,9 +343,11 @@ class Accessory(BaseEquipment, models.Model):
     """
 
     equipment = models.ForeignKey(
-        Equipment, on_delete=models.CASCADE, related_name="accessories")
+        Equipment, on_delete=models.CASCADE, related_name="accessories"
+    )
     category = models.CharField(
-        "Categoria", max_length=1, choices=Modality.AccessoryType.choices)
+        "Categoria", max_length=1, choices=Modality.AccessoryType.choices
+    )
 
     class Meta:
         verbose_name = "Acessório"
@@ -322,7 +362,7 @@ class Proposal(models.Model):
     Attributes:
         cnpj (CharField): Brazilian company registration number (14 digits)
         state (CharField): State where the institution is located
-        city (CharField): City where the institution is located 
+        city (CharField): City where the institution is located
         contact_name (CharField): Name of the contact person
         contact_phone (CharField): Contact person's phone number
         email (EmailField): Contact person's email address
@@ -338,39 +378,52 @@ class Proposal(models.Model):
         verbose_name: "Proposta"
         verbose_name_plural: "Propostas"
     """
+
     class Status(TextChoices):
-        ACCEPTED = "A", "Aceito",
-        REJECTED = "R", "Rejeitado",
+        ACCEPTED = (
+            "A",
+            "Aceito",
+        )
+        REJECTED = (
+            "R",
+            "Rejeitado",
+        )
         PENDING = "P", "Pendente"
 
     class ContractType(TextChoices):
-        ANNUAL = "A", "Anual",
+        ANNUAL = (
+            "A",
+            "Anual",
+        )
         MONTHLY = "M", "Mensal"
 
-    cnpj = models.CharField("CNPJ", max_length=14, validators=[
-                            CNPJValidator()])
-    state = models.CharField("Estado da instituição",
-                             max_length=2, choices=STATE_CHOICES)
-    city = models.CharField("Cidade da instituição",
-                            max_length=50)
-    contact_name = models.CharField(
-        "Nome do contato", max_length=50)
+    cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
+    state = models.CharField(
+        "Estado da instituição", max_length=2, choices=STATE_CHOICES
+    )
+    city = models.CharField("Cidade da instituição", max_length=50)
+    contact_name = models.CharField("Nome do contato", max_length=50)
     contact_phone = models.CharField("Telefone do contato", max_length=13)
     email = models.EmailField("E-mail do contato")
     date = models.DateField("Data da proposta", default=date.today)
-    value = models.DecimalField(
-        "Valor proposto", max_digits=10, decimal_places=2)
+    value = models.DecimalField("Valor proposto", max_digits=10, decimal_places=2)
     contract_type = models.CharField(
-        "Tipo de contrato", max_length=1, choices=ContractType.choices)
+        "Tipo de contrato", max_length=1, choices=ContractType.choices
+    )
     status = models.CharField(
-        max_length=1, choices=Status.choices, blank=False, null=False, default=Status.PENDING)
+        max_length=1,
+        choices=Status.choices,
+        blank=False,
+        null=False,
+        default=Status.PENDING,
+    )
 
     def approved_client(self):
         if self.status == "A":
             return True
         return False
 
-    @admin.display(description='Mês da Proposta')
+    @admin.display(description="Mês da Proposta")
     def proposal_month(self):
         month_num = self.date.month
         return _(calendar.month_name[month_num])
@@ -382,3 +435,43 @@ class Proposal(models.Model):
 
     def __str__(self) -> str:
         return f"Proposta {self.cnpj} - {self.contact_name}"
+
+
+class Visit(models.Model):
+    class Status(TextChoices):
+        PENDING = (
+            "P",
+            "Pendente",
+        )
+        CONFIRMED = (
+            "C",
+            "Confirmado",
+        )
+        FULFILLED = (
+            "F",
+            "Realizado",
+        )
+        UNFULFILLED = "U", "Não realizado"
+
+    date = models.DateTimeField("Data")
+    status = models.CharField(
+        "Status", max_length=1, choices=Status.choices, default=Status.PENDING
+    )
+    contact_phone = models.CharField("Telefone do contato", max_length=13)
+    contact_name = models.CharField("Nome do contato", max_length=50)
+    service_order = models.FileField("Ordem de Serviço", blank=True, null=True)
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name="visits",
+        blank=True,
+        null=True,
+        verbose_name="Cliente",
+    )
+
+    class Meta:
+        verbose_name = "Visita"
+        verbose_name_plural = "Visitas"
+
+    def __str__(self) -> str:
+        return f"Visita ${self.client.name} - ${self.date.day}"
