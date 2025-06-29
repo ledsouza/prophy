@@ -465,7 +465,9 @@ class UnitViewSet(viewsets.ViewSet):
     def list(self, request):
         user = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
-            queryset = UnitOperation.objects.all()
+            queryset = UnitOperation.objects.filter(
+                operation_status=UnitOperation.OperationStatus.ACCEPTED
+            )
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             queryset = UnitOperation.objects.filter(
                 user=user,
@@ -529,7 +531,9 @@ class EquipmentViewSet(viewsets.ViewSet):
     def list(self, request):
         user: UserAccount = request.user
         if user.role == UserAccount.Role.PROPHY_MANAGER:
-            queryset = EquipmentOperation.objects.all()
+            queryset = EquipmentOperation.objects.filter(
+                operation_status=EquipmentOperation.OperationStatus.ACCEPTED
+            )
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             queryset = EquipmentOperation.objects.filter(
                 unit__user=user,

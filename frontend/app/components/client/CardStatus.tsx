@@ -15,9 +15,7 @@ function CardStatus({ status }: CardStatusProps) {
                 <Typography className="text-danger">Rejeitada</Typography>
             )}
             {status === OperationStatus.REVIEW && (
-                <Typography className="text-primary">
-                    Requisição em análise
-                </Typography>
+                <Typography className="text-warning">Pendente</Typography>
             )}
         </>
     );

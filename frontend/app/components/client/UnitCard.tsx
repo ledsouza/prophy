@@ -160,7 +160,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
 
     return (
         <div className={containerStyle} data-testid={dataTestId}>
-            <div className="flex justify-between gap-28 pb-4">
+            <div className="flex justify-between gap-24 pb-4">
                 <div className="flex flex-col">
                     <Typography element="h3" size="title3" dataTestId="unit-name">
                         {unit.name}
