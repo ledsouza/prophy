@@ -395,7 +395,11 @@ class Proposal(models.Model):
             "A",
             "Anual",
         )
-        MONTHLY = "M", "Mensal"
+        MONTHLY = (
+            "M",
+            "Mensal",
+        )
+        WEEKLY = "W", "Semanal"
 
     cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
     state = models.CharField(
@@ -437,6 +441,11 @@ class Proposal(models.Model):
         return f"Proposta {self.cnpj} - {self.contact_name}"
 
 
+class ServiceOrder(models.Model):
+    subject = models.CharField("Assunto", max_length=50)
+    activities = models.TextField("Atividades")
+
+
 class Visit(models.Model):
     class Status(TextChoices):
         PENDING = (
@@ -459,15 +468,45 @@ class Visit(models.Model):
     )
     contact_phone = models.CharField("Telefone do contato", max_length=13)
     contact_name = models.CharField("Nome do contato", max_length=50)
-    service_order = models.FileField("Ordem de Serviço", blank=True, null=True)
-    client = models.ForeignKey(
-        Client,
+    service_order = models.OneToOneField(
+        ServiceOrder,
+        on_delete=models.CASCADE,
+        related_name="visit",
+        verbose_name="Ordem de Serviço",
+    )
+    unit = models.ForeignKey(
+        Unit,
         on_delete=models.CASCADE,
         related_name="visits",
         blank=True,
         null=True,
-        verbose_name="Cliente",
+        verbose_name="Unidade",
     )
+
+    @property
+    def periodicity(self) -> str | None:
+        """
+        Calculates the contract periodicity for this visit.
+
+        It finds the most recent, approved proposal for the client
+        associated with this visit's unit and returns its contract type.
+        Returns None if no such proposal or client is found.
+        """
+        try:
+            client_cnpj = self.unit.client.cnpj
+        except AttributeError:
+            return None
+
+        latest_approved_proposal = (
+            Proposal.objects.filter(cnpj=client_cnpj, status=Proposal.Status.ACCEPTED)
+            .order_by("-date")
+            .first()
+        )
+
+        if latest_approved_proposal:
+            return latest_approved_proposal.contract_type
+
+        return None
 
     class Meta:
         verbose_name = "Visita"
