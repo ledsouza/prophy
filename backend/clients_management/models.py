@@ -1,12 +1,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from datetime import date
+from datetime import date, timedelta
 from django.db import models
 from django.contrib import admin
 from django.db.models import TextChoices
 from django.utils.translation import gettext as _
 from django.utils.html import format_html
+from django.core.exceptions import ValidationError
 
 from users.models import UserAccount
 from clients_management.validators import CNPJValidator
@@ -514,3 +515,142 @@ class Visit(models.Model):
 
     def __str__(self) -> str:
         return f"Visita ${self.client.name} - ${self.date.day}"
+
+
+class Report(models.Model):
+    """
+    A Django model representing reports in the system.
+
+    This model stores information about various types of reports including quality control,
+    training, and safety reports. Each report has specific validation rules based on its type
+    and automatic due date calculation.
+
+    Attributes:
+        completion_date (DateField): Date when the report was completed
+        due_date (DateField): Due date calculated based on report type and completion date
+        file (FileField): The report document file
+        unit (ForeignKey): Reference to Unit (optional, depends on report type)
+        equipment (ForeignKey): Reference to Equipment (optional, depends on report type)
+        report_type (CharField): Type of report, chosen from ReportType choices
+    """
+
+    class ReportType(TextChoices):
+        QUALITY_CONTROL = "CQ", "Controle de Qualidade"
+        MONITOR_QUALITY_CONTROL = "CQM", "Controle de Qualidade de Monitores"
+        EPI_TEST = "TE", "Teste de EPI"
+        RADIOMETRIC_SURVEY = "LR", "Levantamento Radiométrico e Fuga de Cabeçote"
+        MEMORIAL = "M", "Memorial"
+        RADIOPROTECTION_TRAINING = "TR", "Treinamento de Radioproteção"
+        MRI_SAFETY_TRAINING = "TSR", "Treinamento de Segurança em Ressonância Magnética"
+        DESIGNATION_ACT = "AD", "Ato de designação"
+        DOSE_INVESTIGATION = "ID", "Investigação de dose"
+        POP = "POP", "POP"
+        OTHERS = "O", "Outros"
+
+    EQUIPMENT_ONLY_TYPES = [
+        ReportType.QUALITY_CONTROL,
+        ReportType.EPI_TEST,
+        ReportType.RADIOMETRIC_SURVEY,
+    ]
+
+    UNIT_ONLY_TYPES = [
+        ReportType.MONITOR_QUALITY_CONTROL,
+        ReportType.MEMORIAL,
+        ReportType.RADIOPROTECTION_TRAINING,
+        ReportType.MRI_SAFETY_TRAINING,
+        ReportType.DESIGNATION_ACT,
+        ReportType.DOSE_INVESTIGATION,
+        ReportType.POP,
+        ReportType.OTHERS,
+    ]
+
+    completion_date = models.DateField("Data realizado")
+    due_date = models.DateField("Data de vencimento", blank=True, null=True)
+    file = models.FileField("Arquivo", upload_to="reports/")
+    unit = models.ForeignKey(
+        Unit,
+        on_delete=models.CASCADE,
+        related_name="reports",
+        blank=True,
+        null=True,
+        verbose_name="Unidade",
+    )
+    equipment = models.ForeignKey(
+        Equipment,
+        on_delete=models.CASCADE,
+        related_name="reports",
+        blank=True,
+        null=True,
+        verbose_name="Equipamento",
+    )
+    report_type = models.CharField(
+        "Tipo",
+        max_length=3,
+        choices=ReportType.choices,
+    )
+
+    def clean(self):
+        """
+        Validates the Unit/Equipment association based on report type.
+
+        Raises:
+            ValidationError: If the wrong association is provided for the report type
+        """
+        super().clean()
+
+        if self.report_type in self.EQUIPMENT_ONLY_TYPES:
+            if not self.equipment:
+                raise ValidationError(
+                    {
+                        "equipment": f'Relatórios do tipo "{self.get_report_type_display()}" devem ter um equipamento associado.'
+                    }
+                )
+            if self.unit:
+                raise ValidationError(
+                    {
+                        "unit": f'Relatórios do tipo "{self.get_report_type_display()}" não devem ter uma unidade associada.'
+                    }
+                )
+
+        elif self.report_type in self.UNIT_ONLY_TYPES:
+            if not self.unit:
+                raise ValidationError(
+                    {
+                        "unit": f'Relatórios do tipo "{self.get_report_type_display()}" devem ter uma unidade associada.'
+                    }
+                )
+            if self.equipment:
+                raise ValidationError(
+                    {
+                        "equipment": f'Relatórios do tipo "{self.get_report_type_display()}" não devem ter um equipamento associado.'
+                    }
+                )
+
+    def save(self, *args, **kwargs):
+        """
+        Calculates the due date automatically before saving based on completion date and report type.
+        """
+        if self.completion_date and not self.due_date:
+            if self.report_type == self.ReportType.RADIOMETRIC_SURVEY:
+                # 4 years validity for Radiometric Survey
+                self.due_date = self.completion_date + timedelta(days=4 * 365)
+            else:
+                # 1 year validity for all other types
+                self.due_date = self.completion_date + timedelta(days=365)
+
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        entity_name = ""
+        if self.unit:
+            entity_name = f" - {self.unit.name}"
+        elif self.equipment:
+            entity_name = f" - {self.equipment}"
+
+        return f"{self.get_report_type_display()}{entity_name} ({self.completion_date})"
+
+    class Meta:
+        verbose_name = "Relatório"
+        verbose_name_plural = "Relatórios"
+        ordering = ["-completion_date"]
