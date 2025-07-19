@@ -29,12 +29,26 @@ export type EquipmentOperationDTO = EquipmentDTO &
 
 const equipmentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        listEquipments: builder.query<PaginatedResponse<EquipmentDTO>, ListQueryParams>({
-            query: ({ page = 1 }) => ({
-                url: "equipments/",
-                method: "GET",
-                params: { page },
-            }),
+        listEquipments: builder.query<
+            PaginatedResponse<EquipmentDTO>,
+            ListQueryParams & {
+                modality?: number;
+                manufacturer?: string;
+                client?: number;
+            }
+        >({
+            query: ({ page = 1, modality, manufacturer, client }) => {
+                const params: Record<string, any> = { page };
+                if (modality) params.modality = modality;
+                if (manufacturer) params.manufacturer = manufacturer;
+                if (client) params.client = client;
+
+                return {
+                    url: "equipments/",
+                    method: "GET",
+                    params,
+                };
+            },
             providesTags: (result) =>
                 result
                     ? [
@@ -45,6 +59,13 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
                           { type: "Equipment", id: "LIST" },
                       ]
                     : [{ type: "Equipment", id: "LIST" }],
+        }),
+        getManufacturers: builder.query<{ manufacturers: string[] }, void>({
+            query: () => ({
+                url: "equipments/manufacturers/",
+                method: "GET",
+            }),
+            providesTags: [{ type: "Equipment", id: "MANUFACTURERS" }],
         }),
         listAllEquipments: builder.query<EquipmentDTO[], void>({
             async queryFn(_arg, _queryApi, _extraOptions, baseQuery) {
@@ -189,6 +210,7 @@ export const {
     useListEquipmentsQuery,
     useListAllEquipmentsQuery,
     useListAllEquipmentsOperationsQuery,
+    useGetManufacturersQuery,
     useCreateAddEquipmentOperationMutation,
     useCreateEditEquipmentOperationMutation,
     useCreateDeleteEquipmentOperationMutation,
