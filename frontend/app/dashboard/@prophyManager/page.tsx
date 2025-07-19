@@ -14,7 +14,7 @@ import { Typography } from "@/components/foundation";
 import { Input, Select } from "@/components/forms";
 import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/common";
 
-function SearchClientPage() {
+function SearchPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -502,4 +502,4 @@ function SearchClientPage() {
     );
 }
 
-export default SearchClientPage;
+export default SearchPage;
