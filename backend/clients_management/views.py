@@ -5,6 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.request import Request
+from rest_framework.decorators import action
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -20,7 +21,7 @@ from clients_management.serializers import (
     EquipmentSerializer,
     ModalitySerializer,
     AccessorySerializer,
-    ProposalSerializer
+    ProposalSerializer,
 )
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
 from requisitions.serializers import EquipmentOperation
@@ -88,8 +89,7 @@ class LatestProposalStatusView(APIView):
             cnpj = serializer.validated_data["cnpj"]
 
             try:
-                latest_client = Proposal.objects.filter(
-                    cnpj=cnpj).latest("date")
+                latest_client = Proposal.objects.filter(cnpj=cnpj).latest("date")
                 return Response(
                     {"status": latest_client.approved_client()},
                     status=status.HTTP_200_OK,
@@ -158,16 +158,32 @@ class ProposalViewSet(viewsets.ViewSet):
         if not user.role == UserAccount.Role.PROPHY_MANAGER:
             return Response(
                 {"detail": "You do not have permission to perform this action."},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-        queryset = Proposal.objects.all()
+        queryset = self._get_base_queryset()
+        queryset = self._apply_filters(queryset, request.query_params)
+        return self._paginate_response(queryset, request)
 
-        cnpj = request.query_params.get("cnpj")
+    def _get_base_queryset(self):
+        """
+        Get base queryset for proposals.
+        """
+        return Proposal.objects.all()
+
+    def _apply_filters(self, queryset, query_params):
+        """
+        Apply filtering based on query parameters.
+        """
+        cnpj = query_params.get("cnpj")
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
+        return queryset
 
-        # Pagination
+    def _paginate_response(self, queryset, request):
+        """
+        Handle pagination and serialization of the queryset.
+        """
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
@@ -303,9 +319,17 @@ class ClientViewSet(viewsets.ViewSet):
         },
     )
     def list(self, request):
-        user = request.user
+        queryset = self._get_base_queryset(request.user)
+        queryset = self._apply_filters(queryset, request.query_params)
+        queryset = queryset.order_by("id")
+        return self._paginate_response(queryset, request)
+
+    def _get_base_queryset(self, user):
+        """
+        Get base queryset based on user role and permissions.
+        """
         if user.role == UserAccount.Role.PROPHY_MANAGER:
-            queryset = ClientOperation.objects.all()
+            return ClientOperation.objects.all()
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             user_managed_unit_operations = UnitOperation.objects.filter(
                 user=user,
@@ -315,109 +339,103 @@ class ClientViewSet(viewsets.ViewSet):
             client_ids_from_units = user_managed_unit_operations.values_list(
                 "client_id", flat=True
             ).distinct()
-            queryset = ClientOperation.objects.filter(
+            return ClientOperation.objects.filter(
                 pk__in=client_ids_from_units,
                 active=True,
                 operation_status=ClientOperation.OperationStatus.ACCEPTED,
             )
         else:
-            queryset = ClientOperation.objects.filter(
+            return ClientOperation.objects.filter(
                 users=user,
                 active=True,
                 operation_status=ClientOperation.OperationStatus.ACCEPTED,
             )
 
-        # Apply filters
-        cnpj = request.query_params.get("cnpj")
+    def _apply_filters(self, queryset, query_params):
+        """
+        Apply filtering based on query parameters.
+        """
+        cnpj = query_params.get("cnpj")
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
 
-        name = request.query_params.get("name")
+        name = query_params.get("name")
         if name is not None:
             queryset = queryset.filter(name__icontains=name)
 
-        city = request.query_params.get("city")
+        city = query_params.get("city")
         if city is not None:
             queryset = queryset.filter(city=city)
 
-        user_role = request.query_params.get("user_role")
+        user_role = query_params.get("user_role")
         if user_role is not None:
-            # Filter clients that have users with the specified role
             queryset = queryset.filter(users__role=user_role)
 
-        contract_type = request.query_params.get("contract_type")
+        contract_type = query_params.get("contract_type")
         if contract_type is not None:
-            # Find clients with most recent accepted proposal of specified contract type
-            most_recent_proposals = Proposal.objects.filter(
-                cnpj=OuterRef('cnpj'),
-                status=Proposal.Status.ACCEPTED
-            ).order_by('-date')
+            queryset = self._filter_by_contract_type(queryset, contract_type)
 
-            clients_with_contract_type = Proposal.objects.filter(
-                status=Proposal.Status.ACCEPTED,
-                contract_type=contract_type,
-                pk__in=Subquery(most_recent_proposals.values('pk')[:1])
-            ).values_list('cnpj', flat=True)
-
-            queryset = queryset.filter(cnpj__in=clients_with_contract_type)
-
-        operation_status = request.query_params.get("operation_status")
+        operation_status = query_params.get("operation_status")
         if operation_status is not None:
-            if operation_status == "pending":
-                # Show only clients with ongoing operations (REV status)
-                has_client_ops = ClientOperation.objects.filter(
-                    Q(cnpj=OuterRef('cnpj')) | Q(
-                        original_client__cnpj=OuterRef('cnpj')),
-                    operation_status=ClientOperation.OperationStatus.REVIEW
-                )
+            queryset = self._filter_by_operation_status(queryset, operation_status)
 
-                has_unit_ops = UnitOperation.objects.filter(
-                    Q(client__cnpj=OuterRef('cnpj')) | Q(
-                        original_unit__client__cnpj=OuterRef('cnpj')),
-                    operation_status=UnitOperation.OperationStatus.REVIEW
-                )
+        return queryset
 
-                has_equipment_ops = EquipmentOperation.objects.filter(
-                    Q(unit__client__cnpj=OuterRef('cnpj')) | Q(
-                        original_equipment__unit__client__cnpj=OuterRef('cnpj')),
-                    operation_status=EquipmentOperation.OperationStatus.REVIEW
-                )
+    def _filter_by_contract_type(self, queryset, contract_type):
+        """
+        Filter clients by contract type from most recent accepted proposal.
+        """
+        most_recent_proposals = Proposal.objects.filter(
+            cnpj=OuterRef("cnpj"), status=Proposal.Status.ACCEPTED
+        ).order_by("-date")
 
-                queryset = queryset.filter(
-                    Q(Exists(has_client_ops)) |
-                    Q(Exists(has_unit_ops)) |
-                    Q(Exists(has_equipment_ops))
-                )
+        clients_with_contract_type = Proposal.objects.filter(
+            status=Proposal.Status.ACCEPTED,
+            contract_type=contract_type,
+            pk__in=Subquery(most_recent_proposals.values("pk")[:1]),
+        ).values_list("cnpj", flat=True)
 
-            elif operation_status == "none":
-                # Show only clients without ongoing operations
-                has_client_ops = ClientOperation.objects.filter(
-                    Q(cnpj=OuterRef('cnpj')) | Q(
-                        original_client__cnpj=OuterRef('cnpj')),
-                    operation_status=ClientOperation.OperationStatus.REVIEW
-                )
+        return queryset.filter(cnpj__in=clients_with_contract_type)
 
-                has_unit_ops = UnitOperation.objects.filter(
-                    Q(client__cnpj=OuterRef('cnpj')) | Q(
-                        original_unit__client__cnpj=OuterRef('cnpj')),
-                    operation_status=UnitOperation.OperationStatus.REVIEW
-                )
+    def _filter_by_operation_status(self, queryset, operation_status):
+        """
+        Filter clients by operation status (pending or none).
+        """
+        has_client_ops = ClientOperation.objects.filter(
+            Q(cnpj=OuterRef("cnpj")) | Q(original_client__cnpj=OuterRef("cnpj")),
+            operation_status=ClientOperation.OperationStatus.REVIEW,
+        )
 
-                has_equipment_ops = EquipmentOperation.objects.filter(
-                    Q(unit__client__cnpj=OuterRef('cnpj')) | Q(
-                        original_equipment__unit__client__cnpj=OuterRef('cnpj')),
-                    operation_status=EquipmentOperation.OperationStatus.REVIEW
-                )
+        has_unit_ops = UnitOperation.objects.filter(
+            Q(client__cnpj=OuterRef("cnpj"))
+            | Q(original_unit__client__cnpj=OuterRef("cnpj")),
+            operation_status=UnitOperation.OperationStatus.REVIEW,
+        )
 
-                queryset = queryset.filter(
-                    ~Q(Exists(has_client_ops)) &
-                    ~Q(Exists(has_unit_ops)) &
-                    ~Q(Exists(has_equipment_ops))
-                )
+        has_equipment_ops = EquipmentOperation.objects.filter(
+            Q(unit__client__cnpj=OuterRef("cnpj"))
+            | Q(original_equipment__unit__client__cnpj=OuterRef("cnpj")),
+            operation_status=EquipmentOperation.OperationStatus.REVIEW,
+        )
 
-        queryset = queryset.order_by("id")
+        if operation_status == "pending":
+            return queryset.filter(
+                Q(Exists(has_client_ops))
+                | Q(Exists(has_unit_ops))
+                | Q(Exists(has_equipment_ops))
+            )
+        elif operation_status == "none":
+            return queryset.filter(
+                ~Q(Exists(has_client_ops))
+                & ~Q(Exists(has_unit_ops))
+                & ~Q(Exists(has_equipment_ops))
+            )
+        return queryset
 
-        # Pagination
+    def _paginate_response(self, queryset, request):
+        """
+        Handle pagination and serialization of the queryset.
+        """
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
@@ -463,27 +481,35 @@ class UnitViewSet(viewsets.ViewSet):
         },
     )
     def list(self, request):
-        user = request.user
+        queryset = self._get_base_queryset(request.user)
+        queryset = queryset.order_by("client")
+        return self._paginate_response(queryset, request)
+
+    def _get_base_queryset(self, user):
+        """
+        Get base queryset based on user role and permissions.
+        """
         if user.role == UserAccount.Role.PROPHY_MANAGER:
-            queryset = UnitOperation.objects.filter(
+            return UnitOperation.objects.filter(
                 operation_status=UnitOperation.OperationStatus.ACCEPTED
             )
         elif user.role == UserAccount.Role.UNIT_MANAGER:
-            queryset = UnitOperation.objects.filter(
+            return UnitOperation.objects.filter(
                 user=user,
                 client__active=True,
                 operation_status=UnitOperation.OperationStatus.ACCEPTED,
             )
         else:
-            queryset = UnitOperation.objects.filter(
+            return UnitOperation.objects.filter(
                 client__users=user,
                 client__active=True,
                 operation_status=UnitOperation.OperationStatus.ACCEPTED,
             )
 
-        queryset = queryset.order_by("client")
-
-        # Pagination
+    def _paginate_response(self, queryset, request):
+        """
+        Handle pagination and serialization of the queryset.
+        """
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
@@ -502,7 +528,7 @@ class EquipmentViewSet(viewsets.ViewSet):
     @swagger_auto_schema(
         operation_summary="List accepted equipments",
         operation_description="""
-        Retrieve a paginated list of accepted equipments.
+        Retrieve a paginated list of accepted equipments with filtering support.
 
         ```json
         {
@@ -512,6 +538,12 @@ class EquipmentViewSet(viewsets.ViewSet):
             "results": [
                 {
                     "id": 1,
+                    "manufacturer": "Siemens",
+                    "model": "MAGNETOM",
+                    "modality": {
+                        "id": 1,
+                        "name": "Ressonância Magnética"
+                    },
                     // ... other equipment fields
                 },
                 // ... more equipments on this page
@@ -519,37 +551,125 @@ class EquipmentViewSet(viewsets.ViewSet):
         }
         ```
         """,
+        manual_parameters=[
+            openapi.Parameter(
+                name="modality",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Filter equipments by modality ID.",
+            ),
+            openapi.Parameter(
+                name="manufacturer",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter equipments by manufacturer name (case-insensitive contains).",
+            ),
+            openapi.Parameter(
+                name="client",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Filter equipments by client ID (through unit relationship).",
+            ),
+        ],
         responses={
             200: openapi.Response(
                 description="Paginated list of accepted equipments",
-                schema=ClientSerializer(many=True),
+                schema=EquipmentSerializer(many=True),
             ),
             401: "Unauthorized access",
             403: "Permission denied",
         },
     )
     def list(self, request):
-        user: UserAccount = request.user
+        queryset = self._get_base_queryset(request.user)
+        queryset = self._apply_filters(queryset, request.query_params)
+        queryset = queryset.order_by("unit")
+        return self._paginate_response(queryset, request)
+
+    @action(detail=False, methods=["get"])
+    @swagger_auto_schema(
+        operation_summary="Get unique manufacturer names",
+        operation_description="""
+        Retrieve a list of unique manufacturer names from all accessible equipments.
+        This endpoint is useful for populating dropdown filter options in the frontend.
+        
+        ```json
+        {
+            "manufacturers": [
+                "Siemens",
+                "GE Healthcare",
+                "Philips",
+                "Canon"
+            ]
+        }
+        ```
+        """,
+        responses={
+            200: openapi.Response(
+                description="List of unique manufacturer names",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "manufacturers": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Items(type=openapi.TYPE_STRING),
+                            description="Array of unique manufacturer names",
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def manufacturers(self, request):
+        queryset = self._get_base_queryset(request.user)
+        manufacturers = self._get_unique_manufacturers(queryset)
+        return Response({"manufacturers": manufacturers}, status=status.HTTP_200_OK)
+
+    def _get_base_queryset(self, user: UserAccount):
+        """
+        Get base queryset based on user role and permissions.
+        """
         if user.role == UserAccount.Role.PROPHY_MANAGER:
-            queryset = EquipmentOperation.objects.filter(
+            return EquipmentOperation.objects.filter(
                 operation_status=EquipmentOperation.OperationStatus.ACCEPTED
             )
         elif user.role == UserAccount.Role.UNIT_MANAGER:
-            queryset = EquipmentOperation.objects.filter(
+            return EquipmentOperation.objects.filter(
                 unit__user=user,
                 unit__client__active=True,
                 operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
             )
         else:
-            queryset = EquipmentOperation.objects.filter(
+            return EquipmentOperation.objects.filter(
                 unit__client__users=user,
                 unit__client__active=True,
                 operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
             )
 
-        queryset = queryset.order_by("unit")
+    def _apply_filters(self, queryset, query_params):
+        """
+        Apply filtering based on query parameters.
+        """
+        modality = query_params.get("modality")
+        if modality is not None:
+            queryset = queryset.filter(modality=modality)
 
-        # Pagination
+        manufacturer = query_params.get("manufacturer")
+        if manufacturer is not None:
+            queryset = queryset.filter(manufacturer__icontains=manufacturer)
+
+        client = query_params.get("client")
+        if client is not None:
+            queryset = queryset.filter(unit__client=client)
+
+        return queryset
+
+    def _paginate_response(self, queryset, request):
+        """
+        Handle pagination and serialization of the queryset.
+        """
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
@@ -558,6 +678,14 @@ class EquipmentViewSet(viewsets.ViewSet):
         else:
             serializer = EquipmentSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _get_unique_manufacturers(self, queryset):
+        """
+        Extract unique manufacturer names from queryset.
+        """
+        manufacturers = queryset.values_list("manufacturer", flat=True).distinct()
+        manufacturers = [m for m in manufacturers if m]  # Filter out None/empty strings
+        return sorted(manufacturers)  # Sort alphabetically
 
 
 class ModalityViewSet(viewsets.ViewSet):
@@ -667,8 +795,7 @@ class ModalityViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = ModalitySerializer(
-            modality, data=request.data, partial=True)
+        serializer = ModalitySerializer(modality, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -732,18 +859,21 @@ class AccessoryViewSet(viewsets.ViewSet):
         """
         Return a list of all accessories.
         """
-        user: UserAccount = request.user
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
-            queryset = Accessory.objects.all()
-        elif user.role == UserAccount.Role.UNIT_MANAGER:
-            units = UnitOperation.objects.filter(user=user)
-            queryset = Accessory.objects.filter(equipment__unit__in=units)
-        else:
-            queryset = Accessory.objects.filter(
-                equipment__unit__client__users=user)
-
+        queryset = self._get_base_queryset(request.user)
         serializer = AccessorySerializer(queryset, many=True)
         return Response(serializer.data)
+
+    def _get_base_queryset(self, user: UserAccount):
+        """
+        Get base queryset based on user role and permissions.
+        """
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            return Accessory.objects.all()
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            units = UnitOperation.objects.filter(user=user)
+            return Accessory.objects.filter(equipment__unit__in=units)
+        else:
+            return Accessory.objects.filter(equipment__unit__client__users=user)
 
     @swagger_auto_schema(
         operation_summary="Create a new accessory",
@@ -794,8 +924,7 @@ class AccessoryViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = AccessorySerializer(
-            accessory, data=request.data, partial=True)
+        serializer = AccessorySerializer(accessory, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

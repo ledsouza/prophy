@@ -61,10 +61,8 @@ function SearchPage() {
         return params;
     }, [currentPage, appliedFilters]);
 
-    // API query with server-side filtering
     const { data: clientsData, isLoading, error } = useListClientsQuery(queryParams);
 
-    // Extract clients from paginated response
     const clients = clientsData?.results || [];
     const totalClientsCount = clientsData?.count || 0;
 
@@ -170,7 +168,6 @@ function SearchPage() {
         return statusMap[optionId] || "";
     };
 
-    // Handle page change
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
 
@@ -190,12 +187,10 @@ function SearchPage() {
     };
 
     const handleApplyFilters = () => {
-        // Reset to page 1 when applying new filters
         if (currentPage !== 1) {
             setCurrentPage(1);
         }
 
-        // Apply the filters to trigger server-side filtering
         const filters = {
             name: selectedName,
             cnpj: selectedCnpj,
@@ -216,7 +211,6 @@ function SearchPage() {
             params.set("contract", selectedContractType.id.toString());
         if (selectedOperationStatus.id !== 0)
             params.set("status", selectedOperationStatus.id.toString());
-        // Always reset to page 1 when applying filters
         params.set("page", "1");
         router.push(`?${params.toString()}`);
     };
@@ -229,10 +223,8 @@ function SearchPage() {
         setSelectedContractType({ id: 0, value: "Todos" });
         setSelectedOperationStatus({ id: 0, value: "Todos" });
 
-        // Reset to page 1 when clearing filters
         setCurrentPage(1);
 
-        // Clear applied filters
         setAppliedFilters({
             name: "",
             cnpj: "",
