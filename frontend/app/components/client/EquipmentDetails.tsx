@@ -1,16 +1,16 @@
 import Image from "next/image";
-import { useState } from "react";
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
-import { useGetAccessoriesQuery, AccessoryDTO } from "@/redux/features/accessoryApiSlice";
+import { useGetAccessoriesQuery } from "@/redux/features/accessoryApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 
 import notFound from "@/assets/image-not-found.png";
 import { XCircle } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
+import { Tab } from "@/components/common";
 
 type EquipmentDetailsProps = {
     equipment: EquipmentDTO;
@@ -18,13 +18,11 @@ type EquipmentDetailsProps = {
 };
 
 function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
-    // Fetch accessories
     const { data: accessories = [] } = useGetAccessoriesQuery();
     const equipmentAccessories = accessories.filter(
         (accessory) => accessory.equipment === equipment.id
     );
 
-    // Format date if available
     const formattedDate = equipment.purchase_installation_date
         ? format(new Date(equipment.purchase_installation_date), "dd/MM/yyyy", { locale: ptBR })
         : "Não informado";
@@ -61,54 +59,10 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
             <div className="m-6">
                 <TabGroup>
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1">
-                        <Tab
-                            className={({ selected }) =>
-                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
-                            ${
-                                selected
-                                    ? "bg-white text-primary shadow"
-                                    : "text-gray-700 hover:bg-white/[0.12] hover:text-primary"
-                            }`
-                            }
-                        >
-                            Informações Gerais
-                        </Tab>
-                        <Tab
-                            className={({ selected }) =>
-                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
-                            ${
-                                selected
-                                    ? "bg-white text-primary shadow"
-                                    : "text-gray-700 hover:bg-white/[0.12] hover:text-primary"
-                            }`
-                            }
-                        >
-                            Especificações Técnicas
-                        </Tab>
-                        <Tab
-                            className={({ selected }) =>
-                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
-                            ${
-                                selected
-                                    ? "bg-white text-primary shadow"
-                                    : "text-gray-700 hover:bg-white/[0.12] hover:text-primary"
-                            }`
-                            }
-                        >
-                            Manutenção
-                        </Tab>
-                        <Tab
-                            className={({ selected }) =>
-                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
-                            ${
-                                selected
-                                    ? "bg-white text-primary shadow"
-                                    : "text-gray-700 hover:bg-white/[0.12] hover:text-primary"
-                            }`
-                            }
-                        >
-                            Acessórios ({equipmentAccessories.length})
-                        </Tab>
+                        <Tab>Informações Gerais</Tab>
+                        <Tab>Especificações Técnicas</Tab>
+                        <Tab>Manutenção</Tab>
+                        <Tab>Acessórios ({equipmentAccessories.length})</Tab>
                     </TabList>
 
                     <TabPanels className="mt-4">

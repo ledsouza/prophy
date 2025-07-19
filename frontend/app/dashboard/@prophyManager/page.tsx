@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { FileText, Info, Warning } from "@phosphor-icons/react";
 
@@ -13,52 +13,25 @@ import { usePendingOperations } from "@/hooks";
 
 import { Typography } from "@/components/foundation";
 import { Input, Select } from "@/components/forms";
-import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/common";
+import { Button, ErrorDisplay, Pagination, Spinner, Table, Tab } from "@/components/common";
 
-enum SearchTab {
-    CLIENTS = 0,
-    EQUIPMENTS = 1,
-}
-
-const TAB_PARAM_VALUES = {
-    [SearchTab.CLIENTS]: "clients",
-    [SearchTab.EQUIPMENTS]: "equipments",
-} as const;
-
-// Helper functions for URL management
-const buildUrlParams = (
-    filters: {
-        name?: string;
-        cnpj?: string;
-        city?: string;
-        userRoleId?: number;
-        contractTypeId?: number;
-        operationStatusId?: number;
-    },
-    tabIndex: SearchTab,
-    page: number = 1
-): URLSearchParams => {
-    const params = new URLSearchParams();
-
-    if (filters.name) params.set("name", filters.name);
-    if (filters.cnpj) params.set("cnpj", filters.cnpj);
-    if (filters.city) params.set("city", filters.city);
-    if (filters.userRoleId && filters.userRoleId !== 0)
-        params.set("role", filters.userRoleId.toString());
-    if (filters.contractTypeId && filters.contractTypeId !== 0)
-        params.set("contract", filters.contractTypeId.toString());
-    if (filters.operationStatusId && filters.operationStatusId !== 0)
-        params.set("status", filters.operationStatusId.toString());
-
-    params.set("tab", TAB_PARAM_VALUES[tabIndex]);
-    params.set("page", page.toString());
-
-    return params;
-};
-
-const getTabFromParam = (tabParam: string | null): SearchTab => {
-    return tabParam === "equipments" ? SearchTab.EQUIPMENTS : SearchTab.CLIENTS;
-};
+import { SearchTab } from "@/types/search";
+import {
+    USER_ROLE_OPTIONS,
+    CONTRACT_TYPE_OPTIONS,
+    OPERATION_STATUS_OPTIONS,
+} from "@/constants/search";
+import { buildUrlParams, FilterParams } from "@/utils/urlUtils";
+import {
+    restoreTabState,
+    restorePageState,
+    restoreFilterStatesFromUrl,
+    restoreSelectOptions,
+    getUserRoleFromOptionId,
+    getContractTypeFromOptionId,
+    getOperationStatusFromOptionId,
+    applyFiltersFromUrl,
+} from "@/utils/stateUtils";
 
 function SearchPage() {
     const router = useRouter();
@@ -91,7 +64,6 @@ function SearchPage() {
         value: "Todos",
     });
 
-    // Build API query parameters
     const queryParams = useMemo(() => {
         const params: any = { page: currentPage };
 
@@ -122,137 +94,68 @@ function SearchPage() {
         const pageParam = params.get("page");
         const tabParam = params.get("tab");
 
-        // Restore tab state
-        setSelectedTabIndex(getTabFromParam(tabParam));
-
-        // Restore page state
-        if (pageParam) {
-            const page = parseInt(pageParam, 10);
-            if (page > 0 && page !== currentPage) {
-                setCurrentPage(page);
-            }
-        }
-
-        // Restore filter states from URL
-        setSelectedName(name);
-        setSelectedCnpj(cnpj);
-        setSelectedCity(city);
-
-        // Restore select options
-        const role = roleId ? userRoleOptions.find((r) => r.id === Number(roleId)) : null;
-        if (role) setSelectedUserRole(role);
-
-        const contract = contractTypeId
-            ? contractTypeOptions.find((c) => c.id === Number(contractTypeId))
-            : null;
-        if (contract) setSelectedContractType(contract);
-
-        const status = operationStatusId
-            ? operationStatusOptions.find((s) => s.id === Number(operationStatusId))
-            : null;
-        if (status) setSelectedOperationStatus(status);
-
-        // Apply filters from URL
-        const filters = {
+        restoreTabState(tabParam, setSelectedTabIndex);
+        restorePageState(pageParam, currentPage, setCurrentPage);
+        restoreFilterStatesFromUrl(
             name,
             cnpj,
             city,
-            user_role: getUserRoleFromOptionId(Number(roleId) || 0),
-            contract_type: getContractTypeFromOptionId(Number(contractTypeId) || 0),
-            operation_status: getOperationStatusFromOptionId(Number(operationStatusId) || 0),
-        };
-
-        setAppliedFilters(filters);
+            setSelectedName,
+            setSelectedCnpj,
+            setSelectedCity
+        );
+        restoreSelectOptions(
+            roleId,
+            contractTypeId,
+            operationStatusId,
+            USER_ROLE_OPTIONS,
+            CONTRACT_TYPE_OPTIONS,
+            OPERATION_STATUS_OPTIONS,
+            setSelectedUserRole,
+            setSelectedContractType,
+            setSelectedOperationStatus
+        );
+        applyFiltersFromUrl(
+            name,
+            cnpj,
+            city,
+            roleId,
+            contractTypeId,
+            operationStatusId,
+            setAppliedFilters
+        );
     }, [searchParams]);
-
-    const userRoleOptions: SelectData[] = [
-        { id: 0, value: "Todos" },
-        { id: 1, value: "Físico Médico Interno" },
-        { id: 2, value: "Físico Médico Externo" },
-        { id: 3, value: "Gerente Prophy" },
-        { id: 4, value: "Gerente Geral de Cliente" },
-        { id: 5, value: "Gerente de Unidade" },
-        { id: 6, value: "Comercial" },
-    ];
-
-    const contractTypeOptions: SelectData[] = [
-        { id: 0, value: "Todos" },
-        { id: 1, value: "Anual" },
-        { id: 2, value: "Mensal" },
-        { id: 3, value: "Semanal" },
-    ];
-
-    const operationStatusOptions: SelectData[] = [
-        { id: 0, value: "Todos" },
-        { id: 1, value: "Com Operações Pendentes" },
-        { id: 2, value: "Sem Operações Pendentes" },
-    ];
-
-    const getUserRoleFromOptionId = (optionId: number): string => {
-        const roleMap: { [key: number]: string } = {
-            1: "FMI",
-            2: "FME",
-            3: "GP",
-            4: "GGC",
-            5: "GU",
-            6: "C",
-        };
-        return roleMap[optionId] || "";
-    };
-
-    const getContractTypeFromOptionId = (optionId: number): string => {
-        const contractMap: { [key: number]: string } = {
-            1: "A",
-            2: "M",
-            3: "W",
-        };
-        return contractMap[optionId] || "";
-    };
-
-    const getOperationStatusFromOptionId = (optionId: number): string => {
-        const statusMap: { [key: number]: string } = {
-            1: "pending",
-            2: "none",
-        };
-        return statusMap[optionId] || "";
-    };
 
     const handleTabChange = (index: number) => {
         setSelectedTabIndex(index);
         setCurrentPage(1);
 
-        const params = buildUrlParams(
-            {
-                name: selectedName,
-                cnpj: selectedCnpj,
-                city: selectedCity,
-                userRoleId: selectedUserRole.id,
-                contractTypeId: selectedContractType.id,
-                operationStatusId: selectedOperationStatus.id,
-            },
-            index as SearchTab,
-            1
-        );
+        const filterParams: FilterParams = {
+            name: selectedName,
+            cnpj: selectedCnpj,
+            city: selectedCity,
+            userRoleId: selectedUserRole.id,
+            contractTypeId: selectedContractType.id,
+            operationStatusId: selectedOperationStatus.id,
+        };
 
+        const params = buildUrlParams(filterParams, index as SearchTab, 1);
         router.push(`?${params.toString()}`);
     };
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
 
-        const params = buildUrlParams(
-            {
-                name: selectedName,
-                cnpj: selectedCnpj,
-                city: selectedCity,
-                userRoleId: selectedUserRole.id,
-                contractTypeId: selectedContractType.id,
-                operationStatusId: selectedOperationStatus.id,
-            },
-            selectedTabIndex,
-            page
-        );
+        const filterParams: FilterParams = {
+            name: selectedName,
+            cnpj: selectedCnpj,
+            city: selectedCity,
+            userRoleId: selectedUserRole.id,
+            contractTypeId: selectedContractType.id,
+            operationStatusId: selectedOperationStatus.id,
+        };
 
+        const params = buildUrlParams(filterParams, selectedTabIndex, page);
         router.push(`?${params.toString()}`);
     };
 
@@ -272,18 +175,16 @@ function SearchPage() {
 
         setAppliedFilters(filters);
 
-        const params = buildUrlParams(
-            {
-                name: selectedName,
-                cnpj: selectedCnpj,
-                city: selectedCity,
-                userRoleId: selectedUserRole.id,
-                contractTypeId: selectedContractType.id,
-                operationStatusId: selectedOperationStatus.id,
-            },
-            selectedTabIndex,
-            1
-        );
+        const filterParams: FilterParams = {
+            name: selectedName,
+            cnpj: selectedCnpj,
+            city: selectedCity,
+            userRoleId: selectedUserRole.id,
+            contractTypeId: selectedContractType.id,
+            operationStatusId: selectedOperationStatus.id,
+        };
+
+        const params = buildUrlParams(filterParams, selectedTabIndex, 1);
 
         router.push(`?${params.toString()}`);
     };
@@ -341,30 +242,8 @@ function SearchPage() {
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
-                        <Tab
-                            className={({ selected }) =>
-                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
-                            ${
-                                selected
-                                    ? "bg-white text-primary shadow"
-                                    : "text-gray-700 hover:bg-white/[0.12] hover:text-primary"
-                            }`
-                            }
-                        >
-                            Clientes
-                        </Tab>
-                        <Tab
-                            className={({ selected }) =>
-                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
-                            ${
-                                selected
-                                    ? "bg-white text-primary shadow"
-                                    : "text-gray-700 hover:bg-white/[0.12] hover:text-primary"
-                            }`
-                            }
-                        >
-                            Equipamentos
-                        </Tab>
+                        <Tab>Clientes</Tab>
+                        <Tab>Equipamentos</Tab>
                     </TabList>
 
                     <TabPanels>
@@ -396,7 +275,7 @@ function SearchPage() {
                                 </Input>
 
                                 <Select
-                                    options={userRoleOptions}
+                                    options={USER_ROLE_OPTIONS}
                                     selectedData={selectedUserRole}
                                     setSelect={setSelectedUserRole}
                                     label="Perfil de Usuário"
@@ -404,7 +283,7 @@ function SearchPage() {
                                 />
 
                                 <Select
-                                    options={contractTypeOptions}
+                                    options={CONTRACT_TYPE_OPTIONS}
                                     selectedData={selectedContractType}
                                     setSelect={setSelectedContractType}
                                     label="Tipo de Contrato"
@@ -432,7 +311,7 @@ function SearchPage() {
                                                 )}
                                             </div>
                                             <Select
-                                                options={operationStatusOptions}
+                                                options={OPERATION_STATUS_OPTIONS}
                                                 selectedData={selectedOperationStatus}
                                                 setSelect={setSelectedOperationStatus}
                                                 label=""
