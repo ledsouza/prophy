@@ -456,7 +456,7 @@ function SearchPage() {
                             {/* Client Results Section */}
                             <div className="bg-gray-50 rounded-xl p-6">
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
-                                    Resultados da Busca
+                                    Resultados
                                 </Typography>
 
                                 {clients.length === 0 && !clientsLoading ? (
@@ -685,7 +685,7 @@ function SearchPage() {
                             {/* Equipment Results Section */}
                             <div className="bg-gray-50 rounded-xl p-6">
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
-                                    Resultados da Busca de Equipamentos
+                                    Resultados
                                 </Typography>
 
                                 {equipments.length === 0 && !equipmentsLoading ? (
