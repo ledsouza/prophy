@@ -34,14 +34,14 @@ const equipmentApiSlice = apiSlice.injectEndpoints({
             ListQueryParams & {
                 modality?: number;
                 manufacturer?: string;
-                client?: number;
+                client_name?: string;
             }
         >({
-            query: ({ page = 1, modality, manufacturer, client }) => {
+            query: ({ page = 1, modality, manufacturer, client_name }) => {
                 const params: Record<string, any> = { page };
                 if (modality) params.modality = modality;
                 if (manufacturer) params.manufacturer = manufacturer;
-                if (client) params.client = client;
+                if (client_name) params.client_name = client_name;
 
                 return {
                     url: "equipments/",

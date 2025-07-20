@@ -40,8 +40,6 @@ export const useSearchQueries = ({
         if (clientAppliedFilters.operation_status)
             params.operation_status = clientAppliedFilters.operation_status;
 
-        console.log("🔍 CLIENT FILTER DEBUG - Query params being sent:", params);
-        console.log("🔍 CLIENT FILTER DEBUG - Applied filters:", clientAppliedFilters);
         return params;
     }, [clientCurrentPage, clientAppliedFilters]);
 
@@ -54,8 +52,6 @@ export const useSearchQueries = ({
         if (equipmentAppliedFilters.client_name)
             params.client_name = equipmentAppliedFilters.client_name;
 
-        console.log("🔍 EQUIPMENT FILTER DEBUG - Query params being sent:", params);
-        console.log("🔍 EQUIPMENT FILTER DEBUG - Applied filters:", equipmentAppliedFilters);
         return params;
     }, [equipmentCurrentPage, equipmentAppliedFilters]);
 
