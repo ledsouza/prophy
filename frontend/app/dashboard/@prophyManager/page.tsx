@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { FileText, Info, Warning } from "@phosphor-icons/react";
 
-import { ClientDTO, useListClientsQuery } from "@/redux/features/clientApiSlice";
+import { ClientDTO } from "@/redux/features/clientApiSlice";
+import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
+import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
 import { usePendingOperations } from "@/hooks";
@@ -15,23 +17,23 @@ import { Typography } from "@/components/foundation";
 import { Input, Select } from "@/components/forms";
 import { Button, ErrorDisplay, Pagination, Spinner, Table, Tab } from "@/components/common";
 
-import { SearchTab } from "@/types/search";
-import {
-    USER_ROLE_OPTIONS,
-    CONTRACT_TYPE_OPTIONS,
-    OPERATION_STATUS_OPTIONS,
-} from "@/constants/search";
-import { buildUrlParams, FilterParams } from "@/utils/urlUtils";
+import { SearchTab } from "./enums";
+import { USER_ROLE_OPTIONS, CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS } from "./constants";
+import { buildUrlParams } from "./url";
 import {
     restoreTabState,
     restorePageState,
-    restoreFilterStatesFromUrl,
-    restoreSelectOptions,
     getUserRoleFromOptionId,
     getContractTypeFromOptionId,
     getOperationStatusFromOptionId,
-    applyFiltersFromUrl,
-} from "@/utils/stateUtils";
+    restoreTextFilterStates,
+    restoreSelectFilterStates,
+    resetPageState,
+    restoreManufacturerFilterState,
+    restoreModalityFilterState,
+} from "./state";
+import { useSearchQueries } from "./hooks";
+import { ClientFilters, EquipmentFilters } from "./types";
 
 function SearchPage() {
     const router = useRouter();
@@ -41,8 +43,9 @@ function SearchPage() {
 
     const [selectedTabIndex, setSelectedTabIndex] = useState(SearchTab.CLIENTS);
 
-    const [currentPage, setCurrentPage] = useState(1);
-    const [appliedFilters, setAppliedFilters] = useState({
+    // Client state
+    const [clientCurrentPage, setClientCurrentPage] = useState(1);
+    const [clientAppliedFilters, setClientAppliedFilters] = useState<ClientFilters>({
         name: "",
         cnpj: "",
         city: "",
@@ -51,9 +54,9 @@ function SearchPage() {
         operation_status: "",
     });
 
-    const [selectedName, setSelectedName] = useState("");
-    const [selectedCnpj, setSelectedCnpj] = useState("");
-    const [selectedCity, setSelectedCity] = useState("");
+    const [selectedClientName, setSelectedClientName] = useState("");
+    const [selectedClientCNPJ, setSelectedClientCNPJ] = useState("");
+    const [selectedClientCity, setSelectedClientCity] = useState("");
     const [selectedUserRole, setSelectedUserRole] = useState<SelectData>({ id: 0, value: "Todos" });
     const [selectedContractType, setSelectedContractType] = useState<SelectData>({
         id: 0,
@@ -64,142 +67,134 @@ function SearchPage() {
         value: "Todos",
     });
 
-    const queryParams = useMemo(() => {
-        const params: any = { page: currentPage };
+    // Equipment state
+    const [equipmentCurrentPage, setEquipmentCurrentPage] = useState(1);
+    const [equipmentAppliedFilters, setEquipmentAppliedFilters] = useState<EquipmentFilters>({
+        modality: "",
+        manufacturer: "",
+        client_name: "",
+    });
 
-        if (appliedFilters.name) params.name = appliedFilters.name;
-        if (appliedFilters.cnpj) params.cnpj = appliedFilters.cnpj;
-        if (appliedFilters.city) params.city = appliedFilters.city;
-        if (appliedFilters.user_role) params.user_role = appliedFilters.user_role;
-        if (appliedFilters.contract_type) params.contract_type = appliedFilters.contract_type;
-        if (appliedFilters.operation_status)
-            params.operation_status = appliedFilters.operation_status;
+    const [selectedEquipmentModality, setSelectedEquipmentModality] = useState<SelectData>({
+        id: 0,
+        value: "Todos",
+    });
+    const [selectedEquipmentManufacturer, setSelectedEquipmentManufacturer] = useState<SelectData>({
+        id: 0,
+        value: "Todos",
+    });
+    const [selectedEquipmentClient, setSelectedEquipmentClient] = useState("");
 
-        return params;
-    }, [currentPage, appliedFilters]);
-
-    const { data: clientsData, isLoading, error } = useListClientsQuery(queryParams);
+    const {
+        clientsData,
+        clientsLoading,
+        clientsError,
+        equipmentsData,
+        equipmentsLoading,
+        equipmentsError,
+    } = useSearchQueries({
+        clientCurrentPage,
+        clientAppliedFilters,
+        equipmentCurrentPage,
+        equipmentAppliedFilters,
+    });
+    const { data: modalitiesData, isLoading: modalitiesLoading } = useListModalitiesQuery();
+    const { data: manufacturersData, isLoading: manufacturersLoading } = useGetManufacturersQuery();
 
     const clients = clientsData?.results || [];
     const totalClientsCount = clientsData?.count || 0;
 
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams);
-        const name = params.get("name") || "";
-        const cnpj = params.get("cnpj") || "";
-        const city = params.get("city") || "";
-        const roleId = params.get("role");
-        const contractTypeId = params.get("contract");
-        const operationStatusId = params.get("status");
-        const pageParam = params.get("page");
-        const tabParam = params.get("tab");
+    const equipments = equipmentsData?.results || [];
+    const totalEquipmentsCount = equipmentsData?.count || 0;
 
-        restoreTabState(tabParam, setSelectedTabIndex);
-        restorePageState(pageParam, currentPage, setCurrentPage);
-        restoreFilterStatesFromUrl(
-            name,
-            cnpj,
-            city,
-            setSelectedName,
-            setSelectedCnpj,
-            setSelectedCity
-        );
-        restoreSelectOptions(
-            roleId,
-            contractTypeId,
-            operationStatusId,
-            USER_ROLE_OPTIONS,
-            CONTRACT_TYPE_OPTIONS,
-            OPERATION_STATUS_OPTIONS,
-            setSelectedUserRole,
-            setSelectedContractType,
-            setSelectedOperationStatus
-        );
-        applyFiltersFromUrl(
-            name,
-            cnpj,
-            city,
-            roleId,
-            contractTypeId,
-            operationStatusId,
-            setAppliedFilters
-        );
-    }, [searchParams]);
+    const modalities = modalitiesData || [];
+    const manufacturers = manufacturersData?.manufacturers || [];
 
     const handleTabChange = (index: number) => {
+        const params = new URLSearchParams();
         setSelectedTabIndex(index);
-        setCurrentPage(1);
 
-        const filterParams: FilterParams = {
-            name: selectedName,
-            cnpj: selectedCnpj,
-            city: selectedCity,
-            userRoleId: selectedUserRole.id,
-            contractTypeId: selectedContractType.id,
-            operationStatusId: selectedOperationStatus.id,
-        };
+        switch (index) {
+            case SearchTab.CLIENTS:
+                const clientFilters: ClientFilters = {
+                    name: selectedClientName,
+                    cnpj: selectedClientCNPJ,
+                    city: selectedClientCity,
+                    user_role: getUserRoleFromOptionId(selectedUserRole.id),
+                    contract_type: getContractTypeFromOptionId(selectedContractType.id),
+                    operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
+                };
 
-        const params = buildUrlParams(filterParams, index as SearchTab, 1);
-        router.push(`?${params.toString()}`);
-    };
+                buildUrlParams(params, "clients", clientCurrentPage, clientFilters);
+                break;
 
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
+            case SearchTab.EQUIPMENTS:
+                const equipmentFilters: EquipmentFilters = {
+                    modality: String(selectedEquipmentModality.id),
+                    manufacturer: selectedEquipmentManufacturer.value,
+                    client_name: selectedEquipmentClient,
+                };
 
-        const filterParams: FilterParams = {
-            name: selectedName,
-            cnpj: selectedCnpj,
-            city: selectedCity,
-            userRoleId: selectedUserRole.id,
-            contractTypeId: selectedContractType.id,
-            operationStatusId: selectedOperationStatus.id,
-        };
+                buildUrlParams(params, "equipments", equipmentCurrentPage, equipmentFilters);
+                break;
 
-        const params = buildUrlParams(filterParams, selectedTabIndex, page);
-        router.push(`?${params.toString()}`);
-    };
-
-    const handleApplyFilters = () => {
-        if (currentPage !== 1) {
-            setCurrentPage(1);
+            default:
+                break;
         }
 
-        const filters = {
-            name: selectedName,
-            cnpj: selectedCnpj,
-            city: selectedCity,
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleClientPageChange = (page: number) => {
+        const params = new URLSearchParams();
+        setClientCurrentPage(page);
+
+        const clientFilters = {
+            name: selectedClientName,
+            cnpj: selectedClientCNPJ,
+            city: selectedClientCity,
             user_role: getUserRoleFromOptionId(selectedUserRole.id),
             contract_type: getContractTypeFromOptionId(selectedContractType.id),
             operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
         };
 
-        setAppliedFilters(filters);
-
-        const filterParams: FilterParams = {
-            name: selectedName,
-            cnpj: selectedCnpj,
-            city: selectedCity,
-            userRoleId: selectedUserRole.id,
-            contractTypeId: selectedContractType.id,
-            operationStatusId: selectedOperationStatus.id,
-        };
-
-        const params = buildUrlParams(filterParams, selectedTabIndex, 1);
-
+        buildUrlParams(params, "clients", page, clientFilters);
         router.push(`?${params.toString()}`);
     };
 
-    const handleClearFilters = () => {
-        setSelectedName("");
-        setSelectedCnpj("");
-        setSelectedCity("");
+    const handleApplyClientFilters = () => {
+        const params = new URLSearchParams();
+
+        resetPageState(clientCurrentPage, setClientCurrentPage);
+
+        const clientFilters = {
+            name: selectedClientName,
+            cnpj: selectedClientCNPJ,
+            city: selectedClientCity,
+            user_role: getUserRoleFromOptionId(selectedUserRole.id),
+            contract_type: getContractTypeFromOptionId(selectedContractType.id),
+            operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
+        };
+
+        setClientAppliedFilters(clientFilters);
+
+        buildUrlParams(params, "clients", 1, clientFilters);
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleClearClientFilters = () => {
+        const params = new URLSearchParams();
+
+        setSelectedClientName("");
+        setSelectedClientCNPJ("");
+        setSelectedClientCity("");
         setSelectedUserRole({ id: 0, value: "Todos" });
         setSelectedContractType({ id: 0, value: "Todos" });
         setSelectedOperationStatus({ id: 0, value: "Todos" });
 
-        setCurrentPage(1);
+        setClientCurrentPage(1);
 
-        setAppliedFilters({
+        setClientAppliedFilters({
             name: "",
             cnpj: "",
             city: "",
@@ -208,7 +203,61 @@ function SearchPage() {
             operation_status: "",
         });
 
-        const params = buildUrlParams({}, selectedTabIndex, 1);
+        buildUrlParams(params, "clients", 1, {});
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleApplyEquipmentFilters = () => {
+        const params = new URLSearchParams();
+
+        resetPageState(equipmentCurrentPage, setEquipmentCurrentPage);
+
+        const equipmentFilters = {
+            modality:
+                selectedEquipmentModality.id !== 0 ? selectedEquipmentModality.id.toString() : "",
+            manufacturer:
+                selectedEquipmentManufacturer.id !== 0 ? selectedEquipmentManufacturer.value : "",
+            client_name: selectedEquipmentClient,
+        };
+
+        setEquipmentAppliedFilters(equipmentFilters);
+
+        buildUrlParams(params, "equipments", 1, equipmentFilters);
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleClearEquipmentFilters = () => {
+        const params = new URLSearchParams();
+
+        setSelectedEquipmentModality({ id: 0, value: "Todos" });
+        setSelectedEquipmentManufacturer({ id: 0, value: "Todos" });
+        setSelectedEquipmentClient("");
+
+        setEquipmentCurrentPage(1);
+
+        setEquipmentAppliedFilters({
+            modality: "",
+            manufacturer: "",
+            client_name: "",
+        });
+
+        buildUrlParams(params, "equipments", 1, {});
+        router.push(`?${params.toString()}`);
+    };
+
+    const handleEquipmentPageChange = (page: number) => {
+        const params = new URLSearchParams();
+        setEquipmentCurrentPage(page);
+
+        const equipmentFilters = {
+            modality:
+                selectedEquipmentModality.id !== 0 ? selectedEquipmentModality.id.toString() : "",
+            manufacturer:
+                selectedEquipmentManufacturer.id !== 0 ? selectedEquipmentManufacturer.value : "",
+            client_name: selectedEquipmentClient,
+        };
+
+        buildUrlParams(params, "equipments", page, equipmentFilters);
         router.push(`?${params.toString()}`);
     };
 
@@ -220,11 +269,68 @@ function SearchPage() {
         router.push(`/dashboard/client/${cnpj}`);
     };
 
-    if (isLoading) {
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams);
+        const clientName = params.get("name") || "";
+        const clientCNPJ = params.get("cnpj") || "";
+        const clientCity = params.get("city") || "";
+        const roleId = params.get("user_role");
+        const clientContractTypeId = params.get("contract_type");
+        const operationStatusId = params.get("operation_status");
+        const clientPageParam = params.get("page");
+        const tabParam = params.get("tab");
+
+        const equipmentModalityId = params.get("modality");
+        const equipmentManufacturer = params.get("manufacturer") || "";
+        const equipmentClientName = params.get("client_name") || "";
+        const equipmentPageParam = params.get("page");
+
+        restoreTabState(tabParam, setSelectedTabIndex);
+
+        restorePageState(clientPageParam, clientCurrentPage, setClientCurrentPage);
+        restoreTextFilterStates(clientName, setSelectedClientName);
+        restoreTextFilterStates(clientCNPJ, setSelectedClientCNPJ);
+        restoreTextFilterStates(clientCity, setSelectedClientCity);
+        restoreSelectFilterStates(roleId, USER_ROLE_OPTIONS, setSelectedUserRole);
+        restoreSelectFilterStates(
+            clientContractTypeId,
+            CONTRACT_TYPE_OPTIONS,
+            setSelectedContractType
+        );
+        restoreSelectFilterStates(
+            operationStatusId,
+            OPERATION_STATUS_OPTIONS,
+            setSelectedOperationStatus
+        );
+        setClientAppliedFilters({
+            name: clientName,
+            cnpj: clientCNPJ,
+            city: clientCity,
+            user_role: getUserRoleFromOptionId(Number(roleId) || 0),
+            contract_type: getContractTypeFromOptionId(Number(clientContractTypeId) || 0),
+            operation_status: getOperationStatusFromOptionId(Number(operationStatusId) || 0),
+        });
+
+        restorePageState(equipmentPageParam, equipmentCurrentPage, setEquipmentCurrentPage);
+        setEquipmentAppliedFilters({
+            modality: equipmentModalityId || "",
+            manufacturer: equipmentManufacturer,
+            client_name: equipmentClientName,
+        });
+        restoreTextFilterStates(equipmentClientName, setSelectedEquipmentClient);
+        restoreManufacturerFilterState(
+            equipmentManufacturer,
+            manufacturers,
+            setSelectedEquipmentManufacturer
+        );
+        restoreModalityFilterState(equipmentManufacturer, modalities, setSelectedEquipmentModality);
+    }, [searchParams, modalities, manufacturers, clients]);
+
+    if (clientsLoading) {
         return <Spinner fullscreen />;
     }
 
-    if (error) {
+    if (clientsError) {
         return (
             <ErrorDisplay
                 title="Erro ao carregar dados"
@@ -251,24 +357,24 @@ function SearchPage() {
                             {/* Client Search Filters */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                                 <Input
-                                    value={selectedName}
-                                    onChange={(e) => setSelectedName(e.target.value)}
+                                    value={selectedClientName}
+                                    onChange={(e) => setSelectedClientName(e.target.value)}
                                     placeholder="Digite o nome do cliente"
                                 >
                                     Nome
                                 </Input>
 
                                 <Input
-                                    value={selectedCnpj}
-                                    onChange={(e) => setSelectedCnpj(e.target.value)}
+                                    value={selectedClientCNPJ}
+                                    onChange={(e) => setSelectedClientCNPJ(e.target.value)}
                                     placeholder="Digite o CNPJ"
                                 >
                                     CNPJ
                                 </Input>
 
                                 <Input
-                                    value={selectedCity}
-                                    onChange={(e) => setSelectedCity(e.target.value)}
+                                    value={selectedClientCity}
+                                    onChange={(e) => setSelectedClientCity(e.target.value)}
                                     placeholder="Digite a cidade"
                                 >
                                     Cidade
@@ -325,18 +431,18 @@ function SearchPage() {
                             {/* Action Buttons */}
                             <div className="flex flex-col sm:flex-row gap-3 mb-6">
                                 <Button
-                                    onClick={handleApplyFilters}
+                                    onClick={handleApplyClientFilters}
                                     className="flex-1 sm:flex-initial"
-                                    disabled={isLoading}
+                                    disabled={clientsLoading}
                                     data-testid="btn-apply-filters"
                                 >
-                                    {isLoading ? "Carregando..." : "Aplicar Filtros"}
+                                    {clientsLoading ? "Carregando..." : "Aplicar Filtros"}
                                 </Button>
                                 <Button
                                     variant="secondary"
-                                    onClick={handleClearFilters}
+                                    onClick={handleClearClientFilters}
                                     className="flex-1 sm:flex-initial"
-                                    disabled={isLoading}
+                                    disabled={clientsLoading}
                                     data-testid="btn-clear-filters"
                                 >
                                     Limpar Filtros
@@ -349,7 +455,7 @@ function SearchPage() {
                                     Resultados da Busca
                                 </Typography>
 
-                                {clients.length === 0 && !isLoading ? (
+                                {clients.length === 0 && !clientsLoading ? (
                                     <div className="text-center py-8">
                                         <Typography
                                             element="p"
@@ -361,13 +467,13 @@ function SearchPage() {
                                     </div>
                                 ) : (
                                     <div>
-                                        {isLoading && (
+                                        {clientsLoading && (
                                             <div className="flex justify-center py-8">
                                                 <Spinner />
                                             </div>
                                         )}
 
-                                        {!isLoading && (
+                                        {!clientsLoading && (
                                             <Table
                                                 data={clients}
                                                 columns={[
@@ -465,20 +571,20 @@ function SearchPage() {
                                         )}
 
                                         {/* Pagination */}
-                                        {!isLoading && totalClientsCount > ITEMS_PER_PAGE && (
+                                        {!clientsLoading && totalClientsCount > ITEMS_PER_PAGE && (
                                             <div className="mt-6">
                                                 <Pagination
-                                                    currentPage={currentPage}
+                                                    currentPage={clientCurrentPage}
                                                     totalCount={totalClientsCount}
                                                     itemsPerPage={ITEMS_PER_PAGE}
-                                                    onPageChange={handlePageChange}
-                                                    isLoading={isLoading}
+                                                    onPageChange={handleClientPageChange}
+                                                    isLoading={clientsLoading}
                                                 />
                                             </div>
                                         )}
 
                                         {/* Results Summary */}
-                                        {!isLoading && (
+                                        {!clientsLoading && (
                                             <div className="mt-4 text-center">
                                                 <Typography
                                                     element="p"
@@ -488,10 +594,12 @@ function SearchPage() {
                                                     {totalClientsCount > 0 && (
                                                         <>
                                                             Mostrando{" "}
-                                                            {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+                                                            {(clientCurrentPage - 1) *
+                                                                ITEMS_PER_PAGE +
+                                                                1}
                                                             -
                                                             {Math.min(
-                                                                currentPage * ITEMS_PER_PAGE,
+                                                                clientCurrentPage * ITEMS_PER_PAGE,
                                                                 totalClientsCount
                                                             )}{" "}
                                                             de {totalClientsCount} cliente(s)
@@ -508,11 +616,186 @@ function SearchPage() {
                         </TabPanel>
 
                         <TabPanel>
-                            {/* Equipment Search Content - Placeholder */}
-                            <div className="text-center py-8">
-                                <Typography element="p" size="lg" className="text-gray-secondary">
-                                    Busca de equipamentos será implementada em breve
+                            {/* Equipment Search Filters */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                <Select
+                                    options={[
+                                        { id: 0, value: "Todos" },
+                                        ...modalities.map((modality: ModalityDTO) => ({
+                                            id: modality.id,
+                                            value: modality.name,
+                                        })),
+                                    ]}
+                                    selectedData={selectedEquipmentModality}
+                                    setSelect={setSelectedEquipmentModality}
+                                    label="Modalidade"
+                                    dataTestId="filter-equipment-modality"
+                                />
+
+                                <Select
+                                    options={[
+                                        { id: 0, value: "Todos" },
+                                        ...manufacturers.map(
+                                            (manufacturer: string, index: number) => ({
+                                                id: index + 1,
+                                                value: manufacturer,
+                                            })
+                                        ),
+                                    ]}
+                                    selectedData={selectedEquipmentManufacturer}
+                                    setSelect={setSelectedEquipmentManufacturer}
+                                    label="Fabricante"
+                                    dataTestId="filter-equipment-manufacturer"
+                                />
+
+                                <Input
+                                    value={selectedEquipmentClient}
+                                    onChange={(e) => setSelectedEquipmentClient(e.target.value)}
+                                    placeholder="Digite o nome do cliente"
+                                >
+                                    Cliente
+                                </Input>
+                            </div>
+
+                            {/* Equipment Action Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                                <Button
+                                    onClick={handleApplyEquipmentFilters}
+                                    className="flex-1 sm:flex-initial"
+                                    disabled={equipmentsLoading}
+                                    data-testid="btn-apply-equipment-filters"
+                                >
+                                    {equipmentsLoading ? "Carregando..." : "Aplicar Filtros"}
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleClearEquipmentFilters}
+                                    className="flex-1 sm:flex-initial"
+                                    disabled={equipmentsLoading}
+                                    data-testid="btn-clear-equipment-filters"
+                                >
+                                    Limpar Filtros
+                                </Button>
+                            </div>
+
+                            {/* Equipment Results Section */}
+                            <div className="bg-gray-50 rounded-xl p-6">
+                                <Typography element="h2" size="title3" className="font-bold mb-4">
+                                    Resultados da Busca de Equipamentos
                                 </Typography>
+
+                                {equipments.length === 0 && !equipmentsLoading ? (
+                                    <div className="text-center py-8">
+                                        <Typography
+                                            element="p"
+                                            size="lg"
+                                            className="text-gray-secondary"
+                                        >
+                                            Nenhum equipamento encontrado com os filtros aplicados
+                                        </Typography>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        {equipmentsLoading && (
+                                            <div className="flex justify-center py-8">
+                                                <Spinner />
+                                            </div>
+                                        )}
+
+                                        {!equipmentsLoading && (
+                                            <Table
+                                                data={equipments}
+                                                columns={[
+                                                    {
+                                                        header: "Modelo",
+                                                        cell: (equipment: EquipmentDTO) =>
+                                                            equipment.model,
+                                                    },
+                                                    {
+                                                        header: "Fabricante",
+                                                        cell: (equipment: EquipmentDTO) =>
+                                                            equipment.manufacturer,
+                                                    },
+                                                    {
+                                                        header: "Modalidade",
+                                                        cell: (equipment: EquipmentDTO) =>
+                                                            equipment.modality.name,
+                                                    },
+                                                    {
+                                                        header: "Número de Série",
+                                                        cell: (equipment: EquipmentDTO) =>
+                                                            equipment.series_number || "N/A",
+                                                    },
+                                                    {
+                                                        header: "Ações",
+                                                        cell: (equipment: EquipmentDTO) => (
+                                                            <div className="flex flex-col gap-2">
+                                                                <Button
+                                                                    variant="primary"
+                                                                    onClick={() =>
+                                                                        router.push(
+                                                                            `/dashboard/unit/${equipment.unit}`
+                                                                        )
+                                                                    }
+                                                                    className="flex items-center gap-2 text-xs"
+                                                                >
+                                                                    <Info size={16} />
+                                                                    Ver Detalhes
+                                                                </Button>
+                                                            </div>
+                                                        ),
+                                                    },
+                                                ]}
+                                                keyExtractor={(equipment: EquipmentDTO) =>
+                                                    equipment.id
+                                                }
+                                            />
+                                        )}
+
+                                        {/* Equipment Pagination */}
+                                        {!equipmentsLoading &&
+                                            totalEquipmentsCount > ITEMS_PER_PAGE && (
+                                                <div className="mt-6">
+                                                    <Pagination
+                                                        currentPage={equipmentCurrentPage}
+                                                        totalCount={totalEquipmentsCount}
+                                                        itemsPerPage={ITEMS_PER_PAGE}
+                                                        onPageChange={handleEquipmentPageChange}
+                                                        isLoading={equipmentsLoading}
+                                                    />
+                                                </div>
+                                            )}
+
+                                        {/* Equipment Results Summary */}
+                                        {!equipmentsLoading && (
+                                            <div className="mt-4 text-center">
+                                                <Typography
+                                                    element="p"
+                                                    size="sm"
+                                                    className="text-gray-secondary"
+                                                >
+                                                    {totalEquipmentsCount > 0 && (
+                                                        <>
+                                                            Mostrando{" "}
+                                                            {(equipmentCurrentPage - 1) *
+                                                                ITEMS_PER_PAGE +
+                                                                1}
+                                                            -
+                                                            {Math.min(
+                                                                equipmentCurrentPage *
+                                                                    ITEMS_PER_PAGE,
+                                                                totalEquipmentsCount
+                                                            )}{" "}
+                                                            de {totalEquipmentsCount} equipamento(s)
+                                                        </>
+                                                    )}
+                                                    {totalEquipmentsCount === 0 &&
+                                                        "Nenhum equipamento encontrado"}
+                                                </Typography>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </TabPanel>
                     </TabPanels>

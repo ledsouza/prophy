@@ -660,9 +660,9 @@ class EquipmentViewSet(viewsets.ViewSet):
         if manufacturer is not None:
             queryset = queryset.filter(manufacturer__icontains=manufacturer)
 
-        client = query_params.get("client")
-        if client is not None:
-            queryset = queryset.filter(unit__client=client)
+        client_name = query_params.get("client_name")
+        if client_name is not None:
+            queryset = queryset.filter(unit__client__name__icontains=client_name)
 
         return queryset
 
