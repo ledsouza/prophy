@@ -8,7 +8,12 @@ export const buildUrlParams = (
     filters: Record<string, string>
 ): URLSearchParams => {
     params.set("tab", tab);
-    params.set("page", String(page));
+
+    if (tab === "clients") {
+        params.set("client_page", String(page));
+    } else if (tab === "equipments") {
+        params.set("equipment_page", String(page));
+    }
 
     Object.entries(filters).forEach(([key, value]) => {
         if (value && value !== "Todos" && value !== "0") {

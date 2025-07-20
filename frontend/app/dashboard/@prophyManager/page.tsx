@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -101,14 +101,17 @@ function SearchPage() {
     const { data: modalitiesData, isLoading: modalitiesLoading } = useListModalitiesQuery();
     const { data: manufacturersData, isLoading: manufacturersLoading } = useGetManufacturersQuery();
 
-    const clients = clientsData?.results || [];
+    const clients = useMemo(() => clientsData?.results || [], [clientsData?.results]);
     const totalClientsCount = clientsData?.count || 0;
 
-    const equipments = equipmentsData?.results || [];
+    const equipments = useMemo(() => equipmentsData?.results || [], [equipmentsData?.results]);
     const totalEquipmentsCount = equipmentsData?.count || 0;
 
-    const modalities = modalitiesData || [];
-    const manufacturers = manufacturersData?.manufacturers || [];
+    const modalities = useMemo(() => modalitiesData || [], [modalitiesData]);
+    const manufacturers = useMemo(
+        () => manufacturersData?.manufacturers || [],
+        [manufacturersData?.manufacturers]
+    );
 
     const handleTabChange = (index: number) => {
         const params = new URLSearchParams();
@@ -277,7 +280,8 @@ function SearchPage() {
         const roleId = params.get("user_role");
         const clientContractTypeId = params.get("contract_type");
         const operationStatusId = params.get("operation_status");
-        const clientPageParam = params.get("page");
+
+        const clientPageParam = params.get("client_page");
         const tabParam = params.get("tab");
 
         const equipmentModalityId = params.get("modality");
