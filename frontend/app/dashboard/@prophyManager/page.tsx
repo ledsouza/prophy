@@ -277,9 +277,9 @@ function SearchPage() {
         const clientName = params.get("name") || "";
         const clientCNPJ = params.get("cnpj") || "";
         const clientCity = params.get("city") || "";
-        const roleId = params.get("user_role");
-        const clientContractTypeId = params.get("contract_type");
-        const operationStatusId = params.get("operation_status");
+        const role = params.get("user_role");
+        const clientContractType = params.get("contract_type");
+        const operationStatus = params.get("operation_status");
 
         const clientPageParam = params.get("client_page");
         const tabParam = params.get("tab");
@@ -287,7 +287,7 @@ function SearchPage() {
         const equipmentModalityId = params.get("modality");
         const equipmentManufacturer = params.get("manufacturer") || "";
         const equipmentClientName = params.get("client_name") || "";
-        const equipmentPageParam = params.get("page");
+        const equipmentPageParam = params.get("equipment_page");
 
         restoreTabState(tabParam, setSelectedTabIndex);
 
@@ -295,14 +295,14 @@ function SearchPage() {
         restoreTextFilterStates(clientName, setSelectedClientName);
         restoreTextFilterStates(clientCNPJ, setSelectedClientCNPJ);
         restoreTextFilterStates(clientCity, setSelectedClientCity);
-        restoreSelectFilterStates(roleId, USER_ROLE_OPTIONS, setSelectedUserRole);
+        restoreSelectFilterStates(role, USER_ROLE_OPTIONS, setSelectedUserRole);
         restoreSelectFilterStates(
-            clientContractTypeId,
+            clientContractType,
             CONTRACT_TYPE_OPTIONS,
             setSelectedContractType
         );
         restoreSelectFilterStates(
-            operationStatusId,
+            operationStatus,
             OPERATION_STATUS_OPTIONS,
             setSelectedOperationStatus
         );
@@ -310,9 +310,9 @@ function SearchPage() {
             name: clientName,
             cnpj: clientCNPJ,
             city: clientCity,
-            user_role: getUserRoleFromOptionId(Number(roleId) || 0),
-            contract_type: getContractTypeFromOptionId(Number(clientContractTypeId) || 0),
-            operation_status: getOperationStatusFromOptionId(Number(operationStatusId) || 0),
+            user_role: role || "",
+            contract_type: clientContractType || "",
+            operation_status: operationStatus || "",
         });
 
         restorePageState(equipmentPageParam, equipmentCurrentPage, setEquipmentCurrentPage);
