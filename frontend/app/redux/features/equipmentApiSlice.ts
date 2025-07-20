@@ -20,6 +20,8 @@ export type EquipmentDTO = {
     email_maintenance_responsable?: string;
     phone_maintenance_responsable?: string;
     unit: number;
+    unit_name: string;
+    client_name: string;
 };
 
 export type EquipmentOperationDTO = EquipmentDTO &

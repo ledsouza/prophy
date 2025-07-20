@@ -726,9 +726,14 @@ function SearchPage() {
                                                             equipment.modality.name,
                                                     },
                                                     {
-                                                        header: "Número de Série",
+                                                        header: "Cliente",
                                                         cell: (equipment: EquipmentDTO) =>
-                                                            equipment.series_number || "N/A",
+                                                            equipment.client_name,
+                                                    },
+                                                    {
+                                                        header: "Unidade",
+                                                        cell: (equipment: EquipmentDTO) =>
+                                                            equipment.unit_name,
                                                     },
                                                     {
                                                         header: "Ações",
@@ -744,7 +749,7 @@ function SearchPage() {
                                                                     className="flex items-center gap-2 text-xs"
                                                                 >
                                                                     <Info size={16} />
-                                                                    Ver Detalhes
+                                                                    Detalhes
                                                                 </Button>
                                                             </div>
                                                         ),

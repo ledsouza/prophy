@@ -1,5 +1,12 @@
 from rest_framework import serializers
-from clients_management.models import Client, Unit, Equipment, Modality, Accessory, Proposal
+from clients_management.models import (
+    Client,
+    Unit,
+    Equipment,
+    Modality,
+    Accessory,
+    Proposal,
+)
 from users.models import UserAccount
 
 
@@ -60,6 +67,13 @@ class EquipmentSerializer(serializers.ModelSerializer):
             "name": instance.modality.name,
             "accessory_type": instance.modality.accessory_type,
         }
+
+        if instance.unit:
+            representation["unit_name"] = instance.unit.name
+
+            if instance.unit.client:
+                representation["client_name"] = instance.unit.client.name
+
         return representation
 
 
