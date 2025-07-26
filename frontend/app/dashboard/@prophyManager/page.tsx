@@ -329,7 +329,7 @@ function SearchPage() {
             setSelectedEquipmentManufacturer
         );
         restoreModalityFilterState(equipmentModalityId, modalities, setSelectedEquipmentModality);
-    }, [searchParams, modalities, manufacturers, clients]);
+    }, [searchParams, modalities, manufacturers]);
 
     if (clientsLoading) {
         return <Spinner fullscreen />;
