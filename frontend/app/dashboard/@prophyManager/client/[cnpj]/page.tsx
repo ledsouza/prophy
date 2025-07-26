@@ -165,7 +165,7 @@ function ClientDetailPage() {
                 <Typography element="p" size="lg">
                     Não foi possível encontrar um cliente com o CNPJ informado.
                 </Typography>
-                <Button onClick={() => router.push("/dashboard")} data-testid="btn-back-to-search">
+                <Button onClick={() => router.back()} data-testid="btn-back-to-search">
                     Voltar à busca
                 </Button>
             </div>

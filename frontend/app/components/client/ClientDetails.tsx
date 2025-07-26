@@ -114,7 +114,7 @@ function ClientDetails({
     }
 
     const handleBack = () => {
-        router.push("/dashboard");
+        router.back();
     };
 
     // Obtaining the id of the clients that has a operation in progress
