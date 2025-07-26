@@ -31,7 +31,9 @@ export const resetPageState = (currentPage: number, setCurrentPage: (page: numbe
 };
 
 export const restoreTextFilterStates = (state: string, setState: (state: string) => void) => {
-    setState(state);
+    if (state) {
+        setState(state);
+    }
 };
 
 export const restoreSelectFilterStates = (

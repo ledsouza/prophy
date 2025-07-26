@@ -272,6 +272,7 @@ function SearchPage() {
         router.push(`/dashboard/client/${cnpj}`);
     };
 
+    // restore filters from URL
     useEffect(() => {
         const params = new URLSearchParams(searchParams);
         const clientName = params.get("name") || "";
@@ -327,7 +328,7 @@ function SearchPage() {
             manufacturers,
             setSelectedEquipmentManufacturer
         );
-        restoreModalityFilterState(equipmentManufacturer, modalities, setSelectedEquipmentModality);
+        restoreModalityFilterState(equipmentModalityId, modalities, setSelectedEquipmentModality);
     }, [searchParams, modalities, manufacturers, clients]);
 
     if (clientsLoading) {
