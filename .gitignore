@@ -271,3 +271,6 @@ pyrightconfig.json
 
 # Next.js
 .next
+
+# Experimental and spikes
+*.nogit.*
