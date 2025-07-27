@@ -744,7 +744,11 @@ function SearchPage() {
                                                                     variant="primary"
                                                                     onClick={() =>
                                                                         router.push(
-                                                                            `/dashboard/unit/${equipment.unit}`
+                                                                            `/dashboard/unit/${
+                                                                                equipment.unit
+                                                                            }?model=${encodeURIComponent(
+                                                                                equipment.model
+                                                                            )}`
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"

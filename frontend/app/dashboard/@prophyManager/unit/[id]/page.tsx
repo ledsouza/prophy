@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { getUnitOperation } from "@/redux/services/helpers";
 import { apiSlice } from "@/redux/services/apiSlice";
@@ -38,6 +38,7 @@ import { ModalDeleteEquipment, ModalDeleteUnit } from "@/components/modals";
 function UnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
+    const searchParams = useSearchParams();
     const router = useRouter();
     const dispatch = useAppDispatch();
 
@@ -143,6 +144,14 @@ function UnitPage() {
             setSearchedEquipments([]);
         }
     }, [filteredEquipmentsByUnit, searchTerm]);
+
+    // Filter equipments by query params
+    useEffect(() => {
+        const modelFromQuery = searchParams.get("model");
+        if (modelFromQuery) {
+            setSearchTerm(modelFromQuery);
+        }
+    }, [searchParams]);
 
     if (
         isLoadingUnits ||
