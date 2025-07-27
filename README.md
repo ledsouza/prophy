@@ -117,28 +117,27 @@ To run this Django project, specific environment variables must be configured in
 -   **Values**: A comma-separated list of allowed hostnames.
 -   **Example**: `DJANGO_ALLOWED_HOSTS='127.0.0.1,localhost'`
 
-#### AWS Credentials for Email Services
+#### Mailgun Credentials for Email Services
 
-The application uses AWS Simple Email Service (SES) for sending emails. The following environment variables are required to configure AWS SES:
+The application uses Mailgun for sending emails. The following environment variables are required to authenticate sending emails:
 
-6. **AWS_ACCESS_KEY_ID**
+6. **MAILGUN_API_KEY**
 
--   **Description**: Your AWS access key ID.
--   **Purpose**: Required for authenticating API requests to AWS services, including SES.
--   **Example**: `AWS_ACCESS_KEY_ID='your_aws_access_key_id'`
+-   **Description**: The API key provided by Mailgun for authenticating API requests.
+-   **Purpose**: Allows the application to authenticate with Mailgun's API to send emails programmatically.
+-   **Example**: `MAILGUN_API_KEY='key-1234567890abcdef1234567890abcdef'`
 
-7. **AWS_SECRET_ACCESS_KEY**
+7. **MAILGUN_DOMAIN**
 
--   **Description**: Your AWS secret access key.
--   **Purpose**: Required for authenticating API requests to AWS services, including SES.
--   **Example**: `AWS_SECRET_ACCESS_KEY='your_aws_secret_access_key'`
+-   **Description**: The domain name configured in your Mailgun account for sending emails.
+-   **Purpose**: Specifies which domain should be used as the sender domain for outgoing emails.
+-   **Example**: `MAILGUN_DOMAIN='mg.yourdomain.com'`
 
-8. **AWS_SES_REGION_NAME**
+8. **DEFAULT_FROM_EMAIL**
 
--   **Description**: The AWS region where your SES service is configured.
--   **Purpose**: Specifies the AWS region for SES.
--   **Default**: `sa-east-1`
--   **Example**: `AWS_SES_REGION_NAME='us-east-1'`
+-   **Description**: The default email address that will appear as the sender for outgoing emails.
+-   **Purpose**: Sets the "From" field in emails sent by the application, ensuring consistent sender identification.
+-   **Example**: `DEFAULT_FROM_EMAIL='noreply@yourdomain.com'`
 
 #### Environment Variables for Frontend
 
