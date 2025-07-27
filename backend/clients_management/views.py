@@ -365,7 +365,7 @@ class ClientViewSet(viewsets.ViewSet):
 
         city = query_params.get("city")
         if city is not None:
-            queryset = queryset.filter(city=city)
+            queryset = queryset.filter(city__icontains=city)
 
         user_role = query_params.get("user_role")
         if user_role is not None:
