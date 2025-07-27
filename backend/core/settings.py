@@ -19,8 +19,7 @@ SECRET_KEY = getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 # SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS",
-                       "127.0.0.1,localhost".split(","))
+ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost".split(","))
 
 
 CORS_ALLOWED_ORIGINS = [
@@ -45,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "django_filters",
     "drf_yasg",
+    "anymail",
     "users",
     "clients_management",
     "requisitions",
@@ -197,9 +197,13 @@ if not AWS_ACCESS_KEY_ID or not AWS_SECRET_ACCESS_KEY:
     )
 
 # Email
-
-EMAIL_BACKEND = "django_ses.SESBackend"
-DEFAULT_FROM_EMAIL = "leandro.souza.159@gmail.com"
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+ANYMAIL = {
+    "MAILGUN_API_KEY": getenv("MAILGUN_API_KEY"),
+    "MAILGUN_SENDER_DOMAIN": getenv("DOMAIN"),
+    "MAILGUN_API_URL": getenv("MAILGUN_API_URL", "https://api.mailgun.net/v3"),
+}
+DEFAULT_FROM_EMAIL = getenv("DEFAULT_FROM_EMAIL")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

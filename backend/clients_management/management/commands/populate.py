@@ -19,8 +19,7 @@ fake = Faker("pt_BR")
 
 BASE_DIR = settings.BASE_DIR
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(
-    os.path.join(current_dir, "..", "..", "..", ".."))
+project_root = os.path.abspath(os.path.join(current_dir, "..", "..", "..", ".."))
 
 
 CPF_ADMIN = "03446254005"
@@ -129,8 +128,7 @@ class Command(BaseCommand):
             approved_cnpjs, users, default_clients, default_units, default_equipments
         )
         self.stdout.write(
-            self.style.SUCCESS(
-                "Database populated and fixture created successfully!")
+            self.style.SUCCESS("Database populated and fixture created successfully!")
         )
 
     def create_groups(self):
@@ -187,8 +185,7 @@ class Command(BaseCommand):
                 for name_substring in permission_names:
                     try:
                         # Using base_permissions queryset to find specific permissions
-                        perm = base_permissions.get(
-                            name__contains=name_substring)
+                        perm = base_permissions.get(name__contains=name_substring)
                         permissions_to_assign.append(perm)
                     except Permission.DoesNotExist:
                         self.stdout.write(
@@ -226,7 +223,7 @@ class Command(BaseCommand):
         # Default users for automated testing
         admin_user = UserAccount.objects.create_user(
             cpf=CPF_ADMIN,
-            email="leandro.souza.159@gmail.com",
+            email="leandro.souza@email.com",
             phone=fake_phone_number(),
             password=PASSWORD,
             name="Alexandre Ferret",
@@ -542,8 +539,7 @@ class Command(BaseCommand):
     def populate_modalities(self):
         for modality in MODALITIES:
             accessory_type = get_accessory_type(modality)
-            Modality.objects.create(
-                name=modality, accessory_type=accessory_type)
+            Modality.objects.create(name=modality, accessory_type=accessory_type)
 
     def populate_equipments(self, num_equipments_per_units=3):
         """Populates the Equipment model with example data."""
@@ -556,8 +552,7 @@ class Command(BaseCommand):
         with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
             with EQUIPMENT_LABEL_PHOTO_PATH.open(mode="rb") as f_label:
                 photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
-                label_file = File(
-                    f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
+                label_file = File(f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
 
                 def _create_equipment_fixture_data(eq_obj):
                     """Helper function to create a dictionary for equipment fixture data."""
@@ -637,8 +632,7 @@ class Command(BaseCommand):
         with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
             with EQUIPMENT_LABEL_PHOTO_PATH.open(mode="rb") as f_label:
                 photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
-                label_file = File(
-                    f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
+                label_file = File(f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
 
                 equipments = EquipmentOperation.objects.all()
                 for equipment in equipments:
@@ -710,8 +704,7 @@ class Command(BaseCommand):
                 contact_phone=fake_phone_number(),
                 email=fake.email(),
                 date=fake.date(),
-                value=fake.pydecimal(
-                    left_digits=5, right_digits=2, positive=True),
+                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                 contract_type=choice(contract_type_choices),
                 status=status_choices_all[0],
             )
@@ -724,8 +717,7 @@ class Command(BaseCommand):
                 contact_phone=fake_phone_number(),
                 email=fake.email(),
                 date=fake.date(),
-                value=fake.pydecimal(
-                    left_digits=5, right_digits=2, positive=True),
+                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                 contract_type=choice(contract_type_choices),
                 status=status,
             )
@@ -738,8 +730,7 @@ class Command(BaseCommand):
                 contact_phone=fake_phone_number(),
                 email=fake.email(),
                 date=fake.date(),
-                value=fake.pydecimal(
-                    left_digits=5, right_digits=2, positive=True),
+                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                 contract_type=choice(contract_type_choices),
                 status=status,
             )
@@ -760,8 +751,7 @@ class Command(BaseCommand):
                 contact_phone=fake_phone_number(),
                 email=fake.email(),
                 date=fake.date(),
-                value=fake.pydecimal(
-                    left_digits=5, right_digits=2, positive=True),
+                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                 contract_type=choice(contract_type_choices),
                 status=Proposal.Status.ACCEPTED,
             )
@@ -775,8 +765,7 @@ class Command(BaseCommand):
                 contact_phone=fake_phone_number(),
                 email=fake.email(),
                 date=fake.date(),
-                value=fake.pydecimal(
-                    left_digits=5, right_digits=2, positive=True),
+                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                 contract_type=choice(contract_type_choices),
                 status=choice(status_choices_all),
             )
