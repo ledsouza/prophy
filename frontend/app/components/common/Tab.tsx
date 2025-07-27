@@ -13,7 +13,7 @@ function Tab({ children }: TabProps) {
                 ${
                     selected
                         ? "bg-white text-primary shadow"
-                        : "text-gray-700 hover:bg-white/[0.12] hover:text-primary"
+                        : "text-gray-700 hover:bg-white/[0.4] hover:text-primary"
                 }`
             }
         >
