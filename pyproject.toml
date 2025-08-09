@@ -28,6 +28,7 @@ aiosmtpd = "^1.4.6"
 django-ses = "^4.3.0"
 mailgun = "^1.1.0"
 django-anymail = {extras = ["mailgun"], version = "^13.0.1"}
+google-auth = "^2.40.3"
 
 
 [build-system]
