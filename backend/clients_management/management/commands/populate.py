@@ -1,19 +1,16 @@
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import Permission
-from django.contrib.auth.models import Group
-from django.core.files import File
-from django.conf import settings
-
-from clients_management.models import Client, Unit, Modality, Accessory, Proposal
-from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
-from users.models import UserAccount
-
 import json
 import os
-from faker import Faker
 from random import choice, randint
-from localflavor.br.br_states import STATE_CHOICES
 
+from clients_management.models import Accessory, Client, Modality, Proposal, Unit
+from django.conf import settings
+from django.contrib.auth.models import Group, Permission
+from django.core.files import File
+from django.core.management.base import BaseCommand
+from faker import Faker
+from localflavor.br.br_states import STATE_CHOICES
+from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
+from users.models import UserAccount
 
 fake = Faker("pt_BR")
 
