@@ -1,14 +1,16 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from clients_management.views import (
-    LatestProposalStatusView,
+    AccessoryViewSet,
     ClientStatusView,
     ClientViewSet,
-    UnitViewSet,
     EquipmentViewSet,
+    LatestProposalStatusView,
     ModalityViewSet,
-    AccessoryViewSet,
     ProposalViewSet,
+    UnitViewSet,
+    trigger_report_notification_task,
 )
 
 router = DefaultRouter()
@@ -20,8 +22,11 @@ router.register("accessories", AccessoryViewSet, basename="accessory")
 router.register("proposals", ProposalViewSet, basename="proposals")
 
 urlpatterns = [
-    path("proposals/status/",
-         LatestProposalStatusView.as_view()),
+    path("proposals/status/", LatestProposalStatusView.as_view()),
     path("clients/status/", ClientStatusView.as_view()),
     path("", include(router.urls)),
+    path(
+        "tasks/notifications/run-report-notifications/",
+        trigger_report_notification_task,
+    ),
 ]

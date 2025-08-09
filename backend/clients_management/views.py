@@ -1,29 +1,36 @@
-from rest_framework.views import APIView
-from rest_framework import viewsets
-from rest_framework.permissions import AllowAny
-from rest_framework.pagination import PageNumberPagination
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.request import Request
-from rest_framework.decorators import action
+import logging
 
-from drf_yasg.utils import swagger_auto_schema
+from django.core.management import call_command
+from django.db.models import Exists, OuterRef, Q, Subquery
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from drf_yasg import openapi
-
-from django.db.models import Q, Exists, OuterRef, Subquery
-
+from drf_yasg.utils import swagger_auto_schema
+from google.auth.transport import requests
+from google.oauth2 import id_token
+from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from users.models import UserAccount
-from clients_management.models import Proposal, Client, Modality, Accessory
+
+from clients_management.models import Accessory, Client, Modality, Proposal
 from clients_management.serializers import (
-    CNPJSerializer,
+    AccessorySerializer,
     ClientSerializer,
-    UnitSerializer,
+    CNPJSerializer,
     EquipmentSerializer,
     ModalitySerializer,
-    AccessorySerializer,
     ProposalSerializer,
+    UnitSerializer,
 )
-from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
+
+logger = logging.getLogger(__name__)
 
 
 class LatestProposalStatusView(APIView):
@@ -953,3 +960,39 @@ class AccessoryViewSet(viewsets.ViewSet):
 
         accessory.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@csrf_exempt
+@require_POST
+def trigger_report_notification_task(request: HttpRequest) -> HttpResponse:
+    """
+    A view to be called by Google Cloud Scheduler.
+    It triggers a report notification task.
+    """
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        logger.warning("Missing or malformed Authorization header.")
+        return HttpResponseForbidden("Access Denied: Missing Authorization header.")
+
+    token = auth_header.split("Bearer ")[1]
+
+    try:
+        # The audience is the full URL of the Cloud Run service.
+        # It's best to fetch this dynamically.
+        audience = request.build_absolute_uri("/")
+        id_token.verify_oauth2_token(
+            id_token=token, request=requests.Request(), audience=audience.rstrip("/")
+        )
+
+    except ValueError as e:
+        logger.error(f"Invalid OIDC token: {e}")
+        return HttpResponseForbidden("Access Denied: Invalid OIDC token.")
+
+    try:
+        call_command("send_due_report_notifications")
+        return HttpResponse(
+            "Successfully triggered the report notification task.", status=200
+        )
+    except Exception as e:
+        logger.error(f"Error during management command execution: {e}")
+        return HttpResponse(f"An error occurred during task execution: {e}", status=500)
