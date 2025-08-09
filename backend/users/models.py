@@ -1,13 +1,15 @@
+from typing import Any, Dict, Optional, TypeVar
+
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    Group,
+    PermissionsMixin,
+)
 from django.db import models
 from django.db.models import TextChoices
+
 from users.validators import CPFValidator, MobilePhoneValidator
-from django.contrib.auth.models import (
-    BaseUserManager,
-    AbstractBaseUser,
-    PermissionsMixin,
-    Group,
-)
-from typing import Any, Dict, Optional, Type, TypeVar, cast, List
 
 T = TypeVar("T", bound="UserAccount")
 
