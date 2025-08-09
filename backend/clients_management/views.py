@@ -24,7 +24,6 @@ from clients_management.serializers import (
     ProposalSerializer,
 )
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
-from requisitions.serializers import EquipmentOperation
 
 
 class LatestProposalStatusView(APIView):
