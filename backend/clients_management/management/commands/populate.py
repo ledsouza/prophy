@@ -1,12 +1,25 @@
 import json
 import os
 from random import choice, randint
+import uuid
+import re
+from datetime import date, timedelta
 
-from clients_management.models import Accessory, Client, Modality, Proposal, Unit
+from clients_management.models import (
+    Accessory,
+    Client,
+    Modality,
+    Proposal,
+    Unit,
+    Equipment,
+    Report,
+)
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.files import File
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from faker import Faker
 from localflavor.br.br_states import STATE_CHOICES
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
@@ -109,10 +122,56 @@ def write_json_file(data: dict, file_path: str) -> None:
         json.dump(data, json_file, indent=2)
 
 
+# Helper functions for Report generation
+def safe_slug(s: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+    return slug[:50] or "entidade"
+
+
+def random_completion_date(report_type_code: str) -> date:
+    today = date.today()
+    if report_type_code == Report.ReportType.RADIOMETRIC_SURVEY:
+        validity_days = 4 * 365
+    else:
+        validity_days = 365
+
+    roll = randint(1, 100)
+    if roll <= 20:
+        # Overdue: due_date in the past
+        delta = validity_days + randint(1, 60)
+        return today - timedelta(days=delta)
+    elif roll <= 50:
+        # Near due: due within ~30 days
+        offset = max(0, validity_days - randint(0, 30))
+        return today - timedelta(days=offset)
+    else:
+        # General case within validity window but not too close to edges
+        low = 30
+        high = max(low + 1, validity_days - 60)
+        delta = randint(low, high)
+        return today - timedelta(days=delta)
+
+
+def make_report_file(report_type_code: str, entity_name: str) -> ContentFile:
+    uid = uuid.uuid4().hex[:8]
+    slug = safe_slug(entity_name)
+    filename = f"report-{report_type_code}-{slug}-{uid}.txt"
+    content = (
+        f"Tipo: {Report.ReportType(report_type_code).label}\n"
+        f"Entidade: {entity_name}\n"
+        f"Arquivo gerado automaticamente para testes.\n"
+    )
+    return ContentFile(content, name=filename)
+
+
 class Command(BaseCommand):
     help = "Populate the database with fake data."
 
+    @transaction.atomic
     def handle(self, *args, **options):
+        self.stdout.write(
+            self.style.WARNING("Populating database... This may take a moment.")
+        )
         self.create_groups()
         users = self.populate_users()
         default_clients = self.populate_clients()
@@ -120,6 +179,7 @@ class Command(BaseCommand):
         self.populate_modalities()
         default_equipments = self.populate_equipments()
         self.populate_accessories()
+        self.populate_reports()
         approved_cnpjs = self.populate_proposals()
         self.create_json_fixture(
             approved_cnpjs, users, default_clients, default_units, default_equipments
@@ -135,6 +195,8 @@ class Command(BaseCommand):
             .exclude(name__contains="add Unidade")
             .exclude(name__contains="add Equipamento")
         )
+
+        perms_dict = {p.name: p for p in base_permissions}
 
         # Define permissions for each role
         # Using permission name substrings for clarity and flexibility
@@ -168,42 +230,29 @@ class Command(BaseCommand):
         for role_value in UserAccount.Role.values:
             group, _ = Group.objects.get_or_create(name=role_value)
 
-            # PROPHY_MANAGER gets all base_permissions directly
             if role_value == UserAccount.Role.PROPHY_MANAGER:
-                group.permissions.set(
-                    role_permissions_map[UserAccount.Role.PROPHY_MANAGER]
-                )
+                group.permissions.set(list(base_permissions))
                 continue
 
-            # For other roles, get permissions based on the map
             permission_names = role_permissions_map.get(role_value, [])
             permissions_to_assign = []
-            if permission_names:  # Ensure permission_names is not empty nor None
+            if permission_names:
                 for name_substring in permission_names:
-                    try:
-                        # Using base_permissions queryset to find specific permissions
-                        perm = base_permissions.get(name__contains=name_substring)
-                        permissions_to_assign.append(perm)
-                    except Permission.DoesNotExist:
+                    # Find a permission in the dictionary where the key contains the substring
+                    matched_perm = next(
+                        (p for name, p in perms_dict.items() if name_substring in name),
+                        None,
+                    )
+                    if matched_perm:
+                        permissions_to_assign.append(matched_perm)
+                    else:
                         self.stdout.write(
                             self.style.WARNING(
                                 f"Permission containing '{name_substring}' not found for role '{role_value}'."
                             )
                         )
-                    except Permission.MultipleObjectsReturned:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"Multiple permissions found containing '{name_substring}' for role '{role_value}'. Please make the substring more specific."
-                            )
-                        )
 
-            if permissions_to_assign:
-                group.permissions.set(permissions_to_assign)
-            elif (
-                role_value != UserAccount.Role.PROPHY_MANAGER
-            ):  # Avoid clearing for prophy manager if map was empty
-                # Clear permissions if no specific ones are defined and it's not prophy_manager
-                group.permissions.clear()
+            group.permissions.set(permissions_to_assign)
 
     def populate_users(self, num_users=10):
         """Populates the User model with example data."""
@@ -293,14 +342,17 @@ class Command(BaseCommand):
         }
 
         # Random users for automated testing
+        users_to_create = []
         for _ in range(num_users):
-            UserAccount.objects.create_user(
+            user = UserAccount(
                 cpf=fake_cpf(),
                 email=fake.email(),
                 phone=fake_phone_number(),
-                password=PASSWORD,
                 name=fake.name(),
             )
+            user.set_password(PASSWORD)
+            users_to_create.append(user)
+        UserAccount.objects.bulk_create(users_to_create)
 
         return users
 
@@ -546,105 +598,141 @@ class Command(BaseCommand):
         user_client = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
         modalities = Modality.objects.all()
 
-        with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
-            with EQUIPMENT_LABEL_PHOTO_PATH.open(mode="rb") as f_label:
-                photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
-                label_file = File(f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
+        with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f, EQUIPMENT_LABEL_PHOTO_PATH.open(
+            mode="rb"
+        ) as f_label:
+            photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
+            label_file = File(f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
 
-                def _create_equipment_fixture_data(eq_obj):
-                    """Helper function to create a dictionary for equipment fixture data."""
-                    return {
-                        "unit": eq_obj.unit.id,
-                        "modality": eq_obj.modality.name,
-                        "manufacturer": eq_obj.manufacturer,
-                        "model": eq_obj.model,
-                        "series_number": eq_obj.series_number,
-                        "anvisa_registry": eq_obj.anvisa_registry,
-                        "equipment_photo": (
-                            eq_obj.equipment_photo.url
-                            if eq_obj.equipment_photo
-                            else None
-                        ),
-                        "label_photo": (
-                            eq_obj.label_photo.url if eq_obj.label_photo else None
-                        ),
-                        "id": eq_obj.id,
-                    }
-
-                # Default equipments for automated testing
-                equipment1 = EquipmentOperation.objects.create(
-                    operation_type=EquipmentOperation.OperationType.CLOSED,
-                    operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
-                    created_by=user_client,
-                    unit=Unit.objects.filter(client__users=user_client)[0],
-                    modality=modalities.get(name="Mamografia"),
-                    manufacturer=choice(manufactures),
-                    model=fake.word().upper() + "-" + str(randint(100, 999)),
-                    series_number=fake.bothify(text="????-######"),
-                    anvisa_registry=fake.bothify(text="?????????????"),
-                    equipment_photo=photo_file,
-                    label_photo=label_file,
-                    id=1000,
-                )
-                equipment2 = EquipmentOperation.objects.create(
-                    operation_type=EquipmentOperation.OperationType.CLOSED,
-                    operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
-                    created_by=user_client,
-                    unit=Unit.objects.filter(client__users=user_client)[0],
-                    modality=modalities.get(name="Mamografia"),
-                    manufacturer=choice(manufactures),
-                    model=fake.word().upper() + "-" + str(randint(100, 999)),
-                    series_number=fake.bothify(text="????-######"),
-                    anvisa_registry=fake.bothify(text="?????????????"),
-                    equipment_photo=photo_file,
-                    label_photo=label_file,
-                    id=1001,
-                )
-
-                equipments = {
-                    "equipment1": _create_equipment_fixture_data(equipment1),
-                    "equipment2": _create_equipment_fixture_data(equipment2),
+            def _create_equipment_fixture_data(eq_obj):
+                """Helper function to create a dictionary for equipment fixture data."""
+                return {
+                    "unit": eq_obj.unit.id,
+                    "modality": eq_obj.modality.name,
+                    "manufacturer": eq_obj.manufacturer,
+                    "model": eq_obj.model,
+                    "series_number": eq_obj.series_number,
+                    "anvisa_registry": eq_obj.anvisa_registry,
+                    "equipment_photo": (
+                        eq_obj.equipment_photo.url if eq_obj.equipment_photo else None
+                    ),
+                    "label_photo": (
+                        eq_obj.label_photo.url if eq_obj.label_photo else None
+                    ),
+                    "id": eq_obj.id,
                 }
 
-                # Random equipments for automated testing
-                for units in Unit.objects.all().exclude(client__users=user_client):
-                    for _ in range(num_equipments_per_units + randint(0, 4)):
-                        EquipmentOperation.objects.create(
-                            operation_type=EquipmentOperation.OperationType.CLOSED,
-                            operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
-                            created_by=user_client,
-                            unit=units,
-                            modality=choice(modalities),
-                            manufacturer=choice(manufactures),
-                            model=fake.word().upper() + "-" + str(randint(100, 999)),
-                            series_number=fake.bothify(text="????-######"),
-                            anvisa_registry=fake.bothify(text="?????????????"),
-                            equipment_photo=photo_file,
-                            label_photo=label_file,
-                        )
+            # Default equipments for automated testing
+            equipment1 = EquipmentOperation.objects.create(
+                operation_type=EquipmentOperation.OperationType.CLOSED,
+                operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
+                created_by=user_client,
+                unit=Unit.objects.filter(client__users=user_client)[0],
+                modality=modalities.get(name="Mamografia"),
+                manufacturer=choice(manufactures),
+                model=fake.word().upper() + "-" + str(randint(100, 999)),
+                series_number=fake.bothify(text="????-######"),
+                anvisa_registry=fake.bothify(text="?????????????"),
+                equipment_photo=photo_file,
+                label_photo=label_file,
+                id=1000,
+            )
+            equipment2 = EquipmentOperation.objects.create(
+                operation_type=EquipmentOperation.OperationType.CLOSED,
+                operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
+                created_by=user_client,
+                unit=Unit.objects.filter(client__users=user_client)[0],
+                modality=modalities.get(name="Mamografia"),
+                manufacturer=choice(manufactures),
+                model=fake.word().upper() + "-" + str(randint(100, 999)),
+                series_number=fake.bothify(text="????-######"),
+                anvisa_registry=fake.bothify(text="?????????????"),
+                equipment_photo=photo_file,
+                label_photo=label_file,
+                id=1001,
+            )
+
+            equipments = {
+                "equipment1": _create_equipment_fixture_data(equipment1),
+                "equipment2": _create_equipment_fixture_data(equipment2),
+            }
+
+            # Random equipments for automated testing
+            for units in Unit.objects.all().exclude(client__users=user_client):
+                for _ in range(num_equipments_per_units + randint(0, 4)):
+                    EquipmentOperation.objects.create(
+                        operation_type=EquipmentOperation.OperationType.CLOSED,
+                        operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
+                        created_by=user_client,
+                        unit=units,
+                        modality=choice(modalities),
+                        manufacturer=choice(manufactures),
+                        model=fake.word().upper() + "-" + str(randint(100, 999)),
+                        series_number=fake.bothify(text="????-######"),
+                        anvisa_registry=fake.bothify(text="?????????????"),
+                        equipment_photo=photo_file,
+                        label_photo=label_file,
+                    )
 
         return equipments
 
     def populate_accessories(self):
-        with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f:
-            with EQUIPMENT_LABEL_PHOTO_PATH.open(mode="rb") as f_label:
-                photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
-                label_file = File(f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
+        accessories_to_create = []
+        with EQUIPMENT_PHOTO_PATH.open(mode="rb") as f, EQUIPMENT_LABEL_PHOTO_PATH.open(
+            mode="rb"
+        ) as f_label:
+            photo_file = File(f, name=EQUIPMENT_PHOTO_PATH.name)
+            label_file = File(f_label, name=EQUIPMENT_LABEL_PHOTO_PATH.name)
 
-                equipments = EquipmentOperation.objects.all()
-                for equipment in equipments:
-                    modality = equipment.modality
-                    if modality.accessory_type == Modality.AccessoryType.NONE:
-                        continue
-                    Accessory.objects.create(
-                        equipment=equipment,
-                        category=get_accessory_type(modality),
-                        manufacturer=equipment.manufacturer,
-                        model=fake.word().upper() + "-" + str(randint(100, 999)),
-                        series_number=fake.bothify(text="????-######"),
-                        equipment_photo=photo_file,
-                        label_photo=label_file,
-                    )
+            equipments = Equipment.objects.all()
+            for equipment in equipments:
+                modality = equipment.modality
+                if modality.accessory_type == Modality.AccessoryType.NONE:
+                    continue
+
+                accessory = Accessory(
+                    equipment=equipment,
+                    category=get_accessory_type(modality.name),
+                    manufacturer=equipment.manufacturer,
+                    model=fake.word().upper() + "-" + str(randint(100, 999)),
+                    series_number=fake.bothify(text="????-######"),
+                    equipment_photo=photo_file,
+                    label_photo=label_file,
+                )
+                accessories_to_create.append(accessory)
+
+            if accessories_to_create:
+                Accessory.objects.bulk_create(accessories_to_create)
+
+    def populate_reports(self):
+        """Populates the Report model with example data across all report types."""
+        # Equipment-only reports
+        for equipment in Equipment.objects.all():
+            for _ in range(randint(1, 3)):
+                rtype = choice(Report.EQUIPMENT_ONLY_TYPES)
+                completion = random_completion_date(rtype)
+                report_file = make_report_file(
+                    rtype, f"{equipment.manufacturer}-{equipment.model}"
+                )
+                Report.objects.create(
+                    completion_date=completion,
+                    file=report_file,
+                    equipment=equipment,
+                    report_type=rtype,
+                )
+
+        # Unit-only reports
+        for unit in Unit.objects.all():
+            for _ in range(randint(1, 4)):
+                rtype = choice(Report.UNIT_ONLY_TYPES)
+                completion = random_completion_date(rtype)
+                report_file = make_report_file(rtype, unit.name)
+                Report.objects.create(
+                    completion_date=completion,
+                    file=report_file,
+                    unit=unit,
+                    report_type=rtype,
+                )
 
     def populate_proposals(self, num_proposals=150):
         """Populates the Proposal model with example data."""
@@ -689,47 +777,54 @@ class Command(BaseCommand):
 
         # Create proposals for all existing clients to ensure each client has at least one proposal
         existing_clients = Client.objects.all()
+        proposals_to_create = []
         for i, client in enumerate(existing_clients):
             # Use different statuses for variety in testing
             status = status_choices_all[i % len(status_choices_all)]
 
-            Proposal.objects.create(
-                cnpj=client.cnpj,
-                city=client.city,
-                state=client.state,
-                contact_name=fake.name(),
-                contact_phone=fake_phone_number(),
-                email=fake.email(),
-                date=fake.date(),
-                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
-                contract_type=choice(contract_type_choices),
-                status=status_choices_all[0],
+            proposals_to_create.append(
+                Proposal(
+                    cnpj=client.cnpj,
+                    city=client.city,
+                    state=client.state,
+                    contact_name=fake.name(),
+                    contact_phone=fake_phone_number(),
+                    email=fake.email(),
+                    date=fake.date(),
+                    value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                    contract_type=choice(contract_type_choices),
+                    status=status_choices_all[0],
+                )
             )
 
-            Proposal.objects.create(
-                cnpj=client.cnpj,
-                city=client.city,
-                state=client.state,
-                contact_name=fake.name(),
-                contact_phone=fake_phone_number(),
-                email=fake.email(),
-                date=fake.date(),
-                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
-                contract_type=choice(contract_type_choices),
-                status=status,
+            proposals_to_create.append(
+                Proposal(
+                    cnpj=client.cnpj,
+                    city=client.city,
+                    state=client.state,
+                    contact_name=fake.name(),
+                    contact_phone=fake_phone_number(),
+                    email=fake.email(),
+                    date=fake.date(),
+                    value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                    contract_type=choice(contract_type_choices),
+                    status=status,
+                )
             )
 
-            Proposal.objects.create(
-                cnpj=client.cnpj,
-                city=client.city,
-                state=client.state,
-                contact_name=fake.name(),
-                contact_phone=fake_phone_number(),
-                email=fake.email(),
-                date=fake.date(),
-                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
-                contract_type=choice(contract_type_choices),
-                status=status,
+            proposals_to_create.append(
+                Proposal(
+                    cnpj=client.cnpj,
+                    city=client.city,
+                    state=client.state,
+                    contact_name=fake.name(),
+                    contact_phone=fake_phone_number(),
+                    email=fake.email(),
+                    date=fake.date(),
+                    value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                    contract_type=choice(contract_type_choices),
+                    status=status,
+                )
             )
 
             # Track approved proposals for fixture generation
@@ -739,33 +834,40 @@ class Command(BaseCommand):
         # Continue with existing random proposal generation for additional test data
         for _ in range(num_proposals):
             cnpj = fake_cnpj()
-
-            Proposal.objects.create(
-                cnpj=cnpj,
-                city=fake.city(),
-                state=choice(STATE_CHOICES)[0],
-                contact_name=fake.name(),
-                contact_phone=fake_phone_number(),
-                email=fake.email(),
-                date=fake.date(),
-                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
-                contract_type=choice(contract_type_choices),
-                status=Proposal.Status.ACCEPTED,
-            )
             approved_cnpjs.append(cnpj)
 
-            Proposal.objects.create(
-                cnpj=fake_cnpj(),
-                city=fake.city(),
-                state=choice(STATE_CHOICES)[0],
-                contact_name=fake.name(),
-                contact_phone=fake_phone_number(),
-                email=fake.email(),
-                date=fake.date(),
-                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
-                contract_type=choice(contract_type_choices),
-                status=choice(status_choices_all),
+            proposals_to_create.append(
+                Proposal(
+                    cnpj=cnpj,
+                    city=fake.city(),
+                    state=choice(STATE_CHOICES)[0],
+                    contact_name=fake.name(),
+                    contact_phone=fake_phone_number(),
+                    email=fake.email(),
+                    date=fake.date(),
+                    value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                    contract_type=choice(contract_type_choices),
+                    status=Proposal.Status.ACCEPTED,
+                )
             )
+
+            proposals_to_create.append(
+                Proposal(
+                    cnpj=fake_cnpj(),
+                    city=fake.city(),
+                    state=choice(STATE_CHOICES)[0],
+                    contact_name=fake.name(),
+                    contact_phone=fake_phone_number(),
+                    email=fake.email(),
+                    date=fake.date(),
+                    value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                    contract_type=choice(contract_type_choices),
+                    status=choice(status_choices_all),
+                )
+            )
+
+        if proposals_to_create:
+            Proposal.objects.bulk_create(proposals_to_create)
 
         return approved_cnpjs
 
