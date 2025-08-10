@@ -269,7 +269,7 @@ class Command(BaseCommand):
         # Default users for automated testing
         admin_user = UserAccount.objects.create_user(
             cpf=CPF_ADMIN,
-            email="leandro.souza@email.com",
+            email="alexandre.ferret@email.com",
             phone=fake_phone_number(),
             password=PASSWORD,
             name="Alexandre Ferret",
@@ -280,7 +280,7 @@ class Command(BaseCommand):
 
         client_user = UserAccount.objects.create_user(
             cpf=CPF_CLIENT_MANAGER,
-            email=fake.email(),
+            email="leandro.souza.159@gmail.com",
             phone=fake_phone_number(),
             password=PASSWORD,
             name="Leandro Souza",
@@ -706,6 +706,14 @@ class Command(BaseCommand):
 
     def populate_reports(self):
         """Populates the Report model with example data across all report types."""
+        rtype = choice(Report.UNIT_ONLY_TYPES)
+        Report.objects.create(
+            completion_date=date(2027, 5, 10),
+            file=make_report_file(rtype, "Unit 1000"),
+            unit=Unit.objects.get(id=1000),
+            report_type=rtype,
+        )
+
         # Equipment-only reports
         for equipment in Equipment.objects.all():
             for _ in range(randint(1, 3)):
