@@ -444,7 +444,9 @@ class Proposal(models.Model):
 
 class ServiceOrder(models.Model):
     subject = models.CharField("Assunto", max_length=50)
-    activities = models.TextField("Atividades")
+    equipments = models.ManyToManyField(Equipment, related_name="service_orders")
+    description = models.TextField("Descrição")
+    conclusion = models.TextField("Conclusão")
 
 
 class Visit(models.Model):
