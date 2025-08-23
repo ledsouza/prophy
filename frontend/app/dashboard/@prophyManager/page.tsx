@@ -1,7 +1,7 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { FileText, Info, Warning } from "@phosphor-icons/react";
+import { FileTextIcon, InfoIcon, WarningIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -408,9 +408,9 @@ function SearchPage() {
                                                 <label className="block">Status de Operações</label>
                                                 {hasPendingOperations && !isPendingLoading && (
                                                     <div className="group relative">
-                                                        <Warning
+                                                        <WarningIcon
                                                             size={16}
-                                                            className="text-warning cursor-help"
+                                                            className="text-WarningIcon cursor-help"
                                                             weight="fill"
                                                         />
                                                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
@@ -551,7 +551,7 @@ function SearchPage() {
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
                                                                 >
-                                                                    <Info size={16} />
+                                                                    <InfoIcon size={16} />
                                                                     Detalhes
                                                                 </Button>
 
@@ -564,7 +564,7 @@ function SearchPage() {
                                                                     }
                                                                     className="flex items-center gap-2 px-2 py-1 text-xs"
                                                                 >
-                                                                    <FileText size={16} />
+                                                                    <FileTextIcon size={16} />
                                                                     Propostas
                                                                 </Button>
                                                             </div>
@@ -753,7 +753,7 @@ function SearchPage() {
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
                                                                 >
-                                                                    <Info size={16} />
+                                                                    <InfoIcon size={16} />
                                                                     Detalhes
                                                                 </Button>
                                                             </div>
