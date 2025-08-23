@@ -1,39 +1,39 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { FileText, Info, Warning } from "@phosphor-icons/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
-import { ClientDTO } from "@/redux/features/clientApiSlice";
-import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
-import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
 import { usePendingOperations } from "@/hooks";
+import { ClientDTO } from "@/redux/features/clientApiSlice";
+import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
+import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
 
-import { Typography } from "@/components/foundation";
+import { Button, ErrorDisplay, Pagination, Spinner, Tab, Table } from "@/components/common";
 import { Input, Select } from "@/components/forms";
-import { Button, ErrorDisplay, Pagination, Spinner, Table, Tab } from "@/components/common";
+import { Typography } from "@/components/foundation";
 
+import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
 import { SearchTab } from "./enums";
-import { USER_ROLE_OPTIONS, CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS } from "./constants";
-import { buildUrlParams } from "./url";
+import { useSearchQueries } from "./hooks";
 import {
-    restoreTabState,
-    restorePageState,
-    getUserRoleFromOptionId,
     getContractTypeFromOptionId,
     getOperationStatusFromOptionId,
-    restoreTextFilterStates,
-    restoreSelectFilterStates,
+    getUserRoleFromOptionId,
     resetPageState,
     restoreManufacturerFilterState,
     restoreModalityFilterState,
+    restorePageState,
+    restoreSelectFilterStates,
+    restoreTabState,
+    restoreTextFilterStates,
 } from "./state";
-import { useSearchQueries } from "./hooks";
 import { ClientFilters, EquipmentFilters } from "./types";
+import { buildUrlParams } from "./url";
 
 function SearchPage() {
     const router = useRouter();
