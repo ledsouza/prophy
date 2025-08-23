@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import { apiSlice } from "@/redux/services/apiSlice";
-import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 import {
     ClientOperationDTO,
     useDeleteClientOperationMutation,
@@ -17,17 +15,19 @@ import {
     useDeleteUnitOperationMutation,
     useListAllUnitsOperationsQuery,
 } from "@/redux/features/unitApiSlice";
+import { apiSlice } from "@/redux/services/apiSlice";
+import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 
-import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { OperationType } from "@/enums";
+import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 import { ArrowClockwise } from "@phosphor-icons/react";
 
-import { Typography } from "@/components/foundation";
-import { AddUnitForm, EditClientForm, EditUnitForm, Input } from "@/components/forms";
-import { Button, Modal, Spinner } from "@/components/common";
 import { ClientDetails, UnitList } from "@/components/client";
+import { Button, Modal, Spinner } from "@/components/common";
+import { AddUnitForm, EditClientForm, EditUnitForm, Input } from "@/components/forms";
+import { Typography } from "@/components/foundation";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 
 function ClientPage() {
