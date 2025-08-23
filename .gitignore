@@ -274,3 +274,5 @@ pyrightconfig.json
 
 # Experimental and spikes
 *.nogit.*
+notebooks/
+notebooks/*
