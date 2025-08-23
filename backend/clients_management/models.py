@@ -443,10 +443,22 @@ class Proposal(models.Model):
 
 
 class ServiceOrder(models.Model):
-    subject = models.CharField("Assunto", max_length=50)
+    subject = models.CharField(
+        "Assunto",
+        max_length=50,
+        help_text="A brief, clear summary of the service order's purpose.",
+    )
     equipments = models.ManyToManyField(Equipment, related_name="service_orders")
-    description = models.TextField("Descrição")
-    conclusion = models.TextField("Conclusão")
+    description = models.TextField(
+        "Descrição",
+        help_text="A detailed description of the problem or service required.",
+    )
+    conclusion = models.TextField(
+        "Conclusão", help_text="A summary of the work performed and the resolution."
+    )
+
+    def __str__(self):
+        return self.subject
 
 
 class Visit(models.Model):
