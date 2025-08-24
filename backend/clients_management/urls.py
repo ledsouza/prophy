@@ -11,6 +11,7 @@ from clients_management.views import (
     ProposalViewSet,
     UnitViewSet,
     trigger_report_notification_task,
+    ServiceOrderPDFView,
 )
 
 router = DefaultRouter()
@@ -24,6 +25,7 @@ router.register("proposals", ProposalViewSet, basename="proposals")
 urlpatterns = [
     path("proposals/status/", LatestProposalStatusView.as_view()),
     path("clients/status/", ClientStatusView.as_view()),
+    path("service-orders/<int:order_id>/pdf/", ServiceOrderPDFView.as_view()),
     path("", include(router.urls)),
     path(
         "tasks/notifications/run-report-notifications/",

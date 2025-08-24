@@ -19,7 +19,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import UserAccount
 
-from clients_management.models import Accessory, Client, Modality, Proposal
+from clients_management.models import (
+    Accessory,
+    Client,
+    Modality,
+    Proposal,
+    ServiceOrder,
+)
+from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.serializers import (
     AccessorySerializer,
     ClientSerializer,
@@ -960,6 +967,66 @@ class AccessoryViewSet(viewsets.ViewSet):
 
         accessory.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ServiceOrderPDFView(APIView):
+    """
+    Generate and download a PDF for a Service Order.
+    Permissions:
+      - PROPHY_MANAGER
+      - Unit Manager of the service order's unit
+      - Any user associated with the client (Client.users)
+    """
+
+    @swagger_auto_schema(
+        operation_summary="Download Service Order PDF",
+        manual_parameters=[
+            openapi.Parameter(
+                name="order_id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="ID da Ordem de Serviço",
+            )
+        ],
+        responses={200: "PDF bytes", 403: "Forbidden", 404: "Not found"},
+    )
+    def get(self, request: Request, order_id: int):
+        try:
+            order = (
+                ServiceOrder.objects.select_related("visit__unit__client")
+                .prefetch_related("equipments")
+                .get(pk=order_id)
+            )
+        except ServiceOrder.DoesNotExist:
+            return Response(
+                {"detail": f'ServiceOrder with ID "{order_id}" does not exist.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user: UserAccount = request.user
+        allowed = False
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            allowed = True
+        else:
+            visit = order.visit
+            unit = visit.unit
+            if unit and unit.user_id == user.id:
+                allowed = True
+            elif unit and unit.client and unit.client.users.filter(pk=user.pk).exists():
+                allowed = True
+
+        if not allowed:
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        pdf_bytes = build_service_order_pdf(order)
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = (
+            f'attachment; filename="service_order_{order.id}.pdf"'
+        )
+        return response
 
 
 @csrf_exempt
