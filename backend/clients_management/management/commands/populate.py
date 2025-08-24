@@ -13,6 +13,8 @@ from clients_management.models import (
     Unit,
     Equipment,
     Report,
+    ServiceOrder,
+    Visit,
 )
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -20,6 +22,7 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 from faker import Faker
 from localflavor.br.br_states import STATE_CHOICES
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
@@ -179,6 +182,7 @@ class Command(BaseCommand):
         self.populate_modalities()
         default_equipments = self.populate_equipments()
         self.populate_accessories()
+        self.populate_service_orders()
         self.populate_reports()
         approved_cnpjs = self.populate_proposals()
         self.create_json_fixture(
@@ -741,6 +745,216 @@ class Command(BaseCommand):
                     unit=unit,
                     report_type=rtype,
                 )
+
+    def populate_service_orders(self, num_service_orders_per_unit=2):
+        """Populates the ServiceOrder and Visit models with example data."""
+        # Common service order subjects for medical equipment
+        service_subjects = [
+            "Calibração de Mamógrafo",
+            "Manutenção Preventiva",
+            "Reparo de Detector",
+            "Substituição de Peças",
+            "Verificação de Segurança",
+            "Atualização de Software",
+            "Limpeza e Desinfecção",
+            "Teste de Qualidade",
+            "Reparo de Sistema",
+            "Instalação de Acessório",
+            "Correção de Falha",
+            "Inspeção Técnica",
+            "Ajuste de Parâmetros",
+            "Troca de Filtros",
+            "Reparo de Cabo",
+        ]
+
+        # Common problem descriptions
+        problem_descriptions = [
+            "Equipamento apresentando ruído excessivo durante operação",
+            "Imagens com qualidade inferior ao padrão esperado",
+            "Sistema não inicializa corretamente",
+            "Detector apresentando pixels defeituosos",
+            "Falha na comunicação entre componentes",
+            "Temperatura do equipamento acima do normal",
+            "Erro de calibração detectado no sistema",
+            "Componente eletrônico com mau funcionamento",
+            "Software apresentando travamentos frequentes",
+            "Peça mecânica necessita substituição",
+            "Sistema de refrigeração com problemas",
+            "Falha na alimentação elétrica",
+            "Sensor apresentando leituras inconsistentes",
+            "Interface do usuário não responsiva",
+            "Problema de conectividade de rede",
+        ]
+
+        # Common resolution conclusions
+        conclusions = [
+            "Equipamento calibrado e testado com sucesso. Funcionamento normal restabelecido.",
+            "Peças defeituosas substituídas. Sistema operando dentro dos parâmetros normais.",
+            "Software atualizado e configurações otimizadas. Problema resolvido.",
+            "Limpeza completa realizada e componentes ajustados. Equipamento em perfeito estado.",
+            "Reparo concluído com sucesso. Testes de qualidade aprovados.",
+            "Manutenção preventiva executada conforme protocolo. Equipamento liberado para uso.",
+            "Falha corrigida e sistema validado. Funcionamento estável confirmado.",
+            "Instalação concluída e testes realizados. Equipamento operacional.",
+            "Ajustes realizados e parâmetros otimizados. Performance melhorada.",
+            "Substituição de componentes finalizada. Sistema funcionando adequadamente.",
+            "Problema identificado e solucionado. Equipamento em condições normais de uso.",
+            "Verificação de segurança aprovada. Equipamento liberado para operação.",
+            "Correções aplicadas e sistema testado. Funcionamento conforme especificações.",
+            "Manutenção corretiva executada. Equipamento restabelecido ao estado original.",
+            "Inspeção técnica concluída. Todos os parâmetros dentro da normalidade.",
+        ]
+
+        units = list(Unit.objects.all())
+        equipments_qs = Equipment.objects.all()
+
+        if not equipments_qs.exists():
+            self.stdout.write(
+                self.style.WARNING(
+                    "No equipments found. Skipping service orders creation."
+                )
+            )
+            return {}
+
+        def _create_service_order_fixture_data(service_order_obj):
+            """Helper function to create a dictionary for service order fixture data."""
+            return {
+                "id": service_order_obj.id,
+                "subject": service_order_obj.subject,
+                "description": service_order_obj.description,
+                "conclusion": service_order_obj.conclusion,
+                "equipments": [eq.id for eq in service_order_obj.equipments.all()],
+            }
+
+        # Default service orders for automated testing (use the first two equipments deterministically)
+        default_equipments = list(equipments_qs.order_by("id")[:2])
+
+        service_order1 = ServiceOrder.objects.create(
+            subject="Calibração de Mamógrafo",
+            description=(
+                "Equipamento apresentando imagens com qualidade inferior ao padrão esperado. "
+                "Necessária calibração completa do sistema de aquisição de imagens."
+            ),
+            conclusion=(
+                "Equipamento calibrado e testado com sucesso. Funcionamento normal restabelecido. "
+                "Qualidade das imagens dentro dos parâmetros aceitáveis."
+            ),
+            id=1000,
+        )
+        if default_equipments:
+            service_order1.equipments.add(default_equipments[0])
+
+        # Create corresponding visit for service_order1
+        visit_date = fake.date_time_between(
+            start_date="-30d", end_date="+30d", tzinfo=timezone.get_current_timezone()
+        )
+        Visit.objects.create(
+            date=visit_date,
+            status=choice(
+                [
+                    Visit.Status.PENDING,
+                    Visit.Status.CONFIRMED,
+                    Visit.Status.FULFILLED,
+                ]
+            ),
+            contact_phone=fake_phone_number(),
+            contact_name=fake.name(),
+            service_order=service_order1,
+            unit=(default_equipments[0].unit if default_equipments else choice(units)),
+            id=1000,
+        )
+
+        service_order2 = ServiceOrder.objects.create(
+            subject="Manutenção Preventiva",
+            description=(
+                "Manutenção preventiva programada conforme cronograma anual. "
+                "Verificação geral dos componentes e limpeza do sistema."
+            ),
+            conclusion=(
+                "Manutenção preventiva executada conforme protocolo. Equipamento liberado para uso. "
+                "Próxima manutenção agendada para 6 meses."
+            ),
+            id=1001,
+        )
+        if len(default_equipments) > 1:
+            service_order2.equipments.add(default_equipments[1])
+
+        # Create corresponding visit for service_order2
+        visit_date2 = fake.date_time_between(
+            start_date="-60d", end_date="+60d", tzinfo=timezone.get_current_timezone()
+        )
+        Visit.objects.create(
+            date=visit_date2,
+            status=choice(
+                [
+                    Visit.Status.PENDING,
+                    Visit.Status.CONFIRMED,
+                    Visit.Status.FULFILLED,
+                ]
+            ),
+            contact_phone=fake_phone_number(),
+            contact_name=fake.name(),
+            service_order=service_order2,
+            unit=(
+                default_equipments[1].unit
+                if len(default_equipments) > 1
+                else choice(units)
+            ),
+            id=1001,
+        )
+
+        default_service_orders = {
+            "service_order1": _create_service_order_fixture_data(service_order1),
+            "service_order2": _create_service_order_fixture_data(service_order2),
+        }
+
+        # Random service orders for automated testing
+        for unit in units:
+            unit_equipments = list(equipments_qs.filter(unit=unit))
+            if not unit_equipments:
+                continue
+
+            for _ in range(num_service_orders_per_unit + randint(0, 2)):
+                subject = choice(service_subjects)
+                description = choice(problem_descriptions)
+                conclusion = choice(conclusions)
+
+                service_order = ServiceOrder.objects.create(
+                    subject=subject,
+                    description=description,
+                    conclusion=conclusion,
+                )
+
+                # Associate 1-3 equipments from the same unit
+                num_equipments = min(randint(1, 3), len(unit_equipments))
+                selected_equipments = fake.random_elements(
+                    elements=unit_equipments, length=num_equipments, unique=True
+                )
+                service_order.equipments.set(selected_equipments)
+
+                # Create corresponding visit
+                visit_date = fake.date_time_between(
+                    start_date="-90d",
+                    end_date="+90d",
+                    tzinfo=timezone.get_current_timezone(),
+                )
+                Visit.objects.create(
+                    date=visit_date,
+                    status=choice(
+                        [
+                            Visit.Status.PENDING,
+                            Visit.Status.CONFIRMED,
+                            Visit.Status.FULFILLED,
+                            Visit.Status.UNFULFILLED,
+                        ]
+                    ),
+                    contact_phone=fake_phone_number(),
+                    contact_name=fake.name(),
+                    service_order=service_order,
+                    unit=unit,
+                )
+
+        return default_service_orders
 
     def populate_proposals(self, num_proposals=150):
         """Populates the Proposal model with example data."""
