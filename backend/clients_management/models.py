@@ -442,6 +442,20 @@ class Proposal(models.Model):
 
 
 class ServiceOrder(models.Model):
+    """
+    A Django model representing a service order issued for a client's unit.
+
+    Stores the scope to be executed during an on-site visit, including the
+    subject, detailed description of the requested work, the involved
+    equipments, and the final conclusion.
+
+    Attributes:
+        subject (CharField): Short, clear summary of the service order's purpose.
+        equipments (ManyToManyField): Equipments related to this order.
+        description (TextField): Detailed description of the requested work.
+        conclusion (TextField): Summary of the work performed and resolution.
+    """
+
     subject = models.CharField(
         "Assunto",
         max_length=50,
@@ -461,6 +475,28 @@ class ServiceOrder(models.Model):
 
 
 class Visit(models.Model):
+    """
+    A Django model representing an on-site visit that generates a ServiceOrder.
+
+    Records scheduling and execution details for a specific client unit, including
+    status and contact information. Each Visit is linked one-to-one with a
+    ServiceOrder.
+
+    Attributes:
+        date (DateTimeField): Scheduled datetime of the visit.
+        status (CharField): Visit status. One of P (Pendente), C (Confirmado),
+            F (Realizado), U (Não realizado).
+        contact_phone (CharField): Contact phone for the attendant at the unit.
+        contact_name (CharField): Contact name for the attendant at the unit.
+        service_order (OneToOneField): The associated ServiceOrder to be generated.
+        unit (ForeignKey): The client Unit where the visit will occur.
+
+    Properties:
+        periodicity (str | None): Contract periodicity derived from the most recent
+            approved Proposal for the associated Client. Returns one of the values from
+            Proposal.ContractType or None if unavailable.
+    """
+
     class Status(TextChoices):
         PENDING = (
             "P",
