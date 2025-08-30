@@ -28,7 +28,7 @@ import {
 
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdFromUrl } from "@/utils/url";
-import { ArrowClockwise } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
 import { EquipmentDetails, EquipmentList, UnitDetails } from "@/components/client";
@@ -306,7 +306,7 @@ function UnitPage() {
                     onClick={handleUpdateData}
                 >
                     <div className="flex items-center gap-2">
-                        <ArrowClockwise size="24" /> Atualizar
+                        <ArrowClockwiseIcon size="24" /> Atualizar
                     </div>
                 </Button>
 
