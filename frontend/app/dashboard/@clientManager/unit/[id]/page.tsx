@@ -1,23 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import {
-    getEquipmentOperation,
-    getUnitOperation,
-    isErrorWithMessages,
-    isResponseError,
-} from "@/redux/services/helpers";
-import { apiSlice } from "@/redux/services/apiSlice";
-import {
-    UnitDTO,
-    useCreateDeleteUnitOperationMutation,
-    useDeleteUnitOperationMutation,
-    useUpdateUnitMutation,
-    useListAllUnitsOperationsQuery,
-    useListAllUnitsQuery,
-} from "@/redux/features/unitApiSlice";
 import {
     EquipmentDTO,
     useCreateDeleteEquipmentOperationMutation,
@@ -25,22 +10,37 @@ import {
     useListAllEquipmentsOperationsQuery,
     useListAllEquipmentsQuery,
 } from "@/redux/features/equipmentApiSlice";
+import {
+    UnitDTO,
+    useCreateDeleteUnitOperationMutation,
+    useDeleteUnitOperationMutation,
+    useListAllUnitsOperationsQuery,
+    useListAllUnitsQuery,
+    useUpdateUnitMutation,
+} from "@/redux/features/unitApiSlice";
+import { apiSlice } from "@/redux/services/apiSlice";
+import {
+    getEquipmentOperation,
+    getUnitOperation,
+    isErrorWithMessages,
+    isResponseError,
+} from "@/redux/services/helpers";
 
-import { toast } from "react-toastify";
-import { getIdFromUrl } from "@/utils/url";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
+import { toast } from "react-toastify";
 
-import { Typography } from "@/components/foundation";
+import { EquipmentDetails, EquipmentList, UnitDetails } from "@/components/client";
 import { Button, Modal, Spinner } from "@/components/common";
 import {
-    Input,
-    EditUnitForm,
     AddEquipmentForm,
     EditEquipmentForm,
+    EditUnitForm,
+    Input,
     RegisterUnitManagerForm,
 } from "@/components/forms";
-import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
+import { Typography } from "@/components/foundation";
 import { OperationType } from "@/enums";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
