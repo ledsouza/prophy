@@ -31,13 +31,12 @@ import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
-import { EquipmentDetails, EquipmentList, UnitDetails } from "@/components/client";
+import { EquipmentDetails, EquipmentPanel, UnitDetails } from "@/components/client";
 import { Button, Modal, Spinner } from "@/components/common";
 import {
     AddEquipmentForm,
     EditEquipmentForm,
     EditUnitForm,
-    Input,
     RegisterUnitManagerForm,
 } from "@/components/forms";
 import { Typography } from "@/components/foundation";
@@ -57,7 +56,6 @@ function UnitPage() {
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
     const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<EquipmentDTO[]>([]);
-    const [searchedEquipments, setSearchedEquipments] = useState<EquipmentDTO[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
 
     const { data: units, isLoading: isLoadingUnits, error: errorUnits } = useListAllUnitsQuery();
@@ -98,10 +96,6 @@ function UnitPage() {
                 { type: "EquipmentOperation", id: "LIST" },
             ])
         );
-    };
-
-    const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(event.target.value);
     };
 
     const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
@@ -248,23 +242,6 @@ function UnitPage() {
         ]);
     }, [equipmentsOperations, equipments, selectedUnit]);
 
-    // Filter equipments by search term
-    useEffect(() => {
-        if (filteredEquipmentsByUnit.length > 0) {
-            if (searchTerm.length > 0) {
-                setSearchedEquipments(
-                    filteredEquipmentsByUnit.filter((equipment) =>
-                        equipment.model.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                );
-            } else {
-                setSearchedEquipments(filteredEquipmentsByUnit);
-            }
-        } else {
-            setSearchedEquipments([]);
-        }
-    }, [filteredEquipmentsByUnit, searchTerm]);
-
     if (
         isLoadingUnits ||
         isLoadingUnitOperations ||
@@ -315,29 +292,12 @@ function UnitPage() {
                     unitOperation={getUnitOperation(selectedUnit, unitsOperations)}
                 />
 
-                <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
-                    <Typography element="h2" size="title2" className="font-bold">
-                        Equipamentos
-                    </Typography>
-
-                    {filteredEquipmentsByUnit?.length !== 0 && (
-                        <Input
-                            placeholder="Buscar equipamentos por modelo"
-                            value={searchTerm}
-                            onChange={handleSearchInputChange}
-                            dataTestId="input-search-equipments"
-                        />
-                    )}
-
-                    <EquipmentList
-                        searchedEquipments={searchedEquipments}
-                        filteredEquipmentsByUnit={filteredEquipmentsByUnit}
-                    />
-
-                    <Button onClick={handleModalAddEquipment} data-testid="btn-add-equipment">
-                        Adicionar equipamento
-                    </Button>
-                </div>
+                <EquipmentPanel
+                    filteredEquipmentsByUnit={filteredEquipmentsByUnit}
+                    searchTerm={searchTerm}
+                    onSearchTermChange={setSearchTerm}
+                    onAddEquipment={handleModalAddEquipment}
+                />
 
                 <Modal
                     isOpen={isModalOpen}

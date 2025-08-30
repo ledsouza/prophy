@@ -1,17 +1,14 @@
-import React, { useEffect } from "react";
-
-import { OperationStatus } from "@/enums";
 import { defaultOperationStatusOrder } from "@/constants/ordering";
-import { sortByOperationStatus } from "@/utils/sorting";
-import { getEquipmentOperation } from "@/redux/services/helpers";
+import { OperationStatus } from "@/enums";
 import {
     EquipmentDTO,
     useListAllEquipmentsOperationsQuery,
 } from "@/redux/features/equipmentApiSlice";
+import { getEquipmentOperation } from "@/redux/services/helpers";
+import { sortByOperationStatus } from "@/utils/sorting";
 
-import { Typography } from "@/components/foundation";
 import { EquipmentCard } from "@/components/client";
-import { Spinner } from "../common";
+import { Typography } from "@/components/foundation";
 
 type EquipmentListProps = {
     searchedEquipments: EquipmentDTO[];

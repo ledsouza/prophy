@@ -8,3 +8,4 @@ export { default as EquipmentList } from "./EquipmentList";
 export { default as EquipmentCard } from "./EquipmentCard";
 export { default as CardStatus } from "./CardStatus";
 export { default as CardButtons } from "./CardButtons";
+export { default as EquipmentPanel } from "./EquipmentPanel";
