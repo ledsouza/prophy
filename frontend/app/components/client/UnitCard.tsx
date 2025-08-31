@@ -180,7 +180,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
 
                 <div className="flex flex-col gap-2">
                     <Typography element="h3" size="lg" className="text-right">
-                        Status
+                        Situação
                     </Typography>
 
                     <CardStatus status={status} />
