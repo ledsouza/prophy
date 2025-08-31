@@ -25,6 +25,7 @@ from clients_management.models import (
     Modality,
     Proposal,
     ServiceOrder,
+    Visit,
 )
 from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.serializers import (
@@ -35,6 +36,7 @@ from clients_management.serializers import (
     ModalitySerializer,
     ProposalSerializer,
     UnitSerializer,
+    VisitSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -699,6 +701,271 @@ class EquipmentViewSet(viewsets.ViewSet):
         manufacturers = queryset.values_list("manufacturer", flat=True).distinct()
         manufacturers = [m for m in manufacturers if m]  # Filter out None/empty strings
         return sorted(manufacturers)  # Sort alphabetically
+
+
+class VisitViewSet(viewsets.ViewSet):
+    """
+    Viewset for managing visits.
+    """
+
+    @swagger_auto_schema(
+        operation_summary="List visits",
+        operation_description="""
+        Retrieve a paginated list of visits with filtering support.
+
+        ```json
+        {
+            "count": 123,  // Total number of visits
+            "next": "http://api.example.com/visits/?page=2", // Link to next page (if available)
+            "previous": null, // Link to previous page (if available)
+            "results": [
+                {
+                    "id": 1,
+                    "date": "2023-08-31T10:00:00Z",
+                    "status": "P",
+                    "contact_phone": "11999999999",
+                    "contact_name": "João Silva",
+                    "service_order": {
+                        "id": 1,
+                        "subject": "Manutenção preventiva",
+                        // ... other service_order fields
+                    },
+                    "unit": {
+                        "id": 1,
+                        "name": "Unidade Central",
+                        // ... other unit fields
+                    },
+                    "client_name": "Hospital São Paulo"
+                },
+                // ... more visits on this page
+            ]
+        }
+        ```
+        """,
+        manual_parameters=[
+            openapi.Parameter(
+                name="unit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Filter visits by unit ID.",
+            )
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of visits",
+                schema=VisitSerializer(many=True),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def list(self, request):
+        queryset = self._get_base_queryset(request.user)
+        queryset = self._apply_filters(queryset, request.query_params)
+        queryset = queryset.order_by("-date")
+        return self._paginate_response(queryset, request)
+
+    @swagger_auto_schema(
+        operation_summary="Create a new visit",
+        operation_description="Create a new visit instance with the provided data.",
+        request_body=VisitSerializer,
+        responses={
+            201: openapi.Response(
+                description="Visit created successfully", schema=VisitSerializer
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details",
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def create(self, request):
+        user: UserAccount = request.user
+        if not self._can_create_visit(user):
+            return Response(
+                {"detail": "You do not have permission to create visits."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = VisitSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Update a visit",
+        operation_description="Update an existing visit instance with the provided data.",
+        request_body=VisitSerializer,
+        responses={
+            200: openapi.Response(
+                description="Visit updated successfully", schema=VisitSerializer
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details",
+                        )
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Visit not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def update(self, request, pk=None):
+        user: UserAccount = request.user
+        if not self._can_update_visit(user):
+            return Response(
+                {"detail": "You do not have permission to update visits."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            visit = Visit.objects.get(pk=pk)
+        except Visit.DoesNotExist:
+            return Response(
+                {"detail": "Visita não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not self._has_visit_access(user, visit):
+            return Response(
+                {"detail": "You do not have permission to update this visit."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = VisitSerializer(visit, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Delete a visit",
+        operation_description="Delete an existing visit instance by its ID.",
+        responses={
+            204: openapi.Response(description="Visit deleted successfully"),
+            404: openapi.Response(
+                description="Visit not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def destroy(self, request, pk=None):
+        user: UserAccount = request.user
+        if user.role != UserAccount.Role.PROPHY_MANAGER:
+            return Response(
+                {"detail": "You do not have permission to delete visits."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            visit = Visit.objects.get(pk=pk)
+        except Visit.DoesNotExist:
+            return Response(
+                {"detail": "Visita não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        visit.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def _get_base_queryset(self, user: UserAccount):
+        """
+        Get base queryset based on user role and permissions.
+        """
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            return Visit.objects.all()
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            return Visit.objects.filter(unit__user=user)
+        else:
+            return Visit.objects.filter(unit__client__users=user)
+
+    def _apply_filters(self, queryset, query_params):
+        """
+        Apply filtering based on query parameters.
+        """
+        unit = query_params.get("unit")
+        if unit is not None:
+            queryset = queryset.filter(unit=unit)
+        return queryset
+
+    def _paginate_response(self, queryset, request):
+        """
+        Handle pagination and serialization of the queryset.
+        """
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = VisitSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = VisitSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _can_create_visit(self, user: UserAccount) -> bool:
+        """
+        Check if user can create visits.
+        """
+        return user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+        ]
+
+    def _can_update_visit(self, user: UserAccount) -> bool:
+        """
+        Check if user can update visits.
+        """
+        return user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+        ]
+
+    def _has_visit_access(self, user: UserAccount, visit: Visit) -> bool:
+        """
+        Check if user has access to a specific visit.
+        """
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            return True
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            return visit.unit.user == user
+        else:
+            return visit.unit.client.users.filter(pk=user.pk).exists()
 
 
 class ModalityViewSet(viewsets.ViewSet):

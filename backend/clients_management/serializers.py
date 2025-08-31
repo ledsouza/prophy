@@ -1,13 +1,16 @@
 from rest_framework import serializers
+from users.models import UserAccount
+
 from clients_management.models import (
+    Accessory,
     Client,
-    Unit,
     Equipment,
     Modality,
-    Accessory,
     Proposal,
+    ServiceOrder,
+    Unit,
+    Visit,
 )
-from users.models import UserAccount
 
 
 class ProposalSerializer(serializers.ModelSerializer):
@@ -87,3 +90,24 @@ class AccessorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Accessory
         fields = "__all__"
+
+
+class ServiceOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceOrder
+        fields = "__all__"
+
+
+class VisitSerializer(serializers.ModelSerializer):
+    service_order = ServiceOrderSerializer(read_only=True)
+    unit = UnitSerializer(read_only=True)
+
+    class Meta:
+        model = Visit
+        fields = "__all__"
+
+    def to_representation(self, instance: Visit):
+        representation = super().to_representation(instance)
+        if instance.unit and instance.unit.client:
+            representation["client_name"] = instance.unit.client.name
+        return representation

@@ -9,15 +9,17 @@ from clients_management.views import (
     LatestProposalStatusView,
     ModalityViewSet,
     ProposalViewSet,
-    UnitViewSet,
-    trigger_report_notification_task,
     ServiceOrderPDFView,
+    UnitViewSet,
+    VisitViewSet,
+    trigger_report_notification_task,
 )
 
 router = DefaultRouter()
 router.register("clients", ClientViewSet, basename="clients")
 router.register("units", UnitViewSet, basename="units")
 router.register("equipments", EquipmentViewSet, basename="equipments")
+router.register("visits", VisitViewSet, basename="visits")
 router.register("modalities", ModalityViewSet, basename="modality")
 router.register("accessories", AccessoryViewSet, basename="accessory")
 router.register("proposals", ProposalViewSet, basename="proposals")
