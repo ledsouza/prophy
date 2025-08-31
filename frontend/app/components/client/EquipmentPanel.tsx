@@ -22,6 +22,28 @@ type EquipmentPanelProps = {
     containerClassName?: string;
 };
 
+/**
+ * EquipmentPanel
+ * Renders a card-like container with a title, optional search input, list of equipments,
+ * and an action button to add a new equipment.
+ *
+ * Params
+ * @param {EquipmentDTO[]} filteredEquipmentsByUnit List of equipments for the current unit.
+ * @param {string} searchTerm Current search term used to filter by model.
+ * @param {(value: string) => void} onSearchTermChange Handler to update the search term.
+ * @param {() => void} onAddEquipment Callback invoked when clicking the add button.
+ * @param {string} [title="Equipamentos"] Panel title.
+ * @param {string} [searchPlaceholder="Buscar equipamentos por modelo"] Search input placeholder.
+ * @param {boolean} [showSearchWhenEmpty=false] If true, forces the search input to appear even when the list is empty.
+ * @param {string} [searchInputDataTestId="input-search-equipments"] data-testid applied to the search input.
+ * @param {string} [addButtonDataTestId="btn-add-equipment"] data-testid applied to the add button.
+ * @param {string} [containerClassName] Extra class names appended to the outer container.
+ *
+ * Behavior/Notes
+ * - Filters equipments by model (case-insensitive) using a memoized computation.
+ * - Search input is shown when there is any equipment or when showSearchWhenEmpty is true.
+ * - EquipmentList receives both the computed searchedEquipments and the original filteredEquipmentsByUnit.
+ */
 const EquipmentPanel = ({
     filteredEquipmentsByUnit = [],
     searchTerm,
