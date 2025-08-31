@@ -67,7 +67,7 @@ function VisitPanel({
                 Visitas
             </Typography>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable] pr-2">
                 <VisitList visits={visits || []} />
             </div>
 

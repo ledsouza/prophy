@@ -88,7 +88,7 @@ const EquipmentPanel = ({
                 />
             )}
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable] pr-2">
                 <EquipmentList
                     searchedEquipments={searchedEquipments}
                     filteredEquipmentsByUnit={filteredEquipmentsByUnit}
