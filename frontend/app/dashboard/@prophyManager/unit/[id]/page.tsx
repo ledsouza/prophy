@@ -20,8 +20,8 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
 
-import { EquipmentDetails, EquipmentPanel, UnitDetails } from "@/components/client";
-import { Button, Modal, Spinner } from "@/components/common";
+import { EquipmentDetails, EquipmentPanel, UnitDetails, VisitPanel } from "@/components/client";
+import { Button, Modal, Spinner, TabbedResourcePanel } from "@/components/common";
 import {
     AddEquipmentForm,
     EditEquipmentForm,
@@ -80,6 +80,7 @@ function UnitPage() {
                 { type: "UnitOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
+                { type: "Visit", id: "LIST" },
             ])
         );
     };
@@ -180,11 +181,27 @@ function UnitPage() {
                     unitOperation={getUnitOperation(selectedUnit, unitsOperations)}
                 />
 
-                <EquipmentPanel
-                    filteredEquipmentsByUnit={filteredEquipmentsByUnit}
-                    searchTerm={searchTerm}
-                    onSearchTermChange={setSearchTerm}
-                    onAddEquipment={handleModalAddEquipment}
+                <TabbedResourcePanel
+                    title="Painel"
+                    tabs={[
+                        {
+                            id: "equipments",
+                            label: "Equipamentos",
+                            render: () => (
+                                <EquipmentPanel
+                                    filteredEquipmentsByUnit={filteredEquipmentsByUnit}
+                                    searchTerm={searchTerm}
+                                    onSearchTermChange={setSearchTerm}
+                                    onAddEquipment={handleModalAddEquipment}
+                                />
+                            ),
+                        },
+                        {
+                            id: "visits",
+                            label: "Visitas",
+                            render: () => <VisitPanel unitId={unitId} onScheduleVisit={() => {}} />,
+                        },
+                    ]}
                 />
 
                 <Modal
