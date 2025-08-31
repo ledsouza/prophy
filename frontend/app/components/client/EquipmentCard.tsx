@@ -42,7 +42,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
     const [deleteEquipmentOperation] = useDeleteEquipmentOperationMutation();
 
     const containerStyle = cn(
-        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
+        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 hover:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
             "animate-danger": isRejected && !isStaff,

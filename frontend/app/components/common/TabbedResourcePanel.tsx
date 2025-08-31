@@ -30,9 +30,9 @@ type TabbedResourcePanelProps = {
 };
 
 /**
- * A responsive, accessible tabbed panel shell for rendering resource sections within a
- * card-like container. Renders a title and a Headless UI TabGroup with a tab list and panels.
- * The component is presentation/behavior only; callers provide per-tab render functions.
+ * A responsive, accessible shell for rendering resource sections inside a
+ * card-like container. It renders a Headless UI TabGroup (tab list and panels).
+ * The component is presentation/behavior only; callers provide per‑tab render functions.
  *
  * Props
  * @param {TabConfig[]} tabs
@@ -56,6 +56,9 @@ type TabbedResourcePanelProps = {
  *
  * Behavior/Notes
  * - Uses Headless UI tabs for keyboard and ARIA support.
+ * - Fixed-height container with flex; applies min-h-0 on the tab region to enable nested scroll areas.
+ * - Each TabPanel is non-scrollable (overflow-hidden). Content rendered by tabs must provide its own
+ *   scroll area (e.g., wrap lists with flex-1 overflow-y-auto) while keeping action buttons visible.
  * - initialTabId influences only the first render; the component is otherwise uncontrolled.
  * - Use onTabChange to observe and react to selection changes outside this component.
  */
@@ -88,13 +91,17 @@ const TabbedResourcePanel = ({
                 classNames.container
             )}
         >
-            <div className={clsx("flex flex-col", "gap-4", classNames.header)}>
-                <TabGroup selectedIndex={selectedIndex} onChange={handleChange}>
+            <div className={clsx("flex flex-col min-h-0", "gap-4", classNames.header)}>
+                <TabGroup
+                    selectedIndex={selectedIndex}
+                    onChange={handleChange}
+                    className="h-full flex flex-col min-h-0"
+                >
                     <TabList
                         className={clsx(
                             "flex space-x-1",
                             "rounded-xl bg-primary/20",
-                            "p-1",
+                            "p-1 mb-4",
                             classNames.tabs
                         )}
                     >
@@ -121,9 +128,12 @@ const TabbedResourcePanel = ({
                         ))}
                     </TabList>
 
-                    <TabPanels className={clsx("flex-1 overflow-y-auto", classNames.body)}>
+                    <TabPanels className={clsx("flex-1 min-h-0 overflow-hidden", classNames.body)}>
                         {tabs.map((t) => (
-                            <TabPanel key={t.id} className="focus:outline-none h-full">
+                            <TabPanel
+                                key={t.id}
+                                className="focus:outline-none h-full px-2 overflow-hidden"
+                            >
                                 {t.render()}
                             </TabPanel>
                         ))}

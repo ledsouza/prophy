@@ -24,8 +24,14 @@ type EquipmentPanelProps = {
 
 /**
  * EquipmentPanel
- * Renders a card-like container with a title, optional search input, list of equipments,
- * and an action button to add a new equipment.
+ * Presentation-only content meant to be rendered inside a parent container
+ * (e.g., TabbedResourcePanel). It renders a title, optional search input,
+ * a scrollable list of equipments, and a bottom action button.
+ *
+ * Layout notes
+ * - The root uses flex-col h-full and min-h-0 so the internal list can scroll when
+ *   used inside a fixed-height flex parent.
+ * - The list is wrapped in a flex-1 overflow-y-auto container; the bottom button remains visible.
  *
  * Params
  * @param {EquipmentDTO[]} filteredEquipmentsByUnit List of equipments for the current unit.
@@ -67,15 +73,7 @@ const EquipmentPanel = ({
     const showSearch = showSearchWhenEmpty || filteredEquipmentsByUnit.length > 0;
 
     return (
-        <div
-            className={clsx(
-                "w-full md:w-2/3 h-[60vh] md:h-[80vh]",
-                "overflow-y-auto flex flex-col gap-6",
-                "bg-white rounded-xl shadow-lg",
-                "p-6 md:p-8",
-                containerClassName
-            )}
-        >
+        <div className={clsx("flex flex-col gap-6 h-full min-h-0", containerClassName)}>
             <Typography element="h2" size="title2" className="font-bold">
                 Equipamentos
             </Typography>
@@ -90,10 +88,12 @@ const EquipmentPanel = ({
                 />
             )}
 
-            <EquipmentList
-                searchedEquipments={searchedEquipments}
-                filteredEquipmentsByUnit={filteredEquipmentsByUnit}
-            />
+            <div className="flex-1 overflow-y-auto">
+                <EquipmentList
+                    searchedEquipments={searchedEquipments}
+                    filteredEquipmentsByUnit={filteredEquipmentsByUnit}
+                />
+            </div>
 
             <Button onClick={onAddEquipment} data-testid={addButtonDataTestId}>
                 Adicionar equipamento
