@@ -49,7 +49,6 @@ const EquipmentPanel = ({
     searchTerm,
     onSearchTermChange,
     onAddEquipment,
-    title = "Equipamentos",
     searchPlaceholder = "Buscar equipamentos por modelo",
     showSearchWhenEmpty = false,
     searchInputDataTestId = "input-search-equipments",
@@ -78,7 +77,7 @@ const EquipmentPanel = ({
             )}
         >
             <Typography element="h2" size="title2" className="font-bold">
-                {title}
+                Equipamentos
             </Typography>
 
             {showSearch && (
