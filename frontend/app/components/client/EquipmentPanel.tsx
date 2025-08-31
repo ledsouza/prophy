@@ -6,8 +6,8 @@ import { EquipmentList } from "@/components/client";
 import { Button } from "@/components/common";
 import { Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import clsx from "clsx";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
+import clsx from "clsx";
 
 type EquipmentPanelProps = {
     filteredEquipmentsByUnit: EquipmentDTO[];
