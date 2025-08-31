@@ -74,10 +74,6 @@ const EquipmentPanel = ({
 
     return (
         <div className={clsx("flex flex-col gap-6 h-full min-h-0", containerClassName)}>
-            <Typography element="h2" size="title2" className="font-bold">
-                Equipamentos
-            </Typography>
-
             {showSearch && (
                 <Input
                     placeholder={searchPlaceholder}
