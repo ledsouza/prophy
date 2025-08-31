@@ -6,6 +6,7 @@ import { EquipmentList } from "@/components/client";
 import { Button } from "@/components/common";
 import { Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import clsx from "clsx";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 
 type EquipmentPanelProps = {
@@ -46,7 +47,13 @@ const EquipmentPanel = ({
 
     return (
         <div
-            className={`w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8 ${containerClassName}`}
+            className={clsx(
+                "w-full md:w-2/3 h-[60vh] md:h-[80vh]",
+                "overflow-y-auto flex flex-col gap-6",
+                "bg-white rounded-xl shadow-lg",
+                "p-6 md:p-8",
+                containerClassName
+            )}
         >
             <Typography element="h2" size="title2" className="font-bold">
                 {title}
