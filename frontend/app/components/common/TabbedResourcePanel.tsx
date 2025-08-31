@@ -23,7 +23,6 @@ type ClassNames = {
 };
 
 type TabbedResourcePanelProps = {
-    title: ReactNode;
     tabs: TabConfig[];
     initialTabId?: string;
     onTabChange?: (id: string) => void;
@@ -36,8 +35,6 @@ type TabbedResourcePanelProps = {
  * The component is presentation/behavior only; callers provide per-tab render functions.
  *
  * Props
- * @param {ReactNode} title
- *   Heading displayed above the tabs.
  * @param {TabConfig[]} tabs
  *   Tab definitions. For each item:
  *   - {string} id: Stable identifier used for selection and analytics.
@@ -63,7 +60,6 @@ type TabbedResourcePanelProps = {
  * - Use onTabChange to observe and react to selection changes outside this component.
  */
 const TabbedResourcePanel = ({
-    title,
     tabs,
     initialTabId,
     onTabChange,
@@ -93,10 +89,6 @@ const TabbedResourcePanel = ({
             )}
         >
             <div className={clsx("flex flex-col", "gap-4", classNames.header)}>
-                <Typography element="h2" size="title2" className="font-bold">
-                    {title}
-                </Typography>
-
                 <TabGroup selectedIndex={selectedIndex} onChange={handleChange}>
                     <TabList
                         className={clsx(

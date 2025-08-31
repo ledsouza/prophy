@@ -173,7 +173,6 @@ function UnitPage() {
                 />
 
                 <TabbedResourcePanel
-                    title="Painel"
                     tabs={[
                         {
                             id: "equipments",
