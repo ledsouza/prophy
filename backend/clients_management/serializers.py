@@ -100,14 +100,7 @@ class ServiceOrderSerializer(serializers.ModelSerializer):
 
 class VisitSerializer(serializers.ModelSerializer):
     service_order = ServiceOrderSerializer(read_only=True)
-    unit = UnitSerializer(read_only=True)
 
     class Meta:
         model = Visit
         fields = "__all__"
-
-    def to_representation(self, instance: Visit):
-        representation = super().to_representation(instance)
-        if instance.unit and instance.unit.client:
-            representation["client_name"] = instance.unit.client.name
-        return representation
