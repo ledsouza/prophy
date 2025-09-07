@@ -4,18 +4,10 @@ import { ServiceOrderForm } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import type { ServiceOrderDTO } from "@/redux/features/visitApiSlice";
 
-/**
- * Props for the ServiceOrderDetails component.
- * Describes the data and behaviors passed to the component.
- */
 type ServiceOrderDetailsProps = {
-    /** Service order data to display or edit. */
     serviceOrder: ServiceOrderDTO;
-    /** When false, renders the form in read-only (disabled) mode. */
     canEdit: boolean;
-    /** Identifier of the unit associated with the service order. */
     unitId: number;
-    /** Optional callback invoked when the user cancels the form. */
     onCancel?: () => void;
 };
 
@@ -30,7 +22,7 @@ type ServiceOrderDetailsProps = {
  * @param props.serviceOrder Service order data to display or edit.
  * @param props.canEdit When false, renders the form in read-only mode.
  * @param props.unitId Identifier of the unit associated with the service order.
- * @param [props.onCancel] Optional callback executed when the form is canceled.
+ * @param props.onCancel Optional callback executed when the form is canceled.
  * @returns Container wrapping the section heading and the ServiceOrderForm.
  *
  * @example
