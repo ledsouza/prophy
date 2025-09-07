@@ -1,7 +1,7 @@
 import { OperationType } from "@/enums";
-import { ModalityDTO } from "./modalityApiSlice";
-import { apiSlice, ListQueryParams, Operation, PaginatedResponse } from "../services/apiSlice";
 import { forEach } from "lodash";
+import { apiSlice, ListQueryParams, Operation, PaginatedResponse } from "../services/apiSlice";
+import { ModalityDTO } from "./modalityApiSlice";
 
 export type EquipmentDTO = {
     id: number;
