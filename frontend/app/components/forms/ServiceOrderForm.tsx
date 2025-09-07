@@ -125,7 +125,7 @@ const ServiceOrderForm = ({
                     {disabled ? (
                         <>
                             <Typography element="p" size="sm" className="font-medium mb-1">
-                                Equipamentos relacionados
+                                Equipamentos
                             </Typography>
                             {Array.isArray(serviceOrder.equipments) &&
                             serviceOrder.equipments.length > 0 ? (
@@ -178,7 +178,7 @@ const ServiceOrderForm = ({
                         </>
                     ) : (
                         <MultiSelect
-                            label="Equipamentos relacionados"
+                            label="Equipamentos"
                             options={equipmentOptions}
                             value={watch("equipments") || []}
                             onChange={(ids) =>
