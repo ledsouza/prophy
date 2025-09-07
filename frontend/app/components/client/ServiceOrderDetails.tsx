@@ -53,7 +53,7 @@ function ServiceOrderDetails({
 
     return (
         <div
-            className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md"
+            className="m-6 sm:mx-auto w-full sm:max-w-3xl max-w-3xl"
             data-testid="service-order-details"
         >
             <div className="flex items-center justify-between">
