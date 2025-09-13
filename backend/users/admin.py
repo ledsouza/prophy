@@ -18,33 +18,44 @@ class CustomUserCreationForm(UserCreationForm):
 
 @admin.register(UserAccount)
 class UserAccountAdmin(BaseUserAdmin):
-    change_form_template = 'admin/change_form.html'
+    change_form_template = "admin/change_form.html"
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
 
     verbose_name = "Conta de Usuário"
     verbose_name_plural = "Contas de Usuário"
 
-    list_display = ("cpf", "name", "email", "phone",
-                    "role", "is_active", "is_staff")
-    list_display_links = ("cpf",)
-    search_fields = ("cpf", "name", "email")
+    list_display = ("email", "name", "cpf", "phone", "role", "is_active", "is_staff")
+    list_display_links = ("email",)
+    search_fields = ("email", "name", "cpf")
     list_filter = ("role", "is_active", "is_staff")
-    ordering = ["name"]
+    ordering = ["name", "email"]
 
     fieldsets = (
         (None, {"fields": ("cpf", "name", "email", "phone", "password", "role")}),
-        ("Permissões", {
-            "fields": (
-                ("is_active", "is_staff", "is_superuser")
-            ),
-            "description": "Gerencie permissões extras além das permissões definidas no perfil."
-        }),
+        (
+            "Permissões",
+            {
+                "fields": (("is_active", "is_staff", "is_superuser")),
+                "description": "Gerencie permissões extras além das permissões definidas no perfil.",
+            },
+        ),
     )
 
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('cpf', 'name', 'email', 'phone', 'password1', 'password2', 'role'),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "cpf",
+                    "name",
+                    "email",
+                    "phone",
+                    "password1",
+                    "password2",
+                    "role",
+                ),
+            },
+        ),
     )

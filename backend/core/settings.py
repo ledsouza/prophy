@@ -145,6 +145,7 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "auth/password-reset/{uid}/{token}",
     "EMAIL_FRONTEND_DOMAIN": FRONTEND_URL.split("/")[-1],
     "EMAIL_FRONTEND_SITE_NAME": "Prophy",
+    "LOGIN_FIELD": "cpf",
 }
 
 AUTH_COOKIE = "access"
@@ -153,6 +154,15 @@ AUTH_COOKIE_SECURE = getenv("AUTH_COOKIE_SECURE", "True") == "True"
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = "/"
 AUTH_COOKIE_SAMESITE = "Lax"
+
+# The full URL of your Cloud Run service that Cloud Scheduler will call.
+# This MUST match the 'Audience' field you set in your Cloud Scheduler job.
+OIDC_AUDIENCE = getenv("OIDC_AUDIENCE")
+
+if not OIDC_AUDIENCE and not DEBUG:
+    raise ValueError(
+        "The OIDC_AUDIENCE environment variable must be set in production."
+    )
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
