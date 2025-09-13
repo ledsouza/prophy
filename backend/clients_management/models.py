@@ -510,14 +510,31 @@ class Visit(models.Model):
             "F",
             "Realizado",
         )
-        UNFULFILLED = "U", "Não realizado"
+        UNFULFILLED = (
+            "U",
+            "Não realizado",
+        )
+        RESCHEDULED = (
+            "R",
+            "Reagendada",
+        )
 
     date = models.DateTimeField("Data")
     status = models.CharField(
-        "Status", max_length=1, choices=Status.choices, default=Status.PENDING
+        "Status",
+        max_length=1,
+        choices=Status.choices,
+        default=Status.PENDING,
     )
-    contact_phone = models.CharField("Telefone do contato", max_length=13)
-    contact_name = models.CharField("Nome do contato", max_length=50)
+    justification = models.TextField("Justificativa")
+    contact_phone = models.CharField(
+        "Telefone do contato",
+        max_length=13,
+    )
+    contact_name = models.CharField(
+        "Nome do contato",
+        max_length=50,
+    )
     service_order = models.OneToOneField(
         ServiceOrder,
         on_delete=models.CASCADE,
