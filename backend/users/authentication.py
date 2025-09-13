@@ -1,8 +1,14 @@
 from django.conf import settings
+from django.http import HttpRequest
 from rest_framework.request import Request
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.exceptions import TokenError
+from google.auth.transport.requests import Request as GoogleAuthRequest
+from google.oauth2 import id_token
+import jwt
+
+from users.models import UserAccount
 
 
 class CustomJWTAuthentication(JWTAuthentication):
@@ -51,4 +57,74 @@ class CustomJWTAuthentication(JWTAuthentication):
 
             return self.get_user(validated_token), validated_token
         except (AuthenticationFailed, TokenError):
+            return None
+
+
+class OIDCAuthenticationBackend:
+    """
+    A custom Django authentication backend to validate OIDC tokens from Google.
+
+    This backend is designed to authenticate requests from services like Cloud Scheduler
+    by validating the OIDC token in the 'Authorization' header.
+    """
+
+    def authentication(self, request: HttpRequest) -> tuple[UserAccount, None] | None:
+        """
+        Authenticates the request by validating the OIDC token.
+
+        Args:
+            request: The HttpRequest object.
+
+        Returns:
+            A tuple of (user, None) if authentication is successful, otherwise None.
+        """
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+
+        token = auth_header.split(" ")[1]
+
+        try:
+            audience = settings.OIDC_AUDIENCE
+            if not audience:
+                raise ValueError("OIDC_AUDIENCE setting is not configured.")
+
+            claims = id_token.verify_oauth2_token(
+                token,
+                GoogleAuthRequest(),
+                audience=audience,
+            )
+
+            issuer = claims.get("iss")
+            if issuer not in ["accounts.google.com", "https://accounts.google.com"]:
+                raise ValueError("Incorrect token issuer.")
+
+            service_account_email = claims.get("email")
+            if not service_account_email:
+                return None
+
+            user, created = UserAccount.objects.get_or_create(
+                email=service_account_email,
+                defaults={
+                    "name": "Service Account",
+                    "role": UserAccount.Role.SERVICE_ACCOUNT,
+                },
+            )
+
+            if created:
+                print(f"Created new user for service account: {service_account_email}")
+
+            return (user, None)
+
+        except (ValueError, jwt.InvalidTokenError) as e:
+            print(f"OIDC token validation failed: {e}")
+            return None
+
+    def get_user(self, user_id: int) -> UserAccount | None:
+        """
+        Allows Django to retrieve the user object by its primary key.
+        """
+        try:
+            return UserAccount.objects.get(pk=user_id)
+        except UserAccount.DoesNotExist:
             return None
