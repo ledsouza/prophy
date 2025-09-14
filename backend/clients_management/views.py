@@ -3,13 +3,9 @@ from io import StringIO
 
 from django.core.management import call_command
 from django.db.models import Exists, OuterRef, Q, Subquery
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.http import HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from google.auth.transport import requests
-from google.oauth2 import id_token
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -1298,40 +1294,50 @@ class ServiceOrderPDFView(APIView):
         return response
 
 
-@csrf_exempt
-@require_POST
-def trigger_report_notification_task(request: HttpRequest) -> HttpResponse:
+class TriggerReportNotificationView(APIView):
     """
-    A view to be called by Google Cloud Scheduler.
-    It triggers a report notification task.
+    A secure API view to be triggered by Google Cloud Scheduler.
+
+    This view is protected by OIDC authentication, ensuring that only
+    authenticated Google services can access it. When a valid POST
+    request is received, it executes the `send_due_report_notifications`
+    management command.
     """
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        logger.warning("Missing or malformed Authorization header.")
-        return HttpResponseForbidden("Access Denied: Missing Authorization header.")
 
-    token = auth_header.split("Bearer ")[1]
+    authentication_classes = [GoogleOIDCAuthentication]
 
-    try:
-        # The audience is the full URL of the Cloud Run service.
-        # It's best to fetch this dynamically.
-        audience = request.build_absolute_uri("/")
-        id_token.verify_oauth2_token(
-            id_token=token, request=requests.Request(), audience=audience.rstrip("/")
-        )
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Handles the POST request from Cloud Scheduler to run the command.
+        """
+        logger.info("Received request to trigger report notifications...")
+        try:
+            output = StringIO()
+            call_command("send_due_report_notifications", stdout=output)
+            command_output = output.getvalue()
 
-    except ValueError as e:
-        logger.error(f"Invalid OIDC token: {e}")
-        return HttpResponseForbidden("Access Denied: Invalid OIDC token.")
-
-    try:
-        call_command("send_due_report_notifications")
-        return HttpResponse(
-            "Successfully triggered the report notification task.", status=200
-        )
-    except Exception as e:
-        logger.error(f"Error during management command execution: {e}")
-        return HttpResponse(f"An error occurred during task execution: {e}", status=500)
+            logger.info(
+                "Command 'send_due_report_notifications' executed successfully. Output: %s",
+                command_output.strip(),
+            )
+            return Response(
+                {
+                    "status": "ok",
+                    "message": "send_due_report_notifications executed",
+                    "output": command_output,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logger.error(
+                "An error occurred while running send_due_report_notifications command: %s",
+                e,
+                exc_info=True,
+            )
+            return Response(
+                {"status": "error", "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class TriggerUpdateVisitsView(APIView):
@@ -1358,6 +1364,14 @@ class TriggerUpdateVisitsView(APIView):
             logger.info(
                 "Command 'update_visits' executed successfully. Output: %s",
                 command_output.strip(),
+            )
+            return Response(
+                {
+                    "status": "ok",
+                    "message": "update_visits executed",
+                    "output": command_output,
+                },
+                status=status.HTTP_200_OK,
             )
         except Exception as e:
             logger.error(

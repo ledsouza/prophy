@@ -10,10 +10,10 @@ from clients_management.views import (
     ModalityViewSet,
     ProposalViewSet,
     ServiceOrderPDFView,
+    TriggerReportNotificationView,
+    TriggerUpdateVisitsView,
     UnitViewSet,
     VisitViewSet,
-    trigger_report_notification_task,
-    TriggerUpdateVisitsView,
 )
 
 router = DefaultRouter()
@@ -31,7 +31,8 @@ urlpatterns = [
     path("service-orders/<int:order_id>/pdf/", ServiceOrderPDFView.as_view()),
     path(
         "reports/tasks/run-report-notifications/",
-        trigger_report_notification_task,
+        TriggerReportNotificationView.as_view(),
+        name="trigger_report_notifications",
     ),
     path(
         "visits/tasks/update-overdue/",
