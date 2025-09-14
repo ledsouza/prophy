@@ -1,4 +1,5 @@
 import logging
+from io import StringIO
 
 from django.core.management import call_command
 from django.db.models import Exists, OuterRef, Q, Subquery
@@ -17,6 +18,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from users.authentication import GoogleOIDCAuthentication
 from users.models import UserAccount
 
 from clients_management.models import (
@@ -1330,3 +1332,40 @@ def trigger_report_notification_task(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         logger.error(f"Error during management command execution: {e}")
         return HttpResponse(f"An error occurred during task execution: {e}", status=500)
+
+
+class TriggerUpdateVisitsView(APIView):
+    """
+    A secure API view to be triggered by Google Cloud Scheduler.
+
+    This view is protected by OIDC authentication, ensuring that only
+    authenticated Google services can access it. When a valid POST
+    request is received, it executes the `update_visits` management command.
+    """
+
+    authentication_classes = [GoogleOIDCAuthentication]
+
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Handles the POST request from Cloud Scheduler to run the command.
+        """
+        logger.info("Received request to update visits...")
+        try:
+            output = StringIO()
+            call_command("update_visits", stdout=output)
+            command_output = output.getvalue()
+
+            logger.info(
+                "Command 'update_visits' executed successfully. Output: %s",
+                command_output.strip(),
+            )
+        except Exception as e:
+            logger.error(
+                "An error occurred while running update_visits command: %s",
+                e,
+                exc_info=True,
+            )
+            return Response(
+                {"status": "error", "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

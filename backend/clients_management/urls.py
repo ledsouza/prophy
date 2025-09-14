@@ -13,6 +13,7 @@ from clients_management.views import (
     UnitViewSet,
     VisitViewSet,
     trigger_report_notification_task,
+    TriggerUpdateVisitsView,
 )
 
 router = DefaultRouter()
@@ -28,9 +29,14 @@ urlpatterns = [
     path("proposals/status/", LatestProposalStatusView.as_view()),
     path("clients/status/", ClientStatusView.as_view()),
     path("service-orders/<int:order_id>/pdf/", ServiceOrderPDFView.as_view()),
-    path("", include(router.urls)),
     path(
-        "tasks/notifications/run-report-notifications/",
+        "reports/tasks/run-report-notifications/",
         trigger_report_notification_task,
     ),
+    path(
+        "visits/tasks/update-overdue/",
+        TriggerUpdateVisitsView.as_view(),
+        name="trigger_update_visits",
+    ),
+    path("", include(router.urls)),
 ]
