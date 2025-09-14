@@ -21,6 +21,7 @@ type ServiceOrderFormProps = {
     unitId: number;
     disabled?: boolean;
     onCancel?: () => void;
+    onSubmit?: (data: ServiceOrderFields) => Promise<void> | void;
 };
 
 /**
@@ -51,6 +52,7 @@ const ServiceOrderForm = ({
     unitId,
     disabled = false,
     onCancel,
+    onSubmit: onSubmitProp,
 }: ServiceOrderFormProps) => {
     const {
         register,
@@ -78,8 +80,11 @@ const ServiceOrderForm = ({
         return { id: e.id, value: `${label}` };
     });
 
-    const onSubmit: SubmitHandler<ServiceOrderFields> = async () => {
-        // TODO: There is no backend API to update ServiceOrder in the current codebase.
+    const onSubmit: SubmitHandler<ServiceOrderFields> = async (data) => {
+        if (onSubmitProp) {
+            await onSubmitProp(data);
+            return;
+        }
         toast.info("Atualização da Ordem de Serviço indisponível no momento.");
     };
 
