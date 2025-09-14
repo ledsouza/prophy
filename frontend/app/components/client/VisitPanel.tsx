@@ -2,7 +2,6 @@
 
 import { VisitList } from "@/components/client";
 import { Button, ErrorDisplay, Spinner } from "@/components/common";
-import { Typography } from "@/components/foundation";
 import { useListVisitsQuery } from "@/redux/features/visitApiSlice";
 import clsx from "clsx";
 
