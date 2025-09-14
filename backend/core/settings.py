@@ -139,6 +139,15 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
+# The full URL of your Cloud Run service that Cloud Scheduler will call.
+# This MUST match the 'Audience' field you set in your Cloud Scheduler job.
+OIDC_AUDIENCE = getenv("OIDC_AUDIENCE")
+
+if not OIDC_AUDIENCE and not DEBUG:
+    raise ValueError(
+        "The OIDC_AUDIENCE environment variable must be set in production."
+    )
+
 DJOSER = {
     "TOKEN_MODEL": None,
     "USER_CREATE_PASSWORD_RETYPE": True,
@@ -170,6 +179,7 @@ SWAGGER_SETTINGS = {
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "users.authentication.CustomJWTAuthentication",
+        "users.authentication.GoogleOIDCAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

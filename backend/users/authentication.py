@@ -1,14 +1,29 @@
+import jwt
 from django.conf import settings
 from django.http import HttpRequest
-from rest_framework.request import Request
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.exceptions import TokenError
 from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2 import id_token
-import jwt
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.request import Request
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import TokenError
+from validate_docbr import CPF
 
 from users.models import UserAccount
+
+
+def generate_unique_service_account_cpf() -> str:
+    """
+    Generates a mathematically valid and unique CPF for service accounts.
+
+    Loops until a CPF not present in the database is found.
+    """
+    cpf_generator = CPF()
+    while True:
+        cpf = cpf_generator.generate()
+        if not UserAccount.objects.filter(cpf=cpf).exists():
+            return cpf
 
 
 class CustomJWTAuthentication(JWTAuthentication):
@@ -57,6 +72,55 @@ class CustomJWTAuthentication(JWTAuthentication):
 
             return self.get_user(validated_token), validated_token
         except (AuthenticationFailed, TokenError):
+            return None
+
+
+class GoogleOIDCAuthentication(BaseAuthentication):
+    """
+    DRF authentication class to validate Google OIDC bearer tokens for service-to-service requests.
+    Returns (user, None) on success or None to allow other authentication classes to try.
+    """
+
+    def authenticate(self, request):
+        auth_header = request.headers.get("Authorization") or ""
+        if not auth_header.startswith("Bearer "):
+            return None
+
+        token = auth_header.split(" ", 1)[1].strip()
+
+        try:
+            audience = settings.OIDC_AUDIENCE
+            if not audience:
+                return None
+
+            claims = id_token.verify_oauth2_token(
+                token,
+                GoogleAuthRequest(),
+                audience=audience,
+            )
+
+            issuer = claims.get("iss")
+            if issuer not in ("accounts.google.com", "https://accounts.google.com"):
+                return None
+
+            service_account_email = claims.get("email")
+            if not service_account_email:
+                return None
+
+            try:
+                user = UserAccount.objects.get(email=service_account_email)
+            except UserAccount.DoesNotExist:
+                user = UserAccount.objects.create_user(
+                    cpf=generate_unique_service_account_cpf(),
+                    email=service_account_email,
+                    password=None,
+                    name="Cloud Scheduler",
+                    role=UserAccount.Role.SERVICE_ACCOUNT,
+                )
+
+            return (user, None)
+
+        except (ValueError, jwt.InvalidTokenError):
             return None
 
 

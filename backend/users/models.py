@@ -81,6 +81,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         CLIENT_GENERAL_MANAGER = "GGC", "Gerente Geral de Cliente"
         UNIT_MANAGER = "GU", "Gerente de Unidade"
         COMMERCIAL = "C", "Comercial"
+        SERVICE_ACCOUNT = "SA", "Conta de Serviço"
 
     cpf = models.CharField(
         "CPF", max_length=11, unique=True, validators=[CPFValidator()]
