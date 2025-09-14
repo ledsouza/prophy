@@ -93,11 +93,6 @@ DATABASES = {
     }
 }
 
-AUTHENTICATION_BACKENDS = [
-    "users.authentication.OIDCAuthenticationBackend",
-    "django.contrib.auth.backends.ModelBackend",
-]
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -175,7 +170,6 @@ SWAGGER_SETTINGS = {
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "users.authentication.CustomJWTAuthentication",
-        "users.authentication.OIDCAuthenticationBackend",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
