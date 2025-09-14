@@ -1,13 +1,22 @@
 import { apiSlice, PaginatedResponse, ListQueryParams } from "../services/apiSlice";
 import VisitStatus from "@/enums/VisitStatus";
 
+export type ServiceOrderDTO = {
+    id: number;
+    subject: string;
+    description: string;
+    conclusion: string;
+    equipments: number[];
+};
+
 export type VisitDTO = {
     id: number;
     date: string; // ISO datetime from backend
     status: VisitStatus;
+    justification?: string | null;
     contact_phone: string;
     contact_name: string;
-    service_order: number;
+    service_order?: ServiceOrderDTO | null;
     unit: number;
 };
 
@@ -78,8 +87,26 @@ const visitApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Visit", id: "LIST" }],
         }),
+        updateVisit: builder.mutation<
+            VisitDTO,
+            { id: number; data: Partial<VisitDTO> | Record<string, any> }
+        >({
+            query: ({ id, data }) => ({
+                url: `visits/${id}/`,
+                method: "PATCH",
+                body: data,
+            }),
+            invalidatesTags: [{ type: "Visit", id: "LIST" }],
+        }),
+        deleteVisit: builder.mutation<{ success: boolean; id: number }, number>({
+            query: (id) => ({
+                url: `visits/${id}/`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [{ type: "Visit", id: "LIST" }],
+        }),
     }),
 });
 
-export const { useListVisitsQuery } = visitApiSlice;
+export const { useListVisitsQuery, useUpdateVisitMutation, useDeleteVisitMutation } = visitApiSlice;
 export default visitApiSlice;
