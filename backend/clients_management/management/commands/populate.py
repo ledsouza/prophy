@@ -848,18 +848,20 @@ class Command(BaseCommand):
         visit_date = fake.date_time_between(
             start_date="-30d", end_date="+30d", tzinfo=timezone.get_current_timezone()
         )
+        status1 = choice(
+            [
+                Visit.Status.PENDING,
+                Visit.Status.CONFIRMED,
+                Visit.Status.FULFILLED,
+            ]
+        )
         Visit.objects.create(
             date=visit_date,
-            status=choice(
-                [
-                    Visit.Status.PENDING,
-                    Visit.Status.CONFIRMED,
-                    Visit.Status.FULFILLED,
-                ]
-            ),
+            status=status1,
+            justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
-            service_order=service_order1,
+            service_order=service_order1 if status1 == Visit.Status.FULFILLED else None,
             unit=(default_equipments[0].unit if default_equipments else choice(units)),
             id=1000,
         )
@@ -883,24 +885,59 @@ class Command(BaseCommand):
         visit_date2 = fake.date_time_between(
             start_date="-60d", end_date="+60d", tzinfo=timezone.get_current_timezone()
         )
+        status2 = choice(
+            [
+                Visit.Status.PENDING,
+                Visit.Status.CONFIRMED,
+                Visit.Status.FULFILLED,
+            ]
+        )
         Visit.objects.create(
             date=visit_date2,
-            status=choice(
-                [
-                    Visit.Status.PENDING,
-                    Visit.Status.CONFIRMED,
-                    Visit.Status.FULFILLED,
-                ]
-            ),
+            status=status2,
+            justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
-            service_order=service_order2,
+            service_order=service_order2 if status2 == Visit.Status.FULFILLED else None,
             unit=(
                 default_equipments[1].unit
                 if len(default_equipments) > 1
                 else choice(units)
             ),
             id=1001,
+        )
+
+        # Additional default pending visits without associated service order
+        pending_visit_date1 = fake.date_time_between(
+            start_date="-15d", end_date="+45d", tzinfo=timezone.get_current_timezone()
+        )
+        Visit.objects.create(
+            date=pending_visit_date1,
+            status=Visit.Status.PENDING,
+            justification=None,
+            contact_phone=fake_phone_number(),
+            contact_name=fake.name(),
+            service_order=None,
+            unit=(default_equipments[0].unit if default_equipments else choice(units)),
+            id=1002,
+        )
+
+        pending_visit_date2 = fake.date_time_between(
+            start_date="-10d", end_date="+60d", tzinfo=timezone.get_current_timezone()
+        )
+        Visit.objects.create(
+            date=pending_visit_date2,
+            status=Visit.Status.PENDING,
+            justification=None,
+            contact_phone=fake_phone_number(),
+            contact_name=fake.name(),
+            service_order=None,
+            unit=(
+                default_equipments[1].unit
+                if len(default_equipments) > 1
+                else choice(units)
+            ),
+            id=1003,
         )
 
         default_service_orders = {
@@ -938,19 +975,29 @@ class Command(BaseCommand):
                     end_date="+90d",
                     tzinfo=timezone.get_current_timezone(),
                 )
+                status = choice(
+                    [
+                        Visit.Status.PENDING,
+                        Visit.Status.CONFIRMED,
+                        Visit.Status.FULFILLED,
+                        Visit.Status.UNFULFILLED,
+                        Visit.Status.RESCHEDULED,
+                    ]
+                )
+                justification = (
+                    fake.sentence(nb_words=8)
+                    if status in [Visit.Status.UNFULFILLED, Visit.Status.RESCHEDULED]
+                    else None
+                )
                 Visit.objects.create(
                     date=visit_date,
-                    status=choice(
-                        [
-                            Visit.Status.PENDING,
-                            Visit.Status.CONFIRMED,
-                            Visit.Status.FULFILLED,
-                            Visit.Status.UNFULFILLED,
-                        ]
-                    ),
+                    status=status,
+                    justification=justification,
                     contact_phone=fake_phone_number(),
                     contact_name=fake.name(),
-                    service_order=service_order,
+                    service_order=(
+                        service_order if status == Visit.Status.FULFILLED else None
+                    ),
                     unit=unit,
                 )
 

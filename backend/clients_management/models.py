@@ -526,7 +526,11 @@ class Visit(models.Model):
         choices=Status.choices,
         default=Status.PENDING,
     )
-    justification = models.TextField("Justificativa")
+    justification = models.TextField(
+        "Justificativa",
+        blank=True,
+        null=True,
+    )
     contact_phone = models.CharField(
         "Telefone do contato",
         max_length=13,
@@ -540,6 +544,8 @@ class Visit(models.Model):
         on_delete=models.CASCADE,
         related_name="visit",
         verbose_name="Ordem de Serviço",
+        blank=True,
+        null=True,
     )
     unit = models.ForeignKey(
         Unit,
