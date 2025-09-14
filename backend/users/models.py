@@ -1,4 +1,4 @@
-from typing import Any, TypeVar
+from typing import Any, Dict, Optional, TypeVar
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -17,49 +17,54 @@ T = TypeVar("T", bound="UserAccount")
 class UserAccountManager(BaseUserManager):
     def create_user(
         self,
+        cpf: str,
         email: str,
         password: str,
-        **kwargs: dict[str, Any],
+        role: Optional[str] = None,
+        **kwargs: Dict[str, Any],
     ) -> "UserAccount":
+        if not cpf:
+            raise ValueError("Usuários devem conter um nome de usuário.")
         if not email:
             raise ValueError("Usuários devem conter um e-mail.")
 
-        role = kwargs.get("role")
         if role is None:
-            kwargs["role"] = UserAccount.Role.CLIENT_GENERAL_MANAGER
+            role = UserAccount.Role.CLIENT_GENERAL_MANAGER
 
-        if kwargs["role"] not in UserAccount.Role.values:
+        if role not in UserAccount.Role.values:
             raise ValueError(
-                f"Perfil inválido. Perfis válidos são: {
+                f"Invalid user role. Valid roles are: {
                     ', '.join(UserAccount.Role.values)}"
             )
-
-        if kwargs["role"] != UserAccount.Role.SERVICE_ACCOUNT:
-            if not kwargs.get("cpf"):
-                raise ValueError("CPF é obrigatório para este tipo de usuário.")
 
         email = self.normalize_email(email)
         email = email.lower()
 
-        user = self.model(email=email, **kwargs)
+        user = self.model(cpf=cpf, email=email, role=role, **kwargs)
 
         user.set_password(password)
         user.save(using=self._db)
 
-        group, _ = Group.objects.get_or_create(name=kwargs["role"])
+        group, _ = Group.objects.get_or_create(name=role)
         user.groups.add(group)
 
         return user
 
     def create_superuser(
         self,
+        cpf: str,
         email: str,
         password: str,
-        **kwargs: dict[str, Any],
+        role: Optional[str] = None,
+        **kwargs: Dict[str, Any],
     ) -> "UserAccount":
-        kwargs.setdefault("role", UserAccount.Role.PROPHY_MANAGER)
 
-        user = self.create_user(email=email, password=password, **kwargs)
+        if role is None:
+            role = UserAccount.Role.PROPHY_MANAGER
+
+        user = self.create_user(
+            cpf=cpf, email=email, password=password, role=role, **kwargs
+        )
 
         user.is_staff = True
         user.is_superuser = True
@@ -76,18 +81,12 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         CLIENT_GENERAL_MANAGER = "GGC", "Gerente Geral de Cliente"
         UNIT_MANAGER = "GU", "Gerente de Unidade"
         COMMERCIAL = "C", "Comercial"
-        SERVICE_ACCOUNT = "SA", "Conta de Serviço"
 
-    email = models.EmailField("E-mail", max_length=255, unique=True)
     cpf = models.CharField(
-        "CPF",
-        max_length=11,
-        unique=True,
-        null=True,
-        blank=True,
-        validators=[CPFValidator()],
+        "CPF", max_length=11, unique=True, validators=[CPFValidator()]
     )
     name = models.CharField("Nome", max_length=255)
+    email = models.EmailField("E-mail", max_length=255, unique=True)
     phone = models.CharField(
         "Celular",
         max_length=11,
@@ -120,8 +119,8 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     objects = UserAccountManager()
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["name", "cpf"]
+    USERNAME_FIELD = "cpf"
+    REQUIRED_FIELDS = ["name", "email", "phone", "role"]
 
     def __str__(self) -> str:
         return self.name
