@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from typing import Any
+from django.db import transaction
 from users.models import UserAccount
 
 from clients_management.models import (
@@ -136,13 +137,23 @@ class ServiceOrderCreateSerializer(serializers.ModelSerializer):
         validated_data.pop("visit", None)
         equipments: list[Equipment] = validated_data.pop("equipments", [])
 
-        order = ServiceOrder.objects.create(**validated_data)
-        if equipments:
-            order.equipments.set(equipments)
+        with transaction.atomic():
+            locked_visit: Visit = Visit.objects.select_for_update().get(pk=visit.pk)
 
-        visit.service_order = order
-        visit.save(update_fields=["service_order"])
-        return order
+            if locked_visit.service_order_id:
+                raise serializers.ValidationError(
+                    "This visit already has a Service Order."
+                )
+
+            order: ServiceOrder = ServiceOrder.objects.create(**validated_data)
+            if equipments:
+                order.equipments.set(equipments)
+
+            locked_visit.service_order = order
+            locked_visit.status = Visit.Status.FULFILLED
+            locked_visit.save(update_fields=["service_order", "status"])
+
+            return order
 
 
 class VisitSerializer(serializers.ModelSerializer):
