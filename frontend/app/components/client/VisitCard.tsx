@@ -123,6 +123,28 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         }
     }
 
+    async function handleCreateServiceOrder(
+        data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments">
+    ) {
+        try {
+            await createServiceOrder({
+                visit: visit.id,
+                subject: data.subject,
+                description: data.description,
+                conclusion: data.conclusion,
+                equipments: data.equipments || [],
+            }).unwrap();
+            await updateVisit({
+                id: visit.id,
+                data: { status: VisitStatus.FULFILLED },
+            }).unwrap();
+            toast.success("Ordem de Serviço criada e visita marcada como realizada.");
+            setSoCreateOpen(false);
+        } catch {
+            toast.error("Não foi possível criar a OS ou atualizar a visita.");
+        }
+    }
+
     const containerStyle = clsx(
         "bg-light rounded-xl shadow-sm",
         "p-6 divide-y-2",
@@ -266,27 +288,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     }
                     unitId={visit.unit}
                     onCancel={() => setSoCreateOpen(false)}
-                    onSubmit={async (data) => {
-                        try {
-                            await createServiceOrder({
-                                visit: visit.id,
-                                subject: data.subject,
-                                description: data.description,
-                                conclusion: data.conclusion,
-                                equipments: data.equipments || [],
-                            }).unwrap();
-                            await updateVisit({
-                                id: visit.id,
-                                data: { status: VisitStatus.FULFILLED },
-                            }).unwrap();
-                            toast.success(
-                                "Ordem de Serviço criada e visita marcada como realizada."
-                            );
-                            setSoCreateOpen(false);
-                        } catch {
-                            toast.error("Não foi possível criar a OS ou atualizar a visita.");
-                        }
-                    }}
+                    onSubmit={handleCreateServiceOrder}
                 />
             </Modal>
 
