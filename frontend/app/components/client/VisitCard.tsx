@@ -265,7 +265,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         } as ServiceOrderDTO
                     }
                     unitId={visit.unit}
-                    disabled={false}
                     onCancel={() => setSoCreateOpen(false)}
                     onSubmit={async (data) => {
                         try {
