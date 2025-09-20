@@ -1,7 +1,7 @@
 import { apiSlice } from "../services/apiSlice";
 import type { ServiceOrderDTO } from "./visitApiSlice";
 
-export type CreateServiceOrderInput = {
+export type CreateServiceOrderPayload = {
     visit: number;
     subject: string;
     description: string;
@@ -11,7 +11,7 @@ export type CreateServiceOrderInput = {
 
 const serviceOrderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        createServiceOrder: builder.mutation<ServiceOrderDTO, CreateServiceOrderInput>({
+        createServiceOrder: builder.mutation<ServiceOrderDTO, CreateServiceOrderPayload>({
             query: (body) => ({
                 url: "service-orders/",
                 method: "POST",
