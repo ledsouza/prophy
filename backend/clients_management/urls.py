@@ -10,6 +10,7 @@ from clients_management.views import (
     ModalityViewSet,
     ProposalViewSet,
     ServiceOrderPDFView,
+    ServiceOrderViewSet,
     TriggerReportNotificationView,
     TriggerUpdateVisitsView,
     UnitViewSet,
@@ -24,6 +25,7 @@ router.register("visits", VisitViewSet, basename="visits")
 router.register("modalities", ModalityViewSet, basename="modality")
 router.register("accessories", AccessoryViewSet, basename="accessory")
 router.register("proposals", ProposalViewSet, basename="proposals")
+router.register("service-orders", ServiceOrderViewSet, basename="service-orders")
 
 urlpatterns = [
     path("proposals/status/", LatestProposalStatusView.as_view()),

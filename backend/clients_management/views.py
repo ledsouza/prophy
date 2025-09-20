@@ -35,6 +35,8 @@ from clients_management.serializers import (
     ProposalSerializer,
     UnitSerializer,
     VisitSerializer,
+    ServiceOrderSerializer,
+    ServiceOrderCreateSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -787,7 +789,7 @@ class VisitViewSet(viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def create(self, request):
+    def create(self, request: Request) -> Response:
         user: UserAccount = request.user
         if not self._can_create_visit(user):
             return Response(
@@ -1232,6 +1234,72 @@ class AccessoryViewSet(viewsets.ViewSet):
 
         accessory.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ServiceOrderViewSet(viewsets.ViewSet):
+    """
+    Viewset for creating Service Orders linked to a Visit.
+    """
+
+    @swagger_auto_schema(
+        operation_summary="Create a new Service Order",
+        operation_description="""
+        Create a Service Order and link it to a Visit (one-to-one).
+        """,
+        request_body=ServiceOrderCreateSerializer,
+        responses={
+            201: openapi.Response(
+                description="Service Order created",
+                schema=ServiceOrderSerializer,
+            ),
+            400: "Invalid data",
+            403: "Forbidden",
+        },
+    )
+    def create(self, request: Request) -> Response:
+        user: UserAccount = request.user
+        if not self._can_create_service_order(user):
+            return Response(
+                {"detail": "You do not have permission to create service orders."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ServiceOrderCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            visit: Visit = serializer.validated_data["visit_instance"]
+            if not self._has_visit_access(user, visit):
+                return Response(
+                    {
+                        "detail": """
+                        You do not have permission to create this service order.
+                        """
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            order = serializer.save()
+            return Response(
+                ServiceOrderSerializer(order).data, status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def _can_create_service_order(self, user: UserAccount) -> bool:
+        return user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        ]
+
+    def _has_visit_access(self, user: UserAccount, visit: Visit) -> bool:
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            return True
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            return bool(visit.unit and visit.unit.user_id == user.id)
+        else:
+            return bool(
+                visit.unit
+                and visit.unit.client
+                and visit.unit.client.users.filter(pk=user.pk).exists()
+            )
 
 
 class ServiceOrderPDFView(APIView):
