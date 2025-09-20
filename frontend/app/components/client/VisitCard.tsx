@@ -109,8 +109,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         }
     }
 
-    // TODO: Generate Service Order (no backend API currently)
-
     async function handleCancelVisit() {
         try {
             if (canDeleteVisit) {
