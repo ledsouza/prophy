@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addDays, startOfDay, isBefore } from "date-fns";
 import { useMemo, useState } from "react";
 
 import { Button, Modal } from "@/components/common";
@@ -82,6 +82,18 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             return format(d, "dd/MM/yyyy HH:mm");
         } catch {
             return visit.date;
+        }
+    }, [visit.date]);
+
+    const isRescheduleDisabled = useMemo(() => {
+        try {
+            const scheduled = parseISO(visit.date);
+            const cutoff = startOfDay(addDays(scheduled, 1));
+            // If now is not before cutoff, rescheduling is disabled
+            return !isBefore(new Date(), cutoff);
+        } catch {
+            // Be safe if parsing fails
+            return true;
         }
     }, [visit.date]);
 
@@ -253,10 +265,19 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     {canRescheduleVisit && (
                         <Button
                             variant="primary"
-                            onClick={() => setScheduleOpen(true)}
+                            onClick={() => {
+                                if (isRescheduleDisabled) {
+                                    toast.warning(
+                                        "O prazo para reagendar expirou. Agende uma nova visita."
+                                    );
+                                    return;
+                                }
+                                setScheduleOpen(true);
+                            }}
                             data-testid="btn-visit-update-schedule"
                             aria-label="Atualizar agenda"
                             title="Atualizar agenda"
+                            disabled={isRescheduleDisabled}
                         >
                             <CalendarIcon size={20} />
                         </Button>
