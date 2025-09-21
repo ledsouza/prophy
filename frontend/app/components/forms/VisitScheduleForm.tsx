@@ -83,7 +83,7 @@ const VisitScheduleForm = ({ visit, unitId, onCancel, title }: VisitScheduleForm
                     payload.date = new Date(data.date).toISOString();
                 }
 
-                const updated = await updateVisit({ id: visit.id, data: payload }).unwrap();
+                await updateVisit({ id: visit.id, data: payload }).unwrap();
 
                 toast.success("Agenda atualizada com sucesso.");
                 onCancel();
@@ -97,7 +97,7 @@ const VisitScheduleForm = ({ visit, unitId, onCancel, title }: VisitScheduleForm
                     return;
                 }
 
-                const created = await createVisit({
+                await createVisit({
                     unit: unitId,
                     date: new Date(data.date).toISOString(),
                     contact_name: data.contact_name,
