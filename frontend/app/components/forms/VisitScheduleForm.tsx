@@ -19,6 +19,7 @@ type VisitScheduleFormProps = {
     visit?: VisitDTO;
     unitId?: number;
     onCancel: () => void;
+    onSuccess?: () => void;
     title?: string;
 };
 
@@ -48,11 +49,18 @@ function toLocalDatetimeInputValue(iso: string): string {
  * Props:
  * - visit?: VisitDTO — existing visit data; if provided, form initializes with these values and updates them.
  * - unitId?: number — the unit to create the visit for; required in create mode.
- * - onCancel: () => void — called when the user cancels or after successful submit (closes modal).
+ * - onCancel: () => void — called when the user cancels the form (does NOT run on successful submit).
+ * - onSuccess?: () => void — called after successful submit; parent should typically close the modal here and perform any post-success actions (e.g., refresh lists).
  * - title?: string — optional custom title; defaults to "Atualizar agenda" in update mode,
  *   and "Agendar visita" in create mode.
  */
-const VisitScheduleForm = ({ visit, unitId, onCancel, title }: VisitScheduleFormProps) => {
+const VisitScheduleForm = ({
+    visit,
+    unitId,
+    onCancel,
+    onSuccess,
+    title,
+}: VisitScheduleFormProps) => {
     const [updateVisit] = useUpdateVisitMutation();
     const [createVisit] = useCreateVisitMutation();
     const isUpdate = Boolean(visit?.id);
@@ -86,7 +94,7 @@ const VisitScheduleForm = ({ visit, unitId, onCancel, title }: VisitScheduleForm
                 await updateVisit({ id: visit.id, data: payload }).unwrap();
 
                 toast.success("Agenda atualizada com sucesso.");
-                onCancel();
+                (onSuccess ?? onCancel)();
             } else {
                 if (!unitId) {
                     toast.error("Unidade inválida para criar visita.");
@@ -105,7 +113,7 @@ const VisitScheduleForm = ({ visit, unitId, onCancel, title }: VisitScheduleForm
                 }).unwrap();
 
                 toast.success("Visita agendada com sucesso.");
-                onCancel();
+                (onSuccess ?? onCancel)();
             }
         } catch (err) {
             toast.error(
