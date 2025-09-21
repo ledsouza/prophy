@@ -242,16 +242,18 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         </Button>
                     )}
 
-                    <Button
-                        variant="danger"
-                        onClick={handleCancelVisit}
-                        data-testid="btn-visit-cancel-schedule"
-                        disabled={isUpdating || isDeleting}
-                        aria-label="Cancelar agenda"
-                        title="Cancelar agenda"
-                    >
-                        <CalendarXIcon size={20} />
-                    </Button>
+                    {canDeleteVisit && (
+                        <Button
+                            variant="danger"
+                            onClick={handleCancelVisit}
+                            data-testid="btn-visit-cancel-schedule"
+                            disabled={isUpdating || isDeleting}
+                            aria-label="Cancelar agenda"
+                            title="Cancelar agenda"
+                        >
+                            <CalendarXIcon size={20} />
+                        </Button>
+                    )}
                 </div>
             </div>
 
