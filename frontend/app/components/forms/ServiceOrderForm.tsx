@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
 import { z } from "zod";
 
 import type { ServiceOrderDTO } from "@/redux/features/visitApiSlice";
@@ -20,31 +19,57 @@ type ServiceOrderFormProps = {
     serviceOrder: ServiceOrderDTO;
     unitId: number;
     disabled?: boolean;
-    onCancel?: () => void;
-    onSubmit?: (data: ServiceOrderFields) => Promise<void> | void;
+    onCancel: () => void;
+    onSubmit: (data: ServiceOrderFields) => Promise<void> | void;
+    title?: string;
+    containerClassName?: string;
+    containerTestId?: string;
 };
 
 /**
+ * ServiceOrderForm
+ *
  * Renders a form to view or edit a Service Order.
  *
- * Integrates react-hook-form with zod validation (serviceOrderSchema). When `disabled` is true,
- * fields are presented in read-only mode and action buttons are hidden. Equipment options are
- * fetched via useListAllEquipmentsQuery and filtered by the provided `unitId`. Submitting currently
- * shows an informational toast because the backend update endpoint is not available.
+ * The form integrates react-hook-form with zod validation (serviceOrderSchema). When `disabled`
+ * is true, inputs are rendered in read-only mode, action buttons are hidden, and equipments are
+ * shown as badges with graceful handling when data is incomplete. Equipments are fetched via
+ * `useListAllEquipmentsQuery`, filtered by `unitId`, and presented in a MultiSelect when editable.
  *
- * @param props Component props.
- * @param props.serviceOrder Initial data to populate the form and for read-only display.
- * @param props.unitId Unit identifier used to filter available equipments in the selector.
- * @param props.disabled If true, renders the form in read-only mode (default: false).
- * @param props.onCancel Optional callback executed when the user cancels.
- * @returns Form element wrapping the fields and, when editable, action buttons.
+ * The form is always wrapped in an outer container. If `title` is provided, a header is rendered
+ * above the form. Use `containerClassName` to override wrapper styles and `containerTestId` to
+ * control the wrapper test id.
+ *
+ * @param props Component props
+ * @param props.serviceOrder Initial data to populate the form and for read-only display
+ * @param props.unitId Unit identifier used to filter available equipments in the selector
+ * @param props.disabled If true, renders the form in read-only mode (default: false)
+ * @param props.onCancel Callback executed when the user cancels the form
+ * @param props.onSubmit Callback executed when the user submits the form
+ * @param props.title Optional section title; when provided, a heading is rendered above the form
+ * @param props.containerClassName Optional custom classes for the outer container
+ * @param props.containerTestId Optional test id for the outer container (default: "service-order-details")
  *
  * @example
+ * // Full section replacement (read-only)
  * <ServiceOrderForm
  *   serviceOrder={serviceOrder}
  *   unitId={unitId}
- *   disabled={false}
- *   onCancel={() => console.log('Canceled')}
+ *   disabled
+ *   onSubmit={() => {}}
+ *   title="Detalhes da Ordem de Serviço"
+ * />
+ *
+ * @example
+ * // Embedded usage with custom container styling
+ * <ServiceOrderForm
+ *   serviceOrder={serviceOrder}
+ *   unitId={unitId}
+ *   onCancel={() => console.log("Canceled")}
+ *   onSubmit={save}
+ *   title="Ordem de Serviço"
+ *   containerClassName="m-6 sm:mx-auto w-full sm:max-w-3xl max-w-3xl"
+ *   containerTestId="os-form-section"
  * />
  */
 const ServiceOrderForm = ({
@@ -53,6 +78,9 @@ const ServiceOrderForm = ({
     disabled = false,
     onCancel,
     onSubmit: onSubmitProp,
+    title,
+    containerClassName,
+    containerTestId,
 }: ServiceOrderFormProps) => {
     const {
         register,
@@ -71,9 +99,11 @@ const ServiceOrderForm = ({
     });
 
     const { data: allEquipments = [] } = useListAllEquipmentsQuery();
+
     const unitEquipments = Array.isArray(allEquipments)
         ? allEquipments.filter((e) => e.unit === unitId)
         : [];
+
     const equipmentOptions = unitEquipments.map((e) => {
         const nameParts = [e.manufacturer, e.model].filter(Boolean);
         const label = nameParts.length > 0 ? nameParts.join(" ") : `Equipamento #${e.id}`;
@@ -81,18 +111,15 @@ const ServiceOrderForm = ({
     });
 
     const onSubmit: SubmitHandler<ServiceOrderFields> = async (data) => {
-        if (onSubmitProp) {
-            await onSubmitProp(data);
-            return;
-        }
-        toast.info("Atualização da Ordem de Serviço indisponível no momento.");
+        await onSubmitProp(data);
+        return;
     };
 
     const handleCancel = () => {
         onCancel?.();
     };
 
-    return (
+    const formContent = (
         <Form onSubmit={handleSubmit(onSubmit)}>
             <div className="mt-4 space-y-4">
                 <Input
@@ -205,6 +232,25 @@ const ServiceOrderForm = ({
                 </div>
             )}
         </Form>
+    );
+
+    const defaultContainerClasses = "m-6 sm:mx-auto w-full sm:max-w-3xl max-w-3xl";
+
+    return (
+        <div
+            className={containerClassName ?? defaultContainerClasses}
+            data-testid={containerTestId ?? "service-order-details"}
+        >
+            {title ? (
+                <div className="flex items-center justify-between">
+                    <Typography element="h3" size="title3" className="font-semibold">
+                        {title}
+                    </Typography>
+                </div>
+            ) : null}
+
+            {formContent}
+        </div>
     );
 };
 

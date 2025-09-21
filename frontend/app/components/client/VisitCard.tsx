@@ -14,7 +14,6 @@ import type { VisitDTO, ServiceOrderDTO } from "@/redux/features/visitApiSlice";
 import { useDeleteVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
 import { useCreateServiceOrderMutation } from "@/redux/features/serviceOrderApiSlice";
 
-import { ServiceOrderDetails } from "@/components/client";
 import { formatPhoneNumber } from "@/utils/format";
 import {
     CalendarIcon,
@@ -62,8 +61,9 @@ type VisitCardProps = {
 function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const { data: userData } = useRetrieveUserQuery();
     const role = userData?.role;
-    const canRescheduleVisit = role === "FMI" || role === "GP";
     const canDeleteVisit = role === "GP";
+    const canRescheduleVisit = role === "FMI" || role === "GP";
+    const canUpdateServiceOrder = role === "GP";
 
     const [updateVisit, { isLoading: isUpdating }] = useUpdateVisitMutation();
     const [deleteVisit, { isLoading: isDeleting }] = useDeleteVisitMutation();
@@ -260,11 +260,13 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 className="sm:max-w-4xl"
             >
                 {visit.service_order && (
-                    <ServiceOrderDetails
+                    <ServiceOrderForm
                         serviceOrder={visit.service_order}
-                        canEdit={!!canRescheduleVisit}
                         unitId={visit.unit}
+                        disabled={!canUpdateServiceOrder}
                         onCancel={() => setDetailsOpen(false)}
+                        onSubmit={() => {}}
+                        title="Detalhes da Ordem de Serviço"
                     />
                 )}
             </Modal>
@@ -287,6 +289,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     unitId={visit.unit}
                     onCancel={() => setSoCreateOpen(false)}
                     onSubmit={handleCreateServiceOrder}
+                    title="Gerar Ordem de Serviço"
                 />
             </Modal>
 

@@ -12,4 +12,3 @@ export { default as CardButtons } from "./CardButtons";
 export { default as VisitCard } from "./VisitCard";
 export { default as VisitList } from "./VisitList";
 export { default as VisitPanel } from "./VisitPanel";
-export { default as ServiceOrderDetails } from "./ServiceOrderDetails";
