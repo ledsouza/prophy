@@ -220,9 +220,9 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="success"
                             onClick={() => setSoCreateOpen(true)}
-                            data-testid="btn-so-create"
-                            aria-label="Gerar Ordem de Serviço"
-                            title="Gerar Ordem de Serviço"
+                            data-testid="btn-done"
+                            aria-label="Marcar como realizada"
+                            title="Marcar como realizada"
                             disabled={isCreating || isUpdating || isDeleting}
                         >
                             <CheckCircleIcon size={20} />
