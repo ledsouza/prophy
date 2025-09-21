@@ -940,6 +940,19 @@ class Command(BaseCommand):
             id=1003,
         )
 
+        # Deterministic past UNFULFILLED visit for testing rescheduling guard
+        unfulfilled_past_date = timezone.now() - timedelta(days=7)
+        Visit.objects.create(
+            date=unfulfilled_past_date,
+            status=Visit.Status.UNFULFILLED,
+            justification="Visita não realizada no dia agendado.",
+            contact_phone=fake_phone_number(),
+            contact_name=fake.name(),
+            service_order=None,
+            unit=(default_equipments[0].unit if default_equipments else choice(units)),
+            id=1004,
+        )
+
         default_service_orders = {
             "service_order1": _create_service_order_fixture_data(service_order1),
             "service_order2": _create_service_order_fixture_data(service_order2),
