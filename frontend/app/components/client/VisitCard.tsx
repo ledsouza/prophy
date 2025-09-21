@@ -133,10 +133,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 conclusion: data.conclusion,
                 equipments: data.equipments || [],
             }).unwrap();
-            await updateVisit({
-                id: visit.id,
-                data: { status: VisitStatus.FULFILLED },
-            }).unwrap();
             toast.success("Ordem de Serviço criada e visita marcada como realizada.");
             setSoCreateOpen(false);
         } catch {
