@@ -37,6 +37,23 @@ function toLocalDatetimeInputValue(iso: string): string {
     }
 }
 
+/**
+ * VisitScheduleForm component to create or update a visit schedule.
+ *
+ * Behavior:
+ * - Update mode: when a visit prop is provided (visit?.id truthy), performs PATCH to update date,
+ *   contact_name and contact_phone.
+ * - Create mode: when no visit prop is provided, requires a unitId and a date, performs POST to create
+ *   a new visit.
+ *
+ * Props:
+ * - visit?: VisitDTO — existing visit data; if provided, form initializes with these values and updates them.
+ * - unitId?: number — the unit to create the visit for; required in create mode.
+ * - onCancel: () => void — called when the user cancels or after successful submit (closes modal).
+ * - onSuccess?: (updated: Partial<VisitDTO>) => void — called with the server response fields of interest.
+ * - title?: string — optional custom title; defaults to "Atualizar agenda" in update mode,
+ *   and "Agendar visita" in create mode.
+ */
 const VisitScheduleForm = ({
     visit,
     unitId,
@@ -68,7 +85,7 @@ const VisitScheduleForm = ({
                 contact_phone: data.contact_phone,
             };
 
-            if (isUpdate && visit?.id) {
+            if (isUpdate && visit && visit.id) {
                 const payload: Record<string, any> = { ...basePayload };
                 if (data.date) {
                     payload.date = new Date(data.date).toISOString();
