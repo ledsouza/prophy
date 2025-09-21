@@ -321,7 +321,11 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 onClose={() => setScheduleOpen(false)}
                 className="max-w-md"
             >
-                <VisitScheduleForm visit={visit} onCancel={() => setScheduleOpen(false)} />
+                <VisitScheduleForm
+                    visit={visit}
+                    onCancel={() => setScheduleOpen(false)}
+                    onSuccess={() => setScheduleOpen(false)}
+                />
             </Modal>
         </div>
     );

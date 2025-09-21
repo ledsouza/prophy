@@ -85,6 +85,7 @@ function VisitPanel({
                 <VisitScheduleForm
                     unitId={unitId}
                     onCancel={() => setScheduleOpen(false)}
+                    onSuccess={() => setScheduleOpen(false)}
                     title="Agendar visita"
                 />
             </Modal>
