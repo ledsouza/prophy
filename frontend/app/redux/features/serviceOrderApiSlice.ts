@@ -1,20 +1,23 @@
 import { apiSlice } from "../services/apiSlice";
-import type { ServiceOrderDTO } from "./visitApiSlice";
 
-export type CreateServiceOrderPayload = {
-    visit: number;
+export type ServiceOrderDTO = {
+    id: number;
     subject: string;
     description: string;
     conclusion: string;
     equipments: number[];
 };
 
-export type UpdateServiceOrderPayload = {
-    subject?: string;
-    description?: string;
-    conclusion?: string;
-    equipments?: number[];
+export type ServiceOrderBasePayload = Pick<
+    ServiceOrderDTO,
+    "subject" | "description" | "conclusion" | "equipments"
+>;
+
+export type CreateServiceOrderPayload = ServiceOrderBasePayload & {
+    visit: number;
 };
+
+export type UpdateServiceOrderPayload = Partial<ServiceOrderBasePayload>;
 
 const serviceOrderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({

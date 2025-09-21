@@ -1,13 +1,6 @@
 import { apiSlice, PaginatedResponse, ListQueryParams } from "../services/apiSlice";
 import VisitStatus from "@/enums/VisitStatus";
-
-export type ServiceOrderDTO = {
-    id: number;
-    subject: string;
-    description: string;
-    conclusion: string;
-    equipments: number[];
-};
+import type { ServiceOrderDTO } from "./serviceOrderApiSlice";
 
 export type VisitDTO = {
     id: number;
