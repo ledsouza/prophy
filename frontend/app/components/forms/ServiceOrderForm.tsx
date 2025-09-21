@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { ServiceOrderDTO } from "@/redux/features/visitApiSlice";
+import type { ServiceOrderDTO } from "@/redux/features/serviceOrderApiSlice";
 
 import { serviceOrderSchema } from "@/schemas";
 
