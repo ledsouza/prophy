@@ -99,11 +99,11 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     }, [visit.date, visit.status]);
 
     /**
-     * Disables the “Marcar como realizada” action for UNFULFILLED visits.
-     * Once a visit is not fulfilled, the correct flow is to create a new visit.
+     * Disables the “Marcar como realizada” action for UNFULFILLED or FULFILLED visits.
+     * Once a visit is unfulfilled (missed) or already fulfilled, it cannot be marked as done again.
      */
     const isMarkDoneDisabled = useMemo(() => {
-        return visit.status === VisitStatus.UNFULFILLED;
+        return visit.status === VisitStatus.UNFULFILLED || visit.status === VisitStatus.FULFILLED;
     }, [visit.status]);
 
     // Local modal states
@@ -258,11 +258,17 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {!serviceOrderId && canCreateServiceOrder && (
+                    {canCreateServiceOrder && (
                         <Button
                             variant="success"
                             onClick={() => {
-                                if (isMarkDoneDisabled) {
+                                if (visit.status === VisitStatus.FULFILLED) {
+                                    toast.info(
+                                        "Visita já realizada; não é possível marcar como realizada."
+                                    );
+                                    return;
+                                }
+                                if (visit.status === VisitStatus.UNFULFILLED) {
                                     toast.warning(
                                         "Esta visita está não realizada. Agende uma nova visita."
                                     );
@@ -273,9 +279,11 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             data-testid="btn-done"
                             aria-label="Marcar como realizada"
                             title={
-                                isMarkDoneDisabled
-                                    ? "Visita não realizada; não é possível marcar como realizada"
-                                    : "Marcar como realizada"
+                                visit.status === VisitStatus.FULFILLED
+                                    ? "Visita já realizada; não é possível marcar como realizada"
+                                    : visit.status === VisitStatus.UNFULFILLED
+                                      ? "Visita não realizada; não é possível marcar como realizada"
+                                      : "Marcar como realizada"
                             }
                             disabled={isCreating || isDeleting || isMarkDoneDisabled}
                         >
