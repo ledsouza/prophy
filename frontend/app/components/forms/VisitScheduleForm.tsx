@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 
 import type { VisitDTO } from "@/redux/features/visitApiSlice";
-import { useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
+import { useCreateVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
 
 import { visitScheduleSchema } from "@/schemas";
 
@@ -16,9 +16,11 @@ import { Typography } from "@/components/foundation";
 type VisitScheduleFields = z.infer<typeof visitScheduleSchema>;
 
 type VisitScheduleFormProps = {
-    visit: VisitDTO;
+    visit?: VisitDTO;
+    unitId?: number;
     onCancel: () => void;
     onSuccess?: (updated: Partial<VisitDTO>) => void;
+    title?: string;
 };
 
 function toLocalDatetimeInputValue(iso: string): string {
@@ -35,8 +37,16 @@ function toLocalDatetimeInputValue(iso: string): string {
     }
 }
 
-const VisitScheduleForm = ({ visit, onCancel, onSuccess }: VisitScheduleFormProps) => {
+const VisitScheduleForm = ({
+    visit,
+    unitId,
+    onCancel,
+    onSuccess,
+    title,
+}: VisitScheduleFormProps) => {
     const [updateVisit] = useUpdateVisitMutation();
+    const [createVisit] = useCreateVisitMutation();
+    const isUpdate = Boolean(visit?.id);
 
     const {
         register,
@@ -45,35 +55,64 @@ const VisitScheduleForm = ({ visit, onCancel, onSuccess }: VisitScheduleFormProp
     } = useForm<VisitScheduleFields>({
         resolver: zodResolver(visitScheduleSchema),
         defaultValues: {
-            date: toLocalDatetimeInputValue(visit.date),
-            contact_name: visit.contact_name || "",
-            contact_phone: visit.contact_phone || "",
+            date: visit?.date ? toLocalDatetimeInputValue(visit.date) : "",
+            contact_name: visit?.contact_name || "",
+            contact_phone: visit?.contact_phone || "",
         },
     });
 
     const onSubmit: SubmitHandler<VisitScheduleFields> = async (data) => {
         try {
-            const payload: Record<string, any> = {
+            const basePayload: Record<string, any> = {
                 contact_name: data.contact_name,
                 contact_phone: data.contact_phone,
             };
 
-            if (data.date) {
-                payload.date = new Date(data.date).toISOString();
+            if (isUpdate && visit?.id) {
+                const payload: Record<string, any> = { ...basePayload };
+                if (data.date) {
+                    payload.date = new Date(data.date).toISOString();
+                }
+
+                const updated = await updateVisit({ id: visit.id, data: payload }).unwrap();
+
+                toast.success("Agenda atualizada com sucesso.");
+                onSuccess?.({
+                    contact_name: updated.contact_name,
+                    contact_phone: updated.contact_phone,
+                    date: updated.date,
+                });
+                onCancel();
+            } else {
+                if (!unitId) {
+                    toast.error("Unidade inválida para criar visita.");
+                    return;
+                }
+                if (!data.date) {
+                    toast.error("Data da visita é obrigatória.");
+                    return;
+                }
+
+                const created = await createVisit({
+                    unit: unitId,
+                    date: new Date(data.date).toISOString(),
+                    contact_name: data.contact_name,
+                    contact_phone: data.contact_phone,
+                }).unwrap();
+
+                toast.success("Visita agendada com sucesso.");
+                onSuccess?.({
+                    contact_name: created.contact_name,
+                    contact_phone: created.contact_phone,
+                    date: created.date,
+                });
+                onCancel();
             }
-
-            const updated = await updateVisit({ id: visit.id, data: payload }).unwrap();
-
-            toast.success("Agenda atualizada com sucesso.");
-            onSuccess?.({
-                contact_name: updated.contact_name,
-                contact_phone: updated.contact_phone,
-                date: updated.date,
-            });
-            onCancel();
         } catch (err) {
             toast.error(
-                "Não foi possível atualizar a agenda. Verifique os dados e tente novamente."
+                isUpdate
+                    ? "Não foi possível atualizar a agenda. Verifique os dados e tente novamente."
+                    : "Não foi possível agendar a visita. Verifique os dados e tente novamente."
             );
         }
     };
@@ -82,7 +121,7 @@ const VisitScheduleForm = ({ visit, onCancel, onSuccess }: VisitScheduleFormProp
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <Typography element="h3" size="title3" className="font-semibold">
-                    Atualizar agenda
+                    {title ?? (isUpdate ? "Atualizar agenda" : "Agendar visita")}
                 </Typography>
 
                 <Input
