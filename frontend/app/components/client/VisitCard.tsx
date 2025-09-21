@@ -319,7 +319,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             <Modal
                 isOpen={scheduleOpen}
                 onClose={() => setScheduleOpen(false)}
-                className="max-w-md"
+                className="max-w-md p-4 sm:p-6"
             >
                 <VisitScheduleForm
                     visit={visit}
