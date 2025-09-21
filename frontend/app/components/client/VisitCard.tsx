@@ -97,6 +97,14 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         }
     }, [visit.date]);
 
+    /**
+     * Disables the “Marcar como realizada” action for UNFULFILLED visits.
+     * Once a visit is not fulfilled, the correct flow is to create a new visit.
+     */
+    const isMarkDoneDisabled = useMemo(() => {
+        return visit.status === VisitStatus.UNFULFILLED;
+    }, [visit.status]);
+
     // Local modal states
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -252,11 +260,23 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     {!serviceOrderId && canCreateServiceOrder && (
                         <Button
                             variant="success"
-                            onClick={() => setSoCreateOpen(true)}
+                            onClick={() => {
+                                if (isMarkDoneDisabled) {
+                                    toast.warning(
+                                        "Esta visita está não realizada. Agende uma nova visita."
+                                    );
+                                    return;
+                                }
+                                setSoCreateOpen(true);
+                            }}
                             data-testid="btn-done"
                             aria-label="Marcar como realizada"
-                            title="Marcar como realizada"
-                            disabled={isCreating || isDeleting}
+                            title={
+                                isMarkDoneDisabled
+                                    ? "Visita não realizada; não é possível marcar como realizada"
+                                    : "Marcar como realizada"
+                            }
+                            disabled={isCreating || isDeleting || isMarkDoneDisabled}
                         >
                             <CheckCircleIcon size={20} />
                         </Button>
