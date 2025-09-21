@@ -12,7 +12,7 @@ import VisitStatus, { visitStatusLabel } from "@/enums/VisitStatus";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import type { VisitDTO } from "@/redux/features/visitApiSlice";
 import type { ServiceOrderDTO } from "@/redux/features/serviceOrderApiSlice";
-import { useDeleteVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
+import { useDeleteVisitMutation } from "@/redux/features/visitApiSlice";
 import {
     useCreateServiceOrderMutation,
     useUpdateServiceOrderMutation,
@@ -70,7 +70,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const canUpdateServiceOrder = role === "GP";
     const canCreateServiceOrder = role === "GP" || role === "FMI" || role === "FME";
 
-    const [updateVisit, { isLoading: isUpdating }] = useUpdateVisitMutation();
     const [deleteVisit, { isLoading: isDeleting }] = useDeleteVisitMutation();
     const [createServiceOrder, { isLoading: isCreating }] = useCreateServiceOrderMutation();
     const [updateServiceOrder, { isLoading: isUpdatingSO }] = useUpdateServiceOrderMutation();
@@ -90,10 +89,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const [soCreateOpen, setSoCreateOpen] = useState(false);
-
-    // Schedule form local state
-    const [formContactName, setFormContactName] = useState<string>(visit.contact_name || "");
-    const [formContactPhone, setFormContactPhone] = useState<string>(visit.contact_phone || "");
 
     // Export PDF of Service Order
     /**
@@ -189,10 +184,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             Contato:
                         </Typography>
                         <Typography element="p" size="md">
-                            {formContactName || visit.contact_name}
+                            {visit.contact_name}
                         </Typography>
                         <Typography element="p" size="md">
-                            {formatPhoneNumber(formContactPhone || visit.contact_phone)}
+                            {formatPhoneNumber(visit.contact_phone)}
                         </Typography>
                     </div>
                 </div>
@@ -249,7 +244,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             data-testid="btn-done"
                             aria-label="Marcar como realizada"
                             title="Marcar como realizada"
-                            disabled={isCreating || isUpdating || isDeleting}
+                            disabled={isCreating || isDeleting}
                         >
                             <CheckCircleIcon size={20} />
                         </Button>
@@ -272,7 +267,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             variant="danger"
                             onClick={handleCancelVisit}
                             data-testid="btn-visit-cancel-schedule"
-                            disabled={isUpdating || isDeleting}
+                            disabled={isDeleting}
                             aria-label="Cancelar agenda"
                             title="Cancelar agenda"
                         >
@@ -326,14 +321,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 onClose={() => setScheduleOpen(false)}
                 className="max-w-md"
             >
-                <VisitScheduleForm
-                    visit={visit}
-                    onCancel={() => setScheduleOpen(false)}
-                    onSuccess={(updated) => {
-                        setFormContactName(updated.contact_name || "");
-                        setFormContactPhone(updated.contact_phone || "");
-                    }}
-                />
+                <VisitScheduleForm visit={visit} onCancel={() => setScheduleOpen(false)} />
             </Modal>
         </div>
     );
