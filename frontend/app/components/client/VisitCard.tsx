@@ -87,6 +87,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
 
     const isRescheduleDisabled = useMemo(() => {
         try {
+            if (visit.status === VisitStatus.FULFILLED) return true;
             const scheduled = parseISO(visit.date);
             const cutoff = startOfDay(addDays(scheduled, 1));
             // If now is not before cutoff, rescheduling is disabled
@@ -95,7 +96,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             // Be safe if parsing fails
             return true;
         }
-    }, [visit.date]);
+    }, [visit.date, visit.status]);
 
     /**
      * Disables the “Marcar como realizada” action for UNFULFILLED visits.
@@ -286,6 +287,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="primary"
                             onClick={() => {
+                                if (visit.status === VisitStatus.FULFILLED) {
+                                    toast.warning("Visita já realizada; não é possível reagendar.");
+                                    return;
+                                }
                                 if (isRescheduleDisabled) {
                                     toast.warning(
                                         "O prazo para reagendar expirou. Agende uma nova visita."
@@ -296,7 +301,11 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             }}
                             data-testid="btn-visit-update-schedule"
                             aria-label="Atualizar agenda"
-                            title="Atualizar agenda"
+                            title={
+                                visit.status === VisitStatus.FULFILLED
+                                    ? "Visita já realizada; não é possível reagendar"
+                                    : "Atualizar agenda"
+                            }
                             disabled={isRescheduleDisabled}
                         >
                             <CalendarIcon size={20} />
