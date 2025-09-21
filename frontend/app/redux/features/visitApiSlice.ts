@@ -80,6 +80,24 @@ const visitApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Visit", id: "LIST" }],
         }),
+        createVisit: builder.mutation<
+            VisitDTO,
+            {
+                unit: number;
+                date: string;
+                contact_name: string;
+                contact_phone: string;
+                status?: VisitStatus;
+                justification?: string | null;
+            }
+        >({
+            query: (data) => ({
+                url: "visits/",
+                method: "POST",
+                body: data,
+            }),
+            invalidatesTags: [{ type: "Visit", id: "LIST" }],
+        }),
         updateVisit: builder.mutation<
             VisitDTO,
             { id: number; data: Partial<VisitDTO> | Record<string, any> }
@@ -101,5 +119,10 @@ const visitApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useListVisitsQuery, useUpdateVisitMutation, useDeleteVisitMutation } = visitApiSlice;
+export const {
+    useListVisitsQuery,
+    useCreateVisitMutation,
+    useUpdateVisitMutation,
+    useDeleteVisitMutation,
+} = visitApiSlice;
 export default visitApiSlice;
