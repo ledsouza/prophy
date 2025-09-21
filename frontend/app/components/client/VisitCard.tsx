@@ -12,7 +12,10 @@ import VisitStatus, { visitStatusLabel } from "@/enums/VisitStatus";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import type { VisitDTO, ServiceOrderDTO } from "@/redux/features/visitApiSlice";
 import { useDeleteVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
-import { useCreateServiceOrderMutation } from "@/redux/features/serviceOrderApiSlice";
+import {
+    useCreateServiceOrderMutation,
+    useUpdateServiceOrderMutation,
+} from "@/redux/features/serviceOrderApiSlice";
 
 import { formatPhoneNumber } from "@/utils/format";
 import {
@@ -69,6 +72,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const [updateVisit, { isLoading: isUpdating }] = useUpdateVisitMutation();
     const [deleteVisit, { isLoading: isDeleting }] = useDeleteVisitMutation();
     const [createServiceOrder, { isLoading: isCreating }] = useCreateServiceOrderMutation();
+    const [updateServiceOrder, { isLoading: isUpdatingSO }] = useUpdateServiceOrderMutation();
 
     const serviceOrderId = visit.service_order?.id;
 
@@ -137,6 +141,30 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             setSoCreateOpen(false);
         } catch {
             toast.error("Não foi possível criar a OS ou atualizar a visita.");
+        }
+    }
+
+    async function handleUpdateServiceOrder(
+        data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments">
+    ) {
+        if (!serviceOrderId) {
+            toast.info("Sem ordem de serviço vinculada.");
+            return;
+        }
+        try {
+            await updateServiceOrder({
+                id: serviceOrderId,
+                data: {
+                    subject: data.subject,
+                    description: data.description,
+                    conclusion: data.conclusion,
+                    equipments: data.equipments || [],
+                },
+            }).unwrap();
+            toast.success("Ordem de Serviço atualizada com sucesso.");
+            setDetailsOpen(false);
+        } catch {
+            toast.error("Não foi possível atualizar a Ordem de Serviço.");
         }
     }
 
@@ -264,7 +292,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         unitId={visit.unit}
                         disabled={!canUpdateServiceOrder}
                         onCancel={() => setDetailsOpen(false)}
-                        onSubmit={() => {}}
+                        onSubmit={handleUpdateServiceOrder}
                         title="Detalhes da Ordem de Serviço"
                     />
                 )}

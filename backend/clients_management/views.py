@@ -24,6 +24,7 @@ from clients_management.models import (
     Proposal,
     ServiceOrder,
     Visit,
+    Equipment,
 )
 from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.serializers import (
@@ -1300,6 +1301,124 @@ class ServiceOrderViewSet(viewsets.ViewSet):
                 and visit.unit.client
                 and visit.unit.client.users.filter(pk=user.pk).exists()
             )
+
+    @swagger_auto_schema(
+        operation_summary="Update a Service Order",
+        operation_description="Update fields of a Service Order.",
+        request_body=ServiceOrderSerializer,
+        responses={
+            200: openapi.Response(
+                description="Service Order updated", schema=ServiceOrderSerializer
+            ),
+            400: "Invalid data",
+            403: "Forbidden",
+            404: "Not found",
+        },
+    )
+    def update(self, request: Request, pk: int | None = None) -> Response:
+        return self._update_order(request, pk, partial=False)
+
+    @swagger_auto_schema(
+        operation_summary="Partially update a Service Order",
+        operation_description="Partially update fields of a Service Order.",
+        request_body=ServiceOrderSerializer,
+        responses={
+            200: openapi.Response(
+                description="Service Order updated", schema=ServiceOrderSerializer
+            ),
+            400: "Invalid data",
+            403: "Forbidden",
+            404: "Not found",
+        },
+    )
+    def partial_update(self, request: Request, pk: int | None = None) -> Response:
+        return self._update_order(request, pk, partial=True)
+
+    def _validate_equipments(self, order: ServiceOrder, data):
+        """
+        Ensure equipments belong to the same unit as the order's visit.
+        """
+        if "equipments" not in data or not (order.visit and order.visit.unit_id):
+            return None
+
+        equipment_ids = data.get("equipments")
+
+        # Normalize to list of ints
+        if isinstance(equipment_ids, str):
+            try:
+                equipment_ids = [int(x) for x in equipment_ids.split(",") if x.strip()]
+            except Exception:
+                equipment_ids = []
+        elif isinstance(equipment_ids, list):
+            # Ensure ints
+            try:
+                equipment_ids = [int(x) for x in equipment_ids]
+            except Exception:
+                equipment_ids = []
+
+        invalid_ids: list[int] = []
+        unit_id = order.visit.unit_id
+
+        if isinstance(equipment_ids, list):
+            equipments_qs = Equipment.objects.filter(id__in=equipment_ids)
+            found_ids = set(equipments_qs.values_list("id", flat=True))
+
+            # check for non-existent ids
+            for eid in equipment_ids:
+                if eid not in found_ids:
+                    invalid_ids.append(eid)
+
+            # check wrong unit
+            wrong_unit_ids = list(
+                equipments_qs.exclude(unit_id=unit_id).values_list("id", flat=True)
+            )
+            invalid_ids.extend(wrong_unit_ids)
+
+        if invalid_ids:
+            return Response(
+                {
+                    "equipments": """
+                    Equipments must belong to the service order visit's unit.
+                    """
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return None
+
+    def _update_order(
+        self, request: Request, pk: int | None, partial: bool
+    ) -> Response:
+        user: UserAccount = request.user
+
+        if user.role != UserAccount.Role.PROPHY_MANAGER:
+            return Response(
+                {"detail": "You do not have permission to update service orders."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            order = (
+                ServiceOrder.objects.select_related("visit__unit")
+                .prefetch_related("equipments")
+                .get(pk=pk)
+            )
+        except ServiceOrder.DoesNotExist:
+            return Response(
+                {"detail": "Ordem de Serviço não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        data = request.data.copy()
+
+        error_resp = self._validate_equipments(order, data)
+        if error_resp:
+            return error_resp
+
+        serializer = ServiceOrderSerializer(order, data=data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ServiceOrderPDFView(APIView):

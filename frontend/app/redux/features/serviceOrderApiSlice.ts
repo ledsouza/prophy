@@ -9,6 +9,13 @@ export type CreateServiceOrderPayload = {
     equipments: number[];
 };
 
+export type UpdateServiceOrderPayload = {
+    subject?: string;
+    description?: string;
+    conclusion?: string;
+    equipments?: number[];
+};
+
 const serviceOrderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         createServiceOrder: builder.mutation<ServiceOrderDTO, CreateServiceOrderPayload>({
@@ -19,8 +26,20 @@ const serviceOrderApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: "Visit", id: "LIST" }],
         }),
+        updateServiceOrder: builder.mutation<
+            ServiceOrderDTO,
+            { id: number; data: UpdateServiceOrderPayload }
+        >({
+            query: ({ id, data }) => ({
+                url: `service-orders/${id}/`,
+                method: "PATCH",
+                body: data,
+            }),
+            invalidatesTags: [{ type: "Visit", id: "LIST" }],
+        }),
     }),
 });
 
-export const { useCreateServiceOrderMutation } = serviceOrderApiSlice;
+export const { useCreateServiceOrderMutation, useUpdateServiceOrderMutation } =
+    serviceOrderApiSlice;
 export default serviceOrderApiSlice;
