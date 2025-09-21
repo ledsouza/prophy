@@ -64,6 +64,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const canDeleteVisit = role === "GP";
     const canRescheduleVisit = role === "FMI" || role === "GP";
     const canUpdateServiceOrder = role === "GP";
+    const canCreateServiceOrder = role === "GP" || role === "FMI" || role === "FME";
 
     const [updateVisit, { isLoading: isUpdating }] = useUpdateVisitMutation();
     const [deleteVisit, { isLoading: isDeleting }] = useDeleteVisitMutation();
@@ -216,7 +217,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {!serviceOrderId && (
+                    {!serviceOrderId && canCreateServiceOrder && (
                         <Button
                             variant="success"
                             onClick={() => setSoCreateOpen(true)}
