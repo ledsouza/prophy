@@ -80,7 +80,7 @@ function VisitPanel({
             <Modal
                 isOpen={scheduleOpen}
                 onClose={() => setScheduleOpen(false)}
-                className="max-w-md"
+                className="max-w-md px-2 sm:px-6"
             >
                 <VisitScheduleForm
                     unitId={unitId}
