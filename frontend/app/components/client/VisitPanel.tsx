@@ -1,9 +1,11 @@
 "use client";
 
 import { VisitList } from "@/components/client";
-import { Button, ErrorDisplay, Spinner } from "@/components/common";
+import { Button, ErrorDisplay, Spinner, Modal } from "@/components/common";
 import { useListVisitsQuery } from "@/redux/features/visitApiSlice";
 import clsx from "clsx";
+import { useState } from "react";
+import { VisitScheduleForm } from "@/components/forms";
 
 type VisitPanelProps = {
     unitId?: number;
@@ -41,6 +43,8 @@ function VisitPanel({
         error,
     } = useListVisitsQuery(unitId ? { unit: unitId } : undefined);
 
+    const [scheduleOpen, setScheduleOpen] = useState(false);
+
     if (isLoading) {
         return (
             <div className={containerClassName}>
@@ -66,9 +70,25 @@ function VisitPanel({
                 <VisitList visits={visits || []} />
             </div>
 
-            <Button onClick={onScheduleVisit} data-testid={scheduleButtonTestId}>
+            <Button
+                onClick={onScheduleVisit ?? (() => setScheduleOpen(true))}
+                data-testid={scheduleButtonTestId}
+            >
                 Agendar visita
             </Button>
+
+            <Modal
+                isOpen={scheduleOpen}
+                onClose={() => setScheduleOpen(false)}
+                className="max-w-md"
+            >
+                <VisitScheduleForm
+                    unitId={unitId}
+                    onCancel={() => setScheduleOpen(false)}
+                    onSuccess={() => setScheduleOpen(false)}
+                    title="Agendar visita"
+                />
+            </Modal>
         </div>
     );
 }

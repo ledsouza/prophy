@@ -310,7 +310,7 @@ function UnitPage() {
                         {
                             id: "visits",
                             label: "Visitas",
-                            render: () => <VisitPanel unitId={unitId} onScheduleVisit={() => {}} />,
+                            render: () => <VisitPanel unitId={unitId} />,
                         },
                     ]}
                 />
