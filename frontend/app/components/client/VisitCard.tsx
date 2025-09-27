@@ -308,11 +308,11 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                                 setScheduleOpen(true);
                             }}
                             data-testid="btn-visit-update-schedule"
-                            aria-label="Atualizar agenda"
+                            aria-label="Reagendar"
                             title={
                                 visit.status === VisitStatus.FULFILLED
                                     ? "Visita já realizada; não é possível reagendar"
-                                    : "Atualizar agenda"
+                                    : "Reagendar"
                             }
                             disabled={isRescheduleDisabled}
                         >
