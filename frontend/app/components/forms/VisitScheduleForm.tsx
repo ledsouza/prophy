@@ -13,6 +13,7 @@ import { visitScheduleSchema } from "@/schemas";
 import { Form, FormButtons, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import VisitStatus from "@/enums/VisitStatus";
+import { child } from "@/utils/logger";
 
 type VisitScheduleFields = z.infer<typeof visitScheduleSchema>;
 
@@ -65,6 +66,7 @@ const VisitScheduleForm = ({
     const [updateVisit] = useUpdateVisitMutation();
     const [createVisit] = useCreateVisitMutation();
     const isUpdate = Boolean(visit?.id);
+    const log = child({ component: "VisitScheduleForm" });
 
     const {
         register,
@@ -80,6 +82,10 @@ const VisitScheduleForm = ({
     });
 
     const onSubmit: SubmitHandler<VisitScheduleFields> = async (data) => {
+        log.info(
+            { mode: isUpdate ? "update" : "create", unitId, visitId: visit?.id },
+            "Submitting visit schedule"
+        );
         try {
             const basePayload: Pick<CreateVisitPayload, "contact_name" | "contact_phone"> = {
                 contact_name: data.contact_name,
@@ -94,15 +100,21 @@ const VisitScheduleForm = ({
                 }
 
                 await updateVisit({ id: visit.id, data: payload }).unwrap();
+                log.info(
+                    { visitId: visit.id, status: payload.status, date: payload.date },
+                    "Visit schedule updated"
+                );
 
                 toast.success("Agenda atualizada com sucesso.");
                 onSuccess();
             } else {
                 if (!unitId) {
+                    log.warn({ unitId }, "VisitScheduleForm missing unitId in create mode");
                     toast.error("Unidade inválida para criar visita.");
                     return;
                 }
                 if (!data.date) {
+                    log.warn({}, "VisitScheduleForm missing date in create mode");
                     toast.error("Data da visita é obrigatória.");
                     return;
                 }
@@ -114,11 +126,26 @@ const VisitScheduleForm = ({
                     contact_phone: data.contact_phone,
                 };
                 await createVisit(createPayload).unwrap();
+                log.info({ unitId, date: createPayload.date }, "Visit scheduled successfully");
 
                 toast.success("Visita agendada com sucesso.");
                 onSuccess();
             }
         } catch (err) {
+            log.error(
+                {
+                    error:
+                        err instanceof Error
+                            ? err.message
+                            : typeof err === "string"
+                              ? err
+                              : undefined,
+                    mode: isUpdate ? "update" : "create",
+                    visitId: visit?.id,
+                    unitId,
+                },
+                "Visit schedule submit failed"
+            );
             toast.error(
                 isUpdate
                     ? "Não foi possível atualizar a agenda. Verifique os dados e tente novamente."
