@@ -337,7 +337,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             title="Confirmar visita"
                             disabled={isUpdatingVisit || isDeleting}
                         >
-                            Confirmar visita
+                            Confirmar
                         </Button>
                     )}
                     {canRescheduleVisit && (
