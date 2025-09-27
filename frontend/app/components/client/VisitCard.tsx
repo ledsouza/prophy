@@ -12,7 +12,7 @@ import VisitStatus, { visitStatusLabel } from "@/enums/VisitStatus";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import type { VisitDTO } from "@/types/visit";
 import type { ServiceOrderDTO } from "@/redux/features/serviceOrderApiSlice";
-import { useDeleteVisitMutation } from "@/redux/features/visitApiSlice";
+import { useDeleteVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
 import {
     useCreateServiceOrderMutation,
     useUpdateServiceOrderMutation,
@@ -69,10 +69,17 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const canRescheduleVisit = role === "FMI" || role === "GP";
     const canUpdateServiceOrder = role === "GP";
     const canCreateServiceOrder = role === "GP" || role === "FMI" || role === "FME";
+    const canConfirmVisit = role === "GP" || role === "FMI" || role === "FME" || role === "C";
+    const showCreateServiceOrderButton =
+        canCreateServiceOrder && visit.status === VisitStatus.CONFIRMED;
+    const showConfirmVisitButton =
+        canConfirmVisit &&
+        (visit.status === VisitStatus.PENDING || visit.status === VisitStatus.RESCHEDULED);
 
     const [deleteVisit, { isLoading: isDeleting }] = useDeleteVisitMutation();
     const [createServiceOrder, { isLoading: isCreating }] = useCreateServiceOrderMutation();
     const [updateServiceOrder, { isLoading: isUpdatingSO }] = useUpdateServiceOrderMutation();
+    const [updateVisit, { isLoading: isUpdatingVisit }] = useUpdateVisitMutation();
 
     const serviceOrderId = visit.service_order?.id;
 
@@ -110,6 +117,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const [soCreateOpen, setSoCreateOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     // Export PDF of Service Order
     /**
@@ -140,6 +148,21 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             }
         } catch (err) {
             toast.error("Não foi possível cancelar a visita. Tente novamente.");
+        }
+    }
+
+    /**
+     * Confirms the visit status to CONFIRMED after user approval.
+     * Opens a confirmation modal first; on confirm, sends a PATCH.
+     * Errors are surfaced via toast, and the modal is closed on success.
+     */
+    async function handleConfirmVisit() {
+        try {
+            await updateVisit({ id: visit.id, data: { status: VisitStatus.CONFIRMED } }).unwrap();
+            toast.success("Visita confirmada com sucesso.");
+            setConfirmOpen(false);
+        } catch {
+            toast.error("Não foi possível confirmar a visita. Tente novamente.");
         }
     }
 
@@ -258,7 +281,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                    {canCreateServiceOrder && (
+                    {showCreateServiceOrderButton && (
                         <Button
                             variant="success"
                             onClick={() => {
@@ -279,6 +302,20 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         </Button>
                     )}
 
+                    {showConfirmVisitButton && (
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                setConfirmOpen(true);
+                            }}
+                            data-testid="btn-visit-confirm"
+                            aria-label="Confirmar visita"
+                            title="Confirmar visita"
+                            disabled={isUpdatingVisit || isDeleting}
+                        >
+                            Confirmar visita
+                        </Button>
+                    )}
                     {canRescheduleVisit && (
                         <Button
                             variant="primary"
@@ -350,6 +387,38 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     onSubmit={handleCreateServiceOrder}
                     title="Gerar Ordem de Serviço"
                 />
+            </Modal>
+
+            <Modal
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                className="max-w-md px-2 sm:px-6"
+            >
+                <div className="space-y-4">
+                    <Typography element="h3" size="lg">
+                        Confirmar visita
+                    </Typography>
+                    <Typography element="p" size="md">
+                        Deseja confirmar esta visita?
+                    </Typography>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setConfirmOpen(false)}
+                            disabled={isUpdatingVisit}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleConfirmVisit}
+                            disabled={isUpdatingVisit}
+                            data-testid="btn-visit-confirm-submit"
+                        >
+                            Confirmar
+                        </Button>
+                    </div>
+                </div>
             </Modal>
 
             <Modal
