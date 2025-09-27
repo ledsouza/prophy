@@ -839,7 +839,16 @@ class VisitViewSet(viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def update(self, request, pk=None):
+    def update(self, request: Request, pk: int | None = None) -> Response:
+        return self._update_visit(request, pk, partial=False)
+
+    def _update_visit(
+        self, request: Request, pk: int | None, *, partial: bool
+    ) -> Response:
+        """
+        Update a visit with optional partial flag.
+        Handles permissions, object lookup, access control, validation and persistence.
+        """
         user: UserAccount = request.user
         if not self._can_update_visit(user):
             return Response(
@@ -861,7 +870,8 @@ class VisitViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = VisitSerializer(visit, data=request.data, partial=True)
+        data = request.data.copy()
+        serializer = VisitSerializer(visit, data=data, partial=partial)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -902,8 +912,8 @@ class VisitViewSet(viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def partial_update(self, request, pk=None):
-        return self.update(request, pk=pk)
+    def partial_update(self, request: Request, pk: int | None = None) -> Response:
+        return self._update_visit(request, pk, partial=True)
 
     @swagger_auto_schema(
         operation_summary="Delete a visit",
