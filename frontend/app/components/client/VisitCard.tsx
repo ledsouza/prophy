@@ -262,18 +262,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="success"
                             onClick={() => {
-                                if (visit.status === VisitStatus.FULFILLED) {
-                                    toast.info(
-                                        "Visita já realizada; não é possível marcar como realizada."
-                                    );
-                                    return;
-                                }
-                                if (visit.status === VisitStatus.UNFULFILLED) {
-                                    toast.warning(
-                                        "Esta visita está não realizada. Agende uma nova visita."
-                                    );
-                                    return;
-                                }
                                 setSoCreateOpen(true);
                             }}
                             data-testid="btn-done"
