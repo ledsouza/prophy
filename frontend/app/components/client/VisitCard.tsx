@@ -19,6 +19,7 @@ import {
 } from "@/redux/features/serviceOrderApiSlice";
 
 import { formatPhoneNumber } from "@/utils/format";
+import { child } from "@/utils/logger";
 import {
     CalendarIcon,
     CalendarXIcon,
@@ -70,6 +71,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const canUpdateServiceOrder = role === "GP";
     const canCreateServiceOrder = role === "GP" || role === "FMI" || role === "FME";
     const canConfirmVisit = role === "GP" || role === "FMI" || role === "FME" || role === "C";
+    const log = child({ component: "VisitCard" });
     const showCreateServiceOrderButton =
         canCreateServiceOrder && visit.status === VisitStatus.CONFIRMED;
     const showConfirmVisitButton =
@@ -129,12 +131,18 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
      */
     function handleExportServiceOrder() {
         if (!serviceOrderId) {
+            log.info({ visitId: visit.id }, "Export blocked: no service order");
             return toast.info("Nenhuma Ordem de Serviço vinculada para exportar.");
         }
         const url = `${process.env.NEXT_PUBLIC_HOST}/api/service-orders/${serviceOrderId}/pdf/`;
         try {
+            log.info({ visitId: visit.id, serviceOrderId, url }, "Open service order PDF");
             window.open(url, "_blank", "noopener,noreferrer");
-        } catch {
+        } catch (err) {
+            log.error(
+                { visitId: visit.id, serviceOrderId, error: (err as any)?.message },
+                "Export service order failed"
+            );
             toast.error("Falha ao abrir o PDF da Ordem de Serviço.");
         }
     }
@@ -142,26 +150,27 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     async function handleCancelVisit() {
         try {
             if (canDeleteVisit) {
+                log.info({ visitId: visit.id }, "Cancelling visit");
                 await deleteVisit(visit.id).unwrap();
+                log.info({ visitId: visit.id }, "Visit cancelled");
                 toast.success("Visita cancelada com sucesso.");
                 return;
             }
         } catch (err) {
+            log.error({ visitId: visit.id, error: (err as any)?.message }, "Cancel visit failed");
             toast.error("Não foi possível cancelar a visita. Tente novamente.");
         }
     }
 
-    /**
-     * Confirms the visit status to CONFIRMED after user approval.
-     * Opens a confirmation modal first; on confirm, sends a PATCH.
-     * Errors are surfaced via toast, and the modal is closed on success.
-     */
     async function handleConfirmVisit() {
         try {
+            log.info({ visitId: visit.id }, "Confirming visit");
             await updateVisit({ id: visit.id, data: { status: VisitStatus.CONFIRMED } }).unwrap();
+            log.info({ visitId: visit.id }, "Visit confirmed");
             toast.success("Visita confirmada com sucesso.");
             setConfirmOpen(false);
-        } catch {
+        } catch (err) {
+            log.error({ visitId: visit.id, error: (err as any)?.message }, "Confirm visit failed");
             toast.error("Não foi possível confirmar a visita. Tente novamente.");
         }
     }
@@ -170,6 +179,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments">
     ) {
         try {
+            log.info({ visitId: visit.id }, "Creating service order");
             await createServiceOrder({
                 visit: visit.id,
                 subject: data.subject,
@@ -177,9 +187,14 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 conclusion: data.conclusion,
                 equipments: data.equipments || [],
             }).unwrap();
+            log.info({ visitId: visit.id }, "Service order created");
             toast.success("Ordem de Serviço criada e visita marcada como realizada.");
             setSoCreateOpen(false);
-        } catch {
+        } catch (err) {
+            log.error(
+                { visitId: visit.id, error: (err as any)?.message },
+                "Create service order failed"
+            );
             toast.error("Não foi possível criar a OS ou atualizar a visita.");
         }
     }
@@ -188,10 +203,12 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments">
     ) {
         if (!serviceOrderId) {
+            log.warn({ visitId: visit.id }, "Update service order blocked: no SO linked");
             toast.info("Sem ordem de serviço vinculada.");
             return;
         }
         try {
+            log.info({ visitId: visit.id, serviceOrderId }, "Updating service order");
             await updateServiceOrder({
                 id: serviceOrderId,
                 data: {
@@ -201,9 +218,14 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     equipments: data.equipments || [],
                 },
             }).unwrap();
+            log.info({ visitId: visit.id, serviceOrderId }, "Service order updated");
             toast.success("Ordem de Serviço atualizada com sucesso.");
             setDetailsOpen(false);
-        } catch {
+        } catch (err) {
+            log.error(
+                { visitId: visit.id, serviceOrderId, error: (err as any)?.message },
+                "Update service order failed"
+            );
             toast.error("Não foi possível atualizar a Ordem de Serviço.");
         }
     }
@@ -285,6 +307,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="success"
                             onClick={() => {
+                                log.info({ visitId: visit.id }, "Open service order create modal");
                                 setSoCreateOpen(true);
                             }}
                             data-testid="btn-done"
@@ -306,6 +329,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="secondary"
                             onClick={() => {
+                                log.info({ visitId: visit.id }, "Open confirm modal");
                                 setConfirmOpen(true);
                             }}
                             data-testid="btn-visit-confirm"
@@ -320,6 +344,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="primary"
                             onClick={() => {
+                                log.info({ visitId: visit.id }, "Open schedule modal");
                                 setScheduleOpen(true);
                             }}
                             data-testid="btn-visit-update-schedule"
