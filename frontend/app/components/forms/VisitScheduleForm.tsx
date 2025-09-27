@@ -190,7 +190,12 @@ const VisitScheduleForm = ({
                     Telefone do contato
                 </Input>
 
-                <FormButtons isSubmitting={isSubmitting} needReview={false} onCancel={onCancel} />
+                <FormButtons
+                    isSubmitting={isSubmitting}
+                    needReview={false}
+                    onCancel={onCancel}
+                    submitLabel={isUpdate ? "Atualizar" : "Agendar"}
+                />
             </Form>
         </div>
     );
