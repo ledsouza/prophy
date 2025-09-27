@@ -295,16 +295,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="primary"
                             onClick={() => {
-                                if (visit.status === VisitStatus.FULFILLED) {
-                                    toast.warning("Visita já realizada; não é possível reagendar.");
-                                    return;
-                                }
-                                if (isRescheduleDisabled) {
-                                    toast.warning(
-                                        "O prazo para reagendar expirou. Agende uma nova visita."
-                                    );
-                                    return;
-                                }
                                 setScheduleOpen(true);
                             }}
                             data-testid="btn-visit-update-schedule"
