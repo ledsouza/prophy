@@ -6,6 +6,7 @@
  writes and allows different create vs update shapes.
 */
 import type { ServiceOrderDTO } from "@/redux/features/serviceOrderApiSlice";
+import type { ListQueryParams } from "@/redux/services/apiSlice";
 import VisitStatus from "@/enums/VisitStatus";
 
 /**
@@ -20,6 +21,13 @@ export type VisitDTO = {
     contact_name: string;
     service_order?: ServiceOrderDTO | null;
     unit: number;
+};
+
+/**
+ * Query args for listing visits (read model).
+ */
+export type ListVisitsArgs = ListQueryParams & {
+    unit?: number;
 };
 
 /**
