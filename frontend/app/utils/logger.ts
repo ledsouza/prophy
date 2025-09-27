@@ -2,7 +2,7 @@
 
 import pino, { type Logger, type LoggerOptions } from "pino";
 import { hasEndpoint, sendLog } from "@/utils/logTransport";
-import { version as appVersion } from "../../package.json";
+const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? "unknown";
 
 /**
  * Centralized client-side logger for the Next.js frontend.
