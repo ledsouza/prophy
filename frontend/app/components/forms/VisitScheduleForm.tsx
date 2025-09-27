@@ -12,6 +12,7 @@ import { visitScheduleSchema } from "@/schemas";
 
 import { Form, FormButtons, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import VisitStatus from "@/enums/VisitStatus";
 
 type VisitScheduleFields = z.infer<typeof visitScheduleSchema>;
 
@@ -89,6 +90,7 @@ const VisitScheduleForm = ({
                 const payload: UpdateVisitPayload = { ...basePayload };
                 if (data.date) {
                     payload.date = new Date(data.date).toISOString();
+                    payload.status = VisitStatus.RESCHEDULED;
                 }
 
                 await updateVisit({ id: visit.id, data: payload }).unwrap();
