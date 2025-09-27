@@ -7,11 +7,6 @@ import { version as appVersion } from "../../package.json";
 /**
  * Centralized client-side logger for the Next.js frontend.
  *
- * Why:
- * - Provides a single logging API for client-only app (no Next.js server routes).
- * - Structured logs with levels for easier filtering and optional remote shipping.
- * - Adds app metadata and shared context to every log line.
- *
  * Behavior:
  * - Uses console.* in all environments to preserve local visibility.
  * - If NEXT_PUBLIC_LOG_ENDPOINT is defined, also ships logs to that endpoint
@@ -36,9 +31,6 @@ export function setContext(partial: LogContext): void {
     sharedContext = { ...sharedContext, ...partial };
 }
 
-/**
- * Read-only snapshot of the current shared logging context.
- */
 export function getContext(): LogContext {
     return { ...sharedContext };
 }
@@ -68,8 +60,6 @@ function writeToConsole(entry: Record<string, unknown> & { level: number; msg?: 
     // Keep console output readable while preserving structured metadata.
     // Message string first, then structured data.
     if (lvl === "trace" || lvl === "debug") {
-        // debug/trace are noisy; still print in dev for visibility
-        // Next.js build replaces process.env.NODE_ENV at build time
         if (process.env.NODE_ENV !== "production") {
             // eslint-disable-next-line no-console
             console.debug(msg ?? "", rest);
