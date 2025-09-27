@@ -5,7 +5,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
 
-import type { VisitDTO } from "@/redux/features/visitApiSlice";
+import type { VisitDTO, CreateVisitPayload, UpdateVisitPayload } from "@/types/visit";
 import { useCreateVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
 
 import { visitScheduleSchema } from "@/schemas";
@@ -80,13 +80,13 @@ const VisitScheduleForm = ({
 
     const onSubmit: SubmitHandler<VisitScheduleFields> = async (data) => {
         try {
-            const basePayload: Record<string, any> = {
+            const basePayload: Pick<CreateVisitPayload, "contact_name" | "contact_phone"> = {
                 contact_name: data.contact_name,
                 contact_phone: data.contact_phone,
             };
 
             if (isUpdate && visit && visit.id) {
-                const payload: Record<string, any> = { ...basePayload };
+                const payload: UpdateVisitPayload = { ...basePayload };
                 if (data.date) {
                     payload.date = new Date(data.date).toISOString();
                 }
@@ -105,12 +105,13 @@ const VisitScheduleForm = ({
                     return;
                 }
 
-                await createVisit({
+                const createPayload: CreateVisitPayload = {
                     unit: unitId,
                     date: new Date(data.date).toISOString(),
                     contact_name: data.contact_name,
                     contact_phone: data.contact_phone,
-                }).unwrap();
+                };
+                await createVisit(createPayload).unwrap();
 
                 toast.success("Visita agendada com sucesso.");
                 onSuccess();
