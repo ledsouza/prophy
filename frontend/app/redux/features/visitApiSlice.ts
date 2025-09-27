@@ -1,17 +1,5 @@
 import { apiSlice, PaginatedResponse, ListQueryParams } from "../services/apiSlice";
-import VisitStatus from "@/enums/VisitStatus";
-import type { ServiceOrderDTO } from "./serviceOrderApiSlice";
-
-export type VisitDTO = {
-    id: number;
-    date: string; // ISO datetime from backend
-    status: VisitStatus;
-    justification?: string | null;
-    contact_phone: string;
-    contact_name: string;
-    service_order?: ServiceOrderDTO | null;
-    unit: number;
-};
+import type { VisitDTO, CreateVisitPayload, UpdateVisitPayload } from "@/types/visit";
 
 type ListVisitsArgs = ListQueryParams & {
     unit?: number;
@@ -80,17 +68,7 @@ const visitApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Visit", id: "LIST" }],
         }),
-        createVisit: builder.mutation<
-            VisitDTO,
-            {
-                unit: number;
-                date: string;
-                contact_name: string;
-                contact_phone: string;
-                status?: VisitStatus;
-                justification?: string | null;
-            }
-        >({
+        createVisit: builder.mutation<VisitDTO, CreateVisitPayload>({
             query: (data) => ({
                 url: "visits/",
                 method: "POST",
@@ -98,10 +76,7 @@ const visitApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: "Visit", id: "LIST" }],
         }),
-        updateVisit: builder.mutation<
-            VisitDTO,
-            { id: number; data: Partial<VisitDTO> | Record<string, any> }
-        >({
+        updateVisit: builder.mutation<VisitDTO, { id: number; data: UpdateVisitPayload }>({
             query: ({ id, data }) => ({
                 url: `visits/${id}/`,
                 method: "PATCH",
