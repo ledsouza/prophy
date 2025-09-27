@@ -1,9 +1,10 @@
-import { apiSlice, PaginatedResponse, ListQueryParams } from "../services/apiSlice";
-import type { VisitDTO, CreateVisitPayload, UpdateVisitPayload } from "@/types/visit";
-
-type ListVisitsArgs = ListQueryParams & {
-    unit?: number;
-};
+import { apiSlice, PaginatedResponse } from "../services/apiSlice";
+import type {
+    VisitDTO,
+    CreateVisitPayload,
+    UpdateVisitPayload,
+    ListVisitsArgs,
+} from "@/types/visit";
 
 const visitApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
