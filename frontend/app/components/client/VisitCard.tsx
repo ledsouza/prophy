@@ -417,7 +417,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             <Modal
                 isOpen={confirmOpen}
                 onClose={() => setConfirmOpen(false)}
-                className="max-w-md px-2 sm:px-6"
+                className="max-w-md px-2 py-6 sm:px-6 sm:py-6"
             >
                 <div className="space-y-4">
                     <Typography element="h3" size="lg">
