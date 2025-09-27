@@ -10,7 +10,7 @@ import { Typography } from "@/components/foundation";
 
 import VisitStatus, { visitStatusLabel } from "@/enums/VisitStatus";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
-import type { VisitDTO } from "@/redux/features/visitApiSlice";
+import type { VisitDTO } from "@/types/visit";
 import type { ServiceOrderDTO } from "@/redux/features/serviceOrderApiSlice";
 import { useDeleteVisitMutation } from "@/redux/features/visitApiSlice";
 import {

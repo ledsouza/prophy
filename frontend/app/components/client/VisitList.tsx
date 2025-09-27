@@ -2,7 +2,7 @@
 
 import { VisitCard } from "@/components/client";
 import { Typography } from "@/components/foundation";
-import type { VisitDTO } from "@/redux/features/visitApiSlice";
+import type { VisitDTO } from "@/types/visit";
 
 type VisitListProps = {
     visits: VisitDTO[];
