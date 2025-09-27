@@ -120,6 +120,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const [soCreateOpen, setSoCreateOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
 
     // Export PDF of Service Order
     /**
@@ -153,6 +154,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 log.info({ visitId: visit.id }, "Cancelling visit");
                 await deleteVisit(visit.id).unwrap();
                 log.info({ visitId: visit.id }, "Visit cancelled");
+                setDeleteOpen(false);
                 toast.success("Visita cancelada com sucesso.");
                 return;
             }
@@ -363,7 +365,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     {canDeleteVisit && (
                         <Button
                             variant="danger"
-                            onClick={handleCancelVisit}
+                            onClick={() => {
+                                log.info({ visitId: visit.id }, "Open cancel visit modal");
+                                setDeleteOpen(true);
+                            }}
                             data-testid="btn-visit-cancel-schedule"
                             disabled={isDeleting}
                             aria-label="Cancelar agenda"
@@ -439,6 +444,39 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             onClick={handleConfirmVisit}
                             disabled={isUpdatingVisit}
                             data-testid="btn-visit-confirm-submit"
+                        >
+                            Confirmar
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={deleteOpen}
+                onClose={() => setDeleteOpen(false)}
+                className="max-w-md px-2 py-6 sm:px-6 sm:py-6"
+            >
+                <div className="space-y-4">
+                    <Typography element="h3" size="lg">
+                        Cancelar agenda
+                    </Typography>
+                    <Typography element="p" size="md">
+                        Tem certeza que deseja cancelar esta visita? Esta ação não pode ser
+                        desfeita.
+                    </Typography>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setDeleteOpen(false)}
+                            disabled={isDeleting}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={handleCancelVisit}
+                            disabled={isDeleting}
+                            data-testid="btn-visit-cancel-submit"
                         >
                             Confirmar
                         </Button>
