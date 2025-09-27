@@ -868,6 +868,44 @@ class VisitViewSet(viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
+        operation_summary="Partially update a visit",
+        operation_description="Partially update fields of an existing visit instance.",
+        request_body=VisitSerializer,
+        responses={
+            200: openapi.Response(
+                description="Visit updated successfully", schema=VisitSerializer
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details",
+                        )
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Visit not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def partial_update(self, request, pk=None):
+        return self.update(request, pk=pk)
+
+    @swagger_auto_schema(
         operation_summary="Delete a visit",
         operation_description="Delete an existing visit instance by its ID.",
         responses={
