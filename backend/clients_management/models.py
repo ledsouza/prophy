@@ -474,6 +474,7 @@ class ServiceOrder(models.Model):
     updates = models.TextField(
         "Atualização",
         blank=True,
+        null=True,
     )
 
     def __str__(self):
