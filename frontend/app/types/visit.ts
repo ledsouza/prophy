@@ -5,7 +5,7 @@
  Keeps immutable/server-managed fields (id, unit, service_order) out of
  writes and allows different create vs update shapes.
 */
-import type { ServiceOrderDTO } from "@/redux/features/serviceOrderApiSlice";
+import type { ServiceOrderDTO } from "@/types/service-order";
 import type { ListQueryParams } from "@/redux/services/apiSlice";
 import VisitStatus from "@/enums/VisitStatus";
 
