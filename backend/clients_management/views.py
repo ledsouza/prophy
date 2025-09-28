@@ -1438,8 +1438,9 @@ class ServiceOrderViewSet(viewsets.ViewSet):
     ) -> Response:
         """
         Update a Service Order with role-aware restrictions:
-          - PROPHY_MANAGER: may update any fields (subject, description, conclusion, equipments, updates)
-          - INTERNAL/EXTERNAL_MEDICAL_PHYSICIST: may only update 'updates' field via PATCH; must have visit access
+          - PROPHY_MANAGER: may update any fields
+          - INTERNAL/EXTERNAL_MEDICAL_PHYSICIST: may only update 'updates' field
+          via PATCH; must have visit access
         """
         user: UserAccount = request.user
 
