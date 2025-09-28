@@ -233,16 +233,8 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 if (typeof data.updates !== "undefined") {
                     payload.updates = data.updates;
                 }
-                log.info(
-                    { visitId: visit.id, serviceOrderId, role, updatesOnly: false },
-                    "Updating service order (full payload)"
-                );
             } else if (role === "FMI" || role === "FME") {
                 payload = { updates: data.updates ?? "" };
-                log.info(
-                    { visitId: visit.id, serviceOrderId, role, updatesOnly: true },
-                    "Updating service order (updates only)"
-                );
             } else {
                 toast.info("Sem permissão para atualizar a Ordem de Serviço.");
                 return;
