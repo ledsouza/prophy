@@ -8,9 +8,9 @@ import { z } from "zod";
 import type { VisitDTO, CreateVisitPayload, UpdateVisitPayload } from "@/types/visit";
 import { useCreateVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
 
-import { visitScheduleSchema } from "@/schemas";
+import { visitScheduleSchema, makeVisitScheduleSchema } from "@/schemas";
 
-import { Form, FormButtons, Input } from "@/components/forms";
+import { Form, FormButtons, Input, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import VisitStatus from "@/enums/VisitStatus";
 import { child } from "@/utils/logger";
@@ -73,11 +73,12 @@ const VisitScheduleForm = ({
         handleSubmit,
         formState: { errors, isSubmitting },
     } = useForm<VisitScheduleFields>({
-        resolver: zodResolver(visitScheduleSchema),
+        resolver: zodResolver(makeVisitScheduleSchema({ requireJustification: isUpdate })),
         defaultValues: {
             date: visit?.date ? toLocalDatetimeInputValue(visit.date) : "",
             contact_name: visit?.contact_name || "",
             contact_phone: visit?.contact_phone || "",
+            justification: visit?.justification ?? "",
         },
     });
 
@@ -89,7 +90,10 @@ const VisitScheduleForm = ({
             };
 
             if (isUpdate && visit && visit.id) {
-                const payload: UpdateVisitPayload = { ...basePayload };
+                const payload: UpdateVisitPayload = {
+                    ...basePayload,
+                    justification: data.justification ?? null,
+                };
                 if (data.date) {
                     payload.date = new Date(data.date).toISOString();
                     payload.status = VisitStatus.RESCHEDULED;
@@ -180,6 +184,18 @@ const VisitScheduleForm = ({
                 >
                     Telefone do contato
                 </Input>
+
+                {isUpdate && (
+                    <Textarea
+                        {...register("justification")}
+                        errorMessage={errors.justification?.message}
+                        placeholder="Descreva o motivo do reagendamento"
+                        data-testid="visit-justification-input"
+                        rows={4}
+                    >
+                        Justificativa
+                    </Textarea>
+                )}
 
                 <FormButtons
                     isSubmitting={isSubmitting}
