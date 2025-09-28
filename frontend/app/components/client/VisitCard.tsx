@@ -16,7 +16,7 @@ import { Typography } from "@/components/foundation";
 import VisitStatus, { visitStatusLabel } from "@/enums/VisitStatus";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import type { VisitDTO } from "@/types/visit";
-import type { ServiceOrderDTO } from "@/redux/features/serviceOrderApiSlice";
+import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
 import { useDeleteVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
 import {
     useCreateServiceOrderMutation,
@@ -77,6 +77,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const canCreateServiceOrder = role === "GP" || role === "FMI" || role === "FME";
     const canConfirmVisit = role === "GP" || role === "FMI" || role === "FME" || role === "C";
     const canJustifyVisit = role === "FMI" || role === "FME";
+    const canEditUpdates = role === "GP" || role === "FMI" || role === "FME";
     const log = child({ component: "VisitCard" });
     const showCreateServiceOrderButton =
         canCreateServiceOrder && visit.status === VisitStatus.CONFIRMED;
@@ -208,7 +209,9 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     }
 
     async function handleUpdateServiceOrder(
-        data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments">
+        data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments"> & {
+            updates?: string;
+        }
     ) {
         if (!serviceOrderId) {
             log.warn({ visitId: visit.id }, "Update service order blocked: no SO linked");
@@ -216,14 +219,35 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             return;
         }
         try {
-            await updateServiceOrder({
-                id: serviceOrderId,
-                data: {
+            let payload: UpdateServiceOrderPayload;
+            if (role === "GP") {
+                payload = {
                     subject: data.subject,
                     description: data.description,
                     conclusion: data.conclusion,
                     equipments: data.equipments || [],
-                },
+                };
+                if (typeof data.updates !== "undefined") {
+                    payload.updates = data.updates;
+                }
+                log.info(
+                    { visitId: visit.id, serviceOrderId, role, updatesOnly: false },
+                    "Updating service order (full payload)"
+                );
+            } else if (role === "FMI" || role === "FME") {
+                payload = { updates: data.updates ?? "" };
+                log.info(
+                    { visitId: visit.id, serviceOrderId, role, updatesOnly: true },
+                    "Updating service order (updates only)"
+                );
+            } else {
+                toast.info("Sem permissão para atualizar a Ordem de Serviço.");
+                return;
+            }
+
+            await updateServiceOrder({
+                id: serviceOrderId,
+                data: payload,
             }).unwrap();
             toast.success("Ordem de Serviço atualizada com sucesso.");
             setDetailsOpen(false);
@@ -415,6 +439,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         disabled={!canUpdateServiceOrder}
                         onCancel={() => setDetailsOpen(false)}
                         onSubmit={handleUpdateServiceOrder}
+                        canEditUpdates={canEditUpdates}
                         title="Detalhes da Ordem de Serviço"
                     />
                 )}
@@ -432,12 +457,14 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             subject: "",
                             description: "",
                             conclusion: "",
+                            updates: "",
                             equipments: [],
                         } as ServiceOrderDTO
                     }
                     unitId={visit.unit}
                     onCancel={() => setSoCreateOpen(false)}
                     onSubmit={handleCreateServiceOrder}
+                    showUpdatesField={false}
                     title="Gerar Ordem de Serviço"
                 />
             </Modal>
