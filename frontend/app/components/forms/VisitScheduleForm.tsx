@@ -90,6 +90,35 @@ const VisitScheduleForm = ({
             };
 
             if (isUpdate && visit && visit.id) {
+                // No-op update guard: warn and skip if nothing changed
+                const originalLocalInput = visit.date ? toLocalDatetimeInputValue(visit.date) : "";
+                const changedDate = data.date !== "" && data.date !== originalLocalInput;
+
+                const trim = (s: string | null | undefined) => (s ?? "").trim();
+
+                const original = {
+                    contact_name: trim(visit.contact_name),
+                    contact_phone: trim(visit.contact_phone),
+                    justification: trim(visit.justification as string | null | undefined),
+                };
+
+                const current = {
+                    contact_name: trim(data.contact_name),
+                    contact_phone: trim(data.contact_phone),
+                    justification: trim(data.justification),
+                };
+
+                const changed =
+                    changedDate ||
+                    current.contact_name !== original.contact_name ||
+                    current.contact_phone !== original.contact_phone ||
+                    current.justification !== original.justification;
+
+                if (!changed) {
+                    toast.warn("Nenhuma alteração detectada.");
+                    return;
+                }
+
                 const payload: UpdateVisitPayload = {
                     ...basePayload,
                     justification: data.justification ?? null,
