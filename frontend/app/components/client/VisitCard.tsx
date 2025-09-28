@@ -245,43 +245,12 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         payload.updates = normalized;
                     }
                 }
-                log.info(
-                    {
-                        visitId: visit.id,
-                        serviceOrderId,
-                        role,
-                        updatesOnly: false,
-                        updatesChanged:
-                            typeof data.updates !== "undefined" ? normalized !== current : false,
-                    },
-                    "Updating service order (GP)"
-                );
             } else if (role === "FMI" || role === "FME") {
                 if (normalized === current) {
-                    log.info(
-                        {
-                            visitId: visit.id,
-                            serviceOrderId,
-                            role,
-                            updatesOnly: true,
-                            updatesChanged: false,
-                        },
-                        "Skipping service order update (no changes)"
-                    );
                     toast.info("Sem alterações em Atualizações.");
                     return;
                 }
                 payload = { updates: normalized };
-                log.info(
-                    {
-                        visitId: visit.id,
-                        serviceOrderId,
-                        role,
-                        updatesOnly: true,
-                        updatesChanged: true,
-                    },
-                    "Updating service order (updates only)"
-                );
             } else {
                 toast.info("Sem permissão para atualizar a Ordem de Serviço.");
                 return;
