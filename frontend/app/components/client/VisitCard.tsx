@@ -214,7 +214,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         }
     ) {
         if (!serviceOrderId) {
-            log.warn({ visitId: visit.id }, "Update service order blocked: no SO linked");
+            log.warn(
+                { visitId: visit.id },
+                "Update service order blocked: no Service Order linked"
+            );
             toast.info("Sem ordem de serviço vinculada.");
             return;
         }
