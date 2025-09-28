@@ -1,7 +1,7 @@
 "use client";
 
-import pino, { type Logger, type LoggerOptions } from "pino";
 import { hasEndpoint, sendLog } from "@/utils/logTransport";
+import pino, { type Logger, type LoggerOptions } from "pino";
 const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? "unknown";
 
 /**
