@@ -1436,13 +1436,12 @@ class ServiceOrderViewSet(viewsets.ViewSet):
     def _update_order(
         self, request: Request, pk: int | None, partial: bool
     ) -> Response:
+        """
+        Update a Service Order with role-aware restrictions:
+          - PROPHY_MANAGER: may update any fields (subject, description, conclusion, equipments, updates)
+          - INTERNAL/EXTERNAL_MEDICAL_PHYSICIST: may only update 'updates' field via PATCH; must have visit access
+        """
         user: UserAccount = request.user
-
-        if user.role != UserAccount.Role.PROPHY_MANAGER:
-            return Response(
-                {"detail": "You do not have permission to update service orders."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
 
         try:
             order = (
@@ -1456,17 +1455,65 @@ class ServiceOrderViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        data = request.data.copy()
+        # PROPHY_MANAGER: full edit
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            data = request.data.copy()
+            error_resp = self._validate_equipments(order, data)
+            if error_resp:
+                return error_resp
 
-        error_resp = self._validate_equipments(order, data)
-        if error_resp:
-            return error_resp
+            serializer = ServiceOrderSerializer(order, data=data, partial=partial)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = ServiceOrderSerializer(order, data=data, partial=partial)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # INTERNAL/EXTERNAL_MEDICAL_PHYSICIST: updates-only via PATCH
+        if user.role in [
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        ]:
+            # Allow only PATCH and only 'updates' field
+            allowed_keys = {"updates"}
+            incoming_keys = set(request.data.keys())
+
+            if not partial:
+                return Response(
+                    {"detail": "Only partial updates are allowed for this role."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            if not incoming_keys or not incoming_keys.issubset(allowed_keys):
+                return Response(
+                    {
+                        "detail": "Only 'updates' field can be modified by medical physicists."
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Must also have access to the associated visit
+            visit = order.visit
+            if not visit or not self._has_visit_access(user, visit):
+                return Response(
+                    {
+                        "detail": "You do not have permission to update this service order."
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            serializer = ServiceOrderSerializer(
+                order, data={"updates": request.data.get("updates", None)}, partial=True
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Other roles: forbidden
+        return Response(
+            {"detail": "You do not have permission to update service orders."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
 
 class ServiceOrderPDFView(APIView):
