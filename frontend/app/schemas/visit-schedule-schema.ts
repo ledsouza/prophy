@@ -29,7 +29,7 @@ const base = z.object({
 export const makeVisitScheduleSchema = (opts?: { requireJustification?: boolean }) => {
     if (opts?.requireJustification) {
         return base.extend({
-            justification: z.string().min(1, { message: "Justificativa é obrigatória." }).trim(),
+            justification: z.string().trim().min(1, { message: "Justificativa é obrigatória." }),
         });
     }
     return base;
