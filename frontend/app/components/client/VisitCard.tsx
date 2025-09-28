@@ -5,7 +5,7 @@ import { format, parseISO, addDays, startOfDay, isBefore } from "date-fns";
 import { useMemo, useState } from "react";
 
 import { Button, Modal } from "@/components/common";
-import { VisitScheduleForm, ServiceOrderForm } from "@/components/forms";
+import { VisitScheduleForm, ServiceOrderForm, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import VisitStatus, { visitStatusLabel } from "@/enums/VisitStatus";
@@ -71,12 +71,14 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const canUpdateServiceOrder = role === "GP";
     const canCreateServiceOrder = role === "GP" || role === "FMI" || role === "FME";
     const canConfirmVisit = role === "GP" || role === "FMI" || role === "FME" || role === "C";
+    const canJustifyVisit = role === "FMI" || role === "FME";
     const log = child({ component: "VisitCard" });
     const showCreateServiceOrderButton =
         canCreateServiceOrder && visit.status === VisitStatus.CONFIRMED;
     const showConfirmVisitButton =
         canConfirmVisit &&
         (visit.status === VisitStatus.PENDING || visit.status === VisitStatus.RESCHEDULED);
+    const showJustifyButton = canJustifyVisit && visit.status === VisitStatus.UNFULFILLED;
 
     const [deleteVisit, { isLoading: isDeleting }] = useDeleteVisitMutation();
     const [createServiceOrder, { isLoading: isCreating }] = useCreateServiceOrderMutation();
@@ -121,6 +123,9 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const [soCreateOpen, setSoCreateOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [justificationOpen, setJustificationOpen] = useState(false);
+    const [justificationText, setJustificationText] = useState(visit.justification ?? "");
+    const [justificationError, setJustificationError] = useState<string | undefined>(undefined);
 
     // Export PDF of Service Order
     /**
@@ -220,6 +225,26 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 "Update service order failed"
             );
             toast.error("Não foi possível atualizar a Ordem de Serviço.");
+        }
+    }
+
+    async function handleSubmitJustification() {
+        const val = (justificationText ?? "").trim();
+        if (!val) {
+            setJustificationError("Justificativa é obrigatória.");
+            return;
+        }
+
+        try {
+            await updateVisit({ id: visit.id, data: { justification: val } }).unwrap();
+            toast.success("Justificativa enviada com sucesso.");
+            setJustificationOpen(false);
+        } catch (err) {
+            log.error(
+                { visitId: visit.id, error: (err as any)?.message },
+                "Submit justification failed"
+            );
+            toast.error("Não foi possível enviar a justificativa. Tente novamente.");
         }
     }
 
@@ -329,6 +354,20 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             disabled={isUpdatingVisit || isDeleting}
                         >
                             Confirmar
+                        </Button>
+                    )}
+                    {showJustifyButton && (
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                setJustificationText(visit.justification ?? "");
+                                setJustificationError(undefined);
+                                setJustificationOpen(true);
+                            }}
+                            data-testid="btn-visit-justify"
+                            disabled={isUpdatingVisit || isDeleting}
+                        >
+                            Justificar
                         </Button>
                     )}
                     {canRescheduleVisit && (
@@ -481,6 +520,48 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     onCancel={() => setScheduleOpen(false)}
                     onSuccess={() => setScheduleOpen(false)}
                 />
+            </Modal>
+
+            <Modal
+                isOpen={justificationOpen}
+                onClose={() => setJustificationOpen(false)}
+                className="max-w-md px-2 py-6 sm:px-6 sm:py-6"
+            >
+                <div className="space-y-4">
+                    <Typography element="h3" size="lg">
+                        Justificar visita não realizada
+                    </Typography>
+                    <Textarea
+                        value={justificationText}
+                        onChange={(e) => {
+                            setJustificationText(e.target.value);
+                            if (justificationError) setJustificationError(undefined);
+                        }}
+                        errorMessage={justificationError}
+                        placeholder="Descreva o motivo"
+                        data-testid="visit-justify-input"
+                        rows={4}
+                    >
+                        Justificativa
+                    </Textarea>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setJustificationOpen(false)}
+                            disabled={isUpdatingVisit}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleSubmitJustification}
+                            disabled={isUpdatingVisit}
+                            data-testid="btn-visit-justify-submit"
+                        >
+                            Salvar
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );
