@@ -3,6 +3,7 @@
 import { VisitList } from "@/components/client";
 import { Button, ErrorDisplay, Spinner, Modal } from "@/components/common";
 import { useListVisitsQuery } from "@/redux/features/visitApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import clsx from "clsx";
 import { useState } from "react";
 import { VisitScheduleForm } from "@/components/forms";
@@ -44,6 +45,9 @@ function VisitPanel({
     } = useListVisitsQuery(unitId ? { unit: unitId } : undefined);
 
     const [scheduleOpen, setScheduleOpen] = useState(false);
+    const { data: user } = useRetrieveUserQuery();
+    const allowedRoles = new Set(["GP", "FMI", "C"]);
+    const canSchedule = !!user && allowedRoles.has(user.role);
 
     if (isLoading) {
         return (
@@ -70,12 +74,14 @@ function VisitPanel({
                 <VisitList visits={visits || []} />
             </div>
 
-            <Button
-                onClick={onScheduleVisit ?? (() => setScheduleOpen(true))}
-                data-testid={scheduleButtonTestId}
-            >
-                Agendar visita
-            </Button>
+            {canSchedule && (
+                <Button
+                    onClick={onScheduleVisit ?? (() => setScheduleOpen(true))}
+                    data-testid={scheduleButtonTestId}
+                >
+                    Agendar visita
+                </Button>
+            )}
 
             <Modal
                 isOpen={scheduleOpen}
