@@ -137,7 +137,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         }
         const url = `${process.env.NEXT_PUBLIC_HOST}/api/service-orders/${serviceOrderId}/pdf/`;
         try {
-            log.info({ visitId: visit.id, serviceOrderId, url }, "Open service order PDF");
             window.open(url, "_blank", "noopener,noreferrer");
         } catch (err) {
             log.error(
@@ -151,9 +150,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     async function handleCancelVisit() {
         try {
             if (canDeleteVisit) {
-                log.info({ visitId: visit.id }, "Cancelling visit");
                 await deleteVisit(visit.id).unwrap();
-                log.info({ visitId: visit.id }, "Visit cancelled");
                 setDeleteOpen(false);
                 toast.success("Visita cancelada com sucesso.");
                 return;
@@ -166,9 +163,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
 
     async function handleConfirmVisit() {
         try {
-            log.info({ visitId: visit.id }, "Confirming visit");
             await updateVisit({ id: visit.id, data: { status: VisitStatus.CONFIRMED } }).unwrap();
-            log.info({ visitId: visit.id }, "Visit confirmed");
             toast.success("Visita confirmada com sucesso.");
             setConfirmOpen(false);
         } catch (err) {
@@ -181,7 +176,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments">
     ) {
         try {
-            log.info({ visitId: visit.id }, "Creating service order");
             await createServiceOrder({
                 visit: visit.id,
                 subject: data.subject,
@@ -189,7 +183,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 conclusion: data.conclusion,
                 equipments: data.equipments || [],
             }).unwrap();
-            log.info({ visitId: visit.id }, "Service order created");
             toast.success("Ordem de Serviço criada e visita marcada como realizada.");
             setSoCreateOpen(false);
         } catch (err) {
@@ -210,7 +203,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             return;
         }
         try {
-            log.info({ visitId: visit.id, serviceOrderId }, "Updating service order");
             await updateServiceOrder({
                 id: serviceOrderId,
                 data: {
@@ -220,7 +212,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     equipments: data.equipments || [],
                 },
             }).unwrap();
-            log.info({ visitId: visit.id, serviceOrderId }, "Service order updated");
             toast.success("Ordem de Serviço atualizada com sucesso.");
             setDetailsOpen(false);
         } catch (err) {
@@ -309,7 +300,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="success"
                             onClick={() => {
-                                log.info({ visitId: visit.id }, "Open service order create modal");
                                 setSoCreateOpen(true);
                             }}
                             data-testid="btn-done"
@@ -331,7 +321,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="secondary"
                             onClick={() => {
-                                log.info({ visitId: visit.id }, "Open confirm modal");
                                 setConfirmOpen(true);
                             }}
                             data-testid="btn-visit-confirm"
@@ -346,7 +335,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="primary"
                             onClick={() => {
-                                log.info({ visitId: visit.id }, "Open schedule modal");
                                 setScheduleOpen(true);
                             }}
                             data-testid="btn-visit-update-schedule"
@@ -366,7 +354,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         <Button
                             variant="danger"
                             onClick={() => {
-                                log.info({ visitId: visit.id }, "Open cancel visit modal");
                                 setDeleteOpen(true);
                             }}
                             data-testid="btn-visit-cancel-schedule"
