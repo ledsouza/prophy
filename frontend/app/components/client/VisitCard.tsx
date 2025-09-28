@@ -208,6 +208,38 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         }
     }
 
+    // Builds a payload based on the user's role.
+    // - GP: full payload; includes updates only if it differs from the current value
+    // - FMI/FME: updates-only; skips PATCH if no change
+    // - others: denied
+    const buildPayloadByRole = (
+        role: string | undefined,
+        data: Pick<
+            ServiceOrderDTO,
+            "subject" | "description" | "conclusion" | "equipments" | "updates"
+        >,
+        currentUpdates: string | null
+    ): { payload?: UpdateServiceOrderPayload; skip?: boolean; deny?: boolean } => {
+        if (role === "GP") {
+            const payload: UpdateServiceOrderPayload = {
+                subject: data.subject,
+                description: data.description,
+                conclusion: data.conclusion,
+                equipments: data.equipments || [],
+            };
+            if (typeof data.updates !== "undefined" && data.updates !== currentUpdates) {
+                payload.updates = data.updates;
+            }
+            return { payload };
+        }
+        if (role === "FMI" || role === "FME") {
+            const next = data.updates ?? null;
+            if (next === currentUpdates) return { skip: true };
+            return { payload: { updates: next } };
+        }
+        return { deny: true };
+    };
+
     async function handleUpdateServiceOrder(
         data: Pick<
             ServiceOrderDTO,
@@ -224,42 +256,22 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         }
         try {
             const current = visit.service_order?.updates ?? null;
-            const normalized: string | null = (() => {
-                if (typeof data.updates === "undefined") return null;
-                if (data.updates == null) return null;
-                const t = String(data.updates).trim();
-                return t === "" ? null : t;
-            })();
+            const result = buildPayloadByRole(role, data, current);
 
-            let payload: UpdateServiceOrderPayload;
-
-            if (role === "GP") {
-                payload = {
-                    subject: data.subject,
-                    description: data.description,
-                    conclusion: data.conclusion,
-                    equipments: data.equipments || [],
-                };
-                if (typeof data.updates !== "undefined") {
-                    if (normalized !== current) {
-                        payload.updates = normalized;
-                    }
-                }
-            } else if (role === "FMI" || role === "FME") {
-                if (normalized === current) {
-                    toast.info("Sem alterações em Atualizações.");
-                    return;
-                }
-                payload = { updates: normalized };
-            } else {
+            if (result.deny) {
                 toast.info("Sem permissão para atualizar a Ordem de Serviço.");
+                return;
+            }
+            if (result.skip) {
+                toast.info("Sem alterações em Atualizações.");
                 return;
             }
 
             await updateServiceOrder({
                 id: serviceOrderId,
-                data: payload,
+                data: result.payload!,
             }).unwrap();
+
             toast.success("Ordem de Serviço atualizada com sucesso.");
             setDetailsOpen(false);
         } catch (err) {
