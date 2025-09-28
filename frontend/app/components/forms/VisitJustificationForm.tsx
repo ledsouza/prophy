@@ -9,9 +9,13 @@ import { Form, FormButtons, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { child } from "@/utils/logger";
 import { useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
-import visitJustificationSchema from "@/schemas/visit-justification-schema";
+import { makeVisitScheduleSchema } from "@/schemas";
 
-type VisitJustificationFields = z.infer<typeof visitJustificationSchema>;
+const justificationSchema = makeVisitScheduleSchema({ requireJustification: true }).pick({
+    justification: true,
+});
+
+type VisitJustificationFields = z.infer<typeof justificationSchema>;
 
 type VisitJustificationFormProps = {
     visitId: number;
@@ -36,7 +40,7 @@ const VisitJustificationForm = ({
         handleSubmit,
         formState: { errors, isSubmitting },
     } = useForm<VisitJustificationFields>({
-        resolver: zodResolver(visitJustificationSchema),
+        resolver: zodResolver(justificationSchema),
         defaultValues: {
             justification: initialJustification ?? "",
         },
