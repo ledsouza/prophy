@@ -30,7 +30,7 @@
     "date-fns": "^4.1.0",
     "gerador-validador-cpf": "^5.0.2",
     "lodash": "^4.17.21",
-    "next": "14.2.30",
+    "next": "14.2.33",
     "npm": "^11.4.0",
     "pino": "^9.11.0",
     "react": "^18",
