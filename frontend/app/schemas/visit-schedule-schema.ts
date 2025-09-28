@@ -4,8 +4,8 @@ import { isValidPhonePTBR } from "@/utils/validation";
 const base = z.object({
     date: z
         .string()
+        .min(1, { message: "Data é obrigatório." })
         .transform((value) => (value === "" ? undefined : value))
-        .optional()
         .refine((value) => value === undefined || !Number.isNaN(Date.parse(value)), {
             message: "Data inválida.",
         }),
