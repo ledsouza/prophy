@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isValidPhonePTBR } from "@/utils/validation";
 
-const visitScheduleSchema = z.object({
+const base = z.object({
     date: z
         .string()
         .optional()
@@ -20,6 +20,25 @@ const visitScheduleSchema = z.object({
             message: "Telefone inválido.",
         })
         .transform((value) => value?.trim()),
+    justification: z
+        .string()
+        .optional()
+        .transform((value) => value?.trim()),
 });
+
+export const makeVisitScheduleSchema = (opts?: { requireJustification?: boolean }) =>
+    base.superRefine((data, ctx) => {
+        if (opts?.requireJustification) {
+            if (!data.justification || data.justification.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ["justification"],
+                    message: "Justificativa é obrigatória.",
+                });
+            }
+        }
+    });
+
+const visitScheduleSchema = makeVisitScheduleSchema();
 
 export default visitScheduleSchema;
