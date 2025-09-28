@@ -117,12 +117,16 @@ const VisitScheduleForm = ({
                     return;
                 }
 
+                const originalLocalInput = visit.date ? toLocalDatetimeInputValue(visit.date) : "";
+                const dateChanged = data.date !== "" && data.date !== originalLocalInput;
+
                 const payload: UpdateVisitPayload = {
                     ...basePayload,
                     justification: data.justification ?? null,
                 };
-                if (data.date) {
-                    payload.date = new Date(data.date).toISOString();
+
+                if (dateChanged) {
+                    payload.date = new Date(data.date!).toISOString();
                     payload.status = VisitStatus.RESCHEDULED;
                 }
 
