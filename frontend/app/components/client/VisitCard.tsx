@@ -5,7 +5,12 @@ import { format, parseISO, addDays, startOfDay, isBefore } from "date-fns";
 import { useMemo, useState } from "react";
 
 import { Button, Modal } from "@/components/common";
-import { VisitScheduleForm, ServiceOrderForm, VisitJustificationForm } from "@/components/forms";
+import {
+    VisitScheduleForm,
+    ServiceOrderForm,
+    VisitJustificationForm,
+    Textarea,
+} from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import VisitStatus, { visitStatusLabel } from "@/enums/VisitStatus";
@@ -79,6 +84,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         canConfirmVisit &&
         (visit.status === VisitStatus.PENDING || visit.status === VisitStatus.RESCHEDULED);
     const showJustifyButton = canJustifyVisit && visit.status === VisitStatus.UNFULFILLED;
+    const canViewJustification = role === "GP";
+    const showJustificationViewerButton =
+        canViewJustification &&
+        (visit.status === VisitStatus.UNFULFILLED || visit.status === VisitStatus.RESCHEDULED);
 
     const [deleteVisit, { isLoading: isDeleting }] = useDeleteVisitMutation();
     const [createServiceOrder, { isLoading: isCreating }] = useCreateServiceOrderMutation();
@@ -124,6 +133,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [justificationOpen, setJustificationOpen] = useState(false);
+    const [justificationViewerOpen, setJustificationViewerOpen] = useState(false);
 
     // Export PDF of Service Order
     /**
@@ -346,6 +356,17 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             Justificar
                         </Button>
                     )}
+                    {showJustificationViewerButton && (
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                setJustificationViewerOpen(true);
+                            }}
+                            data-testid="btn-visit-justification-viewer"
+                        >
+                            Justificativa
+                        </Button>
+                    )}
                     {canRescheduleVisit && (
                         <Button
                             variant="primary"
@@ -509,6 +530,33 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     onCancel={() => setJustificationOpen(false)}
                     onSuccess={() => setJustificationOpen(false)}
                 />
+            </Modal>
+
+            <Modal
+                isOpen={justificationViewerOpen}
+                onClose={() => setJustificationViewerOpen(false)}
+                className="max-w-md px-2 py-6 sm:px-6 sm:py-6"
+            >
+                <div className="space-y-4">
+                    <Typography element="h3" size="lg">
+                        Justificativa
+                    </Typography>
+                    {visit.justification ? (
+                        <Textarea disabled value={visit.justification} rows={6} />
+                    ) : (
+                        <Typography element="p" size="md">
+                            Sem justificativa informada.
+                        </Typography>
+                    )}
+                    <div className="flex justify-end">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setJustificationViewerOpen(false)}
+                        >
+                            Fechar
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );
