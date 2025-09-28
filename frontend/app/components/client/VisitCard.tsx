@@ -501,7 +501,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             <Modal
                 isOpen={justificationOpen}
                 onClose={() => setJustificationOpen(false)}
-                className="max-w-md px-2 py-6 sm:px-6 sm:py-6"
+                className="max-w-md px-2 sm:px-6"
             >
                 <VisitJustificationForm
                     visitId={visit.id}
