@@ -14,6 +14,10 @@ const serviceOrderSchema = z.object({
         .string()
         .min(1, { message: "Conclusão é obrigatória." })
         .transform((value) => value?.trim()),
+    updates: z
+        .string()
+        .optional()
+        .transform((value) => value?.trim()),
     equipments: z.array(z.number()).default([]),
 });
 
