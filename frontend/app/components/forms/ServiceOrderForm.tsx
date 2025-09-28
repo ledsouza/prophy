@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { ServiceOrderDTO } from "@/redux/features/serviceOrderApiSlice";
+import type { ServiceOrderDTO } from "@/types/service-order";
 
 import { serviceOrderSchema } from "@/schemas";
 
@@ -24,6 +24,8 @@ type ServiceOrderFormProps = {
     title?: string;
     containerClassName?: string;
     containerTestId?: string;
+    canEditUpdates?: boolean;
+    showUpdatesField?: boolean;
 };
 
 /**
@@ -81,6 +83,8 @@ const ServiceOrderForm = ({
     title,
     containerClassName,
     containerTestId,
+    canEditUpdates = false,
+    showUpdatesField = true,
 }: ServiceOrderFormProps) => {
     const {
         register,
@@ -94,6 +98,7 @@ const ServiceOrderForm = ({
             subject: serviceOrder.subject,
             description: serviceOrder.description,
             conclusion: serviceOrder.conclusion,
+            updates: serviceOrder.updates ?? "",
             equipments: serviceOrder.equipments || [],
         },
     });
@@ -152,6 +157,18 @@ const ServiceOrderForm = ({
                 >
                     Conclusão
                 </Textarea>
+
+                {showUpdatesField && (
+                    <Textarea
+                        {...register("updates")}
+                        rows={6}
+                        disabled={!canEditUpdates}
+                        placeholder="Atualizações"
+                        errorMessage={errors.updates?.message as string | undefined}
+                    >
+                        Atualizações
+                    </Textarea>
+                )}
 
                 <div>
                     {disabled ? (
@@ -222,7 +239,7 @@ const ServiceOrderForm = ({
                 </div>
             </div>
 
-            {!disabled && (
+            {(canEditUpdates || !disabled) && (
                 <div className="mt-4">
                     <FormButtons
                         isSubmitting={isSubmitting}
