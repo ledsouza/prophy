@@ -124,6 +124,9 @@ const ServiceOrderForm = ({
         onCancel?.();
     };
 
+    const updatesInitial = (serviceOrder.updates ?? "").toString().trim();
+    const shouldShowUpdates = showUpdatesField && (canEditUpdates || updatesInitial.length > 0);
+
     const formContent = (
         <Form onSubmit={handleSubmit(onSubmit)}>
             <div className="mt-4 space-y-4">
@@ -158,7 +161,7 @@ const ServiceOrderForm = ({
                     Conclusão
                 </Textarea>
 
-                {showUpdatesField && (
+                {shouldShowUpdates && (
                     <Textarea
                         {...register("updates")}
                         rows={6}
