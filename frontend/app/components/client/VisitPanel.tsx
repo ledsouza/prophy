@@ -32,11 +32,10 @@ type VisitPanelProps = {
  * - The root uses min-h-0 and the list is wrapped in a flex-1 overflow-y-auto div so the list
  *   can scroll while the bottom button remains visible.
  *
- * @param {number} [unitId] - The ID of the unit to fetch visits for. If not provided, fetches all visits.
- * @param {Function} [onScheduleVisit] - Callback function called when the schedule visit button is clicked.
- * @param {string} [scheduleButtonTestId='btn-schedule-visit'] - Test ID for the schedule visit button.
- * @param {string} [containerClassName=''] - Additional CSS classes to apply to the container div.
- * @returns {JSX.Element} The rendered VisitPanel component
+ * @param unitId - The ID of the unit to fetch visits for. If not provided, fetches all visits.
+ * @param onScheduleVisit - Callback invoked when the schedule visit button is clicked.
+ * @param scheduleButtonTestId - Test ID for the schedule visit button.
+ * @param containerClassName - Additional CSS classes to apply to the container div.
  */
 function VisitPanel({
     unitId,
