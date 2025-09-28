@@ -1455,7 +1455,6 @@ class ServiceOrderViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # PROPHY_MANAGER: full edit
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             data = request.data.copy()
             error_resp = self._validate_equipments(order, data)
@@ -1468,12 +1467,10 @@ class ServiceOrderViewSet(viewsets.ViewSet):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # INTERNAL/EXTERNAL_MEDICAL_PHYSICIST: updates-only via PATCH
         if user.role in [
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]:
-            # Allow only PATCH and only 'updates' field
             allowed_keys = {"updates"}
             incoming_keys = set(request.data.keys())
 
@@ -1486,17 +1483,20 @@ class ServiceOrderViewSet(viewsets.ViewSet):
             if not incoming_keys or not incoming_keys.issubset(allowed_keys):
                 return Response(
                     {
-                        "detail": "Only 'updates' field can be modified by medical physicists."
+                        "detail": """
+                        Only 'updates' field can be modified by medical physicists.
+                        """
                     },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            # Must also have access to the associated visit
             visit = order.visit
             if not visit or not self._has_visit_access(user, visit):
                 return Response(
                     {
-                        "detail": "You do not have permission to update this service order."
+                        "detail": """
+                        You do not have permission to update this service order.
+                        """
                     },
                     status=status.HTTP_403_FORBIDDEN,
                 )
@@ -1509,7 +1509,6 @@ class ServiceOrderViewSet(viewsets.ViewSet):
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Other roles: forbidden
         return Response(
             {"detail": "You do not have permission to update service orders."},
             status=status.HTTP_403_FORBIDDEN,
