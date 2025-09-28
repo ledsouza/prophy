@@ -18,15 +18,6 @@ type VisitPanelProps = {
 /**
  * VisitPanel component for displaying and managing visits for a specific unit.
  *
- * Fetches visits with useListVisitsQuery and displays them in a VisitList. Also provides
- * a button to schedule new visits and handles loading/error states.
- *
- * Permissions
- * - The "Agendar visita" button is visible only to roles GP (PROPHY_MANAGER),
- *   FMI (INTERNAL_MEDICAL_PHYSICIST), and C (COMMERCIAL).
- * - The current user role is obtained via useRetrieveUserQuery; the button
- *   remains hidden until the user data is available.
- *
  * Layout notes
  * - Intended to be used inside TabbedResourcePanel or another fixed-height flex container.
  * - The root uses min-h-0 and the list is wrapped in a flex-1 overflow-y-auto div so the list
