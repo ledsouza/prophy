@@ -454,20 +454,26 @@ class ServiceOrder(models.Model):
         equipments (ManyToManyField): Equipments related to this order.
         description (TextField): Detailed description of the requested work.
         conclusion (TextField): Summary of the work performed and resolution.
+        updates (TextField): A running log of updates and notes for the service order.
     """
 
     subject = models.CharField(
         "Assunto",
         max_length=50,
-        help_text="A brief, clear summary of the service order's purpose.",
     )
-    equipments = models.ManyToManyField(Equipment, related_name="service_orders")
+    equipments = models.ManyToManyField(
+        Equipment,
+        related_name="service_orders",
+    )
     description = models.TextField(
         "Descrição",
-        help_text="A detailed description of the problem or service required.",
     )
     conclusion = models.TextField(
-        "Conclusão", help_text="A summary of the work performed and the resolution."
+        "Conclusão",
+    )
+    updates = models.TextField(
+        "Atualização",
+        blank=True,
     )
 
     def __str__(self):
