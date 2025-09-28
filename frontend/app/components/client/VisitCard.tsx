@@ -209,9 +209,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     }
 
     async function handleUpdateServiceOrder(
-        data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments"> & {
-            updates?: string | null;
-        }
+        data: Pick<
+            ServiceOrderDTO,
+            "subject" | "description" | "conclusion" | "equipments" | "updates"
+        >
     ) {
         if (!serviceOrderId) {
             log.warn(
@@ -222,7 +223,16 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             return;
         }
         try {
+            const current = visit.service_order?.updates ?? null;
+            const normalized: string | null = (() => {
+                if (typeof data.updates === "undefined") return null;
+                if (data.updates == null) return null;
+                const t = String(data.updates).trim();
+                return t === "" ? null : t;
+            })();
+
             let payload: UpdateServiceOrderPayload;
+
             if (role === "GP") {
                 payload = {
                     subject: data.subject,
@@ -231,10 +241,47 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     equipments: data.equipments || [],
                 };
                 if (typeof data.updates !== "undefined") {
-                    payload.updates = data.updates;
+                    if (normalized !== current) {
+                        payload.updates = normalized;
+                    }
                 }
+                log.info(
+                    {
+                        visitId: visit.id,
+                        serviceOrderId,
+                        role,
+                        updatesOnly: false,
+                        updatesChanged:
+                            typeof data.updates !== "undefined" ? normalized !== current : false,
+                    },
+                    "Updating service order (GP)"
+                );
             } else if (role === "FMI" || role === "FME") {
-                payload = { updates: data.updates ?? null };
+                if (normalized === current) {
+                    log.info(
+                        {
+                            visitId: visit.id,
+                            serviceOrderId,
+                            role,
+                            updatesOnly: true,
+                            updatesChanged: false,
+                        },
+                        "Skipping service order update (no changes)"
+                    );
+                    toast.info("Sem alterações em Atualizações.");
+                    return;
+                }
+                payload = { updates: normalized };
+                log.info(
+                    {
+                        visitId: visit.id,
+                        serviceOrderId,
+                        role,
+                        updatesOnly: true,
+                        updatesChanged: true,
+                    },
+                    "Updating service order (updates only)"
+                );
             } else {
                 toast.info("Sem permissão para atualizar a Ordem de Serviço.");
                 return;
