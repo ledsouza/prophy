@@ -82,10 +82,6 @@ const VisitScheduleForm = ({
     });
 
     const onSubmit: SubmitHandler<VisitScheduleFields> = async (data) => {
-        log.info(
-            { mode: isUpdate ? "update" : "create", unitId, visitId: visit?.id },
-            "Submitting visit schedule"
-        );
         try {
             const basePayload: Pick<CreateVisitPayload, "contact_name" | "contact_phone"> = {
                 contact_name: data.contact_name,
@@ -100,10 +96,6 @@ const VisitScheduleForm = ({
                 }
 
                 await updateVisit({ id: visit.id, data: payload }).unwrap();
-                log.info(
-                    { visitId: visit.id, status: payload.status, date: payload.date },
-                    "Visit schedule updated"
-                );
 
                 toast.success("Agenda atualizada com sucesso.");
                 onSuccess();
@@ -126,7 +118,6 @@ const VisitScheduleForm = ({
                     contact_phone: data.contact_phone,
                 };
                 await createVisit(createPayload).unwrap();
-                log.info({ unitId, date: createPayload.date }, "Visit scheduled successfully");
 
                 toast.success("Visita agendada com sucesso.");
                 onSuccess();
