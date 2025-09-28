@@ -5,6 +5,7 @@ import { Button, ErrorDisplay, Modal, Spinner } from "@/components/common";
 import { VisitScheduleForm } from "@/components/forms";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { useListVisitsQuery } from "@/redux/features/visitApiSlice";
+import { child } from "@/utils/logger";
 import clsx from "clsx";
 import { useState } from "react";
 
@@ -44,6 +45,7 @@ function VisitPanel({
     const { data: user } = useRetrieveUserQuery();
     const allowedRoles = new Set(["GP", "FMI", "C"]);
     const canSchedule = !!user && allowedRoles.has(user.role);
+    const log = child({ component: "VisitPanel" });
 
     if (isLoading) {
         return (
@@ -54,6 +56,10 @@ function VisitPanel({
     }
 
     if (error) {
+        log.error(
+            { unitId, error: (error as any)?.status ?? (error as any)?.message ?? "unknown" },
+            "Failed to load visits"
+        );
         return (
             <div className={containerClassName}>
                 <ErrorDisplay
