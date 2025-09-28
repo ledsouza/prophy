@@ -10,7 +10,7 @@ export type ServiceOrderDTO = {
     subject: string;
     description: string;
     conclusion: string;
-    updates: string;
+    updates?: string | null;
     equipments: number[];
 };
 
@@ -25,5 +25,5 @@ export type CreateServiceOrderPayload = ServiceOrderBase & {
 
 // Allow partial updates of core fields and independent updates to the "updates" field
 export type UpdateServiceOrderPayload = Partial<ServiceOrderBase> & {
-    updates?: string;
+    updates?: string | null;
 };
