@@ -7,4 +7,4 @@ export { default as equipmentSchema } from "./equipment-schema";
 export { default as accessorySchema } from "./accessory-schema";
 export { default as unitManagerSchema } from "./unit-manager-schema";
 export { default as serviceOrderSchema } from "./service-order-schema";
-export { default as visitScheduleSchema } from "./visit-schedule-schema";
+export { default as visitScheduleSchema, makeVisitScheduleSchema } from "./visit-schedule-schema";
