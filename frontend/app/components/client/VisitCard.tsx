@@ -210,7 +210,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
 
     async function handleUpdateServiceOrder(
         data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments"> & {
-            updates?: string;
+            updates?: string | null;
         }
     ) {
         if (!serviceOrderId) {
@@ -234,7 +234,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     payload.updates = data.updates;
                 }
             } else if (role === "FMI" || role === "FME") {
-                payload = { updates: data.updates ?? "" };
+                payload = { updates: data.updates ?? null };
             } else {
                 toast.info("Sem permissão para atualizar a Ordem de Serviço.");
                 return;
