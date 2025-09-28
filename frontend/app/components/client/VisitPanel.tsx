@@ -1,12 +1,12 @@
 "use client";
 
 import { VisitList } from "@/components/client";
-import { Button, ErrorDisplay, Spinner, Modal } from "@/components/common";
-import { useListVisitsQuery } from "@/redux/features/visitApiSlice";
+import { Button, ErrorDisplay, Modal, Spinner } from "@/components/common";
+import { VisitScheduleForm } from "@/components/forms";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import { useListVisitsQuery } from "@/redux/features/visitApiSlice";
 import clsx from "clsx";
 import { useState } from "react";
-import { VisitScheduleForm } from "@/components/forms";
 
 type VisitPanelProps = {
     unitId?: number;
