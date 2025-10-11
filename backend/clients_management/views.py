@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import date, timedelta
 from io import StringIO
 
@@ -1859,8 +1860,6 @@ class ReportFileDownloadView(APIView):
             response = HttpResponse(
                 file_handle, content_type="application/octet-stream"
             )
-
-            import os
 
             filename = os.path.basename(report.file.name)
             response["Content-Disposition"] = f'attachment; filename="{filename}"'
