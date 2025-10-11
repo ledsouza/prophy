@@ -6,7 +6,6 @@ import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { useListReportsQuery } from "@/redux/features/reportApiSlice";
 import { child } from "@/utils/logger";
 import clsx from "clsx";
-import { useState } from "react";
 
 type ReportPanelProps = {
     unitId?: number;
