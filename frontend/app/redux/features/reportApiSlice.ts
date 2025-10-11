@@ -6,8 +6,20 @@ type UpdateReportFileArgs = {
     file: File;
 };
 
+type ListReportsParams = {
+    unit?: number;
+    equipment?: number;
+};
+
 const reportApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        listReports: builder.query<ReportDTO[], ListReportsParams | void>({
+            query: (params) => ({
+                url: "reports/",
+                method: "GET",
+                params: params || {},
+            }),
+        }),
         updateReportFile: builder.mutation<ReportDTO, UpdateReportFileArgs>({
             query: ({ id, file }) => {
                 const formData = new FormData();
@@ -22,5 +34,5 @@ const reportApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useUpdateReportFileMutation } = reportApiSlice;
+export const { useListReportsQuery, useUpdateReportFileMutation } = reportApiSlice;
 export default reportApiSlice;
