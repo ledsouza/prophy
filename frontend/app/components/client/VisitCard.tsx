@@ -25,6 +25,7 @@ import {
 } from "@/redux/features/serviceOrderApiSlice";
 
 import { formatPhoneNumber } from "@/utils/format";
+import { downloadBlob } from "@/utils/download";
 import { child } from "@/utils/logger";
 import {
     CalendarIcon,
@@ -149,19 +150,8 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         try {
             log.debug({ visitId: visit.id, serviceOrderId }, "Starting SO PDF export");
             const blob = await downloadServiceOrderPDF(serviceOrderId).unwrap();
-
             const filename = `service_order_${serviceOrderId}.pdf`;
-
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-
+            downloadBlob(blob, filename);
             log.info(
                 { visitId: visit.id, serviceOrderId, filename },
                 "SO PDF exported successfully"

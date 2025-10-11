@@ -21,6 +21,7 @@ import { reportTypeLabel } from "@/types/report";
 import { reportFileSchema } from "@/schemas";
 
 import { child } from "@/utils/logger";
+import { downloadBlob, extractFilenameFromPath } from "@/utils/download";
 import { FileArrowDownIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
@@ -94,24 +95,12 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             toast.info("Sem arquivo disponível para download.");
             return;
         }
-
         try {
+            log.debug({ reportId: report.id }, "Starting report file download");
             const blob = await downloadReportFile(report.id).unwrap();
-
-            const urlParts = report.file.split("/");
-            const filename = urlParts[urlParts.length - 1] || `report-${report.id}.pdf`;
-
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-
-            log.info({ reportId: report.id, filename }, "Report downloaded successfully");
+            const filename = extractFilenameFromPath(report.file, "report", report.id);
+            downloadBlob(blob, filename);
+            log.info({ reportId: report.id, filename }, "Report file downloaded successfully");
             toast.success("Relatório baixado com sucesso.");
         } catch (err) {
             log.error({ reportId: report.id, error: (err as any)?.message }, "Download failed");
