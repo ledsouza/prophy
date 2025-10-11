@@ -1828,7 +1828,7 @@ class ReportFileDownloadView(APIView):
     )
     def get(self, request: Request, report_id: int):
         try:
-            report = Report.objects.select_related(
+            report: Report = Report.objects.select_related(
                 "unit__client", "equipment__unit__client"
             ).get(pk=report_id)
         except Report.DoesNotExist:
