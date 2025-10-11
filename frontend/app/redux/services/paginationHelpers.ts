@@ -4,8 +4,7 @@ import type { PaginatedResponse } from "./apiSlice";
 /**
  * Creates a generic auto-paginating query function for Django REST Framework endpoints.
  *
- * This helper handles both single-page and multi-page fetching with optional filters,
- * eliminating code duplication across API slices.
+ * This helper handles both single-page and multi-page fetching with optional filters
  *
  * @template TResult - The type of individual items in the result array
  * @template TFilters - The type of filter parameters (e.g., { unit?: number, equipment?: number })
