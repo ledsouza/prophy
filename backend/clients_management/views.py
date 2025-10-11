@@ -22,6 +22,7 @@ from clients_management.models import (
     Client,
     Modality,
     Proposal,
+    Report,
     ServiceOrder,
     Visit,
     Equipment,
@@ -34,6 +35,7 @@ from clients_management.serializers import (
     EquipmentSerializer,
     ModalitySerializer,
     ProposalSerializer,
+    ReportSerializer,
     UnitSerializer,
     VisitSerializer,
     ServiceOrderSerializer,
@@ -1574,6 +1576,273 @@ class ServiceOrderPDFView(APIView):
             f'attachment; filename="service_order_{order.id}.pdf"'
         )
         return response
+
+
+class ReportViewSet(viewsets.ViewSet):
+    """
+    Viewset for managing reports.
+    """
+
+    @swagger_auto_schema(
+        operation_summary="List reports",
+        operation_description="""
+        Retrieve a paginated list of reports with filtering support.
+
+        ```json
+        {
+            "count": 123,
+            "next": "http://api.example.com/reports/?page=2",
+            "previous": null,
+            "results": [
+                {
+                    "id": 1,
+                    "completion_date": "2024-01-15",
+                    "due_date": "2025-01-15",
+                    "file": "/media/reports/report.pdf",
+                    "unit": 1,
+                    "unit_name": "Unidade Central",
+                    "client_name": "Hospital São Paulo",
+                    "equipment": null,
+                    "report_type": "CQ"
+                }
+            ]
+        }
+        ```
+        """,
+        manual_parameters=[
+            openapi.Parameter(
+                name="unit",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Filter reports by unit ID.",
+            ),
+            openapi.Parameter(
+                name="equipment",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_INTEGER,
+                description="Filter reports by equipment ID.",
+            ),
+            openapi.Parameter(
+                name="report_type",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter reports by type.",
+            ),
+            openapi.Parameter(
+                name="due_soon",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_BOOLEAN,
+                description="Filter reports due within 30 days.",
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Paginated list of reports",
+                schema=ReportSerializer(many=True),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def list(self, request):
+        queryset = self._get_base_queryset(request.user)
+        queryset = self._apply_filters(queryset, request.query_params)
+        queryset = queryset.order_by("-completion_date")
+        return self._paginate_response(queryset, request)
+
+    @swagger_auto_schema(
+        operation_summary="Retrieve a single report",
+        operation_description="Get details of a specific report by ID.",
+        responses={
+            200: openapi.Response(
+                description="Report details", schema=ReportSerializer
+            ),
+            404: openapi.Response(
+                description="Report not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def retrieve(self, request, pk=None):
+        user: UserAccount = request.user
+
+        try:
+            report = Report.objects.select_related(
+                "unit__client", "equipment__unit__client"
+            ).get(pk=pk)
+        except Report.DoesNotExist:
+            return Response(
+                {"detail": "Relatório não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not self._has_report_access(user, report):
+            return Response(
+                {"detail": "You do not have permission to access this report."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ReportSerializer(report)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        operation_summary="Update report file",
+        operation_description="""
+        Update the file of an existing report.
+        Only PROPHY_MANAGER and medical physicists can update reports.
+        """,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "file": openapi.Schema(
+                    type=openapi.TYPE_FILE, description="New report file (PDF or Word)"
+                )
+            },
+        ),
+        responses={
+            200: openapi.Response(
+                description="Report updated successfully", schema=ReportSerializer
+            ),
+            400: "Invalid input data",
+            404: "Report not found",
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def partial_update(self, request: Request, pk: int | None = None) -> Response:
+        user: UserAccount = request.user
+
+        if not self._can_update_report(user):
+            return Response(
+                {"detail": "You do not have permission to update reports."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            report = Report.objects.select_related(
+                "unit__client", "equipment__unit__client"
+            ).get(pk=pk)
+        except Report.DoesNotExist:
+            return Response(
+                {"detail": "Relatório não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not self._has_report_access(user, report):
+            return Response(
+                {"detail": "You do not have permission to update this report."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ReportSerializer(report, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def _get_base_queryset(self, user: UserAccount):
+        """
+        Get base queryset based on user role and permissions.
+        """
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            return Report.objects.all()
+        elif user.role in [
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        ]:
+            return Report.objects.all()
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            return Report.objects.filter(
+                Q(unit__user=user) | Q(equipment__unit__user=user)
+            )
+        else:
+            return Report.objects.filter(
+                Q(unit__client__users=user) | Q(equipment__unit__client__users=user)
+            )
+
+    def _apply_filters(self, queryset, query_params):
+        """
+        Apply filtering based on query parameters.
+        """
+        unit = query_params.get("unit")
+        if unit is not None:
+            queryset = queryset.filter(unit=unit)
+
+        equipment = query_params.get("equipment")
+        if equipment is not None:
+            queryset = queryset.filter(equipment=equipment)
+
+        report_type = query_params.get("report_type")
+        if report_type is not None:
+            queryset = queryset.filter(report_type=report_type)
+
+        due_soon = query_params.get("due_soon")
+        if due_soon is not None and due_soon.lower() == "true":
+            from datetime import date, timedelta
+
+            thirty_days_from_now = date.today() + timedelta(days=30)
+            queryset = queryset.filter(due_date__lte=thirty_days_from_now)
+
+        return queryset
+
+    def _paginate_response(self, queryset, request):
+        """
+        Handle pagination and serialization of the queryset.
+        """
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = ReportSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = ReportSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _can_update_report(self, user: UserAccount) -> bool:
+        """
+        Check if user can update reports.
+        """
+        return user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        ]
+
+    def _has_report_access(self, user: UserAccount, report: Report) -> bool:
+        """
+        Check if user has access to a specific report.
+        """
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            return True
+        elif user.role in [
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        ]:
+            return True
+        elif user.role == UserAccount.Role.UNIT_MANAGER:
+            if report.unit and report.unit.user == user:
+                return True
+            if report.equipment and report.equipment.unit.user == user:
+                return True
+            return False
+        else:
+            if report.unit and report.unit.client.users.filter(pk=user.pk).exists():
+                return True
+            if (
+                report.equipment
+                and report.equipment.unit.client.users.filter(pk=user.pk).exists()
+            ):
+                return True
+            return False
 
 
 class TriggerReportNotificationView(APIView):

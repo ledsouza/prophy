@@ -9,6 +9,7 @@ from clients_management.models import (
     Equipment,
     Modality,
     Proposal,
+    Report,
     ServiceOrder,
     Unit,
     Visit,
@@ -162,3 +163,24 @@ class VisitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Visit
         fields = "__all__"
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = "__all__"
+
+    def to_representation(self, instance: Report):
+        representation = super().to_representation(instance)
+
+        if instance.unit:
+            representation["unit_name"] = instance.unit.name
+            if instance.unit.client:
+                representation["client_name"] = instance.unit.client.name
+
+        if instance.equipment:
+            representation["equipment_name"] = str(instance.equipment)
+            if instance.equipment.unit and instance.equipment.unit.client:
+                representation["client_name"] = instance.equipment.unit.client.name
+
+        return representation
