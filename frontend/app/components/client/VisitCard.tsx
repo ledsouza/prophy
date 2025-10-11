@@ -107,16 +107,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     }, [visit.date]);
 
     const isRescheduleDisabled = useMemo(() => {
-        try {
-            if (visit.status === VisitStatus.FULFILLED) return true;
-            const scheduled = parseISO(visit.date);
-            const cutoff = startOfDay(addDays(scheduled, 1));
-            // If now is not before cutoff, rescheduling is disabled
-            return !isBefore(new Date(), cutoff);
-        } catch {
-            // Be safe if parsing fails
-            return true;
-        }
+        if (visit.status === VisitStatus.FULFILLED) return true;
+        const scheduled = parseISO(visit.date);
+        const cutoff = startOfDay(addDays(scheduled, 1));
+        return !isBefore(new Date(), cutoff);
     }, [visit.date, visit.status]);
 
     /**
