@@ -100,7 +100,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             const filename = extractFilenameFromPath(report.file, "report", report.id);
             downloadBlob(blob, filename);
             log.info({ reportId: report.id, filename }, "Report file downloaded successfully");
-            toast.success("Relatório baixado com sucesso.");
+            toast.success("Relatório exportado com sucesso.");
         } catch (err) {
             log.error({ reportId: report.id, error: (err as any)?.message }, "Download failed");
             toast.error("Falha ao baixar o arquivo do relatório.");
