@@ -148,7 +148,6 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
         }
 
         try {
-            log.debug({ visitId: visit.id, serviceOrderId }, "Starting SO PDF export");
             const blob = await downloadServiceOrderPDF(serviceOrderId).unwrap();
             const filename = `service_order_${serviceOrderId}.pdf`;
             downloadBlob(blob, filename);
