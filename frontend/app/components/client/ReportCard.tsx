@@ -29,8 +29,6 @@ type UpdateReportFileFormData = z.infer<typeof updateReportFileFormSchema>;
 
 type ReportCardProps = {
     report: ReportDTO;
-    unitName?: string;
-    equipmentName?: string;
     dataTestId?: string;
 };
 
@@ -43,7 +41,7 @@ type ReportCardProps = {
  * - Download current file (visible to all)
  * - Update/replace file (visible to GP/FMI/FME only)
  */
-function ReportCard({ report, unitName, equipmentName, dataTestId }: ReportCardProps) {
+function ReportCard({ report, dataTestId }: ReportCardProps) {
     const { data: userData } = useRetrieveUserQuery();
     const role = userData?.role;
     const canUpdate = role === "GP" || role === "FMI" || role === "FME";
