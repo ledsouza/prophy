@@ -30,7 +30,13 @@ import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
-import { EquipmentDetails, EquipmentPanel, UnitDetails, VisitPanel } from "@/components/client";
+import {
+    EquipmentDetails,
+    EquipmentPanel,
+    ReportPanel,
+    UnitDetails,
+    VisitPanel,
+} from "@/components/client";
 import { Button, Modal, Spinner, TabbedResourcePanel } from "@/components/common";
 import {
     AddEquipmentForm,
@@ -291,6 +297,11 @@ function UnitPage() {
                             id: "visits",
                             label: "Visitas",
                             render: () => <VisitPanel unitId={unitId} />,
+                        },
+                        {
+                            id: "reports",
+                            label: "Relatórios",
+                            render: () => <ReportPanel unitId={unitId} />,
                         },
                     ]}
                 />
