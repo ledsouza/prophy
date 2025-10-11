@@ -182,10 +182,14 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                 </div>
             </div>
 
-            <Modal isOpen={updateOpen} onClose={handleCloseModal} className="max-w-md px-2 sm:px-6">
+            <Modal
+                isOpen={updateOpen}
+                onClose={handleCloseModal}
+                className="max-w-md px-2 py-4 sm:px-6"
+            >
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <Typography element="h3" size="lg">
-                        Atualizar arquivo do relatório
+                        Atualizar relatório
                     </Typography>
 
                     <Input
