@@ -12,7 +12,10 @@ import { Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
-import { useUpdateReportFileMutation } from "@/redux/features/reportApiSlice";
+import {
+    useUpdateReportFileMutation,
+    useLazyDownloadReportFileQuery,
+} from "@/redux/features/reportApiSlice";
 import type { ReportDTO } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
 import { reportFileSchema } from "@/schemas";
@@ -49,6 +52,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
 
     const [updateOpen, setUpdateOpen] = useState(false);
     const [updateReportFile, { isLoading: isUpdating }] = useUpdateReportFileMutation();
+    const [downloadReportFile, { isLoading: isDownloading }] = useLazyDownloadReportFileQuery();
 
     const {
         register,
@@ -84,18 +88,35 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
         "hover:ring-1 hover:ring-inset hover:ring-primary"
     );
 
-    function handleDownload() {
+    async function handleDownload() {
         if (!report.file) {
             log.info({ reportId: report.id }, "Download blocked: no file URL");
             toast.info("Sem arquivo disponível para download.");
             return;
         }
+
         try {
-            const fullUrl = `${process.env.NEXT_PUBLIC_HOST}${report.file}`;
-            window.open(fullUrl, "_blank", "noopener,noreferrer");
+            log.debug({ reportId: report.id }, "Starting report download");
+            const blob = await downloadReportFile(report.id).unwrap();
+
+            const urlParts = report.file.split("/");
+            const filename = urlParts[urlParts.length - 1] || `report-${report.id}.pdf`;
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            log.info({ reportId: report.id, filename }, "Report downloaded successfully");
+            toast.success("Relatório baixado com sucesso.");
         } catch (err) {
             log.error({ reportId: report.id, error: (err as any)?.message }, "Download failed");
-            toast.error("Falha ao abrir o arquivo do relatório.");
+            toast.error("Falha ao baixar o arquivo do relatório.");
         }
     }
 
@@ -152,6 +173,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                     <Button
                         variant="secondary"
                         onClick={handleDownload}
+                        disabled={isDownloading}
                         data-testid="btn-report-download"
                         aria-label="Baixar relatório"
                         title="Baixar relatório"

@@ -30,8 +30,17 @@ const reportApiSlice = apiSlice.injectEndpoints({
             },
             invalidatesTags: [{ type: "Report", id: "LIST" }],
         }),
+        downloadReportFile: builder.query<Blob, number>({
+            query: (id) => ({
+                url: `reports/${id}/download/`,
+                method: "GET",
+                responseHandler: (response) => response.blob(),
+            }),
+            keepUnusedDataFor: 0,
+        }),
     }),
 });
 
-export const { useListReportsQuery, useUpdateReportFileMutation } = reportApiSlice;
+export const { useListReportsQuery, useUpdateReportFileMutation, useLazyDownloadReportFileQuery } =
+    reportApiSlice;
 export default reportApiSlice;

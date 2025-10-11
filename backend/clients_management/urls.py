@@ -9,6 +9,7 @@ from clients_management.views import (
     LatestProposalStatusView,
     ModalityViewSet,
     ProposalViewSet,
+    ReportFileDownloadView,
     ReportViewSet,
     ServiceOrderPDFView,
     ServiceOrderViewSet,
@@ -33,6 +34,7 @@ urlpatterns = [
     path("proposals/status/", LatestProposalStatusView.as_view()),
     path("clients/status/", ClientStatusView.as_view()),
     path("service-orders/<int:order_id>/pdf/", ServiceOrderPDFView.as_view()),
+    path("reports/<int:report_id>/download/", ReportFileDownloadView.as_view()),
     path(
         "reports/tasks/run-report-notifications/",
         TriggerReportNotificationView.as_view(),

@@ -1,17 +1,21 @@
 import { apiSlice } from "../services/apiSlice";
-import type {
-    ServiceOrderDTO,
-    CreateServiceOrderPayload,
-    UpdateServiceOrderPayload,
-} from "@/types/service-order";
+import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
 
-const serviceOrderApiSlice = apiSlice.injectEndpoints({
+type CreateServiceOrderArgs = {
+    visit: number;
+    subject: string;
+    description: string;
+    conclusion: string;
+    equipments: number[];
+};
+
+export const serviceOrderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        createServiceOrder: builder.mutation<ServiceOrderDTO, CreateServiceOrderPayload>({
-            query: (body) => ({
+        createServiceOrder: builder.mutation<ServiceOrderDTO, CreateServiceOrderArgs>({
+            query: (data) => ({
                 url: "service-orders/",
                 method: "POST",
-                body,
+                body: data,
             }),
             invalidatesTags: [{ type: "Visit", id: "LIST" }],
         }),
@@ -26,9 +30,19 @@ const serviceOrderApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: "Visit", id: "LIST" }],
         }),
+        downloadServiceOrderPDF: builder.query<Blob, number>({
+            query: (id) => ({
+                url: `service-orders/${id}/pdf/`,
+                method: "GET",
+                responseHandler: (response) => response.blob(),
+            }),
+            keepUnusedDataFor: 0,
+        }),
     }),
 });
 
-export const { useCreateServiceOrderMutation, useUpdateServiceOrderMutation } =
-    serviceOrderApiSlice;
-export default serviceOrderApiSlice;
+export const {
+    useCreateServiceOrderMutation,
+    useUpdateServiceOrderMutation,
+    useLazyDownloadServiceOrderPDFQuery,
+} = serviceOrderApiSlice;

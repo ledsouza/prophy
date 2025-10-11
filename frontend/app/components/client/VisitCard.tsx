@@ -21,6 +21,7 @@ import { useDeleteVisitMutation, useUpdateVisitMutation } from "@/redux/features
 import {
     useCreateServiceOrderMutation,
     useUpdateServiceOrderMutation,
+    useLazyDownloadServiceOrderPDFQuery,
 } from "@/redux/features/serviceOrderApiSlice";
 
 import { formatPhoneNumber } from "@/utils/format";
@@ -94,6 +95,8 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const [createServiceOrder, { isLoading: isCreating }] = useCreateServiceOrderMutation();
     const [updateServiceOrder, { isLoading: isUpdatingSO }] = useUpdateServiceOrderMutation();
     const [updateVisit, { isLoading: isUpdatingVisit }] = useUpdateVisitMutation();
+    const [downloadServiceOrderPDF, { isLoading: isDownloadingSO }] =
+        useLazyDownloadServiceOrderPDFQuery();
 
     const serviceOrderId = visit.service_order?.id;
 
@@ -130,28 +133,46 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     const [justificationOpen, setJustificationOpen] = useState(false);
     const [justificationViewerOpen, setJustificationViewerOpen] = useState(false);
 
-    // Export PDF of Service Order
     /**
-     * Opens the Service Order PDF in a new browser tab.
+     * Downloads the Service Order PDF.
      *
      * @remarks
-     * Shows an informational toast if there is no linked Service Order. If the
-     * window fails to open (e.g., popup blocked), an error toast is displayed.
+     * Shows an informational toast if there is no linked Service Order.
+     * Downloads the file as a blob and triggers a browser download.
      */
-    function handleExportServiceOrder() {
+    async function handleExportServiceOrder() {
         if (!serviceOrderId) {
             log.info({ visitId: visit.id }, "Export blocked: no service order");
             return toast.info("Nenhuma Ordem de Serviço vinculada para exportar.");
         }
-        const url = `${process.env.NEXT_PUBLIC_HOST}/api/service-orders/${serviceOrderId}/pdf/`;
+
         try {
-            window.open(url, "_blank", "noopener,noreferrer");
+            log.debug({ visitId: visit.id, serviceOrderId }, "Starting SO PDF export");
+            const blob = await downloadServiceOrderPDF(serviceOrderId).unwrap();
+
+            const filename = `service_order_${serviceOrderId}.pdf`;
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            log.info(
+                { visitId: visit.id, serviceOrderId, filename },
+                "SO PDF exported successfully"
+            );
+            toast.success("Ordem de Serviço exportada com sucesso.");
         } catch (err) {
             log.error(
                 { visitId: visit.id, serviceOrderId, error: (err as any)?.message },
                 "Export service order failed"
             );
-            toast.error("Falha ao abrir o PDF da Ordem de Serviço.");
+            toast.error("Falha ao exportar o PDF da Ordem de Serviço.");
         }
     }
 
@@ -340,7 +361,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     <Button
                         variant="secondary"
                         onClick={handleExportServiceOrder}
-                        disabled={!serviceOrderId}
+                        disabled={!serviceOrderId || isDownloadingSO}
                         data-testid="btn-so-export"
                         aria-label="Exportar Ordem de Serviço"
                         title="Exportar Ordem de Serviço"

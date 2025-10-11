@@ -1800,6 +1800,80 @@ class ReportViewSet(PaginatedViewSet):
                 )
 
 
+class ReportFileDownloadView(APIView):
+    """
+    Download a report file with authentication.
+
+    Returns the file with proper Content-Disposition header to preserve
+    the original filename.
+    Permissions: Same as ReportViewSet._has_report_access
+    """
+
+    @swagger_auto_schema(
+        operation_summary="Download Report File",
+        manual_parameters=[
+            openapi.Parameter(
+                name="report_id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="ID do Relatório",
+            )
+        ],
+        responses={
+            200: "File bytes",
+            403: "Forbidden",
+            404: "Not found",
+        },
+    )
+    def get(self, request: Request, report_id: int):
+        try:
+            report = Report.objects.select_related(
+                "unit__client", "equipment__unit__client"
+            ).get(pk=report_id)
+        except Report.DoesNotExist:
+            return Response(
+                {"detail": f'Report with ID "{report_id}" does not exist.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user: UserAccount = request.user
+        viewset = ReportViewSet()
+        if not viewset._has_report_access(user, report):
+            return Response(
+                {
+                    "detail": """
+                    You do not have permission to download this report.
+                    """
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not report.file:
+            return Response(
+                {"detail": "Report has no file attached."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            file_handle = report.file.open("rb")
+            response = HttpResponse(
+                file_handle, content_type="application/octet-stream"
+            )
+
+            import os
+
+            filename = os.path.basename(report.file.name)
+            response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+            return response
+        except Exception as e:
+            logger.error(f"Error serving report file {report_id}: {e}")
+            return Response(
+                {"detail": "Error reading report file."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class TriggerReportNotificationView(APIView):
     """
     A secure API view to be triggered by Google Cloud Scheduler.
