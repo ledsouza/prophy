@@ -3,18 +3,29 @@
 import clsx from "clsx";
 import { format, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import { Button, Modal } from "@/components/common";
+import { Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { useUpdateReportFileMutation } from "@/redux/features/reportApiSlice";
 import type { ReportDTO } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
+import { reportFileSchema } from "@/schemas";
 
 import { child } from "@/utils/logger";
 import { FileArrowDownIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
+
+const updateReportFileFormSchema = z.object({
+    file: reportFileSchema,
+});
+
+type UpdateReportFileFormData = z.infer<typeof updateReportFileFormSchema>;
 
 type ReportCardProps = {
     report: ReportDTO;
@@ -27,7 +38,6 @@ type ReportCardProps = {
  * ReportCard
  *
  * Displays a report summary with dates and file actions.
- * No status section is shown; due_date is informational for the next report schedule.
  *
  * Actions:
  * - Download current file (visible to all)
@@ -40,8 +50,16 @@ function ReportCard({ report, unitName, equipmentName, dataTestId }: ReportCardP
     const log = child({ component: "ReportCard" });
 
     const [updateOpen, setUpdateOpen] = useState(false);
-    const [file, setFile] = useState<File | null>(null);
     const [updateReportFile, { isLoading: isUpdating }] = useUpdateReportFileMutation();
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting },
+    } = useForm<UpdateReportFileFormData>({
+        resolver: zodResolver(updateReportFileFormSchema),
+    });
 
     const completionDateLabel = useMemo(() => {
         try {
@@ -82,22 +100,26 @@ function ReportCard({ report, unitName, equipmentName, dataTestId }: ReportCardP
         }
     }
 
-    async function handleSubmitUpdate() {
-        if (!file) {
-            toast.info("Selecione um arquivo para enviar.");
-            return;
-        }
+    const onSubmit: SubmitHandler<UpdateReportFileFormData> = async (data) => {
         try {
+            const file = data.file[0];
             await updateReportFile({ id: report.id, file }).unwrap();
             toast.success("Arquivo do relatório atualizado com sucesso.");
+            reset();
             setUpdateOpen(false);
-            setFile(null);
         } catch (err) {
             log.error(
                 { reportId: report.id, error: (err as any)?.message },
                 "Update report file failed"
             );
             toast.error("Não foi possível atualizar o arquivo do relatório.");
+        }
+    };
+
+    function handleCloseModal() {
+        if (!isUpdating && !isSubmitting) {
+            reset();
+            setUpdateOpen(false);
         }
     }
 
@@ -108,14 +130,6 @@ function ReportCard({ report, unitName, equipmentName, dataTestId }: ReportCardP
                 <Typography element="h3" size="title3">
                     {reportTypeLabel?.[report.report_type] ?? "Relatório"}
                 </Typography>
-                {/* Optional contextual names */}
-                {(unitName || equipmentName) && (
-                    <Typography element="p" size="md" className="text-secondary">
-                        {unitName ? `Unidade: ${unitName}` : ""}
-                        {unitName && equipmentName ? " • " : ""}
-                        {equipmentName ? `Equipamento: ${equipmentName}` : ""}
-                    </Typography>
-                )}
             </div>
 
             {/* Body + Actions */}
@@ -160,44 +174,41 @@ function ReportCard({ report, unitName, equipmentName, dataTestId }: ReportCardP
                 </div>
             </div>
 
-            <Modal
-                isOpen={updateOpen}
-                onClose={() => {
-                    if (!isUpdating) setUpdateOpen(false);
-                }}
-                className="max-w-md px-2 sm:px-6"
-            >
-                <div className="space-y-4">
+            <Modal isOpen={updateOpen} onClose={handleCloseModal} className="max-w-md px-2 sm:px-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <Typography element="h3" size="lg">
                         Atualizar arquivo do relatório
                     </Typography>
-                    <input
+
+                    <Input
+                        {...register("file")}
                         type="file"
-                        onChange={(e) => {
-                            const f = e.target.files?.[0] ?? null;
-                            setFile(f || null);
-                        }}
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.odt,.txt,image/*"
-                        aria-label="Selecionar arquivo do relatório"
-                    />
+                        accept=".pdf,.doc,.docx"
+                        errorMessage={errors.file?.message}
+                        data-testid="report-file-input"
+                    >
+                        Arquivo do relatório
+                    </Input>
+
                     <div className="flex justify-end gap-2">
                         <Button
+                            type="button"
                             variant="secondary"
-                            onClick={() => setUpdateOpen(false)}
-                            disabled={isUpdating}
+                            onClick={handleCloseModal}
+                            disabled={isUpdating || isSubmitting}
                         >
                             Cancelar
                         </Button>
                         <Button
+                            type="submit"
                             variant="primary"
-                            onClick={handleSubmitUpdate}
-                            disabled={isUpdating || !file}
+                            disabled={isUpdating || isSubmitting}
                             data-testid="btn-report-update-submit"
                         >
-                            {isUpdating ? "Enviando..." : "Salvar"}
+                            {isUpdating || isSubmitting ? "Enviando..." : "Salvar"}
                         </Button>
                     </div>
-                </div>
+                </form>
             </Modal>
         </div>
     );
