@@ -91,7 +91,8 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             return;
         }
         try {
-            window.open(report.file, "_blank", "noopener,noreferrer");
+            const fullUrl = `${process.env.NEXT_PUBLIC_HOST}${report.file}`;
+            window.open(fullUrl, "_blank", "noopener,noreferrer");
         } catch (err) {
             log.error({ reportId: report.id, error: (err as any)?.message }, "Download failed");
             toast.error("Falha ao abrir o arquivo do relatório.");
