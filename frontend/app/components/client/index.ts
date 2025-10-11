@@ -13,3 +13,4 @@ export { default as VisitCard } from "./VisitCard";
 export { default as VisitList } from "./VisitList";
 export { default as VisitPanel } from "./VisitPanel";
 export { default as ReportCard } from "./ReportCard";
+export { default as ReportList } from "./ReportList";
