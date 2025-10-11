@@ -46,6 +46,38 @@ from clients_management.serializers import (
 logger = logging.getLogger(__name__)
 
 
+class PaginatedViewSet(viewsets.ViewSet):
+    """
+    Base ViewSet providing pagination functionality with dependency injection.
+
+    Subclasses can use the _paginate_response method by passing their
+    specific serializer class, following the Dependency Injection pattern
+    for flexible and reusable pagination logic.
+    """
+
+    def _paginate_response(self, queryset, request, serializer_class):
+        """
+        Handle pagination and serialization of the queryset.
+
+        Args:
+            queryset: The Django queryset to paginate.
+            request: The HTTP request object.
+            serializer_class: The serializer class to use for serialization.
+
+        Returns:
+            Response: Paginated response if pagination is applicable,
+                otherwise full queryset response.
+        """
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = serializer_class(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        else:
+            serializer = serializer_class(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class LatestProposalStatusView(APIView):
     """
     Check the approval status of the latest contract proposal with a given CNPJ.
@@ -123,7 +155,7 @@ class LatestProposalStatusView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProposalViewSet(viewsets.ViewSet):
+class ProposalViewSet(PaginatedViewSet):
     """
     Viewset for managing proposals.
 
@@ -182,7 +214,7 @@ class ProposalViewSet(viewsets.ViewSet):
 
         queryset = self._get_base_queryset()
         queryset = self._apply_filters(queryset, request.query_params)
-        return self._paginate_response(queryset, request)
+        return self._paginate_response(queryset, request, ProposalSerializer)
 
     def _get_base_queryset(self):
         """
@@ -198,19 +230,6 @@ class ProposalViewSet(viewsets.ViewSet):
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
         return queryset
-
-    def _paginate_response(self, queryset, request):
-        """
-        Handle pagination and serialization of the queryset.
-        """
-        paginator = PageNumberPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = ProposalSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            serializer = ProposalSerializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ClientStatusView(APIView):
@@ -263,7 +282,7 @@ class ClientStatusView(APIView):
                 return Response({"status": False}, status=status.HTTP_200_OK)
 
 
-class ClientViewSet(viewsets.ViewSet):
+class ClientViewSet(PaginatedViewSet):
     """
     Viewset for managing clients.
 
@@ -341,7 +360,7 @@ class ClientViewSet(viewsets.ViewSet):
         queryset = self._get_base_queryset(request.user)
         queryset = self._apply_filters(queryset, request.query_params)
         queryset = queryset.order_by("id")
-        return self._paginate_response(queryset, request)
+        return self._paginate_response(queryset, request, ClientSerializer)
 
     def _get_base_queryset(self, user):
         """
@@ -451,21 +470,8 @@ class ClientViewSet(viewsets.ViewSet):
             )
         return queryset
 
-    def _paginate_response(self, queryset, request):
-        """
-        Handle pagination and serialization of the queryset.
-        """
-        paginator = PageNumberPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = ClientSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            serializer = ClientSerializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-class UnitViewSet(viewsets.ViewSet):
+class UnitViewSet(PaginatedViewSet):
     """
     Viewset for listing units.
     """
@@ -502,7 +508,7 @@ class UnitViewSet(viewsets.ViewSet):
     def list(self, request):
         queryset = self._get_base_queryset(request.user)
         queryset = queryset.order_by("client")
-        return self._paginate_response(queryset, request)
+        return self._paginate_response(queryset, request, UnitSerializer)
 
     def _get_base_queryset(self, user):
         """
@@ -525,21 +531,8 @@ class UnitViewSet(viewsets.ViewSet):
                 operation_status=UnitOperation.OperationStatus.ACCEPTED,
             )
 
-    def _paginate_response(self, queryset, request):
-        """
-        Handle pagination and serialization of the queryset.
-        """
-        paginator = PageNumberPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = UnitSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            serializer = UnitSerializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
-
-class EquipmentViewSet(viewsets.ViewSet):
+class EquipmentViewSet(PaginatedViewSet):
     """
     Viewset for listing equipments.
     """
@@ -603,7 +596,7 @@ class EquipmentViewSet(viewsets.ViewSet):
         queryset = self._get_base_queryset(request.user)
         queryset = self._apply_filters(queryset, request.query_params)
         queryset = queryset.order_by("unit")
-        return self._paginate_response(queryset, request)
+        return self._paginate_response(queryset, request, EquipmentSerializer)
 
     @action(detail=False, methods=["get"])
     @swagger_auto_schema(
@@ -685,19 +678,6 @@ class EquipmentViewSet(viewsets.ViewSet):
 
         return queryset
 
-    def _paginate_response(self, queryset, request):
-        """
-        Handle pagination and serialization of the queryset.
-        """
-        paginator = PageNumberPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = EquipmentSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            serializer = EquipmentSerializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
     def _get_unique_manufacturers(self, queryset):
         """
         Extract unique manufacturer names from queryset.
@@ -707,7 +687,7 @@ class EquipmentViewSet(viewsets.ViewSet):
         return sorted(manufacturers)  # Sort alphabetically
 
 
-class VisitViewSet(viewsets.ViewSet):
+class VisitViewSet(PaginatedViewSet):
     """
     Viewset for managing visits.
     """
@@ -767,7 +747,7 @@ class VisitViewSet(viewsets.ViewSet):
         queryset = self._get_base_queryset(request.user)
         queryset = self._apply_filters(queryset, request.query_params)
         queryset = queryset.order_by("-date")
-        return self._paginate_response(queryset, request)
+        return self._paginate_response(queryset, request, VisitSerializer)
 
     @swagger_auto_schema(
         operation_summary="Create a new visit",
@@ -976,19 +956,6 @@ class VisitViewSet(viewsets.ViewSet):
         if unit is not None:
             queryset = queryset.filter(unit=unit)
         return queryset
-
-    def _paginate_response(self, queryset, request):
-        """
-        Handle pagination and serialization of the queryset.
-        """
-        paginator = PageNumberPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = VisitSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            serializer = VisitSerializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
     def _can_create_visit(self, user: UserAccount) -> bool:
         """
@@ -1579,7 +1546,7 @@ class ServiceOrderPDFView(APIView):
         return response
 
 
-class ReportViewSet(viewsets.ViewSet):
+class ReportViewSet(PaginatedViewSet):
     """
     Viewset for managing reports.
     """
@@ -1649,7 +1616,7 @@ class ReportViewSet(viewsets.ViewSet):
         queryset = self._get_base_queryset(request.user)
         queryset = self._apply_filters(queryset, request.query_params)
         queryset = queryset.order_by("-completion_date")
-        return self._paginate_response(queryset, request)
+        return self._paginate_response(queryset, request, ReportSerializer)
 
     @swagger_auto_schema(
         operation_summary="Retrieve a single report",
@@ -1792,19 +1759,6 @@ class ReportViewSet(viewsets.ViewSet):
             queryset = queryset.filter(due_date__lte=thirty_days_from_now)
 
         return queryset
-
-    def _paginate_response(self, queryset, request):
-        """
-        Handle pagination and serialization of the queryset.
-        """
-        paginator = PageNumberPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = ReportSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            serializer = ReportSerializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
     def _can_update_report(self, user: UserAccount) -> bool:
         """
