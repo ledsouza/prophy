@@ -42,3 +42,11 @@ export const reportTypeLabel: Record<ReportTypeCode, string> = {
     POP: "POP",
     O: "Outros",
 };
+
+/**
+ * Arguments for listing reports.
+ * Supports pagination and filtering by unit and/or equipment.
+ */
+export type ListReportsArgs =
+    | { page: number; unit?: number; equipment?: number }
+    | { unit?: number; equipment?: number };

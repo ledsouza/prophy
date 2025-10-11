@@ -112,6 +112,7 @@ export const apiSlice = createApi({
         "Accessory",
         "Proposal",
         "Visit",
+        "Report",
     ],
     endpoints: (builder) => ({}),
 });
