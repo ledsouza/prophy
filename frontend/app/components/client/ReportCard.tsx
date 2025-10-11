@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Button, Modal } from "@/components/common";
-import { Input } from "@/components/forms";
+import { Input, Form } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
@@ -183,7 +183,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             </div>
 
             <Modal isOpen={updateOpen} onClose={handleCloseModal} className="max-w-md px-2 sm:px-6">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <Form onSubmit={handleSubmit(onSubmit)}>
                     <Typography element="h3" size="lg">
                         Atualizar arquivo do relatório
                     </Typography>
@@ -216,7 +216,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                             {isUpdating || isSubmitting ? "Enviando..." : "Salvar"}
                         </Button>
                     </div>
-                </form>
+                </Form>
             </Modal>
         </div>
     );
