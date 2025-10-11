@@ -96,7 +96,6 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
         }
 
         try {
-            log.debug({ reportId: report.id }, "Starting report download");
             const blob = await downloadReportFile(report.id).unwrap();
 
             const urlParts = report.file.split("/");
