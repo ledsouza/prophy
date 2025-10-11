@@ -1,4 +1,5 @@
 import logging
+from datetime import date, timedelta
 from io import StringIO
 
 from django.core.management import call_command
@@ -20,12 +21,12 @@ from users.models import UserAccount
 from clients_management.models import (
     Accessory,
     Client,
+    Equipment,
     Modality,
     Proposal,
     Report,
     ServiceOrder,
     Visit,
-    Equipment,
 )
 from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.serializers import (
@@ -36,10 +37,10 @@ from clients_management.serializers import (
     ModalitySerializer,
     ProposalSerializer,
     ReportSerializer,
+    ServiceOrderCreateSerializer,
+    ServiceOrderSerializer,
     UnitSerializer,
     VisitSerializer,
-    ServiceOrderSerializer,
-    ServiceOrderCreateSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -1787,8 +1788,6 @@ class ReportViewSet(viewsets.ViewSet):
 
         due_soon = query_params.get("due_soon")
         if due_soon is not None and due_soon.lower() == "true":
-            from datetime import date, timedelta
-
             thirty_days_from_now = date.today() + timedelta(days=30)
             queryset = queryset.filter(due_date__lte=thirty_days_from_now)
 
@@ -1819,30 +1818,32 @@ class ReportViewSet(viewsets.ViewSet):
 
     def _has_report_access(self, user: UserAccount, report: Report) -> bool:
         """
-        Check if user has access to a specific report.
+        Check if user has access to a specific report using structural
+        pattern matching.
         """
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
-            return True
-        elif user.role in [
-            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
-            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
-        ]:
-            return True
-        elif user.role == UserAccount.Role.UNIT_MANAGER:
-            if report.unit and report.unit.user == user:
+        match user.role:
+            case UserAccount.Role.PROPHY_MANAGER:
                 return True
-            if report.equipment and report.equipment.unit.user == user:
-                return True
-            return False
-        else:
-            if report.unit and report.unit.client.users.filter(pk=user.pk).exists():
-                return True
-            if (
-                report.equipment
-                and report.equipment.unit.client.users.filter(pk=user.pk).exists()
+
+            case (
+                UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST
+                | UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST
             ):
                 return True
-            return False
+
+            case UserAccount.Role.UNIT_MANAGER:
+                return (report.unit and report.unit.user == user) or (
+                    report.equipment and report.equipment.unit.user == user
+                )
+
+            case _:
+                # Default case for CLIENT and other roles
+                return (
+                    report.unit and report.unit.client.users.filter(pk=user.pk).exists()
+                ) or (
+                    report.equipment
+                    and report.equipment.unit.client.users.filter(pk=user.pk).exists()
+                )
 
 
 class TriggerReportNotificationView(APIView):
