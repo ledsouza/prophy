@@ -17,11 +17,12 @@ import {
 
 import { appointmentScheduleSchema, makeAppointmentScheduleSchema } from "@/schemas";
 
-import { Form, FormButtons, Input, Textarea } from "@/components/forms";
+import { Form, FormButtons, Input, Select, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import AppointmentStatus from "@/enums/AppointmentStatus";
 import AppointmentType, { appointmentTypeLabel } from "@/enums/AppointmentType";
 import { child } from "@/utils/logger";
+import type { SelectData } from "@/components/forms/Select";
 
 type AppointmentScheduleFields = z.infer<typeof appointmentScheduleSchema>;
 
@@ -109,6 +110,8 @@ const AppointmentScheduleForm = ({
     const {
         register,
         handleSubmit,
+        setValue,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm<AppointmentScheduleFields>({
         resolver: zodResolver(makeAppointmentScheduleSchema({ requireJustification: isUpdate })),
@@ -120,6 +123,8 @@ const AppointmentScheduleForm = ({
             justification: appointment?.justification ?? "",
         },
     });
+
+    const selectedType = watch("type");
 
     const onSubmit: SubmitHandler<AppointmentScheduleFields> = async (data) => {
         try {
@@ -204,13 +209,31 @@ const AppointmentScheduleForm = ({
         }
     };
 
-    const appointmentTypeOptions = [
+    const appointmentTypeOptions: SelectData[] = [
         {
-            value: AppointmentType.IN_PERSON,
-            label: appointmentTypeLabel[AppointmentType.IN_PERSON],
+            id: 1,
+            value: appointmentTypeLabel[AppointmentType.IN_PERSON],
         },
-        { value: AppointmentType.ONLINE, label: appointmentTypeLabel[AppointmentType.ONLINE] },
+        {
+            id: 2,
+            value: appointmentTypeLabel[AppointmentType.ONLINE],
+        },
     ];
+
+    const getSelectedTypeData = (): SelectData => {
+        if (selectedType === AppointmentType.IN_PERSON) {
+            return appointmentTypeOptions[0];
+        }
+        if (selectedType === AppointmentType.ONLINE) {
+            return appointmentTypeOptions[1];
+        }
+        return appointmentTypeOptions[0];
+    };
+
+    const handleTypeChange = (selected: SelectData) => {
+        const typeValue = selected.id === 1 ? AppointmentType.IN_PERSON : AppointmentType.ONLINE;
+        setValue("type", typeValue, { shouldValidate: true });
+    };
 
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
@@ -229,25 +252,16 @@ const AppointmentScheduleForm = ({
                 </Input>
 
                 <div className="mb-4">
-                    <label
-                        htmlFor="appointment-type"
-                        className="block text-sm font-medium text-gray-700 mb-1"
-                    >
-                        Tipo de Agendamento
-                    </label>
-                    <select
-                        {...register("type")}
-                        id="appointment-type"
-                        data-testid="appointment-type-select"
-                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm px-3 py-2 border"
-                    >
-                        <option value="">Selecione o tipo</option>
-                        {appointmentTypeOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
+                    <Select
+                        options={appointmentTypeOptions}
+                        selectedData={getSelectedTypeData()}
+                        setSelect={handleTypeChange}
+                        label="Tipo de Agendamento"
+                        labelSize="sm"
+                        listBoxButtonSize="sm"
+                        listOptionSize="sm"
+                        dataTestId="appointment-type-select"
+                    />
                     {errors.type?.message && (
                         <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
                     )}
