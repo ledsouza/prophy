@@ -17,7 +17,7 @@ export { default as ReviewDeleteEquipmentForm } from "./ReviewDeleteEquipmentFor
 export { default as FormButtons } from "./FormButtons";
 export { default as RegisterUnitManagerForm } from "./RegisterUnitManagerForm";
 export { default as ServiceOrderForm } from "./ServiceOrderForm";
-export { default as VisitScheduleForm } from "./VisitScheduleForm";
+export { default as AppointmentScheduleForm } from "./AppointmentScheduleForm";
 export { default as MultiSelect } from "./MultiSelect";
-export { default as VisitJustificationForm } from "./VisitJustificationForm";
+export { default as AppointmentJustificationForm } from "./AppointmentJustificationForm";
 export { default as ReportForm } from "./ReportForm";

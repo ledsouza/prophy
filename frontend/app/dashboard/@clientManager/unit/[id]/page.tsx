@@ -36,7 +36,7 @@ import {
     EquipmentPanel,
     ReportPanel,
     UnitDetails,
-    VisitPanel,
+    AppointmentPanel,
 } from "@/components/client";
 import { Button, Modal, Spinner, TabbedResourcePanel } from "@/components/common";
 import {
@@ -100,7 +100,7 @@ function UnitPage() {
                 { type: "UnitOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
-                { type: "Visit", id: "LIST" },
+                { type: "Appointment", id: "LIST" },
             ])
         );
     };
@@ -314,9 +314,9 @@ function UnitPage() {
                             ),
                         },
                         {
-                            id: "visits",
-                            label: "Visitas",
-                            render: () => <VisitPanel unitId={unitId} />,
+                            id: "appointments",
+                            label: "Agendamentos",
+                            render: () => <AppointmentPanel unitId={unitId} />,
                         },
                         {
                             id: "reports",

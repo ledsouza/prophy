@@ -6,18 +6,22 @@ import { useMemo, useState } from "react";
 
 import { Button, Modal } from "@/components/common";
 import {
-    VisitScheduleForm,
+    AppointmentScheduleForm,
     ServiceOrderForm,
-    VisitJustificationForm,
+    AppointmentJustificationForm,
     Textarea,
 } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
-import VisitStatus, { visitStatusLabel } from "@/enums/VisitStatus";
+import AppointmentStatus, { appointmentStatusLabel } from "@/enums/AppointmentStatus";
+import AppointmentType, { appointmentTypeLabel } from "@/enums/AppointmentType";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
-import type { VisitDTO } from "@/types/visit";
+import type { AppointmentDTO } from "@/types/appointment";
 import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
-import { useDeleteVisitMutation, useUpdateVisitMutation } from "@/redux/features/visitApiSlice";
+import {
+    useDeleteAppointmentMutation,
+    useUpdateAppointmentMutation,
+} from "@/redux/features/appointmentApiSlice";
 import {
     useCreateServiceOrderMutation,
     useUpdateServiceOrderMutation,
@@ -32,98 +36,107 @@ import {
     CalendarXIcon,
     FileArrowDownIcon,
     CheckCircleIcon,
+    MonitorPlay,
+    Users,
 } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
-const statusColorClass: Record<VisitStatus, string> = {
-    [VisitStatus.PENDING]: "text-warning",
-    [VisitStatus.RESCHEDULED]: "text-warning",
-    [VisitStatus.CONFIRMED]: "text-success",
-    [VisitStatus.FULFILLED]: "text-success",
-    [VisitStatus.UNFULFILLED]: "text-danger",
+const statusColorClass: Record<AppointmentStatus, string> = {
+    [AppointmentStatus.PENDING]: "text-warning",
+    [AppointmentStatus.RESCHEDULED]: "text-warning",
+    [AppointmentStatus.CONFIRMED]: "text-success",
+    [AppointmentStatus.FULFILLED]: "text-success",
+    [AppointmentStatus.UNFULFILLED]: "text-danger",
 };
 
-type VisitCardProps = {
-    visit: VisitDTO;
+type AppointmentCardProps = {
+    appointment: AppointmentDTO;
     dataTestId?: string;
 };
 
 /**
- * Displays visit information in a card with contextual actions and modals.
+ * Displays appointment information in a card with contextual actions and modals.
  *
  * @remarks
  * Actions available to the user:
  * - View Service Order details (opens a modal) when a Service Order is linked
  * - Export Service Order as PDF
  * - Generate Service Order (placeholder; no backend endpoint)
- * - Update visit schedule (opens a modal and performs PATCH)
- * - Only GP is authorized to delete a visit.
- *   FMI can only reschedule a visit. Others can only view.
+ * - Update appointment schedule (opens a modal and performs PATCH)
+ * - Only GP is authorized to delete an appointment.
+ *   FMI can only reschedule an appointment. Others can only view.
  *
  * The component uses toast notifications for feedback and guards actions based on
  * the authenticated user's role obtained from the auth store.
  *
- * @returns A React element representing the visit card UI.
+ * @returns A React element representing the appointment card UI.
  *
  * @example
  * ```tsx
- * <VisitCard visit={visit} dataTestId="visit-1" />
+ * <AppointmentCard appointment={appointment} dataTestId="appointment-1" />
  * ```
  */
-function VisitCard({ visit, dataTestId }: VisitCardProps) {
+function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
     const { data: userData } = useRetrieveUserQuery();
     const role = userData?.role;
-    const canDeleteVisit = role === "GP";
-    const canRescheduleVisit = role === "FMI" || role === "GP";
+    const canDeleteAppointment = role === "GP";
+    const canRescheduleAppointment = role === "FMI" || role === "GP";
     const canUpdateServiceOrder = role === "GP";
     const canCreateServiceOrder = role === "GP" || role === "FMI" || role === "FME";
-    const canConfirmVisit = role === "GP" || role === "FMI" || role === "FME" || role === "C";
-    const canJustifyVisit = role === "FMI" || role === "FME";
+    const canConfirmAppointment = role === "GP" || role === "FMI" || role === "FME" || role === "C";
+    const canJustifyAppointment = role === "FMI" || role === "FME";
     const canEditUpdates = role === "GP" || role === "FMI" || role === "FME";
-    const log = child({ component: "VisitCard" });
+    const log = child({ component: "AppointmentCard" });
     const showCreateServiceOrderButton =
-        canCreateServiceOrder && visit.status === VisitStatus.CONFIRMED;
-    const showConfirmVisitButton =
-        canConfirmVisit &&
-        (visit.status === VisitStatus.PENDING || visit.status === VisitStatus.RESCHEDULED);
-    const showJustifyButton = canJustifyVisit && visit.status === VisitStatus.UNFULFILLED;
+        canCreateServiceOrder && appointment.status === AppointmentStatus.CONFIRMED;
+    const showConfirmAppointmentButton =
+        canConfirmAppointment &&
+        (appointment.status === AppointmentStatus.PENDING ||
+            appointment.status === AppointmentStatus.RESCHEDULED);
+    const showJustifyButton =
+        canJustifyAppointment && appointment.status === AppointmentStatus.UNFULFILLED;
     const canViewJustification = role === "GP";
     const showJustificationViewerButton =
         canViewJustification &&
-        (visit.status === VisitStatus.UNFULFILLED || visit.status === VisitStatus.RESCHEDULED);
+        (appointment.status === AppointmentStatus.UNFULFILLED ||
+            appointment.status === AppointmentStatus.RESCHEDULED);
 
-    const [deleteVisit, { isLoading: isDeleting }] = useDeleteVisitMutation();
+    const [deleteAppointment, { isLoading: isDeleting }] = useDeleteAppointmentMutation();
     const [createServiceOrder, { isLoading: isCreating }] = useCreateServiceOrderMutation();
     const [updateServiceOrder, { isLoading: isUpdatingSO }] = useUpdateServiceOrderMutation();
-    const [updateVisit, { isLoading: isUpdatingVisit }] = useUpdateVisitMutation();
+    const [updateAppointment, { isLoading: isUpdatingAppointment }] =
+        useUpdateAppointmentMutation();
     const [downloadServiceOrderPDF, { isLoading: isDownloadingSO }] =
         useLazyDownloadServiceOrderPDFQuery();
 
-    const serviceOrderId = visit.service_order?.id;
+    const serviceOrderId = appointment.service_order?.id;
 
     const dateLabel = useMemo(() => {
         try {
-            const d = parseISO(visit.date);
+            const d = parseISO(appointment.date);
             return format(d, "dd/MM/yyyy HH:mm");
         } catch {
-            return visit.date;
+            return appointment.date;
         }
-    }, [visit.date]);
+    }, [appointment.date]);
 
     const isRescheduleDisabled = useMemo(() => {
-        if (visit.status === VisitStatus.FULFILLED) return true;
-        const scheduled = parseISO(visit.date);
+        if (appointment.status === AppointmentStatus.FULFILLED) return true;
+        const scheduled = parseISO(appointment.date);
         const cutoff = startOfDay(addDays(scheduled, 1));
         return !isBefore(new Date(), cutoff);
-    }, [visit.date, visit.status]);
+    }, [appointment.date, appointment.status]);
 
     /**
-     * Disables the “Marcar como realizada” action for UNFULFILLED or FULFILLED visits.
-     * Once a visit is unfulfilled (missed) or already fulfilled, it cannot be marked as done again.
+     * Disables the "Marcar como realizada" action for UNFULFILLED or FULFILLED appointments.
+     * Once an appointment is unfulfilled (missed) or already fulfilled, it cannot be marked as done again.
      */
     const isMarkDoneDisabled = useMemo(() => {
-        return visit.status === VisitStatus.UNFULFILLED || visit.status === VisitStatus.FULFILLED;
-    }, [visit.status]);
+        return (
+            appointment.status === AppointmentStatus.UNFULFILLED ||
+            appointment.status === AppointmentStatus.FULFILLED
+        );
+    }, [appointment.status]);
 
     // Local modal states
     const [detailsOpen, setDetailsOpen] = useState(false);
@@ -143,7 +156,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
      */
     async function handleExportServiceOrder() {
         if (!serviceOrderId) {
-            log.info({ visitId: visit.id }, "Export blocked: no service order");
+            log.info({ appointmentId: appointment.id }, "Export blocked: no service order");
             return toast.info("Nenhuma Ordem de Serviço vinculada para exportar.");
         }
 
@@ -152,41 +165,50 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             const filename = `service_order_${serviceOrderId}.pdf`;
             downloadBlob(blob, filename);
             log.info(
-                { visitId: visit.id, serviceOrderId, filename },
+                { appointmentId: appointment.id, serviceOrderId, filename },
                 "SO PDF exported successfully"
             );
             toast.success("Ordem de Serviço exportada com sucesso.");
         } catch (err) {
             log.error(
-                { visitId: visit.id, serviceOrderId, error: (err as any)?.message },
+                { appointmentId: appointment.id, serviceOrderId, error: (err as any)?.message },
                 "Export service order failed"
             );
             toast.error("Falha ao exportar o PDF da Ordem de Serviço.");
         }
     }
 
-    async function handleCancelVisit() {
+    async function handleCancelAppointment() {
         try {
-            if (canDeleteVisit) {
-                await deleteVisit(visit.id).unwrap();
+            if (canDeleteAppointment) {
+                await deleteAppointment(appointment.id).unwrap();
                 setDeleteOpen(false);
-                toast.success("Visita cancelada com sucesso.");
+                toast.success("Agendamento cancelado com sucesso.");
                 return;
             }
         } catch (err) {
-            log.error({ visitId: visit.id, error: (err as any)?.message }, "Cancel visit failed");
-            toast.error("Não foi possível cancelar a visita. Tente novamente.");
+            log.error(
+                { appointmentId: appointment.id, error: (err as any)?.message },
+                "Cancel appointment failed"
+            );
+            toast.error("Não foi possível cancelar o agendamento. Tente novamente.");
         }
     }
 
-    async function handleConfirmVisit() {
+    async function handleConfirmAppointment() {
         try {
-            await updateVisit({ id: visit.id, data: { status: VisitStatus.CONFIRMED } }).unwrap();
-            toast.success("Visita confirmada com sucesso.");
+            await updateAppointment({
+                id: appointment.id,
+                data: { status: AppointmentStatus.CONFIRMED },
+            }).unwrap();
+            toast.success("Agendamento confirmado com sucesso.");
             setConfirmOpen(false);
         } catch (err) {
-            log.error({ visitId: visit.id, error: (err as any)?.message }, "Confirm visit failed");
-            toast.error("Não foi possível confirmar a visita. Tente novamente.");
+            log.error(
+                { appointmentId: appointment.id, error: (err as any)?.message },
+                "Confirm appointment failed"
+            );
+            toast.error("Não foi possível confirmar o agendamento. Tente novamente.");
         }
     }
 
@@ -195,20 +217,20 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     ) {
         try {
             await createServiceOrder({
-                visit: visit.id,
+                visit: appointment.id,
                 subject: data.subject,
                 description: data.description,
                 conclusion: data.conclusion,
                 equipments: data.equipments || [],
             }).unwrap();
-            toast.success("Ordem de Serviço criada e visita marcada como realizada.");
+            toast.success("Ordem de Serviço criada e agendamento marcado como realizado.");
             setSoCreateOpen(false);
         } catch (err) {
             log.error(
-                { visitId: visit.id, error: (err as any)?.message },
+                { appointmentId: appointment.id, error: (err as any)?.message },
                 "Create service order failed"
             );
-            toast.error("Não foi possível criar a OS ou atualizar a visita.");
+            toast.error("Não foi possível criar a OS ou atualizar o agendamento.");
         }
     }
 
@@ -252,14 +274,14 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     ) {
         if (!serviceOrderId) {
             log.warn(
-                { visitId: visit.id },
+                { appointmentId: appointment.id },
                 "Update service order blocked: no Service Order linked"
             );
             toast.info("Sem ordem de serviço vinculada.");
             return;
         }
         try {
-            const current = visit.service_order?.updates ?? null;
+            const current = appointment.service_order?.updates ?? null;
             const result = buildPayloadByRole(role, data, current);
 
             if (result.deny) {
@@ -280,12 +302,19 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             setDetailsOpen(false);
         } catch (err) {
             log.error(
-                { visitId: visit.id, serviceOrderId, error: (err as any)?.message },
+                { appointmentId: appointment.id, serviceOrderId, error: (err as any)?.message },
                 "Update service order failed"
             );
             toast.error("Não foi possível atualizar a Ordem de Serviço.");
         }
     }
+
+    const appointmentTypeIcon =
+        appointment.type === AppointmentType.ONLINE ? (
+            <MonitorPlay size={20} weight="duotone" />
+        ) : (
+            <Users size={20} weight="duotone" />
+        );
 
     const containerStyle = clsx(
         "bg-light rounded-xl shadow-sm",
@@ -294,7 +323,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     );
 
     return (
-        <div className={containerStyle} data-testid={dataTestId || `visit-card-${visit.id}`}>
+        <div
+            className={containerStyle}
+            data-testid={dataTestId || `appointment-card-${appointment.id}`}
+        >
             <div className="flex justify-between pb-4">
                 {/* date and contact info */}
                 <div className="flex flex-col">
@@ -307,10 +339,17 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             Contato:
                         </Typography>
                         <Typography element="p" size="md">
-                            {visit.contact_name}
+                            {appointment.contact_name}
                         </Typography>
                         <Typography element="p" size="md">
-                            {formatPhoneNumber(visit.contact_phone)}
+                            {formatPhoneNumber(appointment.contact_phone)}
+                        </Typography>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                        {appointmentTypeIcon}
+                        <Typography element="p" size="md" className="font-medium">
+                            {appointmentTypeLabel[appointment.type]}
                         </Typography>
                     </div>
                 </div>
@@ -323,10 +362,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     <Typography
                         element="p"
                         size="sm"
-                        className={clsx("font-medium", statusColorClass[visit.status])}
-                        dataTestId="visit-status"
+                        className={clsx("font-medium", statusColorClass[appointment.status])}
+                        dataTestId="appointment-status"
                     >
-                        {visitStatusLabel[visit.status]}
+                        {appointmentStatusLabel[appointment.status]}
                     </Typography>
                 </div>
             </div>
@@ -369,11 +408,11 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             data-testid="btn-done"
                             aria-label="Marcar como realizada"
                             title={
-                                visit.status === VisitStatus.FULFILLED
-                                    ? "Visita já realizada; não é possível marcar como realizada"
-                                    : visit.status === VisitStatus.UNFULFILLED
-                                      ? "Visita não realizada; não é possível marcar como realizada"
-                                      : "Marcar como realizada"
+                                appointment.status === AppointmentStatus.FULFILLED
+                                    ? "Agendamento já realizado; não é possível marcar como realizado"
+                                    : appointment.status === AppointmentStatus.UNFULFILLED
+                                      ? "Agendamento não realizado; não é possível marcar como realizado"
+                                      : "Marcar como realizado"
                             }
                             disabled={isCreating || isDeleting || isMarkDoneDisabled}
                         >
@@ -381,16 +420,16 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         </Button>
                     )}
 
-                    {showConfirmVisitButton && (
+                    {showConfirmAppointmentButton && (
                         <Button
                             variant="secondary"
                             onClick={() => {
                                 setConfirmOpen(true);
                             }}
-                            data-testid="btn-visit-confirm"
-                            aria-label="Confirmar visita"
-                            title="Confirmar visita"
-                            disabled={isUpdatingVisit || isDeleting}
+                            data-testid="btn-appointment-confirm"
+                            aria-label="Confirmar agendamento"
+                            title="Confirmar agendamento"
+                            disabled={isUpdatingAppointment || isDeleting}
                         >
                             Confirmar
                         </Button>
@@ -401,8 +440,8 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             onClick={() => {
                                 setJustificationOpen(true);
                             }}
-                            data-testid="btn-visit-justify"
-                            disabled={isUpdatingVisit || isDeleting}
+                            data-testid="btn-appointment-justify"
+                            disabled={isUpdatingAppointment || isDeleting}
                         >
                             Justificar
                         </Button>
@@ -413,22 +452,22 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             onClick={() => {
                                 setJustificationViewerOpen(true);
                             }}
-                            data-testid="btn-visit-justification-viewer"
+                            data-testid="btn-appointment-justification-viewer"
                         >
                             Justificativa
                         </Button>
                     )}
-                    {canRescheduleVisit && (
+                    {canRescheduleAppointment && (
                         <Button
                             variant="primary"
                             onClick={() => {
                                 setScheduleOpen(true);
                             }}
-                            data-testid="btn-visit-update-schedule"
+                            data-testid="btn-appointment-update-schedule"
                             aria-label="Reagendar"
                             title={
-                                visit.status === VisitStatus.FULFILLED
-                                    ? "Visita já realizada; não é possível reagendar"
+                                appointment.status === AppointmentStatus.FULFILLED
+                                    ? "Agendamento já realizado; não é possível reagendar"
                                     : "Reagendar"
                             }
                             disabled={isRescheduleDisabled}
@@ -437,13 +476,13 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         </Button>
                     )}
 
-                    {canDeleteVisit && (
+                    {canDeleteAppointment && (
                         <Button
                             variant="danger"
                             onClick={() => {
                                 setDeleteOpen(true);
                             }}
-                            data-testid="btn-visit-cancel-schedule"
+                            data-testid="btn-appointment-cancel-schedule"
                             disabled={isDeleting}
                             aria-label="Cancelar agenda"
                             title="Cancelar agenda"
@@ -459,10 +498,10 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 onClose={() => setDetailsOpen(false)}
                 className="sm:max-w-4xl"
             >
-                {visit.service_order && (
+                {appointment.service_order && (
                     <ServiceOrderForm
-                        serviceOrder={visit.service_order}
-                        unitId={visit.unit}
+                        serviceOrder={appointment.service_order}
+                        unitId={appointment.unit}
                         disabled={!canUpdateServiceOrder}
                         onCancel={() => setDetailsOpen(false)}
                         onSubmit={handleUpdateServiceOrder}
@@ -488,7 +527,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                             equipments: [],
                         } as ServiceOrderDTO
                     }
-                    unitId={visit.unit}
+                    unitId={appointment.unit}
                     onCancel={() => setSoCreateOpen(false)}
                     onSubmit={handleCreateServiceOrder}
                     showUpdatesField={false}
@@ -503,24 +542,24 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
             >
                 <div className="space-y-4">
                     <Typography element="h3" size="lg">
-                        Confirmar visita
+                        Confirmar agendamento
                     </Typography>
                     <Typography element="p" size="md">
-                        Deseja confirmar esta visita?
+                        Deseja confirmar este agendamento?
                     </Typography>
                     <div className="flex justify-end gap-2">
                         <Button
                             variant="secondary"
                             onClick={() => setConfirmOpen(false)}
-                            disabled={isUpdatingVisit}
+                            disabled={isUpdatingAppointment}
                         >
                             Cancelar
                         </Button>
                         <Button
                             variant="primary"
-                            onClick={handleConfirmVisit}
-                            disabled={isUpdatingVisit}
-                            data-testid="btn-visit-confirm-submit"
+                            onClick={handleConfirmAppointment}
+                            disabled={isUpdatingAppointment}
+                            data-testid="btn-appointment-confirm-submit"
                         >
                             Confirmar
                         </Button>
@@ -538,7 +577,7 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         Cancelar agenda
                     </Typography>
                     <Typography element="p" size="md">
-                        Tem certeza que deseja cancelar esta visita? Esta ação não pode ser
+                        Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser
                         desfeita.
                     </Typography>
                     <div className="flex justify-end gap-2">
@@ -551,9 +590,9 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                         </Button>
                         <Button
                             variant="danger"
-                            onClick={handleCancelVisit}
+                            onClick={handleCancelAppointment}
                             disabled={isDeleting}
-                            data-testid="btn-visit-cancel-submit"
+                            data-testid="btn-appointment-cancel-submit"
                         >
                             Confirmar
                         </Button>
@@ -566,8 +605,8 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 onClose={() => setScheduleOpen(false)}
                 className="max-w-md px-2 sm:px-6"
             >
-                <VisitScheduleForm
-                    visit={visit}
+                <AppointmentScheduleForm
+                    appointment={appointment}
                     onCancel={() => setScheduleOpen(false)}
                     onSuccess={() => setScheduleOpen(false)}
                 />
@@ -578,9 +617,9 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                 onClose={() => setJustificationOpen(false)}
                 className="max-w-md px-2 sm:px-6"
             >
-                <VisitJustificationForm
-                    visitId={visit.id}
-                    initialJustification={visit.justification}
+                <AppointmentJustificationForm
+                    appointmentId={appointment.id}
+                    initialJustification={appointment.justification}
                     onCancel={() => setJustificationOpen(false)}
                     onSuccess={() => setJustificationOpen(false)}
                 />
@@ -595,8 +634,8 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
                     <Typography element="h3" size="lg">
                         Justificativa
                     </Typography>
-                    {visit.justification ? (
-                        <Textarea disabled value={visit.justification} rows={6} />
+                    {appointment.justification ? (
+                        <Textarea disabled value={appointment.justification} rows={6} />
                     ) : (
                         <Typography element="p" size="md">
                             Sem justificativa informada.
@@ -616,4 +655,4 @@ function VisitCard({ visit, dataTestId }: VisitCardProps) {
     );
 }
 
-export default VisitCard;
+export default AppointmentCard;
