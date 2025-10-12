@@ -21,17 +21,18 @@ from users.models import UserAccount
 
 from clients_management.models import (
     Accessory,
+    Appointment,
     Client,
     Equipment,
     Modality,
     Proposal,
     Report,
     ServiceOrder,
-    Visit,
 )
 from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.serializers import (
     AccessorySerializer,
+    AppointmentSerializer,
     ClientSerializer,
     CNPJSerializer,
     EquipmentSerializer,
@@ -41,7 +42,6 @@ from clients_management.serializers import (
     ServiceOrderCreateSerializer,
     ServiceOrderSerializer,
     UnitSerializer,
-    VisitSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -688,25 +688,26 @@ class EquipmentViewSet(PaginatedViewSet):
         return sorted(manufacturers)  # Sort alphabetically
 
 
-class VisitViewSet(PaginatedViewSet):
+class AppointmentViewSet(PaginatedViewSet):
     """
-    Viewset for managing visits.
+    Viewset for managing appointments.
     """
 
     @swagger_auto_schema(
-        operation_summary="List visits",
+        operation_summary="List appointments",
         operation_description="""
-        Retrieve a paginated list of visits with filtering support.
+        Retrieve a paginated list of appointments with filtering support.
 
         ```json
         {
-            "count": 123,  // Total number of visits
-            "next": "http://api.example.com/visits/?page=2", // Link to next page (if available)
+            "count": 123,  // Total number of appointments
+            "next": "http://api.example.com/appointments/?page=2", // Link to next page (if available)
             "previous": null, // Link to previous page (if available)
             "results": [
                 {
                     "id": 1,
                     "date": "2023-08-31T10:00:00Z",
+                    "type": "I",
                     "status": "P",
                     "contact_phone": "11999999999",
                     "contact_name": "João Silva",
@@ -722,7 +723,7 @@ class VisitViewSet(PaginatedViewSet):
                     },
                     "client_name": "Hospital São Paulo"
                 },
-                // ... more visits on this page
+                // ... more appointments on this page
             ]
         }
         ```
@@ -732,13 +733,13 @@ class VisitViewSet(PaginatedViewSet):
                 name="unit",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_INTEGER,
-                description="Filter visits by unit ID.",
+                description="Filter appointments by unit ID.",
             )
         ],
         responses={
             200: openapi.Response(
-                description="Paginated list of visits",
-                schema=VisitSerializer(many=True),
+                description="Paginated list of appointments",
+                schema=AppointmentSerializer(many=True),
             ),
             401: "Unauthorized access",
             403: "Permission denied",
@@ -748,15 +749,16 @@ class VisitViewSet(PaginatedViewSet):
         queryset = self._get_base_queryset(request.user)
         queryset = self._apply_filters(queryset, request.query_params)
         queryset = queryset.order_by("-date")
-        return self._paginate_response(queryset, request, VisitSerializer)
+        return self._paginate_response(queryset, request, AppointmentSerializer)
 
     @swagger_auto_schema(
-        operation_summary="Create a new visit",
-        operation_description="Create a new visit instance with the provided data.",
-        request_body=VisitSerializer,
+        operation_summary="Create a new appointment",
+        operation_description="Create a new appointment instance with the provided data.",
+        request_body=AppointmentSerializer,
         responses={
             201: openapi.Response(
-                description="Visit created successfully", schema=VisitSerializer
+                description="Appointment created successfully",
+                schema=AppointmentSerializer,
             ),
             400: openapi.Response(
                 description="Invalid input data",
@@ -776,25 +778,26 @@ class VisitViewSet(PaginatedViewSet):
     )
     def create(self, request: Request) -> Response:
         user: UserAccount = request.user
-        if not self._can_create_visit(user):
+        if not self._can_create_appointment(user):
             return Response(
-                {"detail": "You do not have permission to create visits."},
+                {"detail": "You do not have permission to create appointments."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = VisitSerializer(data=request.data)
+        serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
-        operation_summary="Update a visit",
-        operation_description="Update an existing visit instance with the provided data.",
-        request_body=VisitSerializer,
+        operation_summary="Update an appointment",
+        operation_description="Update an existing appointment instance with the provided data.",
+        request_body=AppointmentSerializer,
         responses={
             200: openapi.Response(
-                description="Visit updated successfully", schema=VisitSerializer
+                description="Appointment updated successfully",
+                schema=AppointmentSerializer,
             ),
             400: openapi.Response(
                 description="Invalid input data",
@@ -809,7 +812,7 @@ class VisitViewSet(PaginatedViewSet):
                 ),
             ),
             404: openapi.Response(
-                description="Visit not found",
+                description="Appointment not found",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
@@ -824,50 +827,51 @@ class VisitViewSet(PaginatedViewSet):
         },
     )
     def update(self, request: Request, pk: int | None = None) -> Response:
-        return self._update_visit(request, pk, partial=False)
+        return self._update_appointment(request, pk, partial=False)
 
-    def _update_visit(
+    def _update_appointment(
         self, request: Request, pk: int | None, *, partial: bool
     ) -> Response:
         """
-        Update a visit with optional partial flag.
+        Update an appointment with optional partial flag.
         Handles permissions, object lookup, access control, validation and persistence.
         """
         user: UserAccount = request.user
-        if not self._can_update_visit(user):
+        if not self._can_update_appointment(user):
             return Response(
-                {"detail": "You do not have permission to update visits."},
+                {"detail": "You do not have permission to update appointments."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         try:
-            visit = Visit.objects.get(pk=pk)
-        except Visit.DoesNotExist:
+            appointment = Appointment.objects.get(pk=pk)
+        except Appointment.DoesNotExist:
             return Response(
-                {"detail": "Visita não encontrada."},
+                {"detail": "Agendamento não encontrado."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        if not self._has_visit_access(user, visit):
+        if not self._has_appointment_access(user, appointment):
             return Response(
-                {"detail": "You do not have permission to update this visit."},
+                {"detail": "You do not have permission to update this appointment."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         data = request.data.copy()
-        serializer = VisitSerializer(visit, data=data, partial=partial)
+        serializer = AppointmentSerializer(appointment, data=data, partial=partial)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
-        operation_summary="Partially update a visit",
-        operation_description="Partially update fields of an existing visit instance.",
-        request_body=VisitSerializer,
+        operation_summary="Partially update an appointment",
+        operation_description="Partially update fields of an existing appointment instance.",
+        request_body=AppointmentSerializer,
         responses={
             200: openapi.Response(
-                description="Visit updated successfully", schema=VisitSerializer
+                description="Appointment updated successfully",
+                schema=AppointmentSerializer,
             ),
             400: openapi.Response(
                 description="Invalid input data",
@@ -882,7 +886,7 @@ class VisitViewSet(PaginatedViewSet):
                 ),
             ),
             404: openapi.Response(
-                description="Visit not found",
+                description="Appointment not found",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
@@ -897,15 +901,15 @@ class VisitViewSet(PaginatedViewSet):
         },
     )
     def partial_update(self, request: Request, pk: int | None = None) -> Response:
-        return self._update_visit(request, pk, partial=True)
+        return self._update_appointment(request, pk, partial=True)
 
     @swagger_auto_schema(
-        operation_summary="Delete a visit",
-        operation_description="Delete an existing visit instance by its ID.",
+        operation_summary="Delete an appointment",
+        operation_description="Delete an existing appointment instance by its ID.",
         responses={
-            204: openapi.Response(description="Visit deleted successfully"),
+            204: openapi.Response(description="Appointment deleted successfully"),
             404: openapi.Response(
-                description="Visit not found",
+                description="Appointment not found",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
@@ -923,19 +927,19 @@ class VisitViewSet(PaginatedViewSet):
         user: UserAccount = request.user
         if user.role != UserAccount.Role.PROPHY_MANAGER:
             return Response(
-                {"detail": "You do not have permission to delete visits."},
+                {"detail": "You do not have permission to delete appointments."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         try:
-            visit = Visit.objects.get(pk=pk)
-        except Visit.DoesNotExist:
+            appointment = Appointment.objects.get(pk=pk)
+        except Appointment.DoesNotExist:
             return Response(
-                {"detail": "Visita não encontrada."},
+                {"detail": "Agendamento não encontrado."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        visit.delete()
+        appointment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _get_base_queryset(self, user: UserAccount):
@@ -943,11 +947,11 @@ class VisitViewSet(PaginatedViewSet):
         Get base queryset based on user role and permissions.
         """
         if user.role == UserAccount.Role.PROPHY_MANAGER:
-            return Visit.objects.all()
+            return Appointment.objects.all()
         elif user.role == UserAccount.Role.UNIT_MANAGER:
-            return Visit.objects.filter(unit__user=user)
+            return Appointment.objects.filter(unit__user=user)
         else:
-            return Visit.objects.filter(unit__client__users=user)
+            return Appointment.objects.filter(unit__client__users=user)
 
     def _apply_filters(self, queryset, query_params):
         """
@@ -958,34 +962,36 @@ class VisitViewSet(PaginatedViewSet):
             queryset = queryset.filter(unit=unit)
         return queryset
 
-    def _can_create_visit(self, user: UserAccount) -> bool:
+    def _can_create_appointment(self, user: UserAccount) -> bool:
         """
-        Check if user can create visits.
-        """
-        return user.role in [
-            UserAccount.Role.PROPHY_MANAGER,
-            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
-        ]
-
-    def _can_update_visit(self, user: UserAccount) -> bool:
-        """
-        Check if user can update visits.
+        Check if user can create appointments.
         """
         return user.role in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
         ]
 
-    def _has_visit_access(self, user: UserAccount, visit: Visit) -> bool:
+    def _can_update_appointment(self, user: UserAccount) -> bool:
         """
-        Check if user has access to a specific visit.
+        Check if user can update appointments.
+        """
+        return user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+        ]
+
+    def _has_appointment_access(
+        self, user: UserAccount, appointment: Appointment
+    ) -> bool:
+        """
+        Check if user has access to a specific appointment.
         """
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             return True
         elif user.role == UserAccount.Role.UNIT_MANAGER:
-            return visit.unit.user == user
+            return appointment.unit.user == user
         else:
-            return visit.unit.client.users.filter(pk=user.pk).exists()
+            return appointment.unit.client.users.filter(pk=user.pk).exists()
 
 
 class ModalityViewSet(viewsets.ViewSet):
@@ -1258,13 +1264,13 @@ class AccessoryViewSet(viewsets.ViewSet):
 
 class ServiceOrderViewSet(viewsets.ViewSet):
     """
-    Viewset for creating Service Orders linked to a Visit.
+    Viewset for creating Service Orders linked to an Appointment.
     """
 
     @swagger_auto_schema(
         operation_summary="Create a new Service Order",
         operation_description="""
-        Create a Service Order and link it to a Visit (one-to-one).
+        Create a Service Order and link it to an Appointment (one-to-one).
         """,
         request_body=ServiceOrderCreateSerializer,
         responses={
@@ -1286,8 +1292,8 @@ class ServiceOrderViewSet(viewsets.ViewSet):
 
         serializer = ServiceOrderCreateSerializer(data=request.data)
         if serializer.is_valid():
-            visit: Visit = serializer.validated_data["visit_instance"]
-            if not self._has_visit_access(user, visit):
+            appointment: Appointment = serializer.validated_data["appointment_instance"]
+            if not self._has_appointment_access(user, appointment):
                 return Response(
                     {
                         "detail": """
@@ -1309,16 +1315,18 @@ class ServiceOrderViewSet(viewsets.ViewSet):
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]
 
-    def _has_visit_access(self, user: UserAccount, visit: Visit) -> bool:
+    def _has_appointment_access(
+        self, user: UserAccount, appointment: Appointment
+    ) -> bool:
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             return True
         elif user.role == UserAccount.Role.UNIT_MANAGER:
-            return bool(visit.unit and visit.unit.user_id == user.id)
+            return bool(appointment.unit and appointment.unit.user_id == user.id)
         else:
             return bool(
-                visit.unit
-                and visit.unit.client
-                and visit.unit.client.users.filter(pk=user.pk).exists()
+                appointment.unit
+                and appointment.unit.client
+                and appointment.unit.client.users.filter(pk=user.pk).exists()
             )
 
     @swagger_auto_schema(
@@ -1355,9 +1363,11 @@ class ServiceOrderViewSet(viewsets.ViewSet):
 
     def _validate_equipments(self, order: ServiceOrder, data):
         """
-        Ensure equipments belong to the same unit as the order's visit.
+        Ensure equipments belong to the same unit as the order's appointment.
         """
-        if "equipments" not in data or not (order.visit and order.visit.unit_id):
+        if "equipments" not in data or not (
+            order.appointment and order.appointment.unit_id
+        ):
             return None
 
         equipment_ids = data.get("equipments")
@@ -1376,7 +1386,7 @@ class ServiceOrderViewSet(viewsets.ViewSet):
                 equipment_ids = []
 
         invalid_ids: list[int] = []
-        unit_id = order.visit.unit_id
+        unit_id = order.appointment.unit_id
 
         if isinstance(equipment_ids, list):
             equipments_qs = Equipment.objects.filter(id__in=equipment_ids)
@@ -1397,7 +1407,7 @@ class ServiceOrderViewSet(viewsets.ViewSet):
             return Response(
                 {
                     "equipments": """
-                    Equipments must belong to the service order visit's unit.
+                    Equipments must belong to the service order appointment's unit.
                     """
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -1411,13 +1421,13 @@ class ServiceOrderViewSet(viewsets.ViewSet):
         Update a Service Order with role-aware restrictions:
           - PROPHY_MANAGER: may update any fields
           - INTERNAL/EXTERNAL_MEDICAL_PHYSICIST: may only update 'updates' field
-          via PATCH; must have visit access
+          via PATCH; must have appointment access
         """
         user: UserAccount = request.user
 
         try:
             order = (
-                ServiceOrder.objects.select_related("visit__unit")
+                ServiceOrder.objects.select_related("appointment__unit")
                 .prefetch_related("equipments")
                 .get(pk=pk)
             )
@@ -1462,8 +1472,8 @@ class ServiceOrderViewSet(viewsets.ViewSet):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-            visit = order.visit
-            if not visit or not self._has_visit_access(user, visit):
+            appointment = order.appointment
+            if not appointment or not self._has_appointment_access(user, appointment):
                 return Response(
                     {
                         "detail": """
@@ -1511,7 +1521,7 @@ class ServiceOrderPDFView(APIView):
     def get(self, request: Request, order_id: int):
         try:
             order = (
-                ServiceOrder.objects.select_related("visit__unit__client")
+                ServiceOrder.objects.select_related("appointment__unit__client")
                 .prefetch_related("equipments")
                 .get(pk=order_id)
             )
@@ -1526,8 +1536,8 @@ class ServiceOrderPDFView(APIView):
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             allowed = True
         else:
-            visit = order.visit
-            unit = visit.unit
+            appointment = order.appointment
+            unit = appointment.unit if appointment else None
             if unit and unit.user_id == user.id:
                 allowed = True
             elif unit and unit.client and unit.client.users.filter(pk=user.pk).exists():
