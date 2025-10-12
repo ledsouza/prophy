@@ -17,7 +17,7 @@ export const serviceOrderApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: data,
             }),
-            invalidatesTags: [{ type: "Visit", id: "LIST" }],
+            invalidatesTags: [{ type: "Appointment", id: "LIST" }],
         }),
         updateServiceOrder: builder.mutation<
             ServiceOrderDTO,
@@ -28,7 +28,7 @@ export const serviceOrderApiSlice = apiSlice.injectEndpoints({
                 method: "PATCH",
                 body: data,
             }),
-            invalidatesTags: [{ type: "Visit", id: "LIST" }],
+            invalidatesTags: [{ type: "Appointment", id: "LIST" }],
         }),
         downloadServiceOrderPDF: builder.query<Blob, number>({
             query: (id) => ({
