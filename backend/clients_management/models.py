@@ -481,28 +481,40 @@ class ServiceOrder(models.Model):
         return self.subject
 
 
-class Visit(models.Model):
+class Appointment(models.Model):
     """
-    A Django model representing an on-site visit that generates a ServiceOrder.
+    A Django model representing an appointment that generates a ServiceOrder.
 
     Records scheduling and execution details for a specific client unit, including
-    status and contact information. Each Visit is linked one-to-one with a
-    ServiceOrder.
+    status, type (in-person or online), and contact information. Each Appointment
+    is linked one-to-one with a ServiceOrder.
 
     Attributes:
-        date (DateTimeField): Scheduled datetime of the visit.
-        status (CharField): Visit status. One of P (Pendente), C (Confirmado),
-            F (Realizado), U (Não realizado).
+        date (DateTimeField): Scheduled datetime of the appointment.
+        type (CharField): Appointment type. One of I (Presencial), O (Online).
+        status (CharField): Appointment status. One of P (Pendente), C (Confirmado),
+            F (Realizado), U (Não realizado), R (Reagendada).
+        justification (TextField): Optional justification for status changes.
         contact_phone (CharField): Contact phone for the attendant at the unit.
         contact_name (CharField): Contact name for the attendant at the unit.
         service_order (OneToOneField): The associated ServiceOrder to be generated.
-        unit (ForeignKey): The client Unit where the visit will occur.
+        unit (ForeignKey): The client Unit where the appointment will occur.
 
     Properties:
         periodicity (str | None): Contract periodicity derived from the most recent
             approved Proposal for the associated Client. Returns one of the values from
             Proposal.ContractType or None if unavailable.
     """
+
+    class Type(TextChoices):
+        IN_PERSON = (
+            "I",
+            "Presencial",
+        )
+        ONLINE = (
+            "O",
+            "Online",
+        )
 
     class Status(TextChoices):
         PENDING = (
@@ -527,6 +539,12 @@ class Visit(models.Model):
         )
 
     date = models.DateTimeField("Data")
+    type = models.CharField(
+        "Tipo",
+        max_length=1,
+        choices=Type.choices,
+        default=Type.IN_PERSON,
+    )
     status = models.CharField(
         "Status",
         max_length=1,
@@ -549,7 +567,7 @@ class Visit(models.Model):
     service_order = models.OneToOneField(
         ServiceOrder,
         on_delete=models.CASCADE,
-        related_name="visit",
+        related_name="appointment",
         verbose_name="Ordem de Serviço",
         blank=True,
         null=True,
@@ -557,7 +575,7 @@ class Visit(models.Model):
     unit = models.ForeignKey(
         Unit,
         on_delete=models.CASCADE,
-        related_name="visits",
+        related_name="appointments",
         blank=True,
         null=True,
         verbose_name="Unidade",
@@ -566,10 +584,10 @@ class Visit(models.Model):
     @property
     def periodicity(self) -> str | None:
         """
-        Calculates the contract periodicity for this visit.
+        Calculates the contract periodicity for this appointment.
 
         It finds the most recent, approved proposal for the client
-        associated with this visit's unit and returns its contract type.
+        associated with this appointment's unit and returns its contract type.
         Returns None if no such proposal or client is found.
         """
         try:
@@ -589,11 +607,11 @@ class Visit(models.Model):
         return None
 
     class Meta:
-        verbose_name = "Visita"
-        verbose_name_plural = "Visitas"
+        verbose_name = "Agendamento"
+        verbose_name_plural = "Agendamentos"
 
     def __str__(self) -> str:
-        return f"Visita ${self.client.name} - ${self.date.day}"
+        return f"Agendamento {self.unit.client.name if self.unit and self.unit.client else 'N/A'} - {self.date.day}"
 
 
 class Report(models.Model):

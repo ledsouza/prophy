@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from clients_management.views import (
     AccessoryViewSet,
+    AppointmentViewSet,
     ClientStatusView,
     ClientViewSet,
     EquipmentViewSet,
@@ -14,16 +15,15 @@ from clients_management.views import (
     ServiceOrderPDFView,
     ServiceOrderViewSet,
     TriggerReportNotificationView,
-    TriggerUpdateVisitsView,
+    TriggerUpdateAppointmentsView,
     UnitViewSet,
-    VisitViewSet,
 )
 
 router = DefaultRouter()
 router.register("clients", ClientViewSet, basename="clients")
 router.register("units", UnitViewSet, basename="units")
 router.register("equipments", EquipmentViewSet, basename="equipments")
-router.register("visits", VisitViewSet, basename="visits")
+router.register("appointments", AppointmentViewSet, basename="appointments")
 router.register("modalities", ModalityViewSet, basename="modality")
 router.register("accessories", AccessoryViewSet, basename="accessory")
 router.register("proposals", ProposalViewSet, basename="proposals")
@@ -41,9 +41,9 @@ urlpatterns = [
         name="trigger_report_notifications",
     ),
     path(
-        "visits/tasks/update-overdue/",
-        TriggerUpdateVisitsView.as_view(),
-        name="trigger_update_visits",
+        "appointments/tasks/update-overdue/",
+        TriggerUpdateAppointmentsView.as_view(),
+        name="trigger_update_appointments",
     ),
     path("", include(router.urls)),
 ]

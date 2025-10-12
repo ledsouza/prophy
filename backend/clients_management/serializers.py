@@ -5,6 +5,7 @@ from users.models import UserAccount
 
 from clients_management.models import (
     Accessory,
+    Appointment,
     Client,
     Equipment,
     Modality,
@@ -12,7 +13,6 @@ from clients_management.models import (
     Report,
     ServiceOrder,
     Unit,
-    Visit,
 )
 
 
@@ -102,66 +102,81 @@ class ServiceOrderSerializer(serializers.ModelSerializer):
 
 
 class ServiceOrderCreateSerializer(serializers.ModelSerializer):
-    visit = serializers.IntegerField(write_only=True, required=True)
+    appointment = serializers.IntegerField(write_only=True, required=True)
     equipments = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Equipment.objects.all(), required=False
     )
 
     class Meta:
         model = ServiceOrder
-        fields = ["id", "subject", "description", "conclusion", "equipments", "visit"]
+        fields = [
+            "id",
+            "subject",
+            "description",
+            "conclusion",
+            "equipments",
+            "appointment",
+        ]
 
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
-        visit_id = attrs.get("visit")
+        appointment_id = attrs.get("appointment")
         equipments: list[Equipment] = attrs.get("equipments", [])
 
         try:
-            visit = Visit.objects.get(pk=visit_id)
-        except Visit.DoesNotExist:
-            raise serializers.ValidationError({"visit": "Visit not found."})
+            appointment = Appointment.objects.get(pk=appointment_id)
+        except Appointment.DoesNotExist:
+            raise serializers.ValidationError({"appointment": "Appointment not found."})
 
-        if visit.service_order_id:
-            raise serializers.ValidationError("This visit already has a Service Order.")
+        if appointment.service_order_id:
+            raise serializers.ValidationError(
+                "This appointment already has a Service Order."
+            )
 
-        if equipments and visit.unit_id:
-            invalid = [e.id for e in equipments if e.unit_id != visit.unit_id]
+        if equipments and appointment.unit_id:
+            invalid = [e.id for e in equipments if e.unit_id != appointment.unit_id]
             if invalid:
                 raise serializers.ValidationError(
-                    {"equipments": "Equipments must belong to the visit's unit."}
+                    {
+                        "equipments": """
+                        Equipments must belong to the appointment's unit.
+                        """
+                    }
                 )
 
-        attrs["visit_instance"] = visit
+        attrs["appointment_instance"] = appointment
         return attrs
 
     def create(self, validated_data: dict[str, Any]) -> ServiceOrder:
-        visit: Visit = validated_data.pop("visit_instance")
-        validated_data.pop("visit", None)
+        appointment: Appointment = validated_data.pop("appointment_instance")
+        validated_data.pop("appointment", None)
         equipments: list[Equipment] = validated_data.pop("equipments", [])
 
         with transaction.atomic():
-            locked_visit: Visit = Visit.objects.select_for_update().get(pk=visit.pk)
+            locked_appointment: Appointment = (
+                Appointment.objects.select_for_update().get(pk=appointment.pk)
+            )
 
-            if locked_visit.service_order_id:
+            if locked_appointment.service_order_id:
                 raise serializers.ValidationError(
-                    "This visit already has a Service Order."
+                    "This appointment already has a Service Order."
                 )
 
             order: ServiceOrder = ServiceOrder.objects.create(**validated_data)
             if equipments:
                 order.equipments.set(equipments)
 
-            locked_visit.service_order = order
-            locked_visit.status = Visit.Status.FULFILLED
-            locked_visit.save(update_fields=["service_order", "status"])
+            locked_appointment.service_order = order
+            locked_appointment.status = Appointment.Status.FULFILLED
+            locked_appointment.save(update_fields=["service_order", "status"])
 
             return order
 
 
-class VisitSerializer(serializers.ModelSerializer):
+class AppointmentSerializer(serializers.ModelSerializer):
     service_order = ServiceOrderSerializer(read_only=True)
 
     class Meta:
-        model = Visit
+        model = Appointment
         fields = "__all__"
 
 
