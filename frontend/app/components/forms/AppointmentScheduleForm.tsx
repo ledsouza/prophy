@@ -93,7 +93,7 @@ function hasAppointmentScheduleChanges(
  * - onSuccess: () => void — called after successful submit; parent should typically close the modal
  *   here and perform any post-success actions.
  * - title?: string — optional custom title; defaults to "Atualizar agenda" in update mode,
- *   and "Agendar visita" in create mode.
+ *   and "Agendar atendimento" in create mode.
  */
 const AppointmentScheduleForm = ({
     appointment,
@@ -239,7 +239,7 @@ const AppointmentScheduleForm = ({
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <Typography element="h3" size="title3" className="font-semibold">
-                    {title ?? (isUpdate ? "Atualizar agenda" : "Agendar visita")}
+                    {title ?? (isUpdate ? "Atualizar agenda" : "Agendar atendimento")}
                 </Typography>
 
                 <Input

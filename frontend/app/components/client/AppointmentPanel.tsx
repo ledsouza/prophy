@@ -84,7 +84,7 @@ function AppointmentPanel({
                     onClick={onScheduleAppointment ?? (() => setScheduleOpen(true))}
                     data-testid={scheduleButtonTestId}
                 >
-                    Agendar visita
+                    Agendar atendimento
                 </Button>
             )}
 
@@ -97,7 +97,7 @@ function AppointmentPanel({
                     unitId={unitId}
                     onCancel={() => setScheduleOpen(false)}
                     onSuccess={() => setScheduleOpen(false)}
-                    title="Agendar visita"
+                    title="Agendar atendimento"
                 />
             </Modal>
         </div>
