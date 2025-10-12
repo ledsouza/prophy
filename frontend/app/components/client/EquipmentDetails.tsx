@@ -7,7 +7,7 @@ import { useGetAccessoriesQuery } from "@/redux/features/accessoryApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 
 import notFound from "@/assets/image-not-found.png";
-import { XCircle } from "@phosphor-icons/react";
+import { XCircleIcon } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Tab } from "@/components/common";
@@ -35,7 +35,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                 data-testid="btn-close-modal"
                 aria-label="Fechar modal"
             >
-                <XCircle size={32} className="text-primary" />
+                <XCircleIcon size={32} className="text-primary" />
             </button>
 
             {/* Equipment photo */}
@@ -218,12 +218,12 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                         AccessoryType.DETECTOR
                                                             ? "Detector"
                                                             : accessory.category ===
-                                                              AccessoryType.COIL
-                                                            ? "Bobina"
-                                                            : accessory.category ===
-                                                              AccessoryType.TRANSDUCER
-                                                            ? "Transdutor"
-                                                            : "Não especificado"}
+                                                                AccessoryType.COIL
+                                                              ? "Bobina"
+                                                              : accessory.category ===
+                                                                  AccessoryType.TRANSDUCER
+                                                                ? "Transdutor"
+                                                                : "Não especificado"}
                                                     </Typography>
                                                 </div>
                                             </div>
