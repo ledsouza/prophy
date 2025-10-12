@@ -681,13 +681,17 @@ class Report(models.Model):
             if not self.equipment:
                 raise ValidationError(
                     {
-                        "equipment": f'Relatórios do tipo "{self.get_report_type_display()}" devem ter um equipamento associado.'
+                        "equipment": f'Relatórios do tipo "{
+                            self.get_report_type_display()
+                        }" devem ter um equipamento associado.'
                     }
                 )
             if self.unit:
                 raise ValidationError(
                     {
-                        "unit": f'Relatórios do tipo "{self.get_report_type_display()}" não devem ter uma unidade associada.'
+                        "unit": f'Relatórios do tipo "{
+                            self.get_report_type_display()
+                        }" não devem ter uma unidade associada.'
                     }
                 )
 
@@ -695,13 +699,17 @@ class Report(models.Model):
             if not self.unit:
                 raise ValidationError(
                     {
-                        "unit": f'Relatórios do tipo "{self.get_report_type_display()}" devem ter uma unidade associada.'
+                        "unit": f'Relatórios do tipo "{
+                            self.get_report_type_display()
+                        }" devem ter uma unidade associada.'
                     }
                 )
             if self.equipment:
                 raise ValidationError(
                     {
-                        "equipment": f'Relatórios do tipo "{self.get_report_type_display()}" não devem ter um equipamento associado.'
+                        "equipment": f'Relatórios do tipo "{
+                            self.get_report_type_display()
+                        }" não devem ter um equipamento associado.'
                     }
                 )
 
