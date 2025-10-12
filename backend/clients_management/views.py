@@ -1617,17 +1617,6 @@ class ReportViewSet(PaginatedViewSet):
         if serializer.is_valid():
             report = serializer.save()
 
-            if not self._has_report_access(user, report):
-                report.delete()
-                return Response(
-                    {
-                        "detail": """
-                        You do not have permission to create a report for this unit/equipment.
-                        """
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
             return Response(
                 ReportSerializer(report).data,
                 status=status.HTTP_201_CREATED,
