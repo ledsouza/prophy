@@ -1,10 +1,18 @@
 import { apiSlice } from "../services/apiSlice";
 import { createPaginatedQueryFn } from "../services/paginationHelpers";
-import type { ReportDTO, ListReportsArgs } from "@/types/report";
+import type { ReportDTO, ListReportsArgs, ReportTypeCode } from "@/types/report";
 
 type UpdateReportFileArgs = {
     id: number;
     file: File;
+};
+
+type CreateReportArgs = {
+    completion_date: string; // YYYY-MM-DD
+    report_type: ReportTypeCode;
+    file: File;
+    unit?: number;
+    equipment?: number;
 };
 
 const reportApiSlice = apiSlice.injectEndpoints({
@@ -17,6 +25,22 @@ const reportApiSlice = apiSlice.injectEndpoints({
         listReports: builder.query<ReportDTO[], ListReportsArgs | void>({
             queryFn: createPaginatedQueryFn<ReportDTO, ListReportsArgs>("reports/"),
             providesTags: [{ type: "Report", id: "LIST" }],
+        }),
+        createReport: builder.mutation<ReportDTO, CreateReportArgs>({
+            query: ({ completion_date, report_type, file, unit, equipment }) => {
+                const formData = new FormData();
+                formData.append("completion_date", completion_date);
+                formData.append("report_type", report_type);
+                formData.append("file", file);
+                if (typeof unit === "number") formData.append("unit", String(unit));
+                if (typeof equipment === "number") formData.append("equipment", String(equipment));
+                return {
+                    url: `reports/`,
+                    method: "POST",
+                    body: formData,
+                };
+            },
+            invalidatesTags: [{ type: "Report", id: "LIST" }],
         }),
         updateReportFile: builder.mutation<ReportDTO, UpdateReportFileArgs>({
             query: ({ id, file }) => {
@@ -41,6 +65,10 @@ const reportApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { useListReportsQuery, useUpdateReportFileMutation, useLazyDownloadReportFileQuery } =
-    reportApiSlice;
+export const {
+    useListReportsQuery,
+    useCreateReportMutation,
+    useUpdateReportFileMutation,
+    useLazyDownloadReportFileQuery,
+} = reportApiSlice;
 export default reportApiSlice;

@@ -6,3 +6,4 @@ export { default as useNeedReview } from "./use-need-review";
 export { default as useStaff } from "./use-staff";
 export { default as usePendingOperations } from "./use-pending-operations";
 export { default as useSingleClientLoading } from "./use-single-client-loading";
+export { useReportTypeSelect } from "./use-report-type-select";

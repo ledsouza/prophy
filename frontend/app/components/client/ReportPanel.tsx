@@ -1,19 +1,17 @@
 "use client";
 
 import { ReportList } from "@/components/client";
-import { useState } from "react";
-import { Button, ErrorDisplay, Spinner, Modal } from "@/components/common";
+import { Button, ErrorDisplay, Modal, Spinner } from "@/components/common";
+import { ReportForm } from "@/components/forms";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { useListReportsQuery } from "@/redux/features/reportApiSlice";
-import { ReportForm } from "@/components/forms";
 import { child } from "@/utils/logger";
 import clsx from "clsx";
+import { useState } from "react";
 
 type ReportPanelProps = {
     unitId?: number;
     equipmentId?: number;
-    // onCreateReport is no longer used; kept for backward compatibility
-    onCreateReport?: () => void;
     createButtonTestId?: string;
     containerClassName?: string;
 };
@@ -30,8 +28,6 @@ type ReportPanelProps = {
  *
  * @param unitId - The ID of the unit to fetch reports for.
  * @param equipmentId - The ID of the equipment to fetch reports for.
- * @param onCreateReport - Callback invoked when the create report button is
- *   clicked.
  * @param createButtonTestId - Test ID for the create report button.
  * @param containerClassName - Additional CSS classes to apply to the
  *   container div.
@@ -39,7 +35,6 @@ type ReportPanelProps = {
 function ReportPanel({
     unitId,
     equipmentId,
-    onCreateReport,
     createButtonTestId = "btn-create-report",
     containerClassName = "",
 }: ReportPanelProps) {
@@ -54,7 +49,6 @@ function ReportPanel({
         data: reports,
         isLoading,
         error,
-        refetch,
     } = useListReportsQuery(Object.keys(queryParams).length > 0 ? queryParams : undefined);
 
     const { data: user } = useRetrieveUserQuery();
@@ -110,11 +104,7 @@ function ReportPanel({
                     isUnit
                     unitId={unitId}
                     onCancel={() => setIsCreateOpen(false)}
-                    onSuccess={() => {
-                        setIsCreateOpen(false);
-                        // refetch to ensure fresh list (also handled by tag invalidation)
-                        refetch();
-                    }}
+                    onSuccess={() => setIsCreateOpen(false)}
                 />
             </Modal>
         </div>

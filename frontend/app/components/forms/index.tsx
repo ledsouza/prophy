@@ -20,3 +20,4 @@ export { default as ServiceOrderForm } from "./ServiceOrderForm";
 export { default as VisitScheduleForm } from "./VisitScheduleForm";
 export { default as MultiSelect } from "./MultiSelect";
 export { default as VisitJustificationForm } from "./VisitJustificationForm";
+export { default as ReportForm } from "./ReportForm";
