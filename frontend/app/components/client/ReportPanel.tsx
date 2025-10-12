@@ -1,15 +1,18 @@
 "use client";
 
 import { ReportList } from "@/components/client";
-import { Button, ErrorDisplay, Spinner } from "@/components/common";
+import { useState } from "react";
+import { Button, ErrorDisplay, Spinner, Modal } from "@/components/common";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { useListReportsQuery } from "@/redux/features/reportApiSlice";
+import { ReportForm } from "@/components/forms";
 import { child } from "@/utils/logger";
 import clsx from "clsx";
 
 type ReportPanelProps = {
     unitId?: number;
     equipmentId?: number;
+    // onCreateReport is no longer used; kept for backward compatibility
     onCreateReport?: () => void;
     createButtonTestId?: string;
     containerClassName?: string;
@@ -40,6 +43,8 @@ function ReportPanel({
     createButtonTestId = "btn-create-report",
     containerClassName = "",
 }: ReportPanelProps) {
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+
     const queryParams = {
         ...(unitId && { unit: unitId }),
         ...(equipmentId && { equipment: equipmentId }),
@@ -49,6 +54,7 @@ function ReportPanel({
         data: reports,
         isLoading,
         error,
+        refetch,
     } = useListReportsQuery(Object.keys(queryParams).length > 0 ? queryParams : undefined);
 
     const { data: user } = useRetrieveUserQuery();
@@ -90,10 +96,27 @@ function ReportPanel({
             </div>
 
             {canCreate && (
-                <Button onClick={onCreateReport ?? (() => {})} data-testid={createButtonTestId}>
+                <Button onClick={() => setIsCreateOpen(true)} data-testid={createButtonTestId}>
                     Gerar relatório
                 </Button>
             )}
+
+            <Modal
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
+                className="max-w-lg"
+            >
+                <ReportForm
+                    isUnit
+                    unitId={unitId}
+                    onCancel={() => setIsCreateOpen(false)}
+                    onSuccess={() => {
+                        setIsCreateOpen(false);
+                        // refetch to ensure fresh list (also handled by tag invalidation)
+                        refetch();
+                    }}
+                />
+            </Modal>
         </div>
     );
 }
