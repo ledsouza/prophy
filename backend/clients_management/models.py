@@ -715,7 +715,8 @@ class Report(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Calculates the due date automatically before saving based on completion date and report type.
+        Calculates the due date automatically before saving based on completion date
+        and report type.
         """
         if self.completion_date and not self.due_date:
             if self.report_type == self.ReportType.RADIOMETRIC_SURVEY:
