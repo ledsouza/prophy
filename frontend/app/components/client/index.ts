@@ -15,3 +15,4 @@ export { default as VisitPanel } from "./VisitPanel";
 export { default as ReportCard } from "./ReportCard";
 export { default as ReportList } from "./ReportList";
 export { default as ReportPanel } from "./ReportPanel";
+export { default as EquipmentReportsTab } from "./EquipmentReportsTab";

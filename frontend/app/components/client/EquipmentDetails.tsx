@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 import { useGetAccessoriesQuery } from "@/redux/features/accessoryApiSlice";
+import { useListReportsQuery } from "@/redux/features/reportApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 
 import notFound from "@/assets/image-not-found.png";
@@ -11,6 +12,7 @@ import { XCircleIcon } from "@phosphor-icons/react";
 
 import { Typography } from "@/components/foundation";
 import { Tab } from "@/components/common";
+import { EquipmentReportsTab } from "@/components/client";
 
 type EquipmentDetailsProps = {
     equipment: EquipmentDTO;
@@ -22,6 +24,8 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
     const equipmentAccessories = accessories.filter(
         (accessory) => accessory.equipment === equipment.id
     );
+
+    const { data: reports = [] } = useListReportsQuery({ equipment: equipment.id });
 
     const formattedDate = equipment.purchase_installation_date
         ? format(new Date(equipment.purchase_installation_date), "dd/MM/yyyy", { locale: ptBR })
@@ -63,6 +67,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                         <Tab>Especificações Técnicas</Tab>
                         <Tab>Manutenção</Tab>
                         <Tab>Acessórios ({equipmentAccessories.length})</Tab>
+                        <Tab>Relatórios ({reports.length})</Tab>
                     </TabList>
 
                     <TabPanels className="mt-4">
@@ -257,6 +262,11 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                     Nenhum acessório cadastrado para este equipamento.
                                 </Typography>
                             )}
+                        </TabPanel>
+
+                        {/* Reports Panel */}
+                        <TabPanel className="rounded-xl bg-white p-3 h-[500px]">
+                            <EquipmentReportsTab equipmentId={equipment.id} />
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>
