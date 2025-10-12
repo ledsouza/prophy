@@ -844,7 +844,7 @@ class Command(BaseCommand):
         if default_equipments:
             service_order1.equipments.add(default_equipments[0])
 
-        # Create corresponding appointment for service_order1
+        # Create corresponding appointment for service_order1 (IN_PERSON)
         appointment_date = fake.date_time_between(
             start_date="-30d", end_date="+30d", tzinfo=timezone.get_current_timezone()
         )
@@ -858,6 +858,7 @@ class Command(BaseCommand):
         Appointment.objects.create(
             date=appointment_date,
             status=status1,
+            type=Appointment.Type.IN_PERSON,
             justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
@@ -883,7 +884,7 @@ class Command(BaseCommand):
         if len(default_equipments) > 1:
             service_order2.equipments.add(default_equipments[1])
 
-        # Create corresponding appointment for service_order2
+        # Create corresponding appointment for service_order2 (ONLINE)
         appointment_date2 = fake.date_time_between(
             start_date="-60d", end_date="+60d", tzinfo=timezone.get_current_timezone()
         )
@@ -897,6 +898,7 @@ class Command(BaseCommand):
         Appointment.objects.create(
             date=appointment_date2,
             status=status2,
+            type=Appointment.Type.ONLINE,
             justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
@@ -912,12 +914,14 @@ class Command(BaseCommand):
         )
 
         # Additional default pending appointments without associated service order
+        # First one is IN_PERSON
         pending_appointment_date1 = fake.date_time_between(
             start_date="-15d", end_date="+45d", tzinfo=timezone.get_current_timezone()
         )
         Appointment.objects.create(
             date=pending_appointment_date1,
             status=Appointment.Status.PENDING,
+            type=Appointment.Type.IN_PERSON,
             justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
@@ -926,12 +930,14 @@ class Command(BaseCommand):
             id=1002,
         )
 
+        # Second one is ONLINE
         pending_appointment_date2 = fake.date_time_between(
             start_date="-10d", end_date="+60d", tzinfo=timezone.get_current_timezone()
         )
         Appointment.objects.create(
             date=pending_appointment_date2,
             status=Appointment.Status.PENDING,
+            type=Appointment.Type.ONLINE,
             justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
@@ -944,11 +950,12 @@ class Command(BaseCommand):
             id=1003,
         )
 
-        # Deterministic past UNFULFILLED appointment for testing rescheduling guard
+        # Deterministic past UNFULFILLED appointment for testing rescheduling guard (ONLINE)
         unfulfilled_past_date = timezone.now() - timedelta(days=7)
         Appointment.objects.create(
             date=unfulfilled_past_date,
             status=Appointment.Status.UNFULFILLED,
+            type=Appointment.Type.ONLINE,
             justification="Visita não realizada no dia agendado.",
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
@@ -986,7 +993,7 @@ class Command(BaseCommand):
                 )
                 service_order.equipments.set(selected_equipments)
 
-                # Create corresponding appointment
+                # Create corresponding appointment with random type (mix of IN_PERSON and ONLINE)
                 appointment_date = fake.date_time_between(
                     start_date="-90d",
                     end_date="+90d",
@@ -1007,9 +1014,19 @@ class Command(BaseCommand):
                     in [Appointment.Status.UNFULFILLED, Appointment.Status.RESCHEDULED]
                     else None
                 )
+                # Randomly assign type: 60% IN_PERSON, 40% ONLINE
+                appointment_type = choice(
+                    [
+                        Appointment.Type.IN_PERSON,
+                        Appointment.Type.IN_PERSON,
+                        Appointment.Type.ONLINE,
+                        Appointment.Type.ONLINE,
+                    ]
+                )
                 Appointment.objects.create(
                     date=appointment_date,
                     status=status,
+                    type=appointment_type,
                     justification=justification,
                     contact_phone=fake_phone_number(),
                     contact_name=fake.name(),
