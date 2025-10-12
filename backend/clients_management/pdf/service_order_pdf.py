@@ -1,7 +1,7 @@
 """PDF generation utilities for Service Orders (Ordem de Serviço).
 
 This module builds a printable PDF document for a given ServiceOrder using
-ReportLab. It renders client, unit and visit metadata, the service subject,
+ReportLab. It renders client, unit and appointment metadata, the service subject,
 equipment list, and rich-text sections such as description and conclusion.
 
 Dependencies:
@@ -36,10 +36,10 @@ from reportlab.platypus import (
 )
 
 from clients_management.models import (
+    Appointment,
     Client,
     ServiceOrder,
     Unit,
-    Visit,
 )
 
 
@@ -161,7 +161,7 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
     """Build a Service Order PDF and return its bytes.
 
     Renders a document with header/logo, order identifier, client/unit details,
-    visit information, equipment table, and rich-text sections for subject,
+    appointment information, equipment table, and rich-text sections for subject,
     description and conclusion.
 
     Args:
@@ -176,8 +176,8 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
           without the logo.
         - Dates are localized using Django timezone utilities.
     """
-    visit: Visit = order.visit
-    unit: Unit = visit.unit
+    appointment: Appointment = order.appointment
+    unit: Unit = appointment.unit
     client: Client = unit.client
 
     styles = _get_stylesheet()
@@ -222,16 +222,16 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
         InfoItem(label="Cidade:", value=f"{unit.city} / {unit.state}"),
     ]
     right_info: list[InfoItem] = [
-        InfoItem(label="Atendente:", value=visit.contact_name),
+        InfoItem(label="Atendente:", value=appointment.contact_name),
         InfoItem(
             label="Atendimento:",
             value=(
-                timezone.localtime(visit.date).strftime("%d/%m/%Y")
-                if visit and visit.date
+                timezone.localtime(appointment.date).strftime("%d/%m/%Y")
+                if appointment and appointment.date
                 else "-"
             ),
         ),
-        InfoItem(label="Situação:", value=visit.get_status_display()),
+        InfoItem(label="Situação:", value=appointment.get_status_display()),
         InfoItem(
             label="Telefone:",
             value=phonenumbers.format_number(
