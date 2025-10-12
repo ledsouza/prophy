@@ -1553,6 +1553,88 @@ class ReportViewSet(PaginatedViewSet):
     """
 
     @swagger_auto_schema(
+        operation_summary="Create a new report",
+        operation_description="""
+        Create a new report with file upload.
+        Only PROPHY_MANAGER and medical physicists can create reports.
+        
+        The report must be associated with either a unit or equipment based on report type:
+        - Equipment-only types: CQ, TE, LR
+        - Unit-only types: CQM, M, TR, TSR, AD, ID, POP, O
+        
+        The due_date is calculated automatically:
+        - Radiometric Survey (LR): 4 years from completion_date
+        - All other types: 1 year from completion_date
+        """,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["completion_date", "report_type", "file"],
+            properties={
+                "completion_date": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    format=openapi.FORMAT_DATE,
+                    description="Date when the report was completed (YYYY-MM-DD)",
+                ),
+                "report_type": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Type of report",
+                    enum=[choice[0] for choice in Report.ReportType.choices],
+                ),
+                "file": openapi.Schema(
+                    type=openapi.TYPE_FILE,
+                    description="Report file (PDF or Word document)",
+                ),
+                "unit": openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="Unit ID (required for unit-only report types)",
+                ),
+                "equipment": openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="Equipment ID (required for equipment-only report types)",
+                ),
+            },
+        ),
+        responses={
+            201: openapi.Response(
+                description="Report created successfully",
+                schema=ReportSerializer,
+            ),
+            400: "Invalid input data or validation error",
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def create(self, request: Request) -> Response:
+        user: UserAccount = request.user
+
+        if not self._can_create_report(user):
+            return Response(
+                {"detail": "You do not have permission to create reports."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ReportSerializer(data=request.data)
+        if serializer.is_valid():
+            report = serializer.save()
+
+            if not self._has_report_access(user, report):
+                report.delete()
+                return Response(
+                    {
+                        "detail": """
+                        You do not have permission to create a report for this unit/equipment.
+                        """
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            return Response(
+                ReportSerializer(report).data,
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
         operation_summary="List reports",
         operation_description="""
         Retrieve a paginated list of reports with filtering support.
@@ -1760,6 +1842,16 @@ class ReportViewSet(PaginatedViewSet):
             queryset = queryset.filter(due_date__lte=thirty_days_from_now)
 
         return queryset
+
+    def _can_create_report(self, user: UserAccount) -> bool:
+        """
+        Check if user can create reports.
+        """
+        return user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        ]
 
     def _can_update_report(self, user: UserAccount) -> bool:
         """
