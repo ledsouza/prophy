@@ -2010,13 +2010,13 @@ class TriggerReportNotificationView(APIView):
             )
 
 
-class TriggerUpdateVisitsView(APIView):
+class TriggerUpdateAppointmentsView(APIView):
     """
     A secure API view to be triggered by Google Cloud Scheduler.
 
     This view is protected by OIDC authentication, ensuring that only
     authenticated Google services can access it. When a valid POST
-    request is received, it executes the `update_visits` management command.
+    request is received, it executes the `update_appointments` management command.
     """
 
     authentication_classes = [GoogleOIDCAuthentication]
@@ -2025,27 +2025,27 @@ class TriggerUpdateVisitsView(APIView):
         """
         Handles the POST request from Cloud Scheduler to run the command.
         """
-        logger.info("Received request to update visits...")
+        logger.info("Received request to update appointments...")
         try:
             output = StringIO()
-            call_command("update_visits", stdout=output)
+            call_command("update_appointments", stdout=output)
             command_output = output.getvalue()
 
             logger.info(
-                "Command 'update_visits' executed successfully. Output: %s",
+                "Command 'update_appointments' executed successfully. Output: %s",
                 command_output.strip(),
             )
             return Response(
                 {
                     "status": "ok",
-                    "message": "update_visits executed",
+                    "message": "update_appointments executed",
                     "output": command_output,
                 },
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
             logger.error(
-                "An error occurred while running update_visits command: %s",
+                "An error occurred while running update_appointments command: %s",
                 e,
                 exc_info=True,
             )
