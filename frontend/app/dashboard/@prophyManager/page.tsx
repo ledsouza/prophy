@@ -8,7 +8,7 @@ import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
-import { usePendingOperations } from "@/hooks";
+import { usePendingOperations, useTabNavigation } from "@/hooks";
 import { ClientDTO } from "@/redux/features/clientApiSlice";
 import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
 import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
@@ -113,40 +113,31 @@ function SearchPage() {
         [manufacturersData?.manufacturers]
     );
 
-    const handleTabChange = (index: number) => {
-        const params = new URLSearchParams();
-        setSelectedTabIndex(index);
-
-        switch (index) {
-            case SearchTab.CLIENTS:
-                const clientFilters: ClientFilters = {
-                    name: selectedClientName,
-                    cnpj: selectedClientCNPJ,
-                    city: selectedClientCity,
-                    user_role: getUserRoleFromOptionId(selectedUserRole.id),
-                    contract_type: getContractTypeFromOptionId(selectedContractType.id),
-                    operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
-                };
-
-                buildUrlParams(params, "clients", clientCurrentPage, clientFilters);
-                break;
-
-            case SearchTab.EQUIPMENTS:
-                const equipmentFilters: EquipmentFilters = {
-                    modality: String(selectedEquipmentModality.id),
-                    manufacturer: selectedEquipmentManufacturer.value,
-                    client_name: selectedEquipmentClient,
-                };
-
-                buildUrlParams(params, "equipments", equipmentCurrentPage, equipmentFilters);
-                break;
-
-            default:
-                break;
-        }
-
-        router.push(`?${params.toString()}`);
-    };
+    const { handleTabChange } = useTabNavigation(setSelectedTabIndex, {
+        [SearchTab.CLIENTS]: {
+            tabName: "clients",
+            pageKey: "client_page",
+            currentPage: clientCurrentPage,
+            buildFilters: () => ({
+                name: selectedClientName,
+                cnpj: selectedClientCNPJ,
+                city: selectedClientCity,
+                user_role: getUserRoleFromOptionId(selectedUserRole.id),
+                contract_type: getContractTypeFromOptionId(selectedContractType.id),
+                operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
+            }),
+        },
+        [SearchTab.EQUIPMENTS]: {
+            tabName: "equipments",
+            pageKey: "equipment_page",
+            currentPage: equipmentCurrentPage,
+            buildFilters: () => ({
+                modality: String(selectedEquipmentModality.id),
+                manufacturer: selectedEquipmentManufacturer.value,
+                client_name: selectedEquipmentClient,
+            }),
+        },
+    });
 
     const handleClientPageChange = (page: number) => {
         const params = new URLSearchParams();
