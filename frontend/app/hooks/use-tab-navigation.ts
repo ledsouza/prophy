@@ -1,4 +1,5 @@
 import { useRouter } from "next/navigation";
+import { buildStandardUrlParams } from "@/utils/url-params";
 
 type TabConfig = {
     tabName: string;
@@ -16,20 +17,18 @@ export function useTabNavigation(
     const router = useRouter();
 
     const handleTabChange = (index: number) => {
-        const params = new URLSearchParams();
         setSelectedTabIndex(index);
 
         const config = tabConfigs[index];
         if (!config) return;
 
-        params.set("tab", config.tabName);
-        params.set(config.pageKey, String(config.currentPage));
-
         const filters = config.buildFilters();
-        Object.entries(filters).forEach(([key, value]) => {
-            if (value && value !== "Todos" && value !== "0") {
-                params.set(key, value);
-            }
+
+        const params = buildStandardUrlParams({
+            tabName: config.tabName,
+            pageKey: config.pageKey,
+            page: config.currentPage,
+            filters,
         });
 
         router.push(`?${params.toString()}`);

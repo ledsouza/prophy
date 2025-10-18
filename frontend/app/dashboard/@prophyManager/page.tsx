@@ -8,7 +8,13 @@ import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
-import { usePendingOperations, useTabNavigation, usePageNavigation } from "@/hooks";
+import {
+    usePendingOperations,
+    useTabNavigation,
+    usePageNavigation,
+    useFilterApplication,
+} from "@/hooks";
+import { buildStandardUrlParams } from "@/utils/url-params";
 import { ClientDTO } from "@/redux/features/clientApiSlice";
 import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
 import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
@@ -24,7 +30,6 @@ import {
     getContractTypeFromOptionId,
     getOperationStatusFromOptionId,
     getUserRoleFromOptionId,
-    resetPageState,
     restoreManufacturerFilterState,
     restoreModalityFilterState,
     restorePageState,
@@ -33,7 +38,6 @@ import {
     restoreTextFilterStates,
 } from "./state";
 import { ClientFilters, EquipmentFilters } from "./types";
-import { buildUrlParams } from "./url";
 
 function SearchPage() {
     const router = useRouter();
@@ -153,29 +157,23 @@ function SearchPage() {
         setCurrentPage: setClientCurrentPage,
     });
 
-    const handleApplyClientFilters = () => {
-        const params = new URLSearchParams();
-
-        resetPageState(clientCurrentPage, setClientCurrentPage);
-
-        const clientFilters = {
+    const { handleApplyFilters: handleApplyClientFilters } = useFilterApplication({
+        tabName: "clients",
+        pageKey: "client_page",
+        currentPage: clientCurrentPage,
+        setCurrentPage: setClientCurrentPage,
+        setAppliedFilters: setClientAppliedFilters,
+        buildFilters: () => ({
             name: selectedClientName,
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
             user_role: getUserRoleFromOptionId(selectedUserRole.id),
             contract_type: getContractTypeFromOptionId(selectedContractType.id),
             operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
-        };
-
-        setClientAppliedFilters(clientFilters);
-
-        buildUrlParams(params, "clients", 1, clientFilters);
-        router.push(`?${params.toString()}`);
-    };
+        }),
+    });
 
     const handleClearClientFilters = () => {
-        const params = new URLSearchParams();
-
         setSelectedClientName("");
         setSelectedClientCNPJ("");
         setSelectedClientCity("");
@@ -194,32 +192,31 @@ function SearchPage() {
             operation_status: "",
         });
 
-        buildUrlParams(params, "clients", 1, {});
+        const params = buildStandardUrlParams({
+            tabName: "clients",
+            pageKey: "client_page",
+            page: 1,
+            filters: {},
+        });
         router.push(`?${params.toString()}`);
     };
 
-    const handleApplyEquipmentFilters = () => {
-        const params = new URLSearchParams();
-
-        resetPageState(equipmentCurrentPage, setEquipmentCurrentPage);
-
-        const equipmentFilters = {
+    const { handleApplyFilters: handleApplyEquipmentFilters } = useFilterApplication({
+        tabName: "equipments",
+        pageKey: "equipment_page",
+        currentPage: equipmentCurrentPage,
+        setCurrentPage: setEquipmentCurrentPage,
+        setAppliedFilters: setEquipmentAppliedFilters,
+        buildFilters: () => ({
             modality:
                 selectedEquipmentModality.id !== 0 ? selectedEquipmentModality.id.toString() : "",
             manufacturer:
                 selectedEquipmentManufacturer.id !== 0 ? selectedEquipmentManufacturer.value : "",
             client_name: selectedEquipmentClient,
-        };
-
-        setEquipmentAppliedFilters(equipmentFilters);
-
-        buildUrlParams(params, "equipments", 1, equipmentFilters);
-        router.push(`?${params.toString()}`);
-    };
+        }),
+    });
 
     const handleClearEquipmentFilters = () => {
-        const params = new URLSearchParams();
-
         setSelectedEquipmentModality({ id: 0, value: "Todos" });
         setSelectedEquipmentManufacturer({ id: 0, value: "Todos" });
         setSelectedEquipmentClient("");
@@ -232,7 +229,12 @@ function SearchPage() {
             client_name: "",
         });
 
-        buildUrlParams(params, "equipments", 1, {});
+        const params = buildStandardUrlParams({
+            tabName: "equipments",
+            pageKey: "equipment_page",
+            page: 1,
+            filters: {},
+        });
         router.push(`?${params.toString()}`);
     };
 
@@ -260,19 +262,19 @@ function SearchPage() {
     // restore filters from URL
     useEffect(() => {
         const params = new URLSearchParams(searchParams);
-        const clientName = params.get("name") || "";
-        const clientCNPJ = params.get("cnpj") || "";
-        const clientCity = params.get("city") || "";
-        const role = params.get("user_role");
-        const clientContractType = params.get("contract_type");
-        const operationStatus = params.get("operation_status");
+        const clientName = params.get("clients_name") || "";
+        const clientCNPJ = params.get("clients_cnpj") || "";
+        const clientCity = params.get("clients_city") || "";
+        const role = params.get("clients_user_role");
+        const clientContractType = params.get("clients_contract_type");
+        const operationStatus = params.get("clients_operation_status");
 
         const clientPageParam = params.get("client_page");
         const tabParam = params.get("tab");
 
-        const equipmentModalityId = params.get("modality");
-        const equipmentManufacturer = params.get("manufacturer") || "";
-        const equipmentClientName = params.get("client_name") || "";
+        const equipmentModalityId = params.get("equipments_modality");
+        const equipmentManufacturer = params.get("equipments_manufacturer") || "";
+        const equipmentClientName = params.get("equipments_client_name") || "";
         const equipmentPageParam = params.get("equipment_page");
 
         restoreTabState(tabParam, setSelectedTabIndex);

@@ -1,7 +1,6 @@
-import { SearchTab } from "./enums";
+import { SearchTab, getTabFromParam } from "./enums";
 import { SelectData } from "@/components/forms/Select";
 import { USER_ROLE_MAP, CONTRACT_TYPE_MAP, OPERATION_STATUS_MAP } from "./constants";
-import { getTabFromParam } from "./url";
 import { ModalityDTO } from "@/redux/features/modalityApiSlice";
 
 export const restoreTabState = (
