@@ -635,6 +635,7 @@ function SearchPage() {
                                     setSelect={setSelectedEquipmentModality}
                                     label="Modalidade"
                                     dataTestId="filter-equipment-modality"
+                                    disabled={modalitiesLoading}
                                 />
 
                                 <Select
@@ -651,6 +652,7 @@ function SearchPage() {
                                     setSelect={setSelectedEquipmentManufacturer}
                                     label="Fabricante"
                                     dataTestId="filter-equipment-manufacturer"
+                                    disabled={manufacturersLoading}
                                 />
 
                                 <Input
@@ -688,6 +690,13 @@ function SearchPage() {
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
+
+                                {equipmentsError && (
+                                    <ErrorDisplay
+                                        title="Erro ao carregar equipamentos"
+                                        message="Ocorreu um erro ao carregar os dados dos equipamentos. Tente novamente mais tarde."
+                                    />
+                                )}
 
                                 {equipments.length === 0 && !equipmentsLoading ? (
                                     <div className="text-center py-8">
