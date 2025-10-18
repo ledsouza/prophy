@@ -168,7 +168,7 @@ class ProposalViewSet(PaginatedViewSet):
         operation_summary="List proposals with CNPJ filtering",
         operation_description="""
         Retrieve a paginated list of proposals, optionally filtered by CNPJ.
-        Only accessible by PROPHY_MANAGER users.
+        Accessible by PROPHY_MANAGER and COMMERCIAL users.
 
         ```json
         {
@@ -202,12 +202,15 @@ class ProposalViewSet(PaginatedViewSet):
                 schema=ProposalSerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def list(self, request):
         user: UserAccount = request.user
-        if not user.role == UserAccount.Role.PROPHY_MANAGER:
+        if user.role not in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]:
             return Response(
                 {"detail": "You do not have permission to perform this action."},
                 status=status.HTTP_403_FORBIDDEN,
@@ -222,6 +225,51 @@ class ProposalViewSet(PaginatedViewSet):
         Get base queryset for proposals.
         """
         return Proposal.objects.all()
+
+    @swagger_auto_schema(
+        operation_summary="Create a new proposal",
+        operation_description="""
+        Create a new proposal instance with the provided data.
+        Only PROPHY_MANAGER and COMMERCIAL users can create proposals.
+        """,
+        request_body=ProposalSerializer,
+        responses={
+            201: openapi.Response(
+                description="Proposal created successfully",
+                schema=ProposalSerializer,
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details",
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def create(self, request: Request) -> Response:
+        user: UserAccount = request.user
+        if user.role not in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]:
+            return Response(
+                {"detail": "You do not have permission to create proposals."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ProposalSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def _apply_filters(self, queryset, query_params):
         """
