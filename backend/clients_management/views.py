@@ -165,9 +165,9 @@ class ProposalViewSet(PaginatedViewSet):
     """
 
     @swagger_auto_schema(
-        operation_summary="List proposals with CNPJ filtering",
+        operation_summary="List proposals with filtering",
         operation_description="""
-        Retrieve a paginated list of proposals, optionally filtered by CNPJ.
+        Retrieve a paginated list of proposals with optional filtering.
         Accessible by PROPHY_MANAGER and COMMERCIAL users.
 
         ```json
@@ -181,6 +181,7 @@ class ProposalViewSet(PaginatedViewSet):
                     "cnpj": "12345678000190",
                     "contact_name": "John Doe",
                     "status": "P",
+                    "contract_type": "A",
                     // ... other proposal fields
                 },
                 // ... more proposals on this page
@@ -194,7 +195,25 @@ class ProposalViewSet(PaginatedViewSet):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 description="Filter proposals by CNPJ.",
-            )
+            ),
+            openapi.Parameter(
+                name="contact_name",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter proposals by contact name (case-insensitive contains).",
+            ),
+            openapi.Parameter(
+                name="contract_type",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter by contract type. Options: A (Annual), M (Monthly), W (Weekly)",
+            ),
+            openapi.Parameter(
+                name="status",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter by proposal status. Options: A (Accepted), R (Rejected), P (Pending)",
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -278,6 +297,19 @@ class ProposalViewSet(PaginatedViewSet):
         cnpj = query_params.get("cnpj")
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
+
+        contact_name = query_params.get("contact_name")
+        if contact_name is not None:
+            queryset = queryset.filter(contact_name__icontains=contact_name)
+
+        contract_type = query_params.get("contract_type")
+        if contract_type is not None:
+            queryset = queryset.filter(contract_type=contract_type)
+
+        status = query_params.get("status")
+        if status is not None:
+            queryset = queryset.filter(status=status)
+
         return queryset
 
 

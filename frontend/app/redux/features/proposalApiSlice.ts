@@ -1,7 +1,7 @@
 import { ContractType, ProposalStatus } from "@/enums";
 import { apiSlice, ListQueryParams, PaginatedResponse } from "../services/apiSlice";
 
-export interface ProposalDTO {
+export type ProposalDTO = {
     id: number;
     cnpj: string;
     state: string;
@@ -13,19 +13,31 @@ export interface ProposalDTO {
     value: string; // Decimal as string
     contract_type: ContractType;
     status: ProposalStatus;
-}
+};
 
 type ListProposalsParams = ListQueryParams & {
     cnpj?: string;
+    contact_name?: string;
+    contract_type?: string;
+    status?: string;
 };
 
 const proposalApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         listProposals: builder.query<PaginatedResponse<ProposalDTO>, ListProposalsParams>({
-            query: ({ page = 1, cnpj }) => {
+            query: ({ page = 1, cnpj, contact_name, contract_type, status }) => {
                 const params: Record<string, any> = { page };
                 if (cnpj) {
                     params.cnpj = cnpj;
+                }
+                if (contact_name) {
+                    params.contact_name = contact_name;
+                }
+                if (contract_type) {
+                    params.contract_type = contract_type;
+                }
+                if (status) {
+                    params.status = status;
                 }
 
                 return {
