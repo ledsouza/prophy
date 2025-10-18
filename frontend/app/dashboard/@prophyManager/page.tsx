@@ -14,29 +14,30 @@ import {
     usePageNavigation,
     useFilterApplication,
     useFilterClear,
+    useFilterRestoration,
 } from "@/hooks";
 import { buildStandardUrlParams } from "@/utils/url-params";
 import { ClientDTO } from "@/redux/features/clientApiSlice";
 import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
 import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
+import { restoreTextFilterStates, restoreSelectFilterStates } from "@/utils/filter-restoration";
 
 import { Button, ErrorDisplay, Pagination, Spinner, Tab, Table } from "@/components/common";
 import { Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
-import { SearchTab } from "./enums";
+import { SearchTab, getTabFromParam } from "./enums";
 import { useSearchQueries } from "./hooks";
 import {
     getContractTypeFromOptionId,
     getOperationStatusFromOptionId,
     getUserRoleFromOptionId,
+    getContractTypeOptionIdFromValue,
+    getOperationStatusOptionIdFromValue,
+    getUserRoleOptionIdFromValue,
     restoreManufacturerFilterState,
     restoreModalityFilterState,
-    restorePageState,
-    restoreSelectFilterStates,
-    restoreTabState,
-    restoreTextFilterStates,
 } from "./state";
 import { ClientFilters, EquipmentFilters } from "./types";
 
@@ -250,64 +251,90 @@ function SearchPage() {
         router.push(`/dashboard/client/${cnpj}`);
     };
 
-    // restore filters from URL
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams);
-        const clientName = params.get("clients_name") || "";
-        const clientCNPJ = params.get("clients_cnpj") || "";
-        const clientCity = params.get("clients_city") || "";
-        const role = params.get("clients_user_role");
-        const clientContractType = params.get("clients_contract_type");
-        const operationStatus = params.get("clients_operation_status");
+    useFilterRestoration({
+        searchParams,
+        setSelectedTabIndex,
+        getTabFromParam,
+        tabs: {
+            [SearchTab.CLIENTS]: {
+                pageParam: "client_page",
+                currentPage: clientCurrentPage,
+                setCurrentPage: setClientCurrentPage,
+                restoreFilters: (params) => {
+                    const clientName = params.get("clients_name") || "";
+                    const clientCNPJ = params.get("clients_cnpj") || "";
+                    const clientCity = params.get("clients_city") || "";
+                    const role = params.get("clients_user_role");
+                    const clientContractType = params.get("clients_contract_type");
+                    const operationStatus = params.get("clients_operation_status");
 
-        const clientPageParam = params.get("client_page");
-        const tabParam = params.get("tab");
+                    restoreTextFilterStates(clientName, setSelectedClientName);
+                    restoreTextFilterStates(clientCNPJ, setSelectedClientCNPJ);
+                    restoreTextFilterStates(clientCity, setSelectedClientCity);
 
-        const equipmentModalityId = params.get("equipments_modality");
-        const equipmentManufacturer = params.get("equipments_manufacturer") || "";
-        const equipmentClientName = params.get("equipments_client_name") || "";
-        const equipmentPageParam = params.get("equipment_page");
+                    const roleOptionId = getUserRoleOptionIdFromValue(role);
+                    const contractTypeOptionId =
+                        getContractTypeOptionIdFromValue(clientContractType);
+                    const operationStatusOptionId =
+                        getOperationStatusOptionIdFromValue(operationStatus);
 
-        restoreTabState(tabParam, setSelectedTabIndex);
+                    restoreSelectFilterStates(
+                        roleOptionId.toString(),
+                        USER_ROLE_OPTIONS,
+                        setSelectedUserRole
+                    );
+                    restoreSelectFilterStates(
+                        contractTypeOptionId.toString(),
+                        CONTRACT_TYPE_OPTIONS,
+                        setSelectedContractType
+                    );
+                    restoreSelectFilterStates(
+                        operationStatusOptionId.toString(),
+                        OPERATION_STATUS_OPTIONS,
+                        setSelectedOperationStatus
+                    );
+                },
+                setAppliedFilters: setClientAppliedFilters,
+                buildAppliedFilters: (params) => ({
+                    name: params.get("clients_name") || "",
+                    cnpj: params.get("clients_cnpj") || "",
+                    city: params.get("clients_city") || "",
+                    user_role: params.get("clients_user_role") || "",
+                    contract_type: params.get("clients_contract_type") || "",
+                    operation_status: params.get("clients_operation_status") || "",
+                }),
+            },
+            [SearchTab.EQUIPMENTS]: {
+                pageParam: "equipment_page",
+                currentPage: equipmentCurrentPage,
+                setCurrentPage: setEquipmentCurrentPage,
+                restoreFilters: (params) => {
+                    const equipmentModalityId = params.get("equipments_modality");
+                    const equipmentManufacturer = params.get("equipments_manufacturer") || "";
+                    const equipmentClientName = params.get("equipments_client_name") || "";
 
-        restorePageState(clientPageParam, clientCurrentPage, setClientCurrentPage);
-        restoreTextFilterStates(clientName, setSelectedClientName);
-        restoreTextFilterStates(clientCNPJ, setSelectedClientCNPJ);
-        restoreTextFilterStates(clientCity, setSelectedClientCity);
-        restoreSelectFilterStates(role, USER_ROLE_OPTIONS, setSelectedUserRole);
-        restoreSelectFilterStates(
-            clientContractType,
-            CONTRACT_TYPE_OPTIONS,
-            setSelectedContractType
-        );
-        restoreSelectFilterStates(
-            operationStatus,
-            OPERATION_STATUS_OPTIONS,
-            setSelectedOperationStatus
-        );
-        setClientAppliedFilters({
-            name: clientName,
-            cnpj: clientCNPJ,
-            city: clientCity,
-            user_role: role || "",
-            contract_type: clientContractType || "",
-            operation_status: operationStatus || "",
-        });
-
-        restorePageState(equipmentPageParam, equipmentCurrentPage, setEquipmentCurrentPage);
-        setEquipmentAppliedFilters({
-            modality: equipmentModalityId || "",
-            manufacturer: equipmentManufacturer,
-            client_name: equipmentClientName,
-        });
-        restoreTextFilterStates(equipmentClientName, setSelectedEquipmentClient);
-        restoreManufacturerFilterState(
-            equipmentManufacturer,
-            manufacturers,
-            setSelectedEquipmentManufacturer
-        );
-        restoreModalityFilterState(equipmentModalityId, modalities, setSelectedEquipmentModality);
-    }, [searchParams, modalities, manufacturers]);
+                    restoreTextFilterStates(equipmentClientName, setSelectedEquipmentClient);
+                    restoreManufacturerFilterState(
+                        equipmentManufacturer,
+                        manufacturers,
+                        setSelectedEquipmentManufacturer
+                    );
+                    restoreModalityFilterState(
+                        equipmentModalityId,
+                        modalities,
+                        setSelectedEquipmentModality
+                    );
+                },
+                setAppliedFilters: setEquipmentAppliedFilters,
+                buildAppliedFilters: (params) => ({
+                    modality: params.get("equipments_modality") || "",
+                    manufacturer: params.get("equipments_manufacturer") || "",
+                    client_name: params.get("equipments_client_name") || "",
+                }),
+            },
+        },
+        dependencies: [modalities, manufacturers],
+    });
 
     if (clientsLoading) {
         return <Spinner fullscreen />;

@@ -1,48 +1,13 @@
-import { SearchTab, getTabFromParam } from "./enums";
 import { SelectData } from "@/components/forms/Select";
 import { USER_ROLE_MAP, CONTRACT_TYPE_MAP, OPERATION_STATUS_MAP } from "./constants";
 import { ModalityDTO } from "@/redux/features/modalityApiSlice";
 
-export const restoreTabState = (
-    tabParam: string | null,
-    setSelectedTabIndex: (index: SearchTab) => void
-) => {
-    setSelectedTabIndex(getTabFromParam(tabParam));
-};
-
-export const restorePageState = (
-    pageParam: string | null,
-    currentPage: number,
-    setCurrentPage: (page: number) => void
-) => {
-    if (pageParam) {
-        const page = parseInt(pageParam, 10);
-        if (page > 0 && page !== currentPage) {
-            setCurrentPage(page);
-        }
-    }
-};
-
-export const resetPageState = (currentPage: number, setCurrentPage: (page: number) => void) => {
-    if (currentPage !== 1) {
-        setCurrentPage(1);
-    }
-};
-
-export const restoreTextFilterStates = (state: string, setState: (state: string) => void) => {
-    if (state) {
-        setState(state);
-    }
-};
-
-export const restoreSelectFilterStates = (
-    id: string | null,
-    options: SelectData[],
-    setData: (options: SelectData) => void
-) => {
-    const selectedID = id ? options.find((option) => option.id === Number(id)) : null;
-    if (selectedID) setData(selectedID);
-};
+// Re-export shared utilities for convenience
+export {
+    resetPageState,
+    restoreTextFilterStates,
+    restoreSelectFilterStates,
+} from "@/utils/filter-restoration";
 
 export const getUserRoleFromOptionId = (optionId: number): string => {
     return USER_ROLE_MAP[optionId] || "";
@@ -54,6 +19,24 @@ export const getContractTypeFromOptionId = (optionId: number): string => {
 
 export const getOperationStatusFromOptionId = (optionId: number): string => {
     return OPERATION_STATUS_MAP[optionId] || "";
+};
+
+export const getUserRoleOptionIdFromValue = (value: string | null | undefined): number => {
+    if (!value) return 0;
+    const entry = Object.entries(USER_ROLE_MAP).find(([_, v]) => v === value);
+    return entry ? parseInt(entry[0], 10) : 0;
+};
+
+export const getContractTypeOptionIdFromValue = (value: string | null | undefined): number => {
+    if (!value) return 0;
+    const entry = Object.entries(CONTRACT_TYPE_MAP).find(([_, v]) => v === value);
+    return entry ? parseInt(entry[0], 10) : 0;
+};
+
+export const getOperationStatusOptionIdFromValue = (value: string | null | undefined): number => {
+    if (!value) return 0;
+    const entry = Object.entries(OPERATION_STATUS_MAP).find(([_, v]) => v === value);
+    return entry ? parseInt(entry[0], 10) : 0;
 };
 
 export const restoreManufacturerFilterState = (
