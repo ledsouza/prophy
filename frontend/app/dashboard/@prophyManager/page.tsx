@@ -8,7 +8,7 @@ import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
-import { usePendingOperations, useTabNavigation } from "@/hooks";
+import { usePendingOperations, useTabNavigation, usePageNavigation } from "@/hooks";
 import { ClientDTO } from "@/redux/features/clientApiSlice";
 import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
 import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
@@ -139,22 +139,19 @@ function SearchPage() {
         },
     });
 
-    const handleClientPageChange = (page: number) => {
-        const params = new URLSearchParams();
-        setClientCurrentPage(page);
-
-        const clientFilters = {
+    const { handlePageChange: handleClientPageChange } = usePageNavigation({
+        tabName: "clients",
+        pageKey: "client_page",
+        buildFilters: () => ({
             name: selectedClientName,
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
             user_role: getUserRoleFromOptionId(selectedUserRole.id),
             contract_type: getContractTypeFromOptionId(selectedContractType.id),
             operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
-        };
-
-        buildUrlParams(params, "clients", page, clientFilters);
-        router.push(`?${params.toString()}`);
-    };
+        }),
+        setCurrentPage: setClientCurrentPage,
+    });
 
     const handleApplyClientFilters = () => {
         const params = new URLSearchParams();
@@ -239,21 +236,18 @@ function SearchPage() {
         router.push(`?${params.toString()}`);
     };
 
-    const handleEquipmentPageChange = (page: number) => {
-        const params = new URLSearchParams();
-        setEquipmentCurrentPage(page);
-
-        const equipmentFilters = {
+    const { handlePageChange: handleEquipmentPageChange } = usePageNavigation({
+        tabName: "equipments",
+        pageKey: "equipment_page",
+        buildFilters: () => ({
             modality:
                 selectedEquipmentModality.id !== 0 ? selectedEquipmentModality.id.toString() : "",
             manufacturer:
                 selectedEquipmentManufacturer.id !== 0 ? selectedEquipmentManufacturer.value : "",
             client_name: selectedEquipmentClient,
-        };
-
-        buildUrlParams(params, "equipments", page, equipmentFilters);
-        router.push(`?${params.toString()}`);
-    };
+        }),
+        setCurrentPage: setEquipmentCurrentPage,
+    });
 
     const handleViewProposals = (cnpj: string) => {
         router.push(`/dashboard/proposals?cnpj=${cnpj}`);
