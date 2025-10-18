@@ -1,4 +1,5 @@
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
+import { ContractType, ProposalStatus } from "@/enums";
 
 export function formatPhoneNumber(phone?: string): string | undefined {
     if (!phone) return undefined;
@@ -35,5 +36,54 @@ export const displayPluralAccessoryType = (type: AccessoryType) => {
             return "Transdutores";
         default:
             throw new Error("Tipo de acessório inválido.");
+    }
+};
+
+export const getStatusDisplay = (status: string) => {
+    switch (status) {
+        case ProposalStatus.ACCEPTED:
+            return { text: "Aceito", color: "text-success bg-success/10" };
+        case ProposalStatus.REJECTED:
+            return { text: "Rejeitado", color: "text-danger bg-danger/10" };
+        case ProposalStatus.PENDING:
+            return { text: "Pendente", color: "text-warning bg-warning/10" };
+        default:
+            return { text: "Desconhecido", color: "text-gray-secondary bg-gray-100" };
+    }
+};
+
+export const getContractTypeDisplay = (contractType: string) => {
+    switch (contractType) {
+        case ContractType.ANNUAL:
+            return "Anual";
+        case ContractType.MONTHLY:
+            return "Mensal";
+        case ContractType.WEEKLY:
+            return "Semanal";
+        default:
+            return contractType;
+    }
+};
+
+export const formatCurrency = (value: string): string => {
+    const numericValue = parseFloat(value);
+    if (isNaN(numericValue)) return "R$ 0,00";
+
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    }).format(numericValue);
+};
+
+export const formatDate = (dateString: string): string => {
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+    } catch {
+        return dateString;
     }
 };
