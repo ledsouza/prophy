@@ -26,7 +26,7 @@ export const buildStandardUrlParams = (config: UrlParamConfig): URLSearchParams 
     params.set(config.pageKey, String(config.page));
 
     Object.entries(config.filters).forEach(([key, value]) => {
-        if (value && value !== "" && value !== "Todos" && value !== 0) {
+        if (value && value !== "" && value !== "Todos" && value !== "0") {
             params.set(`${prefix}_${key}`, String(value));
         }
     });
