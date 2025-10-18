@@ -83,13 +83,24 @@ const EditClientForm = ({
 
     const isDataUnchanged = (
         editData: Omit<EditClientFields, "note">,
-        client: Omit<ClientDTO, "users" | "id">
+        client: Omit<ClientDTO, "users" | "id" | "active">
     ): boolean => {
-        return Object.keys(editData).every(
-            (key) =>
-                editData[key as keyof Omit<EditClientFields, "note">].toLowerCase() ===
-                client[key as keyof Omit<ClientDTO, "users" | "id">].toLowerCase()
-        );
+        return Object.keys(editData).every((key) => {
+            const editValue = editData[key as keyof Omit<EditClientFields, "note">];
+            const clientValue = client[key as keyof Omit<ClientDTO, "users" | "id" | "active">];
+
+            // Handle boolean values (active field)
+            if (typeof editValue === "boolean" && typeof clientValue === "boolean") {
+                return editValue === clientValue;
+            }
+
+            // Handle string values
+            if (typeof editValue === "string" && typeof clientValue === "string") {
+                return editValue.toLowerCase() === clientValue.toLowerCase();
+            }
+
+            return editValue === clientValue;
+        });
     };
 
     const onSubmit: SubmitHandler<EditClientFields> = async (editData) => {
@@ -107,12 +118,7 @@ const EditClientForm = ({
                   })
                 : await editClient({
                       clientID: client.id,
-                      clientData: {
-                          ...editData,
-                          operation_status: isRejected
-                              ? OperationStatus.REJECTED
-                              : OperationStatus.ACCEPTED,
-                      },
+                      clientData: editData,
                   });
 
             if (response.error) {

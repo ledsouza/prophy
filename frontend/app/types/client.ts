@@ -21,7 +21,7 @@ export type ClientDTO = {
     address: string;
     state: string;
     city: string;
-    status: string;
+    active: boolean;
     users: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
 };
 
@@ -72,6 +72,13 @@ export type CreateClientPayload = ClientBase;
 export type UpdateClientPayload = Partial<
     Omit<
         ClientOperationDTO,
-        "id" | "users" | "status" | "operation_type" | "cnpj" | "note" | "original_client"
+        | "id"
+        | "users"
+        | "active"
+        | "operation_type"
+        | "operation_status"
+        | "cnpj"
+        | "note"
+        | "original_client"
     >
 >;

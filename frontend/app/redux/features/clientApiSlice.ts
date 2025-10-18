@@ -146,7 +146,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "status" | "operation_type" | "operation_status"
+                "id" | "users" | "active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -166,7 +166,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "status" | "operation_type" | "operation_status"
+                "id" | "users" | "active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -207,7 +207,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "status" | "operation_type" | "operation_status"
+                "id" | "users" | "active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
