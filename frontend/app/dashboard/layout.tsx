@@ -11,6 +11,7 @@ type DashboardLayoutProps = {
     externalMedicalPhysicist: React.ReactNode;
     unitManager: React.ReactNode;
     prophyManager: React.ReactNode;
+    commercial: React.ReactNode;
 };
 
 export default function DashboardLayout({
@@ -20,6 +21,7 @@ export default function DashboardLayout({
     externalMedicalPhysicist,
     unitManager,
     prophyManager,
+    commercial,
 }: DashboardLayoutProps) {
     const { userData, isLoading } = useRequireAuth();
 
@@ -49,6 +51,10 @@ export default function DashboardLayout({
 
     if (userData?.role === "GP") {
         return <>{prophyManager}</>;
+    }
+
+    if (userData?.role === "C") {
+        return <>{commercial}</>;
     }
 
     return <>{children}</>;
