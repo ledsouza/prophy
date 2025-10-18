@@ -10,3 +10,4 @@ export { useReportTypeSelect } from "./use-report-type-select";
 export { useTabNavigation } from "./use-tab-navigation";
 export { usePageNavigation } from "./use-page-navigation";
 export { useFilterApplication } from "./use-filter-application";
+export { useFilterClear } from "./use-filter-clear";

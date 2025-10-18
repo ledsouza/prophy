@@ -13,6 +13,7 @@ import {
     useTabNavigation,
     usePageNavigation,
     useFilterApplication,
+    useFilterClear,
 } from "@/hooks";
 import { buildStandardUrlParams } from "@/utils/url-params";
 import { ClientDTO } from "@/redux/features/clientApiSlice";
@@ -173,33 +174,28 @@ function SearchPage() {
         }),
     });
 
-    const handleClearClientFilters = () => {
-        setSelectedClientName("");
-        setSelectedClientCNPJ("");
-        setSelectedClientCity("");
-        setSelectedUserRole({ id: 0, value: "Todos" });
-        setSelectedContractType({ id: 0, value: "Todos" });
-        setSelectedOperationStatus({ id: 0, value: "Todos" });
-
-        setClientCurrentPage(1);
-
-        setClientAppliedFilters({
+    const { handleClearFilters: handleClearClientFilters } = useFilterClear({
+        tabName: "clients",
+        pageKey: "client_page",
+        setCurrentPage: setClientCurrentPage,
+        setAppliedFilters: setClientAppliedFilters,
+        resetFilters: () => {
+            setSelectedClientName("");
+            setSelectedClientCNPJ("");
+            setSelectedClientCity("");
+            setSelectedUserRole({ id: 0, value: "Todos" });
+            setSelectedContractType({ id: 0, value: "Todos" });
+            setSelectedOperationStatus({ id: 0, value: "Todos" });
+        },
+        emptyFilters: {
             name: "",
             cnpj: "",
             city: "",
             user_role: "",
             contract_type: "",
             operation_status: "",
-        });
-
-        const params = buildStandardUrlParams({
-            tabName: "clients",
-            pageKey: "client_page",
-            page: 1,
-            filters: {},
-        });
-        router.push(`?${params.toString()}`);
-    };
+        },
+    });
 
     const { handleApplyFilters: handleApplyEquipmentFilters } = useFilterApplication({
         tabName: "equipments",
@@ -216,27 +212,22 @@ function SearchPage() {
         }),
     });
 
-    const handleClearEquipmentFilters = () => {
-        setSelectedEquipmentModality({ id: 0, value: "Todos" });
-        setSelectedEquipmentManufacturer({ id: 0, value: "Todos" });
-        setSelectedEquipmentClient("");
-
-        setEquipmentCurrentPage(1);
-
-        setEquipmentAppliedFilters({
+    const { handleClearFilters: handleClearEquipmentFilters } = useFilterClear({
+        tabName: "equipments",
+        pageKey: "equipment_page",
+        setCurrentPage: setEquipmentCurrentPage,
+        setAppliedFilters: setEquipmentAppliedFilters,
+        resetFilters: () => {
+            setSelectedEquipmentModality({ id: 0, value: "Todos" });
+            setSelectedEquipmentManufacturer({ id: 0, value: "Todos" });
+            setSelectedEquipmentClient("");
+        },
+        emptyFilters: {
             modality: "",
             manufacturer: "",
             client_name: "",
-        });
-
-        const params = buildStandardUrlParams({
-            tabName: "equipments",
-            pageKey: "equipment_page",
-            page: 1,
-            filters: {},
-        });
-        router.push(`?${params.toString()}`);
-    };
+        },
+    });
 
     const { handlePageChange: handleEquipmentPageChange } = usePageNavigation({
         tabName: "equipments",
