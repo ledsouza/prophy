@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 
-import {
-    ClientDTO,
-    useListAllClientsQuery,
-} from "@/redux/features/clientApiSlice";
+import { useListAllClientsQuery } from "@/redux/features/clientApiSlice";
+import type { ClientDTO } from "@/types/client";
 import { UnitDTO, useListAllUnitsQuery } from "@/redux/features/unitApiSlice";
 
 import { SelectData } from "@/components/forms/Select";
@@ -12,12 +10,8 @@ import { useListAllEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 
 export function useClientDataLoading() {
     const [clientOptions, setClientOptions] = useState<SelectData[]>([]);
-    const [selectedClient, setSelectedClient] = useState<SelectData | null>(
-        null
-    );
-    const [filteredClient, setFilteredClient] = useState<ClientDTO | null>(
-        null
-    );
+    const [selectedClient, setSelectedClient] = useState<SelectData | null>(null);
+    const [filteredClient, setFilteredClient] = useState<ClientDTO | null>(null);
     const [filteredUnits, setFilteredUnits] = useState<UnitDTO[]>([]);
 
     const {
@@ -26,11 +20,7 @@ export function useClientDataLoading() {
         error: errorClients,
     } = useListAllClientsQuery();
 
-    const {
-        data: units,
-        isLoading: isPaginatingUnits,
-        error: errorUnits,
-    } = useListAllUnitsQuery();
+    const { data: units, isLoading: isPaginatingUnits, error: errorUnits } = useListAllUnitsQuery();
 
     const {
         data: equipments,
@@ -43,15 +33,12 @@ export function useClientDataLoading() {
         const errors = {
             clients: errorClients && "Erro ao carregar dados do cliente.",
             units: errorUnits && "Erro ao carregar dados das unidades.",
-            equipments:
-                errorEquipments && "Erro ao carregar dados dos equipamentos.",
+            equipments: errorEquipments && "Erro ao carregar dados dos equipamentos.",
         };
 
         Object.entries(errors).forEach(([key, message]) => {
             if (message) {
-                toast.error(
-                    `${message} Por favor, tente novamente mais tarde.`
-                );
+                toast.error(`${message} Por favor, tente novamente mais tarde.`);
             }
         });
     }, [errorClients, errorUnits, errorEquipments]);
@@ -77,9 +64,7 @@ export function useClientDataLoading() {
         // It only runs when all data is ready.
         if (isPaginatingClients || !selectedClient) return;
 
-        const newFilteredClient = clients?.find(
-            (client) => client.id === selectedClient?.id
-        );
+        const newFilteredClient = clients?.find((client) => client.id === selectedClient?.id);
 
         if (newFilteredClient) {
             setFilteredClient(newFilteredClient);
@@ -91,16 +76,11 @@ export function useClientDataLoading() {
         // It only runs when all data is ready.
         if (isPaginatingUnits || !selectedClient) return;
 
-        setFilteredUnits(
-            units
-                ? units.filter((unit) => unit.client === selectedClient?.id)
-                : []
-        );
+        setFilteredUnits(units ? units.filter((unit) => unit.client === selectedClient?.id) : []);
     }, [selectedClient, isPaginatingUnits, units]);
 
     return {
-        isLoading:
-            isPaginatingClients || isPaginatingUnits || isPaginatingEquipments,
+        isLoading: isPaginatingClients || isPaginatingUnits || isPaginatingEquipments,
         hasNoData: clients?.length === 0,
         clientOptions,
         selectedClient,

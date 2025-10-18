@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { ClientDTO, useListClientsQuery } from "@/redux/features/clientApiSlice";
+import { useListClientsQuery } from "@/redux/features/clientApiSlice";
+import type { ClientDTO } from "@/types/client";
 import { EquipmentDTO, useListEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 import { PaginatedResponse } from "@/redux/services/apiSlice";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";

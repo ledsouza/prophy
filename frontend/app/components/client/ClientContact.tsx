@@ -1,4 +1,4 @@
-import { ClientDTO } from "@/redux/features/clientApiSlice";
+import type { ClientDTO } from "@/types/client";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 import { getUserByRole } from "@/utils/api";

@@ -17,7 +17,7 @@ import {
     useFilterRestoration,
 } from "@/hooks";
 import { buildStandardUrlParams } from "@/utils/url-params";
-import { ClientDTO } from "@/redux/features/clientApiSlice";
+import type { ClientDTO } from "@/types/client";
 import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
 import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
 import { restoreTextFilterStates, restoreSelectFilterStates } from "@/utils/filter-restoration";

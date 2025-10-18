@@ -5,11 +5,10 @@ import { toast } from "react-toastify";
 
 import { isResponseError } from "@/redux/services/helpers";
 import {
-    ClientDTO,
-    ClientOperationDTO,
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
+import type { ClientDTO, ClientOperationDTO } from "@/types/client";
 
 import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";

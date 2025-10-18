@@ -1,35 +1,13 @@
 import { OperationStatus, OperationType } from "@/enums";
-import { apiSlice, ListQueryParams, Operation, PaginatedResponse } from "../services/apiSlice";
-import { UserDTO } from "./authApiSlice";
-
-export type ClientDTO = {
-    id: number;
-    cnpj: string;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    state: string;
-    city: string;
-    status: string;
-    users: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
-};
-
-export type ClientOperationDTO = ClientDTO &
-    Operation & {
-        original_client?: number;
-    };
-
-type PutClientOperationDTO = Partial<
-    Omit<
-        ClientOperationDTO,
-        "id" | "users" | "status" | "operation_type" | "cnpj" | "note" | "original_client"
-    >
->;
-
-type Status = {
-    status: boolean;
-};
+import { apiSlice, ListQueryParams, PaginatedResponse } from "../services/apiSlice";
+import type {
+    ClientDTO,
+    ClientOperationDTO,
+    ListClientsArgs,
+    Status,
+    CreateClientPayload,
+    UpdateClientPayload,
+} from "@/types/client";
 
 const clientApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -250,7 +228,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             {
                 clientID: number;
-                clientData: PutClientOperationDTO;
+                clientData: UpdateClientPayload;
             }
         >({
             query: ({ clientID, clientData }) => ({

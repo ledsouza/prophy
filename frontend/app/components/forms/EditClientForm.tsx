@@ -11,10 +11,10 @@ import { clientSchema } from "@/schemas";
 import { OperationStatus } from "@/enums";
 
 import {
-    ClientDTO,
     useCreateEditClientOperationMutation,
     useEditClientMutation,
 } from "@/redux/features/clientApiSlice";
+import type { ClientDTO } from "@/types/client";
 import { isErrorWithMessages } from "@/redux/services/helpers";
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
