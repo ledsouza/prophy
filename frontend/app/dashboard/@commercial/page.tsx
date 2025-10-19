@@ -487,7 +487,7 @@ function SearchPage() {
                                                             `${client.address} - ${client.state}, ${client.city}`,
                                                     },
                                                     {
-                                                        header: "Status",
+                                                        header: "Situação",
                                                         cell: (client: ClientDTO) => {
                                                             const statusInfo = getStatusDisplay(
                                                                 client.active.toString()
@@ -746,7 +746,7 @@ function SearchPage() {
                                                             ),
                                                     },
                                                     {
-                                                        header: "Status",
+                                                        header: "Situação",
                                                         cell: (proposal: ProposalDTO) => {
                                                             const statusInfo = getStatusDisplay(
                                                                 proposal.status
