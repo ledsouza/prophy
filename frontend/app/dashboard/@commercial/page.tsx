@@ -418,7 +418,7 @@ function SearchPage() {
                                     options={CLIENT_STATUS_OPTIONS}
                                     selectedData={selectedClientStatus}
                                     setSelect={setSelectedClientStatus}
-                                    label="Status"
+                                    label="Situação"
                                     dataTestId="filter-client-status"
                                 />
                             </div>
@@ -650,7 +650,7 @@ function SearchPage() {
                                     options={PROPOSAL_STATUS_OPTIONS}
                                     selectedData={selectedProposalStatus}
                                     setSelect={setSelectedProposalStatus}
-                                    label="Status"
+                                    label="Situação"
                                     dataTestId="filter-proposal-status"
                                 />
                             </div>
