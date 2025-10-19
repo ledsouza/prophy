@@ -1,11 +1,9 @@
-import ClientStatus from "@/enums/ClientStatus";
-
 export type ClientFilters = {
     name: string;
     cnpj: string;
     city: string;
     contract_type: string;
-    status: ClientStatus | "";
+    is_active: string;
 };
 
 export type ProposalFilters = {

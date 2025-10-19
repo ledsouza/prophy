@@ -127,7 +127,7 @@ class Client(models.Model):
         "Estado da instituição", max_length=2, choices=STATE_CHOICES
     )
     city = models.CharField("Cidade da instituição", max_length=50)
-    active = models.BooleanField("Ativo", default=False)
+    is_active = models.BooleanField("Ativo", default=False)
 
     @admin.display(description="Responsáveis")
     def responsables(self):

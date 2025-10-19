@@ -374,7 +374,7 @@ class Command(BaseCommand):
                 "address": client_obj.address,
                 "state": client_obj.state,
                 "city": client_obj.city,
-                "active": client_obj.active,
+                "is_active": client_obj.is_active,
                 "id": client_obj.id,
             }
 
@@ -390,7 +390,7 @@ class Command(BaseCommand):
             address="Rua Ramiro Barcelos, 2350 Bloco A, Av. Protásio Alves, 211 - Bloco B e C - Santa Cecília",
             state="RS",
             city="Porto Alegre",
-            active=True,
+            is_active=True,
             id=1000,
         )
         client1.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -407,7 +407,7 @@ class Command(BaseCommand):
             address="Rua Professor Annes Dias, 295 - Centro Histórico",
             state="RS",
             city="Porto Alegre",
-            active=True,
+            is_active=True,
             id=1001,
         )
         client2.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -426,7 +426,7 @@ class Command(BaseCommand):
             address="Rua Domingos Rubbo, 20 - Cristo Redentor",
             state="RS",
             city="Porto Alegre",
-            active=True,
+            is_active=True,
             id=1002,
         )
         client_empty.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -442,7 +442,7 @@ class Command(BaseCommand):
             address="Av. Ipiranga, 6690 - Partenon",
             state="RS",
             city="Porto Alegre",
-            active=True,
+            is_active=True,
             id=1003,
         )
         client_with_comercial.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -462,7 +462,7 @@ class Command(BaseCommand):
                 address=fake.address(),
                 state=choice(STATE_CHOICES)[0],
                 city=fake.city(),
-                active=True,
+                is_active=True,
             )
             client.users.add(
                 choice(

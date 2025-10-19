@@ -37,7 +37,7 @@ export const useSearchQueries = ({
         if (clientAppliedFilters.city) params.city = clientAppliedFilters.city;
         if (clientAppliedFilters.contract_type)
             params.contract_type = clientAppliedFilters.contract_type;
-        if (clientAppliedFilters.status) params.status = clientAppliedFilters.status;
+        if (clientAppliedFilters.is_active) params.is_active = clientAppliedFilters.is_active;
 
         return params;
     }, [clientCurrentPage, clientAppliedFilters]);

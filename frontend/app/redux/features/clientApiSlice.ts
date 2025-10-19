@@ -35,18 +35,17 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 params: { cnpj, page },
             }),
         }),
-        listClients: builder.query<
-            PaginatedResponse<ClientDTO>,
-            ListQueryParams & {
-                cnpj?: string;
-                name?: string;
-                city?: string;
-                user_role?: string;
-                contract_type?: string;
-                operation_status?: string;
-            }
-        >({
-            query: ({ page = 1, cnpj, name, city, user_role, contract_type, operation_status }) => {
+        listClients: builder.query<PaginatedResponse<ClientDTO>, ListClientsArgs>({
+            query: ({
+                page = 1,
+                cnpj,
+                name,
+                city,
+                user_role,
+                contract_type,
+                operation_status,
+                is_active,
+            }) => {
                 const params: Record<string, any> = { page };
                 if (cnpj) params.cnpj = cnpj;
                 if (name) params.name = name;
@@ -54,6 +53,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 if (user_role) params.user_role = user_role;
                 if (contract_type) params.contract_type = contract_type;
                 if (operation_status) params.operation_status = operation_status;
+                if (is_active) params.is_active = is_active;
 
                 return {
                     url: "clients/",
@@ -146,7 +146,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "active" | "operation_type" | "operation_status"
+                "id" | "users" | "is_active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -166,7 +166,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "active" | "operation_type" | "operation_status"
+                "id" | "users" | "is_active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -207,7 +207,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "active" | "operation_type" | "operation_status"
+                "id" | "users" | "is_active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -245,13 +245,13 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientDTO,
             {
                 id: number;
-                active: boolean;
+                is_active: boolean;
             }
         >({
-            query: ({ id, active }) => ({
+            query: ({ id, is_active }) => ({
                 url: `clients/${id}/`,
                 method: "PATCH",
-                body: { active },
+                body: { is_active },
             }),
             invalidatesTags: (result, error, { id }) => [
                 { type: "Client", id },

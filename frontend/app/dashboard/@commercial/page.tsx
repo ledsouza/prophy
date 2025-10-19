@@ -65,7 +65,7 @@ function SearchPage() {
         cnpj: "",
         city: "",
         contract_type: "",
-        status: "",
+        is_active: "",
     });
 
     const [selectedClientName, setSelectedClientName] = useState("");
@@ -130,7 +130,7 @@ function SearchPage() {
                 cnpj: selectedClientCNPJ,
                 city: selectedClientCity,
                 contract_type: getContractTypeFromOptionId(selectedClientContractType.id),
-                status: getClientStatusFromOptionId(selectedClientStatus.id),
+                is_active: getClientStatusFromOptionId(selectedClientStatus.id),
             }),
         },
         [SearchTab.PROPOSALS]: {
@@ -154,7 +154,7 @@ function SearchPage() {
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
             contract_type: getContractTypeFromOptionId(selectedClientContractType.id),
-            status: getClientStatusFromOptionId(selectedClientStatus.id),
+            is_active: getClientStatusFromOptionId(selectedClientStatus.id),
         }),
         setCurrentPage: setClientCurrentPage,
     });
@@ -170,7 +170,7 @@ function SearchPage() {
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
             contract_type: getContractTypeFromOptionId(selectedClientContractType.id),
-            status: getClientStatusFromOptionId(selectedClientStatus.id) as ClientFilters["status"],
+            is_active: getClientStatusFromOptionId(selectedClientStatus.id),
         }),
     });
 
@@ -191,7 +191,7 @@ function SearchPage() {
             cnpj: "",
             city: "",
             contract_type: "",
-            status: "",
+            is_active: "",
         },
     });
 
@@ -259,7 +259,7 @@ function SearchPage() {
         try {
             await updateClient({
                 id: client.id,
-                active: !client.active,
+                is_active: !client.is_active,
             }).unwrap();
         } catch (error) {
             console.error("Failed to toggle client status:", error);
@@ -282,7 +282,7 @@ function SearchPage() {
                     const clientCNPJ = params.get("clients_cnpj") || "";
                     const clientCity = params.get("clients_city") || "";
                     const clientContractType = params.get("clients_contract_type");
-                    const clientStatus = params.get("clients_status");
+                    const clientStatus = params.get("clients_is_active");
 
                     restoreTextFilterStates(clientName, setSelectedClientName);
                     restoreTextFilterStates(clientCNPJ, setSelectedClientCNPJ);
@@ -309,7 +309,7 @@ function SearchPage() {
                     cnpj: params.get("clients_cnpj") || "",
                     city: params.get("clients_city") || "",
                     contract_type: params.get("clients_contract_type") || "",
-                    status: (params.get("clients_status") as ClientFilters["status"]) || "",
+                    is_active: params.get("clients_is_active") || "",
                 }),
             },
             [SearchTab.PROPOSALS]: {
@@ -490,7 +490,7 @@ function SearchPage() {
                                                         header: "Situação",
                                                         cell: (client: ClientDTO) => {
                                                             const statusInfo = getStatusDisplay(
-                                                                client.active.toString()
+                                                                client.is_active.toString()
                                                             );
                                                             return (
                                                                 <span
@@ -533,7 +533,7 @@ function SearchPage() {
 
                                                                 <Button
                                                                     variant={
-                                                                        client.active
+                                                                        client.is_active
                                                                             ? "danger"
                                                                             : "success"
                                                                     }
@@ -552,7 +552,7 @@ function SearchPage() {
                                                                     {togglingClientId ===
                                                                     client.id ? (
                                                                         <Spinner />
-                                                                    ) : client.active ? (
+                                                                    ) : client.is_active ? (
                                                                         <>
                                                                             <XCircle size={16} />
                                                                             Desativar

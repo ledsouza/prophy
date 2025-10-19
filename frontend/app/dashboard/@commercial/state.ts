@@ -1,5 +1,4 @@
 import { CLIENT_STATUS_MAP, CONTRACT_TYPE_MAP, PROPOSAL_STATUS_MAP } from "./constants";
-import ClientStatus from "@/enums/ClientStatus";
 
 // Re-export shared utilities for convenience
 export {
@@ -8,9 +7,12 @@ export {
     restoreSelectFilterStates,
 } from "@/utils/filter-restoration";
 
-export const getClientStatusFromOptionId = (optionId: number): ClientStatus | "" => {
-    const value = CLIENT_STATUS_MAP[optionId] || "";
-    return value as ClientStatus | "";
+export const getClientStatusFromOptionId = (optionId: number): string => {
+    return CLIENT_STATUS_MAP[optionId] || "";
+};
+
+export const getClientIsActiveFromOptionId = (optionId: number): string => {
+    return CLIENT_STATUS_MAP[optionId] || "";
 };
 
 export const getContractTypeFromOptionId = (optionId: number): string => {

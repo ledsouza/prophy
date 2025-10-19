@@ -74,7 +74,7 @@ class ClientOperationViewSet(viewsets.ViewSet):
             ).distinct()
             queryset = ClientOperation.objects.filter(
                 pk__in=client_ids_from_units,
-                active=True,
+                is_active=True,
                 operation_status__in=[
                     ClientOperation.OperationStatus.REVIEW,
                     ClientOperation.OperationStatus.REJECTED,
@@ -153,8 +153,7 @@ class ClientOperationViewSet(viewsets.ViewSet):
 
             try:
                 original_users = (
-                    ClientOperation.objects.get(
-                        id=request.data["original_client"])
+                    ClientOperation.objects.get(id=request.data["original_client"])
                     .users.all()
                     .values_list("id", flat=True)
                 )
@@ -400,8 +399,7 @@ class UnitOperationViewSet(viewsets.ViewSet):
                 {"detail": "Operação não encontrada."}, status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = UnitOperationSerializer(
-            operation, data=request.data, partial=True)
+        serializer = UnitOperationSerializer(operation, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

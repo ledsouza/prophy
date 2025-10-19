@@ -17,7 +17,7 @@ class ClientTest(TestCase):
             name="Test User",
             phone="11999999999",
             role=UserAccount.Role.CLIENT_GENERAL_MANAGER,
-            password="testpass123"
+            password="testpass123",
         )
         self.client = Client.objects.create(
             cnpj="12345678901234",
@@ -26,14 +26,14 @@ class ClientTest(TestCase):
             phone="1234567890",
             address="Test Address",
             state="SP",
-            city="Test City"
+            city="Test City",
         )
         self.client.users.add(self.user)
 
     def test_client_creation(self):
         self.assertEqual(self.client.name, "Test Client")
         self.assertEqual(self.client.users.first(), self.user)
-        self.assertFalse(self.client.active)
+        self.assertFalse(self.client.is_active)
 
     def test_client_str(self):
         self.assertEqual(str(self.client), "Test Client")
@@ -48,7 +48,7 @@ class UnitTest(TestCase):
             phone="1234567890",
             address="Test Address",
             state="SP",
-            city="Test City"
+            city="Test City",
         )
         self.unit = Unit.objects.create(
             client=self.client,
@@ -58,7 +58,7 @@ class UnitTest(TestCase):
             phone="1234567890",
             address="Test Address",
             state="SP",
-            city="Test City"
+            city="Test City",
         )
 
     def test_unit_creation(self):
@@ -72,8 +72,7 @@ class UnitTest(TestCase):
 class ModalityTest(TestCase):
     def setUp(self):
         self.modality = Modality.objects.create(
-            name="Test Modality",
-            accessory_type="D"
+            name="Test Modality", accessory_type="D"
         )
 
     def test_modality_creation(self):
@@ -90,7 +89,7 @@ class EquipmentTest(TestCase):
             phone="1234567890",
             address="Test Address",
             state="SP",
-            city="Test City"
+            city="Test City",
         )
         self.unit = Unit.objects.create(
             client=self.client,
@@ -100,15 +99,15 @@ class EquipmentTest(TestCase):
             phone="1234567890",
             address="Test Address",
             state="SP",
-            city="Test City"
+            city="Test City",
         )
         self.modality = Modality.objects.create(
-            name="Test Modality",
-            accessory_type="D"
+            name="Test Modality", accessory_type="D"
         )
 
         image = SimpleUploadedFile(
-            "test.jpg", b"file_content", content_type="image/jpeg")
+            "test.jpg", b"file_content", content_type="image/jpeg"
+        )
 
         self.equipment = Equipment.objects.create(
             unit=self.unit,
@@ -117,7 +116,7 @@ class EquipmentTest(TestCase):
             model="Test Model",
             series_number="123456",
             equipment_photo=image,
-            label_photo=image
+            label_photo=image,
         )
 
     def test_equipment_creation(self):
@@ -143,7 +142,7 @@ class ProposalTest(TestCase):
             email="contact@test.com",
             value=Decimal("1000.00"),
             contract_type="A",
-            status="P"
+            status="P",
         )
 
     def test_proposal_creation(self):
@@ -162,5 +161,6 @@ class ProposalTest(TestCase):
         self.assertEqual(str(self.proposal), expected)
 
     def test_proposal_month(self):
-        self.assertEqual(self.proposal.proposal_month(), _(
-            calendar.month_name[date.today().month]))
+        self.assertEqual(
+            self.proposal.proposal_month(), _(calendar.month_name[date.today().month])
+        )

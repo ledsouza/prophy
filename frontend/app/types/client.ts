@@ -21,7 +21,7 @@ export type ClientDTO = {
     address: string;
     state: string;
     city: string;
-    active: boolean;
+    is_active: boolean;
     users: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
 };
 
@@ -43,6 +43,7 @@ export type ListClientsArgs = ListQueryParams & {
     user_role?: string;
     contract_type?: string;
     operation_status?: string;
+    is_active?: string;
 };
 
 /**
@@ -74,7 +75,7 @@ export type UpdateClientPayload = Partial<
         ClientOperationDTO,
         | "id"
         | "users"
-        | "active"
+        | "is_active"
         | "operation_type"
         | "operation_status"
         | "cnpj"

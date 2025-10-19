@@ -427,6 +427,12 @@ class ClientViewSet(PaginatedViewSet):
                 type=openapi.TYPE_STRING,
                 description="Filter by operation status. Options: pending (has ongoing operations), none (no ongoing operations)",
             ),
+            openapi.Parameter(
+                name="is_active",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_BOOLEAN,
+                description="Filter clients by their active status. true for active clients, false for inactive clients.",
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -455,7 +461,7 @@ class ClientViewSet(PaginatedViewSet):
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             user_managed_unit_operations = UnitOperation.objects.filter(
                 user=user,
-                client__active=True,
+                client__is_active=True,
                 operation_status=UnitOperation.OperationStatus.ACCEPTED,
             )
             client_ids_from_units = user_managed_unit_operations.values_list(
@@ -500,6 +506,11 @@ class ClientViewSet(PaginatedViewSet):
         operation_status = query_params.get("operation_status")
         if operation_status is not None:
             queryset = self._filter_by_operation_status(queryset, operation_status)
+
+        is_active = query_params.get("is_active")
+        if is_active is not None:
+            is_active_bool = is_active.lower() == "true"
+            queryset = queryset.filter(is_active=is_active_bool)
 
         return queryset
 
