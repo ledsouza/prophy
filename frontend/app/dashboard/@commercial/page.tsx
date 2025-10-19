@@ -36,6 +36,7 @@ import { useUpdateClientMutation } from "@/redux/features/clientApiSlice";
 import {
     formatCurrency,
     formatDate,
+    formatPhoneNumber,
     getContractTypeDisplay,
     getStatusDisplay,
 } from "@/utils/format";
@@ -486,6 +487,7 @@ function SearchPage() {
                                                         header: "CNPJ",
                                                         cell: (client: ClientDTO) =>
                                                             cnpjMask(client.cnpj),
+                                                        width: "140px",
                                                     },
                                                     {
                                                         header: "Endereço",
@@ -735,11 +737,35 @@ function SearchPage() {
                                                         header: "CNPJ",
                                                         cell: (proposal: ProposalDTO) =>
                                                             cnpjMask(proposal.cnpj),
+                                                        width: "140px",
+                                                    },
+                                                    {
+                                                        header: "Estado",
+                                                        cell: (proposal: ProposalDTO) =>
+                                                            proposal.state,
+                                                    },
+                                                    {
+                                                        header: "Cidade",
+                                                        cell: (proposal: ProposalDTO) =>
+                                                            proposal.city,
                                                     },
                                                     {
                                                         header: "Contato",
                                                         cell: (proposal: ProposalDTO) =>
                                                             proposal.contact_name,
+                                                    },
+                                                    {
+                                                        header: "Telefone",
+                                                        cell: (proposal: ProposalDTO) =>
+                                                            formatPhoneNumber(
+                                                                proposal.contact_phone
+                                                            ) || "-",
+                                                        width: "150px",
+                                                    },
+                                                    {
+                                                        header: "E-mail",
+                                                        cell: (proposal: ProposalDTO) =>
+                                                            proposal.email,
                                                     },
                                                     {
                                                         header: "Valor",
