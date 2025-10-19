@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UnitDTO, UnitOperationDTO } from "./unitApiSlice";
 import { EquipmentDTO, EquipmentOperationDTO } from "./equipmentApiSlice";
 import { UserDTO } from "./authApiSlice";
+import { ProposalDTO } from "./proposalApiSlice";
 
 export enum Modals {
     EDIT_CLIENT = "EDIT_CLIENT",
@@ -26,6 +27,7 @@ export enum Modals {
     ADD_UNIT_MANAGER = "ADD_UNIT_MANAGER",
     REMOVE_UNIT_MANAGER = "REMOVE_UNIT_MANAGER",
     CREATE_PROPOSAL = "CREATE_PROPOSAL",
+    EDIT_PROPOSAL = "EDIT_PROPOSAL",
 }
 
 type ModalState = {
@@ -36,6 +38,7 @@ type ModalState = {
     selectedEquipment: EquipmentDTO | null;
     selectedEquipmentOperation: EquipmentOperationDTO | null;
     selectedUser: UserDTO | null;
+    selectedProposal: ProposalDTO | null;
 };
 
 const initialState: ModalState = {
@@ -46,6 +49,7 @@ const initialState: ModalState = {
     selectedEquipment: null,
     selectedEquipmentOperation: null,
     selectedUser: null,
+    selectedProposal: null,
 };
 
 /**
@@ -96,6 +100,9 @@ const modalSlice = createSlice({
         setUser(state, action: PayloadAction<UserDTO>) {
             state.selectedUser = action.payload;
         },
+        setProposal(state, action: PayloadAction<ProposalDTO>) {
+            state.selectedProposal = action.payload;
+        },
     },
 });
 
@@ -107,5 +114,6 @@ export const {
     setEquipment,
     setEquipmentOperation,
     setUser,
+    setProposal,
 } = modalSlice.actions;
 export default modalSlice.reducer;

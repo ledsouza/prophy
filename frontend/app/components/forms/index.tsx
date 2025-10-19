@@ -22,3 +22,4 @@ export { default as MultiSelect } from "./MultiSelect";
 export { default as AppointmentJustificationForm } from "./AppointmentJustificationForm";
 export { default as ReportForm } from "./ReportForm";
 export { default as CreateProposalForm } from "./CreateProposalForm";
+export { default as EditProposalForm } from "./EditProposalForm";

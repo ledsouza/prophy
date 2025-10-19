@@ -34,6 +34,8 @@ export type CreateProposalPayload = {
     contract_type: ContractType;
 };
 
+export type UpdateProposalPayload = Partial<CreateProposalPayload>;
+
 const proposalApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         listProposals: builder.query<PaginatedResponse<ProposalDTO>, ListProposalsParams>({
@@ -102,8 +104,23 @@ const proposalApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: "Proposal", id: "LIST" }],
         }),
+        updateProposal: builder.mutation<ProposalDTO, { id: number; data: UpdateProposalPayload }>({
+            query: ({ id, data }) => ({
+                url: `proposals/${id}/`,
+                method: "PATCH",
+                body: data,
+            }),
+            invalidatesTags: (result, error, { id }) => [
+                { type: "Proposal", id },
+                { type: "Proposal", id: "LIST" },
+            ],
+        }),
     }),
 });
 
-export const { useListProposalsQuery, useListAllProposalsQuery, useCreateProposalMutation } =
-    proposalApiSlice;
+export const {
+    useListProposalsQuery,
+    useListAllProposalsQuery,
+    useCreateProposalMutation,
+    useUpdateProposalMutation,
+} = proposalApiSlice;

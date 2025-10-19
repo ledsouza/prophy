@@ -1,7 +1,13 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { FileTextIcon, InfoIcon, CheckCircle, XCircle } from "@phosphor-icons/react";
+import {
+    CheckCircleIcon,
+    FileTextIcon,
+    InfoIcon,
+    PencilSimpleIcon,
+    XCircleIcon,
+} from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -15,17 +21,18 @@ import {
     usePageNavigation,
     useTabNavigation,
 } from "@/hooks";
-import type { ClientDTO } from "@/types/client";
 import { ProposalDTO } from "@/redux/features/proposalApiSlice";
+import type { ClientDTO } from "@/types/client";
 import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
 import { buildStandardUrlParams } from "@/utils/url-params";
 
-import { Button, ErrorDisplay, Pagination, Spinner, Tab, Table, Modal } from "@/components/common";
-import { Input, Select, CreateProposalForm } from "@/components/forms";
+import { Button, ErrorDisplay, Modal, Pagination, Spinner, Tab, Table } from "@/components/common";
+import { CreateProposalForm, EditProposalForm, Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Modals, openModal, closeModal } from "@/redux/features/modalSlice";
+import { Modals, closeModal, openModal, setProposal } from "@/redux/features/modalSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
+import { useUpdateClientMutation } from "@/redux/features/clientApiSlice";
 import {
     formatCurrency,
     formatDate,
@@ -44,14 +51,13 @@ import {
     getProposalStatusOptionIdFromValue,
 } from "./state";
 import { ClientFilters, ProposalFilters } from "./types";
-import { useUpdateClientMutation } from "@/redux/features/clientApiSlice";
 
 function SearchPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
 
-    const { isModalOpen, currentModal } = useAppSelector((state) => state.modal);
+    const { isModalOpen, currentModal, selectedProposal } = useAppSelector((state) => state.modal);
 
     const [selectedTabIndex, setSelectedTabIndex] = useState(SearchTab.CLIENTS);
     const [togglingClientId, setTogglingClientId] = useState<number | null>(null);
@@ -554,12 +560,14 @@ function SearchPage() {
                                                                         <Spinner />
                                                                     ) : client.is_active ? (
                                                                         <>
-                                                                            <XCircle size={16} />
+                                                                            <XCircleIcon
+                                                                                size={16}
+                                                                            />
                                                                             Desativar
                                                                         </>
                                                                     ) : (
                                                                         <>
-                                                                            <CheckCircle
+                                                                            <CheckCircleIcon
                                                                                 size={16}
                                                                             />
                                                                             Ativar
@@ -760,6 +768,31 @@ function SearchPage() {
                                                             );
                                                         },
                                                     },
+                                                    {
+                                                        header: "Ações",
+                                                        cell: (proposal: ProposalDTO) => (
+                                                            <div className="flex flex-col gap-2">
+                                                                <Button
+                                                                    variant="primary"
+                                                                    onClick={() => {
+                                                                        dispatch(
+                                                                            setProposal(proposal)
+                                                                        );
+                                                                        dispatch(
+                                                                            openModal(
+                                                                                Modals.EDIT_PROPOSAL
+                                                                            )
+                                                                        );
+                                                                    }}
+                                                                    className="flex items-center gap-2 text-xs"
+                                                                    data-testid={`edit-proposal-${proposal.id}`}
+                                                                >
+                                                                    <PencilSimpleIcon size={16} />
+                                                                    Editar
+                                                                </Button>
+                                                            </div>
+                                                        ),
+                                                    },
                                                 ]}
                                                 keyExtractor={(proposal: ProposalDTO) =>
                                                     proposal.id
@@ -822,6 +855,13 @@ function SearchPage() {
                     <CreateProposalForm
                         title="Criar Nova Proposta"
                         description="Preencha os dados abaixo para criar uma nova proposta comercial. Todos os campos são obrigatórios."
+                    />
+                )}
+                {currentModal === Modals.EDIT_PROPOSAL && selectedProposal && (
+                    <EditProposalForm
+                        title="Editar Proposta"
+                        description="Atualize os dados da proposta comercial abaixo."
+                        proposal={selectedProposal}
                     />
                 )}
             </Modal>

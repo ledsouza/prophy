@@ -312,6 +312,134 @@ class ProposalViewSet(PaginatedViewSet):
 
         return queryset
 
+    @swagger_auto_schema(
+        operation_summary="Update a proposal",
+        operation_description="""
+        Update an existing proposal instance with the provided data.
+        Only PROPHY_MANAGER and COMMERCIAL users can update proposals.
+        """,
+        request_body=ProposalSerializer,
+        responses={
+            200: openapi.Response(
+                description="Proposal updated successfully",
+                schema=ProposalSerializer,
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details",
+                        )
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Proposal not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def update(self, request: Request, pk: int | None = None) -> Response:
+        user: UserAccount = request.user
+        if user.role not in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]:
+            return Response(
+                {"detail": "You do not have permission to update proposals."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            proposal = Proposal.objects.get(pk=pk)
+        except Proposal.DoesNotExist:
+            return Response(
+                {"detail": "Proposta não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = ProposalSerializer(proposal, data=request.data, partial=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Partially update a proposal",
+        operation_description="""
+        Partially update fields of an existing proposal instance.
+        Only PROPHY_MANAGER and COMMERCIAL users can update proposals.
+        """,
+        request_body=ProposalSerializer,
+        responses={
+            200: openapi.Response(
+                description="Proposal updated successfully",
+                schema=ProposalSerializer,
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details",
+                        )
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Proposal not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def partial_update(self, request: Request, pk: int | None = None) -> Response:
+        user: UserAccount = request.user
+        if user.role not in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]:
+            return Response(
+                {"detail": "You do not have permission to update proposals."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            proposal = Proposal.objects.get(pk=pk)
+        except Proposal.DoesNotExist:
+            return Response(
+                {"detail": "Proposta não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = ProposalSerializer(proposal, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ClientStatusView(APIView):
     permission_classes = [AllowAny]
