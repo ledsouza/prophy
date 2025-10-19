@@ -22,6 +22,18 @@ type ListProposalsParams = ListQueryParams & {
     status?: string;
 };
 
+export type CreateProposalPayload = {
+    cnpj: string;
+    state: string;
+    city: string;
+    contact_name: string;
+    contact_phone: string;
+    email: string;
+    date: string;
+    value: string;
+    contract_type: ContractType;
+};
+
 const proposalApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         listProposals: builder.query<PaginatedResponse<ProposalDTO>, ListProposalsParams>({
@@ -82,7 +94,16 @@ const proposalApiSlice = apiSlice.injectEndpoints({
             },
             providesTags: [{ type: "Proposal", id: "LIST" }],
         }),
+        createProposal: builder.mutation<ProposalDTO, CreateProposalPayload>({
+            query: (data) => ({
+                url: "proposals/",
+                method: "POST",
+                body: data,
+            }),
+            invalidatesTags: [{ type: "Proposal", id: "LIST" }],
+        }),
     }),
 });
 
-export const { useListProposalsQuery, useListAllProposalsQuery } = proposalApiSlice;
+export const { useListProposalsQuery, useListAllProposalsQuery, useCreateProposalMutation } =
+    proposalApiSlice;

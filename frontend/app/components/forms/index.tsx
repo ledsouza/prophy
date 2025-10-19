@@ -21,3 +21,4 @@ export { default as AppointmentScheduleForm } from "./AppointmentScheduleForm";
 export { default as MultiSelect } from "./MultiSelect";
 export { default as AppointmentJustificationForm } from "./AppointmentJustificationForm";
 export { default as ReportForm } from "./ReportForm";
+export { default as CreateProposalForm } from "./CreateProposalForm";
