@@ -241,6 +241,23 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 { type: "Client", id: "LIST" },
             ],
         }),
+        updateClient: builder.mutation<
+            ClientDTO,
+            {
+                id: number;
+                active: boolean;
+            }
+        >({
+            query: ({ id, active }) => ({
+                url: `clients/${id}/`,
+                method: "PATCH",
+                body: { active },
+            }),
+            invalidatesTags: (result, error, { id }) => [
+                { type: "Client", id },
+                { type: "Client", id: "LIST" },
+            ],
+        }),
     }),
 });
 
@@ -258,4 +275,5 @@ export const {
     useCreateDeleteClientOperationMutation,
     useCreateClientMutation,
     useEditClientMutation,
+    useUpdateClientMutation,
 } = clientApiSlice;

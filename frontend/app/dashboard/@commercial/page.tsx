@@ -1,7 +1,7 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { FileTextIcon, InfoIcon } from "@phosphor-icons/react";
+import { FileTextIcon, InfoIcon, CheckCircle, XCircle } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -44,6 +44,7 @@ import {
     getProposalStatusOptionIdFromValue,
 } from "./state";
 import { ClientFilters, ProposalFilters } from "./types";
+import { useUpdateClientMutation } from "@/redux/features/clientApiSlice";
 
 function SearchPage() {
     const router = useRouter();
@@ -53,6 +54,9 @@ function SearchPage() {
     const { isModalOpen, currentModal } = useAppSelector((state) => state.modal);
 
     const [selectedTabIndex, setSelectedTabIndex] = useState(SearchTab.CLIENTS);
+    const [togglingClientId, setTogglingClientId] = useState<number | null>(null);
+
+    const [updateClient, { isLoading: isUpdatingClient }] = useUpdateClientMutation();
 
     // Client state
     const [clientCurrentPage, setClientCurrentPage] = useState(1);
@@ -248,6 +252,20 @@ function SearchPage() {
 
     const handleViewDetails = (cnpj: string) => {
         router.push(`/dashboard/client/${cnpj}`);
+    };
+
+    const handleToggleClientStatus = async (client: ClientDTO) => {
+        setTogglingClientId(client.id);
+        try {
+            await updateClient({
+                id: client.id,
+                active: !client.active,
+            }).unwrap();
+        } catch (error) {
+            console.error("Failed to toggle client status:", error);
+        } finally {
+            setTogglingClientId(null);
+        }
     };
 
     useFilterRestoration({
@@ -501,6 +519,42 @@ function SearchPage() {
                                                                 >
                                                                     <FileTextIcon size={16} />
                                                                     Propostas
+                                                                </Button>
+
+                                                                <Button
+                                                                    variant={
+                                                                        client.active
+                                                                            ? "danger"
+                                                                            : "success"
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleToggleClientStatus(
+                                                                            client
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        togglingClientId ===
+                                                                        client.id
+                                                                    }
+                                                                    className="flex items-center gap-2 text-xs"
+                                                                    data-testid={`toggle-client-${client.id}`}
+                                                                >
+                                                                    {togglingClientId ===
+                                                                    client.id ? (
+                                                                        <Spinner />
+                                                                    ) : client.active ? (
+                                                                        <>
+                                                                            <XCircle size={16} />
+                                                                            Desativar
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <CheckCircle
+                                                                                size={16}
+                                                                            />
+                                                                            Ativar
+                                                                        </>
+                                                                    )}
                                                                 </Button>
                                                             </div>
                                                         ),
