@@ -488,8 +488,18 @@ function SearchPage() {
                                                     },
                                                     {
                                                         header: "Status",
-                                                        cell: (client: ClientDTO) =>
-                                                            client.active ? "Ativo" : "Inativo",
+                                                        cell: (client: ClientDTO) => {
+                                                            const statusInfo = getStatusDisplay(
+                                                                client.active.toString()
+                                                            );
+                                                            return (
+                                                                <span
+                                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
+                                                                >
+                                                                    {statusInfo.text}
+                                                                </span>
+                                                            );
+                                                        },
                                                     },
                                                     {
                                                         header: "Ações",

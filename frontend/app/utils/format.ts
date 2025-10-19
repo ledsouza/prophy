@@ -40,6 +40,15 @@ export const displayPluralAccessoryType = (type: AccessoryType) => {
 };
 
 export const getStatusDisplay = (status: string) => {
+    // Handle client statuses (boolean strings)
+    if (status === "true") {
+        return { text: "Ativo", color: "text-success bg-success/10" };
+    }
+    if (status === "false") {
+        return { text: "Inativo", color: "text-danger bg-danger/10" };
+    }
+
+    // Handle proposal statuses
     switch (status) {
         case ProposalStatus.ACCEPTED:
             return { text: "Aceito", color: "text-success bg-success/10" };
