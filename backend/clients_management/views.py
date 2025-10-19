@@ -367,7 +367,7 @@ class ClientViewSet(PaginatedViewSet):
     """
     Viewset for managing clients.
 
-    Provides actions for listing and creating clients.
+    Provides actions for listing, updating clients.
     """
 
     @swagger_auto_schema(
@@ -447,7 +447,10 @@ class ClientViewSet(PaginatedViewSet):
         """
         Get base queryset based on user role and permissions.
         """
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        if (
+            user.role == UserAccount.Role.PROPHY_MANAGER
+            or user.role == UserAccount.Role.COMMERCIAL
+        ):
             return ClientOperation.objects.all()
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             user_managed_unit_operations = UnitOperation.objects.filter(
@@ -550,6 +553,134 @@ class ClientViewSet(PaginatedViewSet):
                 & ~Q(Exists(has_equipment_ops))
             )
         return queryset
+
+    @swagger_auto_schema(
+        operation_summary="Update a client",
+        operation_description="""
+        Update an existing client instance with the provided data.
+        Only PROPHY_MANAGER and COMMERCIAL users can update clients.
+        """,
+        request_body=ClientSerializer,
+        responses={
+            200: openapi.Response(
+                description="Client updated successfully",
+                schema=ClientSerializer,
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details",
+                        )
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Client not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def update(self, request: Request, pk: int | None = None) -> Response:
+        user: UserAccount = request.user
+        if user.role not in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]:
+            return Response(
+                {"detail": "You do not have permission to update clients."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            client = Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            return Response(
+                {"detail": "Cliente não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = ClientSerializer(client, data=request.data, partial=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        operation_summary="Partially update a client",
+        operation_description="""
+        Partially update fields of an existing client instance.
+        Only PROPHY_MANAGER and COMMERCIAL users can update clients.
+        """,
+        request_body=ClientSerializer,
+        responses={
+            200: openapi.Response(
+                description="Client updated successfully",
+                schema=ClientSerializer,
+            ),
+            400: openapi.Response(
+                description="Invalid input data",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "error": openapi.Schema(
+                            type=openapi.TYPE_STRING,
+                            description="Validation error details",
+                        )
+                    },
+                ),
+            ),
+            404: openapi.Response(
+                description="Client not found",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "detail": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="Error message"
+                        )
+                    },
+                ),
+            ),
+            401: "Unauthorized access",
+            403: "Permission denied",
+        },
+    )
+    def partial_update(self, request: Request, pk: int | None = None) -> Response:
+        user: UserAccount = request.user
+        if user.role not in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]:
+            return Response(
+                {"detail": "You do not have permission to update clients."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            client = Client.objects.get(pk=pk)
+        except Client.DoesNotExist:
+            return Response(
+                {"detail": "Cliente não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = ClientSerializer(client, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UnitViewSet(PaginatedViewSet):
