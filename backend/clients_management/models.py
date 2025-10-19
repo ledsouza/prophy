@@ -368,8 +368,8 @@ class Proposal(models.Model):
         email (EmailField): Contact person's email address
         date (DateField): Date when the proposal was created
         value (DecimalField): Proposed contract value
-        contract_type (CharField): Type of contract (Annual or Monthly)
-        status (CharField): Current status of the proposal (Accepted, Rejected or Pending)
+        contract_type (CharField): Type of contract
+        status (CharField): Current status of the proposal
     Methods:
         approved_client(): Returns True if proposal status is Accepted, False otherwise
         proposal_month(): Returns the month name when proposal was created
