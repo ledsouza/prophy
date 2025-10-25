@@ -9,17 +9,17 @@ import {
 import { formatPhoneNumber } from "@/utils/format";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
-import { ArrowFatLineLeft } from "@phosphor-icons/react";
+import { ArrowFatLineLeftIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { OperationStatus, OperationType } from "@/enums";
-import { isResponseError } from "@/redux/services/helpers";
-import { toast } from "react-toastify";
-import { useAppDispatch } from "@/redux/hooks";
-import { Modals, openModal, setUnit, setUnitOperation, setUser } from "@/redux/features/modalSlice";
 import { useStaff } from "@/hooks";
+import { Modals, openModal, setUnit, setUnitOperation, setUser } from "@/redux/features/modalSlice";
+import { useAppDispatch } from "@/redux/hooks";
+import { isResponseError } from "@/redux/services/helpers";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 type UnitDetailsProps = {
     unit: UnitDTO;
@@ -39,6 +39,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const { isStaff, userData } = useStaff();
     const isGGC = userData?.role === "GGC";
     const isGU = userData?.role === "GU";
+    const isCommercial = userData?.role === "C";
     const [buttonsState, setButtonsState] = useState<ButtonsState>(ButtonsState.REVIEWNONSTAFF);
     const [loadingCancel, setLoadingCancel] = useState(false);
 
@@ -132,7 +133,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                 className="flex items-center gap-2"
                 dataTestId="btn-go-back"
             >
-                <ArrowFatLineLeft size={24} />
+                <ArrowFatLineLeftIcon size={24} />
                 <Typography size="md">Voltar</Typography>
             </Button>
 
@@ -158,67 +159,70 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                     <b>Endereço:</b> {`${unit.address}, ${unit.state} - ${unit.city}`}
                 </Typography>
 
-                <div className="flex flex-col gap-2 w-full mt-2">
-                    {buttonsState === ButtonsState.REVIEWNONSTAFF && (
-                        <>
-                            <Typography variant="secondary">
-                                {unitOperation?.operation_type === OperationType.EDIT
-                                    ? "Requisição de alteração em análise"
-                                    : "Requisição de remoção em análise"}
-                            </Typography>
-                            {(!isGU || unitOperation?.operation_type !== OperationType.DELETE) && (
+                {!isCommercial && (
+                    <div className="flex flex-col gap-2 w-full mt-2">
+                        {buttonsState === ButtonsState.REVIEWNONSTAFF && (
+                            <>
+                                <Typography variant="secondary">
+                                    {unitOperation?.operation_type === OperationType.EDIT
+                                        ? "Requisição de alteração em análise"
+                                        : "Requisição de remoção em análise"}
+                                </Typography>
+                                {(!isGU ||
+                                    unitOperation?.operation_type !== OperationType.DELETE) && (
+                                    <Button
+                                        variant="danger"
+                                        className="flex-grow"
+                                        onClick={handleCancel}
+                                        disabled={loadingCancel}
+                                        data-testid="btn-cancel-unit-operation"
+                                    >
+                                        Cancelar requisição
+                                    </Button>
+                                )}
+                            </>
+                        )}
+
+                        {buttonsState === ButtonsState.REVIEWSTAFF && (
+                            <>
+                                <Typography variant="secondary">
+                                    {unitOperation?.operation_type === OperationType.EDIT
+                                        ? "Requisição de alteração em análise"
+                                        : "Requisição de remoção em análise"}
+                                </Typography>
+                                <Button
+                                    variant="primary"
+                                    className="flex-grow"
+                                    onClick={handleReview}
+                                    disabled={loadingCancel}
+                                    data-testid="btn-review-unit-operation"
+                                >
+                                    Revisar requisição
+                                </Button>
+                            </>
+                        )}
+
+                        {buttonsState === ButtonsState.REJECTED && (
+                            <>
+                                <Typography variant="danger">
+                                    {unitOperation?.operation_type === OperationType.EDIT
+                                        ? "Requisição de alteração rejeitada"
+                                        : "Requisição de remoção rejeitada"}
+                                </Typography>
                                 <Button
                                     variant="danger"
                                     className="flex-grow"
-                                    onClick={handleCancel}
-                                    disabled={loadingCancel}
-                                    data-testid="btn-cancel-unit-operation"
+                                    onClick={handleReject}
+                                    data-testid="btn-reject-unit-operation"
                                 >
-                                    Cancelar requisição
+                                    Verificar motivo
                                 </Button>
-                            )}
-                        </>
-                    )}
+                            </>
+                        )}
+                    </div>
+                )}
 
-                    {buttonsState === ButtonsState.REVIEWSTAFF && (
-                        <>
-                            <Typography variant="secondary">
-                                {unitOperation?.operation_type === OperationType.EDIT
-                                    ? "Requisição de alteração em análise"
-                                    : "Requisição de remoção em análise"}
-                            </Typography>
-                            <Button
-                                variant="primary"
-                                className="flex-grow"
-                                onClick={handleReview}
-                                disabled={loadingCancel}
-                                data-testid="btn-review-unit-operation"
-                            >
-                                Revisar requisição
-                            </Button>
-                        </>
-                    )}
-
-                    {buttonsState === ButtonsState.REJECTED && (
-                        <>
-                            <Typography variant="danger">
-                                {unitOperation?.operation_type === OperationType.EDIT
-                                    ? "Requisição de alteração rejeitada"
-                                    : "Requisição de remoção rejeitada"}
-                            </Typography>
-                            <Button
-                                variant="danger"
-                                className="flex-grow"
-                                onClick={handleReject}
-                                data-testid="btn-reject-unit-operation"
-                            >
-                                Verificar motivo
-                            </Button>
-                        </>
-                    )}
-                </div>
-
-                {buttonsState === ButtonsState.EDIT && (
+                {!isCommercial && buttonsState === ButtonsState.EDIT && (
                     <div className="flex flex-row gap-2 w-full mt-2">
                         <Button
                             variant="secondary"
