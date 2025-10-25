@@ -73,13 +73,6 @@ export type CreateClientPayload = ClientBase;
 export type UpdateClientPayload = Partial<
     Omit<
         ClientOperationDTO,
-        | "id"
-        | "users"
-        | "is_active"
-        | "operation_type"
-        | "operation_status"
-        | "cnpj"
-        | "note"
-        | "original_client"
+        "id" | "users" | "is_active" | "operation_type" | "cnpj" | "original_client"
     >
 >;
