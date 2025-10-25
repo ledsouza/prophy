@@ -55,11 +55,12 @@ class BaseOperation(models.Model):
         Validate that only one operation is in analysis status for a specific entity
         """
         if self.operation_status == self.OperationStatus.REVIEW:
-            # Check for existing operations in analysis for the same entity
+            # Check for existing operations in analysis for the same entity,
+            # excluding the current instance to avoid self-collision on updates.
             existing_operations = self.__class__.objects.filter(
-                operation_status=BaseOperation.OperationStatus.REVIEW,
+                operation_status=self.OperationStatus.REVIEW,
                 **self.get_entity_filter(),
-            )
+            ).exclude(pk=self.pk)
 
             if existing_operations.exists():
                 raise ValidationError("Já existe uma operação em análise.")
@@ -89,7 +90,9 @@ class BaseOperation(models.Model):
         if is_accepted_add:
             self.operation_type = self.OperationType.CLOSED
 
-        # All other operations will be EDIT or DELETE. Those ones are needed only to temporary hold records. Delete them after accepted.
+        # All other operations will be EDIT or DELETE.
+        # Those ones are needed only to temporary hold records.
+        # Delete them after accepted.
         if is_accepted_edit_or_delete:
             return self.delete()
 
@@ -123,23 +126,34 @@ class ClientOperation(BaseOperation, Client):
     def clean(self):
         super().clean()
 
-        self.is_active = False
+        is_review_add = (
+            self.operation_type == self.OperationType.ADD
+            and self.operation_status == self.OperationStatus.REVIEW
+        )
 
         is_accepted_add_or_closed = (
-            self.operation_type == self.OperationType.ADD
-            or self.operation_type == self.OperationType.CLOSED
-        ) and self.operation_status == self.OperationStatus.ACCEPTED
+            self.operation_status == self.OperationStatus.ACCEPTED
+            and self.operation_type
+            in (self.OperationType.ADD, self.OperationType.CLOSED)
+        )
+
         is_accepted_edit = (
             self.operation_type == self.OperationType.EDIT
             and self.operation_status == self.OperationStatus.ACCEPTED
         )
+
         is_accepted_delete = (
             self.operation_type == self.OperationType.DELETE
             and self.operation_status == self.OperationStatus.ACCEPTED
         )
 
+        # Keep staged ADD inactive while under review
+        if is_review_add:
+            self.is_active = False
+
+        # Activate client when an ADD (or CLOSED after acceptance) is finalized
         if is_accepted_add_or_closed:
-            self.active = True
+            self.is_active = True
 
         if is_accepted_edit:
             self._update_client()

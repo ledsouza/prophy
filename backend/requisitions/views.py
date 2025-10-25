@@ -57,16 +57,16 @@ class ClientOperationViewSet(viewsets.ViewSet):
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = ClientOperation.objects.filter(
                 operation_status__in=[
-                    UnitOperation.OperationStatus.REVIEW,
-                    UnitOperation.OperationStatus.REJECTED,
+                    ClientOperation.OperationStatus.REVIEW,
+                    ClientOperation.OperationStatus.REJECTED,
                 ]
             )
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             user_managed_unit_operations = UnitOperation.objects.filter(
                 user=user,
                 operation_status__in=[
-                    UnitOperation.OperationStatus.REVIEW,
-                    UnitOperation.OperationStatus.REJECTED,
+                    ClientOperation.OperationStatus.REVIEW,
+                    ClientOperation.OperationStatus.REJECTED,
                 ],
             )
             client_ids_from_units = user_managed_unit_operations.values_list(
@@ -82,7 +82,11 @@ class ClientOperationViewSet(viewsets.ViewSet):
             )
         else:
             queryset = ClientOperation.objects.filter(
-                users=user, operation_status__in=["REV", "R"]
+                users=user,
+                operation_status__in=[
+                    ClientOperation.OperationStatus.REVIEW,
+                    ClientOperation.OperationStatus.REJECTED,
+                ],
             )
 
         queryset = queryset.order_by("id")
@@ -188,12 +192,23 @@ class ClientOperationViewSet(viewsets.ViewSet):
         },
     )
     def update(self, request, pk=None):
-        instance = ClientOperation.objects.get(pk=pk)
+        try:
+            instance = ClientOperation.objects.get(pk=pk)
+        except ClientOperation.DoesNotExist:
+            return Response(
+                {"detail": "Operação não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         serializer = ClientOperationSerializer(
             instance, data=request.data, partial=True
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            serializer.save()
+        except ValidationError as error:
+            return Response(
+                {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
@@ -401,7 +416,12 @@ class UnitOperationViewSet(viewsets.ViewSet):
 
         serializer = UnitOperationSerializer(operation, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            try:
+                serializer.save()
+            except ValidationError as error:
+                return Response(
+                    {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+                )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -572,7 +592,9 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
             try:
                 serializer.save()
             except ValidationError as error:
-                return Response(error, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -600,12 +622,23 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         },
     )
     def update(self, request, pk=None):
-        instance = EquipmentOperation.objects.get(pk=pk)
+        try:
+            instance = EquipmentOperation.objects.get(pk=pk)
+        except EquipmentOperation.DoesNotExist:
+            return Response(
+                {"detail": "Operação não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         serializer = EquipmentOperationSerializer(
             instance, data=request.data, partial=True
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            serializer.save()
+        except ValidationError as error:
+            return Response(
+                {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+            )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
