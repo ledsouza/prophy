@@ -1,32 +1,32 @@
-import React, { useEffect, useState } from "react";
 import { formatPhoneNumber } from "@/utils/format";
-import { mask as cnpjMask } from "validation-br/dist/cnpj";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
-import { isResponseError } from "@/redux/services/helpers";
 import {
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
+import { isResponseError } from "@/redux/services/helpers";
 import type { ClientDTO, ClientOperationDTO } from "@/types/client";
 
-import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { Select } from "@/components/forms";
 import { SelectData } from "@/components/forms/Select";
+import { Typography } from "@/components/foundation";
 
 import { OperationStatus, OperationType } from "@/enums";
-import ClientContact from "./ClientContact";
+import { useStaff } from "@/hooks";
+import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
+import { Modals, openModal } from "@/redux/features/modalSlice";
 import {
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
-import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
-import { useStaff } from "@/hooks";
 import { useAppDispatch } from "@/redux/hooks";
-import { Modals, openModal } from "@/redux/features/modalSlice";
-import { ArrowFatLineLeft, ArrowLeft } from "@phosphor-icons/react";
+import { ArrowFatLineLeftIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import ClientContact from "./ClientContact";
 
 type ClientDetailsProps = {
     title: string;
@@ -244,7 +244,7 @@ function ClientDetails({
                     className="flex items-center gap-2"
                     data-testid="btn-back-to-search"
                 >
-                    <ArrowFatLineLeft size={24} />
+                    <ArrowFatLineLeftIcon size={24} />
                     Voltar à busca
                 </Button>
             )}
@@ -276,30 +276,68 @@ function ClientDetails({
                     <b>Endereço:</b>{" "}
                     {`${filteredClient?.address}, ${filteredClient.city} - ${filteredClient.state}`}
                 </Typography>
-                <div className="flex flex-col gap-2 w-full mt-2">
-                    {selectedClientInOperation &&
-                        selectedClientInOperation.operation_status === OperationStatus.REJECTED &&
-                        !isStaff &&
-                        !isUnitManager && (
-                            <>
-                                <Typography variant="danger">
-                                    Requisição de alteração rejeitada
-                                </Typography>
-                                <Button
-                                    variant="danger"
-                                    className="flex-grow"
-                                    onClick={handleReject}
-                                    data-testid="btn-reject-edit-client"
-                                >
-                                    Verificar motivo
-                                </Button>
-                            </>
-                        )}
 
-                    {selectedClientInOperation &&
-                        selectedClientInOperation.operation_status === OperationStatus.REJECTED &&
-                        isStaff &&
-                        !isUnitManager && (
+                {userData?.role !== "C" && (
+                    <div className="flex flex-col gap-2 w-full mt-2">
+                        {selectedClientInOperation &&
+                            selectedClientInOperation.operation_status ===
+                                OperationStatus.REJECTED &&
+                            !isStaff &&
+                            !isUnitManager && (
+                                <>
+                                    <Typography variant="danger">
+                                        Requisição de alteração rejeitada
+                                    </Typography>
+                                    <Button
+                                        variant="danger"
+                                        className="flex-grow"
+                                        onClick={handleReject}
+                                        data-testid="btn-reject-edit-client"
+                                    >
+                                        Verificar motivo
+                                    </Button>
+                                </>
+                            )}
+
+                        {selectedClientInOperation &&
+                            selectedClientInOperation.operation_status ===
+                                OperationStatus.REJECTED &&
+                            isStaff &&
+                            !isUnitManager && (
+                                <Button
+                                    variant="secondary"
+                                    className="flex-grow"
+                                    onClick={handleEdit}
+                                    data-testid="btn-edit-client"
+                                >
+                                    Editar
+                                </Button>
+                            )}
+
+                        {selectedClientInOperation &&
+                            selectedClientInOperation.operation_status === OperationStatus.REVIEW &&
+                            !isUnitManager && (
+                                <>
+                                    <Typography variant="secondary">
+                                        Requisição de alteração em análise
+                                    </Typography>
+                                    <Button
+                                        variant={isStaff ? "primary" : "danger"}
+                                        className="flex-grow"
+                                        onClick={isStaff ? handleReview : handleCancel}
+                                        disabled={loadingCancel}
+                                        data-testid={
+                                            isStaff
+                                                ? "btn-review-edit-client"
+                                                : "btn-cancel-edit-client"
+                                        }
+                                    >
+                                        {isStaff ? "Revisar requisição" : "Cancelar requisição"}
+                                    </Button>
+                                </>
+                            )}
+
+                        {!selectedClientInOperation && !isUnitManager && (
                             <Button
                                 variant="secondary"
                                 className="flex-grow"
@@ -309,41 +347,8 @@ function ClientDetails({
                                 Editar
                             </Button>
                         )}
-
-                    {selectedClientInOperation &&
-                        selectedClientInOperation.operation_status === OperationStatus.REVIEW &&
-                        !isUnitManager && (
-                            <>
-                                <Typography variant="secondary">
-                                    Requisição de alteração em análise
-                                </Typography>
-                                <Button
-                                    variant={isStaff ? "primary" : "danger"}
-                                    className="flex-grow"
-                                    onClick={isStaff ? handleReview : handleCancel}
-                                    disabled={loadingCancel}
-                                    data-testid={
-                                        isStaff
-                                            ? "btn-review-edit-client"
-                                            : "btn-cancel-edit-client"
-                                    }
-                                >
-                                    {isStaff ? "Revisar requisição" : "Cancelar requisição"}
-                                </Button>
-                            </>
-                        )}
-
-                    {!selectedClientInOperation && !isUnitManager && (
-                        <Button
-                            variant="secondary"
-                            className="flex-grow"
-                            onClick={handleEdit}
-                            data-testid="btn-edit-client"
-                        >
-                            Editar
-                        </Button>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
 
             <ClientContact client={filteredClient} />

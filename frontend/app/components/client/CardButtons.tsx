@@ -39,6 +39,18 @@ function CardButtons({
     const { data: userData } = useRetrieveUserQuery();
     const isStaff = userData?.role === "FMI" || userData?.role === "GP";
 
+    if (userData?.role === "C") {
+        return (
+            <>
+                {operation?.operation_type !== OperationType.ADD && (
+                    <Button variant="secondary" onClick={onDetails} data-testid="btn-details">
+                        Acessar detalhes
+                    </Button>
+                )}
+            </>
+        );
+    }
+
     return (
         <>
             {operation?.operation_type !== OperationType.ADD && (
