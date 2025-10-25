@@ -498,6 +498,8 @@ class ClientViewSet(PaginatedViewSet):
     Provides actions for listing, updating clients.
     """
 
+    lookup_value_regex = r"\d+"
+
     @swagger_auto_schema(
         operation_summary="List active and accepted clients",
         operation_description="""
@@ -597,13 +599,13 @@ class ClientViewSet(PaginatedViewSet):
             ).distinct()
             return ClientOperation.objects.filter(
                 pk__in=client_ids_from_units,
-                active=True,
+                is_active=True,
                 operation_status=ClientOperation.OperationStatus.ACCEPTED,
             )
         else:
             return ClientOperation.objects.filter(
                 users=user,
-                active=True,
+                is_active=True,
                 operation_status=ClientOperation.OperationStatus.ACCEPTED,
             )
 
@@ -827,6 +829,8 @@ class UnitViewSet(PaginatedViewSet):
     Viewset for listing units.
     """
 
+    lookup_value_regex = r"\d+"
+
     @swagger_auto_schema(
         operation_summary="List accepted units",
         operation_description="""
@@ -865,20 +869,23 @@ class UnitViewSet(PaginatedViewSet):
         """
         Get base queryset based on user role and permissions.
         """
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        if (
+            user.role == UserAccount.Role.PROPHY_MANAGER
+            or user.role == UserAccount.Role.COMMERCIAL
+        ):
             return UnitOperation.objects.filter(
                 operation_status=UnitOperation.OperationStatus.ACCEPTED
             )
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             return UnitOperation.objects.filter(
                 user=user,
-                client__active=True,
+                client__is_active=True,
                 operation_status=UnitOperation.OperationStatus.ACCEPTED,
             )
         else:
             return UnitOperation.objects.filter(
                 client__users=user,
-                client__active=True,
+                client__is_active=True,
                 operation_status=UnitOperation.OperationStatus.ACCEPTED,
             )
 
@@ -887,6 +894,8 @@ class EquipmentViewSet(PaginatedViewSet):
     """
     Viewset for listing equipments.
     """
+
+    lookup_value_regex = r"\d+"
 
     @swagger_auto_schema(
         operation_summary="List accepted equipments",
@@ -1001,13 +1010,13 @@ class EquipmentViewSet(PaginatedViewSet):
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             return EquipmentOperation.objects.filter(
                 unit__user=user,
-                unit__client__active=True,
+                unit__client__is_active=True,
                 operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
             )
         else:
             return EquipmentOperation.objects.filter(
                 unit__client__users=user,
-                unit__client__active=True,
+                unit__client__is_active=True,
                 operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
             )
 
