@@ -1003,7 +1003,10 @@ class EquipmentViewSet(PaginatedViewSet):
         """
         Get base queryset based on user role and permissions.
         """
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        if (
+            user.role == UserAccount.Role.PROPHY_MANAGER
+            or user.role == UserAccount.Role.COMMERCIAL
+        ):
             return EquipmentOperation.objects.filter(
                 operation_status=EquipmentOperation.OperationStatus.ACCEPTED
             )
@@ -1305,7 +1308,10 @@ class AppointmentViewSet(PaginatedViewSet):
         """
         Get base queryset based on user role and permissions.
         """
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        if (
+            user.role == UserAccount.Role.PROPHY_MANAGER
+            or user.role == UserAccount.Role.COMMERCIAL
+        ):
             return Appointment.objects.all()
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             return Appointment.objects.filter(unit__user=user)
@@ -1328,6 +1334,7 @@ class AppointmentViewSet(PaginatedViewSet):
         return user.role in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.COMMERCIAL,
         ]
 
     def _can_update_appointment(self, user: UserAccount) -> bool:
@@ -1337,6 +1344,7 @@ class AppointmentViewSet(PaginatedViewSet):
         return user.role in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.COMMERCIAL,
         ]
 
     def _has_appointment_access(
@@ -1345,7 +1353,10 @@ class AppointmentViewSet(PaginatedViewSet):
         """
         Check if user has access to a specific appointment.
         """
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        if (
+            user.role == UserAccount.Role.PROPHY_MANAGER
+            or user.role == UserAccount.Role.COMMERCIAL
+        ):
             return True
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             return appointment.unit.user == user
@@ -1368,7 +1379,7 @@ class ModalityViewSet(viewsets.ViewSet):
                 schema=ModalitySerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def list(self, request):
@@ -1400,7 +1411,7 @@ class ModalityViewSet(viewsets.ViewSet):
                 ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def create(self, request):
@@ -1445,7 +1456,7 @@ class ModalityViewSet(viewsets.ViewSet):
                 ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def update(self, request, pk=None):
@@ -1483,7 +1494,7 @@ class ModalityViewSet(viewsets.ViewSet):
                 ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def destroy(self, request, pk=None):
@@ -1517,7 +1528,7 @@ class AccessoryViewSet(viewsets.ViewSet):
                 schema=AccessorySerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def list(self, request):
@@ -1532,7 +1543,10 @@ class AccessoryViewSet(viewsets.ViewSet):
         """
         Get base queryset based on user role and permissions.
         """
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        if (
+            user.role == UserAccount.Role.PROPHY_MANAGER
+            or user.role == UserAccount.Role.COMMERCIAL
+        ):
             return Accessory.objects.all()
         elif user.role == UserAccount.Role.UNIT_MANAGER:
             units = UnitOperation.objects.filter(user=user)
@@ -1550,7 +1564,7 @@ class AccessoryViewSet(viewsets.ViewSet):
             ),
             400: "Invalid input data",
             401: "Unauthorized access",
-            403: "Permission denied",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def create(self, request):
@@ -1574,7 +1588,7 @@ class AccessoryViewSet(viewsets.ViewSet):
             400: "Invalid input data",
             404: "Accessory not found",
             401: "Unauthorized access",
-            403: "Permission denied",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def update(self, request, pk=None):
@@ -1602,7 +1616,7 @@ class AccessoryViewSet(viewsets.ViewSet):
             204: "Accessory deleted successfully",
             404: "Accessory not found",
             401: "Unauthorized access",
-            403: "Permission denied",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
         },
     )
     def destroy(self, request, pk=None):
@@ -2162,7 +2176,10 @@ class ReportViewSet(PaginatedViewSet):
         """
         Get base queryset based on user role and permissions.
         """
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        if (
+            user.role == UserAccount.Role.PROPHY_MANAGER
+            or user.role == UserAccount.Role.COMMERCIAL
+        ):
             return Report.objects.all()
         elif user.role in [
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
