@@ -3,27 +3,28 @@
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
+import { z } from "zod";
 
 import { clientSchema } from "@/schemas";
-import { OperationStatus } from "@/enums";
 
 import {
     useCreateEditClientOperationMutation,
     useEditClientMutation,
 } from "@/redux/features/clientApiSlice";
-import type { ClientDTO } from "@/types/client";
 import { isErrorWithMessages } from "@/redux/services/helpers";
+import type { ClientDTO } from "@/types/client";
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
 
-import { Typography } from "@/components/foundation";
 import { Button, Spinner } from "@/components/common";
 import { ComboBox, Form, Input, Textarea } from "@/components/forms";
-import { useAppDispatch } from "@/redux/hooks";
+import { Typography } from "@/components/foundation";
 import { closeModal } from "@/redux/features/modalSlice";
+import { useAppDispatch } from "@/redux/hooks";
+import { handleApiError } from "@/redux/services/errorHandling";
+import { OperationStatus } from "@/enums";
 
 const editClientSchema = clientSchema;
 
@@ -110,6 +111,16 @@ const EditClientForm = ({
         }
 
         try {
+            // Build payload depending on review flow:
+            // - In review mode (internal reviewer), send operation_status (ACCEPTED/REJECTED) and optional note.
+            // - Otherwise, keep normal edit behavior.
+            let payload = editData as any;
+            if (!needReview && reviewMode) {
+                payload = isRejected
+                    ? { note: editData.note, operation_status: OperationStatus.REJECTED }
+                    : { ...editData, operation_status: OperationStatus.ACCEPTED };
+            }
+
             const response = needReview
                 ? await createEditClientOperation({
                       ...editData,
@@ -118,14 +129,11 @@ const EditClientForm = ({
                   })
                 : await editClient({
                       clientID: client.id,
-                      clientData: editData,
+                      clientData: payload,
                   });
 
             if (response.error) {
-                if (isErrorWithMessages(response.error)) {
-                    throw new Error(response.error.data.messages[0]);
-                }
-                throw new Error("Um erro inesperado ocorreu.");
+                handleApiError(response.error);
             }
 
             // If review is not required, the user is either an internal medical physicist or a Prophy manager.
@@ -140,11 +148,7 @@ const EditClientForm = ({
             toast.success(successMessage);
             dispatch(closeModal());
         } catch (error) {
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : "Algo deu errado. Tente novamente mais tarde."
-            );
+            handleApiError(error);
         }
     };
 
