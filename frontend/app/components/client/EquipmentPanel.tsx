@@ -6,6 +6,7 @@ import { EquipmentList } from "@/components/client";
 import { Button } from "@/components/common";
 import { Input } from "@/components/forms";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import Role from "@/enums/Role";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 import clsx from "clsx";
 
@@ -62,7 +63,7 @@ const EquipmentPanel = ({
     containerClassName = "",
 }: EquipmentPanelProps) => {
     const { data: userData } = useRetrieveUserQuery();
-    const isCommercial = userData?.role === "C";
+    const isCommercial = userData?.role === Role.C;
     const searchedEquipments = useMemo(() => {
         if (!Array.isArray(filteredEquipmentsByUnit) || filteredEquipmentsByUnit.length === 0) {
             return [];

@@ -15,6 +15,7 @@ import { Typography } from "@/components/foundation";
 
 import AppointmentStatus, { appointmentStatusLabel } from "@/enums/AppointmentStatus";
 import AppointmentType, { appointmentTypeLabel } from "@/enums/AppointmentType";
+import Role from "@/enums/Role";
 import {
     useDeleteAppointmentMutation,
     useUpdateAppointmentMutation,
@@ -79,13 +80,14 @@ type AppointmentCardProps = {
 function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
     const { data: userData } = useRetrieveUserQuery();
     const role = userData?.role;
-    const canDeleteAppointment = role === "GP";
-    const canRescheduleAppointment = role === "FMI" || role === "GP";
-    const canUpdateServiceOrder = role === "GP";
-    const canCreateServiceOrder = role === "GP" || role === "FMI" || role === "FME";
-    const canConfirmAppointment = role === "GP" || role === "FMI" || role === "FME" || role === "C";
-    const canJustifyAppointment = role === "FMI" || role === "FME";
-    const canEditUpdates = role === "GP" || role === "FMI" || role === "FME";
+    const canDeleteAppointment = role === Role.GP;
+    const canRescheduleAppointment = role === Role.FMI || role === Role.GP;
+    const canUpdateServiceOrder = role === Role.GP;
+    const canCreateServiceOrder = role === Role.GP || role === Role.FMI || role === Role.FME;
+    const canConfirmAppointment =
+        role === Role.GP || role === Role.FMI || role === Role.FME || role === Role.C;
+    const canJustifyAppointment = role === Role.FMI || role === Role.FME;
+    const canEditUpdates = role === Role.GP || role === Role.FMI || role === Role.FME;
     const log = child({ component: "AppointmentCard" });
     const showCreateServiceOrderButton =
         canCreateServiceOrder && appointment.status === AppointmentStatus.CONFIRMED;
@@ -95,7 +97,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             appointment.status === AppointmentStatus.RESCHEDULED);
     const showJustifyButton =
         canJustifyAppointment && appointment.status === AppointmentStatus.UNFULFILLED;
-    const canViewJustification = role === "GP";
+    const canViewJustification = role === Role.GP;
     const showJustificationViewerButton =
         canViewJustification &&
         (appointment.status === AppointmentStatus.UNFULFILLED ||
@@ -239,14 +241,14 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
     // - FMI/FME: updates-only; skips PATCH if no change
     // - others: denied
     const buildPayloadByRole = (
-        role: string | undefined,
+        role: Role | undefined,
         data: Pick<
             ServiceOrderDTO,
             "subject" | "description" | "conclusion" | "equipments" | "updates"
         >,
         currentUpdates: string | null
     ): { payload?: UpdateServiceOrderPayload; skip?: boolean; deny?: boolean } => {
-        if (role === "GP") {
+        if (role === Role.GP) {
             const payload: UpdateServiceOrderPayload = {
                 subject: data.subject,
                 description: data.description,
@@ -258,7 +260,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             }
             return { payload };
         }
-        if (role === "FMI" || role === "FME") {
+        if (role === Role.FMI || role === Role.FME) {
             const next = data.updates ?? null;
             if (next === currentUpdates) return { skip: true };
             return { payload: { updates: next } };

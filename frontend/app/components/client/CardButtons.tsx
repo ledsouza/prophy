@@ -1,4 +1,5 @@
 import { OperationStatus, OperationType } from "@/enums";
+import Role from "@/enums/Role";
 
 import { EquipmentDTO, EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
 import { UnitDTO, UnitOperationDTO } from "@/redux/features/unitApiSlice";
@@ -37,9 +38,9 @@ function CardButtons({
     onReviewEdit,
 }: CardButtonsProps) {
     const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+    const isStaff = userData?.role === Role.FMI || userData?.role === Role.GP;
 
-    if (userData?.role === "C") {
+    if (userData?.role === Role.C) {
         return (
             <>
                 {operation?.operation_type !== OperationType.ADD && (
@@ -69,7 +70,7 @@ function CardButtons({
                         >
                             <PencilLine size={20} />
                         </Button>
-                        {(!isUnit(entity) || userData?.role !== "GU") && (
+                        {(!isUnit(entity) || userData?.role !== Role.GU) && (
                             <Button
                                 variant="danger"
                                 onClick={onDelete}
@@ -136,7 +137,7 @@ function CardButtons({
                 {status === OperationStatus.REVIEW &&
                     operation?.operation_type === OperationType.DELETE &&
                     !isStaff &&
-                    (!isUnit(entity) || userData?.role !== "GU") && (
+                    (!isUnit(entity) || userData?.role !== Role.GU) && (
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}

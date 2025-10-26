@@ -1,4 +1,4 @@
-import { UserDTO } from "@/redux/features/authApiSlice";
+import type { UserDTO } from "@/types/user";
 import type { ClientDTO } from "@/types/client";
 
 type UserRole = UserDTO["role"];

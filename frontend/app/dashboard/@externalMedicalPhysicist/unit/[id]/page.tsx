@@ -46,7 +46,8 @@ import {
 } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { OperationType } from "@/enums";
-import { useDeleterUserMutation, UserDTO } from "@/redux/features/authApiSlice";
+import { useDeleterUserMutation } from "@/redux/features/authApiSlice";
+import type { UserDTO } from "@/types/user";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
 

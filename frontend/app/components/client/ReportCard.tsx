@@ -10,6 +10,7 @@ import { z } from "zod";
 import { Button, Modal } from "@/components/common";
 import { Input, Form } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import Role from "@/enums/Role";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
@@ -48,7 +49,7 @@ type ReportCardProps = {
 function ReportCard({ report, dataTestId }: ReportCardProps) {
     const { data: userData } = useRetrieveUserQuery();
     const role = userData?.role;
-    const canUpdate = role === "GP" || role === "FMI" || role === "FME";
+    const canUpdate = role === Role.GP || role === Role.FMI || role === Role.FME;
     const log = child({ component: "ReportCard" });
 
     const [updateOpen, setUpdateOpen] = useState(false);

@@ -1,4 +1,5 @@
 import { apiSlice, PaginatedResponse } from "../services/apiSlice";
+import type { UserDTO } from "@/types/user";
 
 type UserAuth = {
     cpf: string;
@@ -7,15 +8,6 @@ type UserAuth = {
     phone: string;
     password: string;
     re_password?: string;
-};
-
-export type UserDTO = {
-    id: number;
-    cpf: string;
-    email: string;
-    phone: string;
-    name: string;
-    role: "FMI" | "FME" | "GP" | "GGC" | "GU" | "C";
 };
 
 type RegisterUnitManagerResponse = {

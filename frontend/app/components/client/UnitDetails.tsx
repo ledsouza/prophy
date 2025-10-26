@@ -14,6 +14,7 @@ import { ArrowFatLineLeftIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { OperationStatus, OperationType } from "@/enums";
+import Role from "@/enums/Role";
 import { useStaff } from "@/hooks";
 import { Modals, openModal, setUnit, setUnitOperation, setUser } from "@/redux/features/modalSlice";
 import { useAppDispatch } from "@/redux/hooks";
@@ -37,9 +38,9 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { isStaff, userData } = useStaff();
-    const isGGC = userData?.role === "GGC";
-    const isGU = userData?.role === "GU";
-    const isCommercial = userData?.role === "C";
+    const isGGC = userData?.role === Role.GGC;
+    const isGU = userData?.role === Role.GU;
+    const isCommercial = userData?.role === Role.C;
     const [buttonsState, setButtonsState] = useState<ButtonsState>(ButtonsState.REVIEWNONSTAFF);
     const [loadingCancel, setLoadingCancel] = useState(false);
 
@@ -232,7 +233,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                         >
                             Editar
                         </Button>
-                        {userData?.role !== "GU" && (
+                        {userData?.role !== Role.GU && (
                             <Button
                                 variant="danger"
                                 onClick={handleDelete}
@@ -246,7 +247,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                 )}
             </div>
 
-            {userData?.role !== "GU" && (
+            {userData?.role !== Role.GU && (
                 <div>
                     <Typography
                         element="h3"

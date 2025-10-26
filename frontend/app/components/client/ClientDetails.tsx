@@ -16,6 +16,7 @@ import { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
 
 import { OperationStatus, OperationType } from "@/enums";
+import Role from "@/enums/Role";
 import { useStaff } from "@/hooks";
 import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
 import { Modals, openModal } from "@/redux/features/modalSlice";
@@ -233,7 +234,7 @@ function ClientDetails({
         return <Spinner md />;
     }
 
-    const isUnitManager = userData?.role === "GU";
+    const isUnitManager = userData?.role === Role.GU;
 
     return (
         <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
@@ -277,7 +278,7 @@ function ClientDetails({
                     {`${filteredClient?.address}, ${filteredClient.city} - ${filteredClient.state}`}
                 </Typography>
 
-                {userData?.role !== "C" && (
+                {userData?.role !== Role.C && (
                     <div className="flex flex-col gap-2 w-full mt-2">
                         {selectedClientInOperation &&
                             selectedClientInOperation.operation_status ===

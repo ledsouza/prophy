@@ -3,6 +3,7 @@
 import { Spinner } from "@/components/common";
 import useRequireAuth from "@/hooks/use-require-auth";
 import React from "react";
+import Role from "@/enums/Role";
 
 type DashboardLayoutProps = {
     children: React.ReactNode;
@@ -33,27 +34,27 @@ export default function DashboardLayout({
         );
     }
 
-    if (userData?.role === "GGC") {
+    if (userData?.role === Role.GGC) {
         return <>{clientManager}</>;
     }
 
-    if (userData?.role === "FMI") {
+    if (userData?.role === Role.FMI) {
         return <>{internalMedicalPhysicist}</>;
     }
 
-    if (userData?.role === "GU") {
+    if (userData?.role === Role.GU) {
         return <>{unitManager}</>;
     }
 
-    if (userData?.role === "FME") {
+    if (userData?.role === Role.FME) {
         return <>{externalMedicalPhysicist}</>;
     }
 
-    if (userData?.role === "GP") {
+    if (userData?.role === Role.GP) {
         return <>{prophyManager}</>;
     }
 
-    if (userData?.role === "C") {
+    if (userData?.role === Role.C) {
         return <>{commercial}</>;
     }
 

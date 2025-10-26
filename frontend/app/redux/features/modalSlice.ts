@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UnitDTO, UnitOperationDTO } from "./unitApiSlice";
 import { EquipmentDTO, EquipmentOperationDTO } from "./equipmentApiSlice";
-import { UserDTO } from "./authApiSlice";
+import type { UserDTO } from "@/types/user";
 import { ProposalDTO } from "./proposalApiSlice";
 
 export enum Modals {
