@@ -1,41 +1,41 @@
 "use client";
 
 import clsx from "clsx";
-import { format, parseISO, addDays, startOfDay, isBefore } from "date-fns";
+import { addDays, format, isBefore, parseISO, startOfDay } from "date-fns";
 import { useMemo, useState } from "react";
 
 import { Button, Modal } from "@/components/common";
 import {
+    AppointmentJustificationForm,
     AppointmentScheduleForm,
     ServiceOrderForm,
-    AppointmentJustificationForm,
     Textarea,
 } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import AppointmentStatus, { appointmentStatusLabel } from "@/enums/AppointmentStatus";
 import AppointmentType, { appointmentTypeLabel } from "@/enums/AppointmentType";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
-import type { AppointmentDTO } from "@/types/appointment";
-import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
 import {
     useDeleteAppointmentMutation,
     useUpdateAppointmentMutation,
 } from "@/redux/features/appointmentApiSlice";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
     useCreateServiceOrderMutation,
-    useUpdateServiceOrderMutation,
     useLazyDownloadServiceOrderPDFQuery,
+    useUpdateServiceOrderMutation,
 } from "@/redux/features/serviceOrderApiSlice";
+import type { AppointmentDTO } from "@/types/appointment";
+import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
 
-import { formatPhoneNumber } from "@/utils/format";
 import { downloadBlob } from "@/utils/download";
+import { formatPhoneNumber } from "@/utils/format";
 import { child } from "@/utils/logger";
 import {
     CalendarIcon,
     CalendarXIcon,
-    FileArrowDownIcon,
     CheckCircleIcon,
+    FileArrowDownIcon,
     MonitorPlay,
     Users,
 } from "@phosphor-icons/react";
