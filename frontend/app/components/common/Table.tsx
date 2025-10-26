@@ -4,6 +4,7 @@ type ColumnDefinition<T> = {
     header: string;
     cell: (row: T) => React.ReactNode;
     width?: string;
+    multiLine?: boolean;
 };
 
 type TableProps<T> = {
@@ -37,7 +38,7 @@ const Table = <T extends {}>({ data, columns, keyExtractor }: TableProps<T>) => 
                             {columns.map((column) => (
                                 <td
                                     key={column.header}
-                                    className={`px-4 py-3 text-sm text-gray-900 ${column.width ? "truncate" : ""}`}
+                                    className={`px-4 py-3 text-sm text-gray-900 ${column.width && !column.multiLine ? "truncate" : ""} ${column.multiLine ? "whitespace-pre-wrap break-words" : ""}`}
                                     style={column.width ? { width: column.width } : undefined}
                                 >
                                     {column.cell(row)}

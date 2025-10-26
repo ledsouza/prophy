@@ -732,6 +732,7 @@ function SearchPage() {
                                                         header: "Data",
                                                         cell: (proposal: ProposalDTO) =>
                                                             formatDate(proposal.date),
+                                                        width: "120px",
                                                     },
                                                     {
                                                         header: "CNPJ",
@@ -740,37 +741,32 @@ function SearchPage() {
                                                         width: "140px",
                                                     },
                                                     {
-                                                        header: "Estado",
+                                                        header: "Endereço",
                                                         cell: (proposal: ProposalDTO) =>
-                                                            proposal.state,
-                                                    },
-                                                    {
-                                                        header: "Cidade",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            proposal.city,
+                                                            `${proposal.city}, ${proposal.state}`,
+                                                        width: "140px",
                                                     },
                                                     {
                                                         header: "Contato",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            proposal.contact_name,
-                                                    },
-                                                    {
-                                                        header: "Telefone",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            formatPhoneNumber(
-                                                                proposal.contact_phone
-                                                            ) || "-",
-                                                        width: "150px",
-                                                    },
-                                                    {
-                                                        header: "E-mail",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            proposal.email,
+                                                        cell: (proposal: ProposalDTO) => (
+                                                            <div className="flex flex-col">
+                                                                <span>{proposal.contact_name}</span>
+                                                                <span>
+                                                                    {formatPhoneNumber(
+                                                                        proposal.contact_phone
+                                                                    )}
+                                                                </span>
+                                                                <span>{proposal.email}</span>
+                                                            </div>
+                                                        ),
+                                                        width: "200px",
+                                                        multiLine: true,
                                                     },
                                                     {
                                                         header: "Valor",
                                                         cell: (proposal: ProposalDTO) =>
                                                             formatCurrency(proposal.value),
+                                                        width: "120px",
                                                     },
                                                     {
                                                         header: "Tipo de Contrato",
