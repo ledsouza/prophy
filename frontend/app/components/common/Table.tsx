@@ -1,4 +1,5 @@
 import React from "react";
+import clsx from "clsx";
 
 type ColumnDefinition<T> = {
     header: string;
@@ -18,13 +19,16 @@ const Table = <T extends {}>({ data, columns, keyExtractor }: TableProps<T>) => 
 
     return (
         <div className="overflow-x-auto">
-            <table className={`min-w-full ${hasCustomWidths ? "table-fixed" : "table-auto"}`}>
+            <table className={clsx("min-w-full", hasCustomWidths ? "table-fixed" : "table-auto")}>
                 <thead>
                     <tr className="bg-gray-50">
                         {columns.map((column) => (
                             <th
                                 key={column.header}
-                                className={`px-4 py-3 text-left text-sm font-bold text-gray-700 ${column.width ? "truncate" : ""}`}
+                                className={clsx(
+                                    "px-4 py-3 text-left text-sm font-bold text-gray-700",
+                                    column.width && "truncate"
+                                )}
                                 style={column.width ? { width: column.width } : undefined}
                             >
                                 {column.header}
@@ -38,7 +42,11 @@ const Table = <T extends {}>({ data, columns, keyExtractor }: TableProps<T>) => 
                             {columns.map((column) => (
                                 <td
                                     key={column.header}
-                                    className={`px-4 py-3 text-sm text-gray-900 ${column.width && !column.multiLine ? "truncate" : ""} ${column.multiLine ? "whitespace-pre-wrap break-words" : ""}`}
+                                    className={clsx(
+                                        "px-4 py-3 text-sm text-gray-900",
+                                        column.width && !column.multiLine && "truncate",
+                                        column.multiLine && "whitespace-pre-wrap break-words"
+                                    )}
                                     style={column.width ? { width: column.width } : undefined}
                                 >
                                     {column.cell(row)}
