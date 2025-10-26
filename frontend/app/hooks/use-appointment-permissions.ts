@@ -17,6 +17,7 @@ export function useAppointmentPermissions(appointment: AppointmentDTO, role?: Ro
         canRescheduleAppointment: can("rescheduleAppointment", role),
         canScheduleAppointment: can("scheduleAppointment", role),
         canUpdateServiceOrder: can("updateServiceOrder", role),
+        canViewServiceOrder: can("viewServiceOrder", role),
         canEditUpdates: can("editUpdates", role),
 
         showCreateServiceOrderButton: shouldShow("createServiceOrder", appointment, role),

@@ -9,6 +9,7 @@ export type AppointmentAction =
     | "rescheduleAppointment"
     | "updateServiceOrder"
     | "createServiceOrder"
+    | "viewServiceOrder"
     | "confirmAppointment"
     | "justifyAppointment"
     | "editUpdates"
@@ -21,9 +22,10 @@ const ROLE_PERMISSIONS: Record<AppointmentAction, ReadonlySet<Role>> = {
     rescheduleAppointment: new Set([Role.GP, Role.FMI, Role.C]),
     updateServiceOrder: new Set([Role.GP]),
     createServiceOrder: new Set([Role.GP, Role.FMI, Role.FME]),
+    viewServiceOrder: new Set([Role.GP, Role.FMI, Role.FME, Role.GGC, Role.GU]),
     confirmAppointment: new Set([Role.GP, Role.FMI, Role.FME, Role.C]),
     justifyAppointment: new Set([Role.FMI, Role.FME]),
-    editUpdates: new Set([Role.GP, Role.FMI, Role.FME, Role.C]),
+    editUpdates: new Set([Role.GP, Role.FMI, Role.FME]),
     viewJustification: new Set([Role.GP]),
 };
 
@@ -40,7 +42,6 @@ const SHOW_RULES = {
         can("confirmAppointment", role) &&
         (a.status === AppointmentStatus.PENDING || a.status === AppointmentStatus.RESCHEDULED),
 
-    // Reschedule button is hidden for UNFULFILLED; users must create a new appointment
     rescheduleAppointment: (a: AppointmentDTO, role?: Role) =>
         can("rescheduleAppointment", role) && a.status !== AppointmentStatus.UNFULFILLED,
 

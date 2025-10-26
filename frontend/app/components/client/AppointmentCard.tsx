@@ -88,6 +88,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         canDeleteAppointment,
         canRescheduleAppointment,
         canUpdateServiceOrder,
+        canViewServiceOrder,
         canEditUpdates,
         showCreateServiceOrderButton,
         showConfirmAppointmentButton,
@@ -320,29 +321,33 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             {/* Actions */}
             <div className="flex flex-wrap items-center justify-between pt-4 gap-2">
                 <div className="flex flex-wrap gap-2">
-                    <Button
-                        variant="secondary"
-                        onClick={() =>
-                            serviceOrderId
-                                ? setDetailsOpen(true)
-                                : toast.info("Sem ordem de serviço vinculada.")
-                        }
-                        disabled={!serviceOrderId}
-                        data-testid="btn-so-details"
-                    >
-                        Ordem de Serviço
-                    </Button>
+                    {canViewServiceOrder && (
+                        <>
+                            <Button
+                                variant="secondary"
+                                onClick={() =>
+                                    serviceOrderId
+                                        ? setDetailsOpen(true)
+                                        : toast.info("Sem ordem de serviço vinculada.")
+                                }
+                                disabled={!serviceOrderId}
+                                data-testid="btn-so-details"
+                            >
+                                Ordem de Serviço
+                            </Button>
 
-                    <Button
-                        variant="secondary"
-                        onClick={handleExportServiceOrder}
-                        disabled={!serviceOrderId || isDownloadingSO}
-                        data-testid="btn-so-export"
-                        aria-label="Exportar Ordem de Serviço"
-                        title="Exportar Ordem de Serviço"
-                    >
-                        <FileArrowDownIcon size={20} />
-                    </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={handleExportServiceOrder}
+                                disabled={!serviceOrderId || isDownloadingSO}
+                                data-testid="btn-so-export"
+                                aria-label="Exportar Ordem de Serviço"
+                                title="Exportar Ordem de Serviço"
+                            >
+                                <FileArrowDownIcon size={20} />
+                            </Button>
+                        </>
+                    )}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
