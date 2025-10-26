@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { addDays, format, isBefore, parseISO, startOfDay } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 
 import { Button, Modal } from "@/components/common";
@@ -16,6 +16,8 @@ import { Typography } from "@/components/foundation";
 import AppointmentStatus, { appointmentStatusLabel } from "@/enums/AppointmentStatus";
 import AppointmentType, { appointmentTypeLabel } from "@/enums/AppointmentType";
 import Role from "@/enums/Role";
+import { useAppointmentPermissions } from "@/hooks/use-appointment-permissions";
+import { buildUpdateSOPayloadByRole } from "@/utils/permissions/appointment";
 import {
     useDeleteAppointmentMutation,
     useUpdateAppointmentMutation,
@@ -80,28 +82,21 @@ type AppointmentCardProps = {
 function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
     const { data: userData } = useRetrieveUserQuery();
     const role = userData?.role;
-    const canDeleteAppointment = role === Role.GP;
-    const canRescheduleAppointment = role === Role.FMI || role === Role.GP;
-    const canUpdateServiceOrder = role === Role.GP;
-    const canCreateServiceOrder = role === Role.GP || role === Role.FMI || role === Role.FME;
-    const canConfirmAppointment =
-        role === Role.GP || role === Role.FMI || role === Role.FME || role === Role.C;
-    const canJustifyAppointment = role === Role.FMI || role === Role.FME;
-    const canEditUpdates = role === Role.GP || role === Role.FMI || role === Role.FME;
     const log = child({ component: "AppointmentCard" });
-    const showCreateServiceOrderButton =
-        canCreateServiceOrder && appointment.status === AppointmentStatus.CONFIRMED;
-    const showConfirmAppointmentButton =
-        canConfirmAppointment &&
-        (appointment.status === AppointmentStatus.PENDING ||
-            appointment.status === AppointmentStatus.RESCHEDULED);
-    const showJustifyButton =
-        canJustifyAppointment && appointment.status === AppointmentStatus.UNFULFILLED;
-    const canViewJustification = role === Role.GP;
-    const showJustificationViewerButton =
-        canViewJustification &&
-        (appointment.status === AppointmentStatus.UNFULFILLED ||
-            appointment.status === AppointmentStatus.RESCHEDULED);
+
+    const {
+        canDeleteAppointment,
+        canRescheduleAppointment,
+        canUpdateServiceOrder,
+        canEditUpdates,
+        showCreateServiceOrderButton,
+        showConfirmAppointmentButton,
+        showRescheduleButton,
+        showJustifyButton,
+        showJustificationViewerButton,
+        isRescheduleDisabled,
+        isMarkDoneDisabled,
+    } = useAppointmentPermissions(appointment, role);
 
     const [deleteAppointment, { isLoading: isDeleting }] = useDeleteAppointmentMutation();
     const [createServiceOrder, { isLoading: isCreating }] = useCreateServiceOrderMutation();
@@ -121,24 +116,6 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             return appointment.date;
         }
     }, [appointment.date]);
-
-    const isRescheduleDisabled = useMemo(() => {
-        if (appointment.status === AppointmentStatus.FULFILLED) return true;
-        const scheduled = parseISO(appointment.date);
-        const cutoff = startOfDay(addDays(scheduled, 1));
-        return !isBefore(new Date(), cutoff);
-    }, [appointment.date, appointment.status]);
-
-    /**
-     * Disables the "Marcar como realizada" action for UNFULFILLED or FULFILLED appointments.
-     * Once an appointment is unfulfilled (missed) or already fulfilled, it cannot be marked as done again.
-     */
-    const isMarkDoneDisabled = useMemo(() => {
-        return (
-            appointment.status === AppointmentStatus.UNFULFILLED ||
-            appointment.status === AppointmentStatus.FULFILLED
-        );
-    }, [appointment.status]);
 
     // Local modal states
     const [detailsOpen, setDetailsOpen] = useState(false);
@@ -236,38 +213,6 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         }
     }
 
-    // Builds a payload based on the user's role.
-    // - GP: full payload; includes updates only if it differs from the current value
-    // - FMI/FME: updates-only; skips PATCH if no change
-    // - others: denied
-    const buildPayloadByRole = (
-        role: Role | undefined,
-        data: Pick<
-            ServiceOrderDTO,
-            "subject" | "description" | "conclusion" | "equipments" | "updates"
-        >,
-        currentUpdates: string | null
-    ): { payload?: UpdateServiceOrderPayload; skip?: boolean; deny?: boolean } => {
-        if (role === Role.GP) {
-            const payload: UpdateServiceOrderPayload = {
-                subject: data.subject,
-                description: data.description,
-                conclusion: data.conclusion,
-                equipments: data.equipments || [],
-            };
-            if (typeof data.updates !== "undefined" && data.updates !== currentUpdates) {
-                payload.updates = data.updates;
-            }
-            return { payload };
-        }
-        if (role === Role.FMI || role === Role.FME) {
-            const next = data.updates ?? null;
-            if (next === currentUpdates) return { skip: true };
-            return { payload: { updates: next } };
-        }
-        return { deny: true };
-    };
-
     async function handleUpdateServiceOrder(
         data: Pick<
             ServiceOrderDTO,
@@ -284,7 +229,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         }
         try {
             const current = appointment.service_order?.updates ?? null;
-            const result = buildPayloadByRole(role, data, current);
+            const result = buildUpdateSOPayloadByRole(role, data, current);
 
             if (result.deny) {
                 toast.info("Sem permissão para atualizar a Ordem de Serviço.");
@@ -459,7 +404,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                             Justificativa
                         </Button>
                     )}
-                    {canRescheduleAppointment && (
+                    {showRescheduleButton && (
                         <Button
                             variant="primary"
                             onClick={() => {
