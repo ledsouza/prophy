@@ -36,8 +36,8 @@ import {
     CalendarXIcon,
     CheckCircleIcon,
     FileArrowDownIcon,
-    MonitorPlay,
-    Users,
+    MonitorPlayIcon,
+    UsersIcon,
 } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
@@ -311,9 +311,9 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
 
     const appointmentTypeIcon =
         appointment.type === AppointmentType.ONLINE ? (
-            <MonitorPlay size={20} weight="duotone" />
+            <MonitorPlayIcon size={20} weight="duotone" />
         ) : (
-            <Users size={20} weight="duotone" />
+            <UsersIcon size={20} weight="duotone" />
         );
 
     const containerStyle = clsx(
