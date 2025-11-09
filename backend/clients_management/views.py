@@ -3,6 +3,7 @@ import os
 from datetime import date, timedelta
 from io import StringIO
 
+from core.pagination import PaginationMixin
 from django.core.management import call_command
 from django.db.models import Exists, OuterRef, Q, Subquery
 from django.http import HttpResponse
@@ -11,14 +12,13 @@ from drf_yasg.utils import swagger_auto_schema
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from users.authentication import GoogleOIDCAuthentication
 from users.models import UserAccount
-
 from clients_management.models import (
     Accessory,
     Appointment,
@@ -45,38 +45,6 @@ from clients_management.serializers import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-class PaginatedViewSet(viewsets.ViewSet):
-    """
-    Base ViewSet providing pagination functionality with dependency injection.
-
-    Subclasses can use the _paginate_response method by passing their
-    specific serializer class, following the Dependency Injection pattern
-    for flexible and reusable pagination logic.
-    """
-
-    def _paginate_response(self, queryset, request, serializer_class):
-        """
-        Handle pagination and serialization of the queryset.
-
-        Args:
-            queryset: The Django queryset to paginate.
-            request: The HTTP request object.
-            serializer_class: The serializer class to use for serialization.
-
-        Returns:
-            Response: Paginated response if pagination is applicable,
-                otherwise full queryset response.
-        """
-        paginator = PageNumberPagination()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = serializer_class(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        else:
-            serializer = serializer_class(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class LatestProposalStatusView(APIView):
@@ -156,7 +124,7 @@ class LatestProposalStatusView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProposalViewSet(PaginatedViewSet):
+class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
     """
     Viewset for managing proposals.
 
@@ -491,7 +459,7 @@ class ClientStatusView(APIView):
                 return Response({"status": False}, status=status.HTTP_200_OK)
 
 
-class ClientViewSet(PaginatedViewSet):
+class ClientViewSet(PaginationMixin, viewsets.ViewSet):
     """
     Viewset for managing clients.
 
@@ -824,7 +792,7 @@ class ClientViewSet(PaginatedViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UnitViewSet(PaginatedViewSet):
+class UnitViewSet(PaginationMixin, viewsets.ViewSet):
     """
     Viewset for listing units.
     """
@@ -890,7 +858,7 @@ class UnitViewSet(PaginatedViewSet):
             )
 
 
-class EquipmentViewSet(PaginatedViewSet):
+class EquipmentViewSet(PaginationMixin, viewsets.ViewSet):
     """
     Viewset for listing equipments.
     """
@@ -1050,7 +1018,7 @@ class EquipmentViewSet(PaginatedViewSet):
         return sorted(manufacturers)  # Sort alphabetically
 
 
-class AppointmentViewSet(PaginatedViewSet):
+class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
     """
     Viewset for managing appointments.
     """
@@ -1930,7 +1898,7 @@ class ServiceOrderPDFView(APIView):
         return response
 
 
-class ReportViewSet(PaginatedViewSet):
+class ReportViewSet(PaginationMixin, viewsets.ViewSet):
     """
     Viewset for managing reports.
     """
