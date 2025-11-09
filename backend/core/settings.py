@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "users",
     "clients_management",
     "requisitions",
+    "materials",
 ]
 
 MIDDLEWARE = [
