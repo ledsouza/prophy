@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import {
-    ClientDTO,
     useGetByCnpjQuery,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
+import type { ClientDTO } from "@/types/client";
 import {
     UnitDTO,
     useListAllUnitsQuery,

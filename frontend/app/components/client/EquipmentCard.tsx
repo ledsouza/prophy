@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import cn from "classnames";
 
 import { OperationStatus } from "@/enums";
+import Role from "@/enums/Role";
 
 import {
     EquipmentDTO,
@@ -33,7 +34,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
     const dispatch = useAppDispatch();
 
     const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+    const isStaff = userData?.role === Role.FMI || userData?.role === Role.GP;
 
     const [status, setStatus] = useState<OperationStatus>();
     const [hasOperation, setHasOperation] = useState(false);
@@ -42,7 +43,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
     const [deleteEquipmentOperation] = useDeleteEquipmentOperationMutation();
 
     const containerStyle = cn(
-        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
+        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 hover:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
             "animate-danger": isRejected && !isStaff,
@@ -167,7 +168,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
                 </div>
                 <div className="flex flex-col gap-2">
                     <Typography element="h3" size="lg" className="text-right">
-                        Status
+                        Situação
                     </Typography>
 
                     <CardStatus status={status} />

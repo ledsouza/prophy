@@ -9,7 +9,7 @@ function Tab({ children }: TabProps) {
     return (
         <HeadlessTab
             className={({ selected }) =>
-                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 
+                `w-full rounded-lg py-2.5 px-3 text-sm font-medium leading-5 
                 ${
                     selected
                         ? "bg-white text-primary shadow"

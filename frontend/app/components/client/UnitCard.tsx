@@ -4,6 +4,7 @@ import cn from "classnames";
 import { useRouter } from "next/navigation";
 
 import { OperationStatus } from "@/enums";
+import Role from "@/enums/Role";
 
 import {
     UnitDTO,
@@ -33,7 +34,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
     const dispatch = useAppDispatch();
 
     const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+    const isStaff = userData?.role === Role.FMI || userData?.role === Role.GP;
 
     const { data: equipmentOperations } = useListAllEquipmentsOperationsQuery();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
@@ -43,7 +44,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
     const [isRejected, setIsRejected] = useState(false);
 
     const containerStyle = cn(
-        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 focus:ring-inset hover:ring-primary",
+        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 hover:ring-inset focus:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
             "animate-danger": isRejected && !isStaff,
@@ -180,7 +181,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
 
                 <div className="flex flex-col gap-2">
                     <Typography element="h3" size="lg" className="text-right">
-                        Status
+                        Situação
                     </Typography>
 
                     <CardStatus status={status} />

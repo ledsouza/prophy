@@ -3,6 +3,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolk
 import { setAuth, logout } from "../features/authSlice";
 import { Mutex } from "async-mutex";
 import { OperationStatus, OperationType } from "@/enums";
+import { child } from "@/utils/logger";
 
 export type PaginatedResponse<T> = {
     count: number;
@@ -29,6 +30,8 @@ export type APIDeleteResponse = {
 
 const baseUrl = `${process.env.NEXT_PUBLIC_HOST}/api/`;
 
+const log = child({ feature: "apiSlice" });
+
 const mutex = new Mutex();
 const baseQuery = fetchBaseQuery({
     baseUrl: baseUrl,
@@ -44,6 +47,12 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
     await mutex.waitForUnlock();
     let result = await baseQuery(args, api, extraOptions);
     if (result.error && result.error.status === 401) {
+        try {
+            const endpoint = typeof args === "string" ? args : (args as FetchArgs).url;
+            log.warn({ endpoint }, "API request unauthorized (401)");
+        } catch {
+            log.warn("API request unauthorized (401)");
+        }
         // If the middleware isn't running, refresh the token and retry request
         if (!mutex.isLocked()) {
             const release = await mutex.acquire();
@@ -57,9 +66,11 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
                     extraOptions
                 );
                 if (refreshResult.data) {
+                    log.info("Token refreshed; retrying original request");
                     api.dispatch(setAuth());
                     result = await baseQuery(args, api, extraOptions);
                 } else {
+                    log.warn("Token refresh failed; logging out");
                     api.dispatch(logout());
                 }
             } finally {
@@ -67,9 +78,14 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
             }
             // If the middleware is running, wait until finish and retry request
         } else {
+            log.debug("Waiting for ongoing token refresh");
             await mutex.waitForUnlock();
             result = await baseQuery(args, api, extraOptions);
         }
+    }
+    if (result.error && result.error.status !== 401) {
+        const status = result.error.status;
+        log.error({ status }, "API request failed");
     }
     return result;
 };
@@ -95,6 +111,8 @@ export const apiSlice = createApi({
         "Modality",
         "Accessory",
         "Proposal",
+        "Appointment",
+        "Report",
     ],
     endpoints: (builder) => ({}),
 });

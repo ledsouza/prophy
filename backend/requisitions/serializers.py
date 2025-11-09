@@ -6,7 +6,7 @@ from clients_management.models import Unit, Equipment
 class ClientOperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientOperation
-        exclude = ["active"]
+        exclude = ["is_active"]
 
 
 class ClientOperationUpdateStatusSerializer(serializers.ModelSerializer):
@@ -40,7 +40,7 @@ class UnitOperationDeleteSerializer(serializers.ModelSerializer):
             phone=unit.phone,
             address=unit.address,
             state=unit.state,
-            city=unit.city
+            city=unit.city,
         )
 
         return unit_operation
@@ -67,8 +67,7 @@ class EquipmentOperationDeleteSerializer(serializers.ModelSerializer):
         fields = ["operation_type", "original_equipment", "created_by", "id"]
 
     def create(self, validated_data):
-        equipment = Equipment.objects.get(
-            id=validated_data["original_equipment"].id)
+        equipment = Equipment.objects.get(id=validated_data["original_equipment"].id)
 
         equipment_operation = EquipmentOperation.objects.create(
             operation_type=validated_data["operation_type"],

@@ -9,12 +9,27 @@ type FormButtonsProps = {
     reviewMode?: boolean;
     isSubmitting?: boolean;
     needReview?: boolean;
+    submitLabel?: string;
     onCancel?: () => void;
 };
 
 /**
- * A reusable component for rendering form buttons with different states
- * based on the form context (rejection, review mode, etc.)
+ * Renders form action buttons depending on the current form context.
+ *
+ * Behavior:
+ * - Rejection state: shows "Voltar" and "Enviar"
+ * - Review mode: shows "Rejeitar" and "Aceitar"
+ * - Default: shows "Cancelar" and a submit button
+ *
+ * Params:
+ * - isRejected: toggles the rejection sub-flow.
+ * - setIsRejected: setter used to leave/enter rejection sub-flow.
+ * - disabled: hides buttons and preserves layout height.
+ * - reviewMode: enables the review action pair.
+ * - isSubmitting: disables buttons while a submit is in-flight.
+ * - needReview: switches default submit label to "Requisitar".
+ * - submitLabel: optional explicit label for the submit button (e.g., "Agendar").
+ * - onCancel: custom cancel handler; defaults to closing the modal.
  */
 const FormButtons = ({
     isRejected = false,
@@ -23,6 +38,7 @@ const FormButtons = ({
     reviewMode = false,
     isSubmitting = false,
     needReview = false,
+    submitLabel,
     onCancel,
 }: FormButtonsProps) => {
     const dispatch = useAppDispatch();
@@ -102,7 +118,7 @@ const FormButtons = ({
                 data-testid="submit-btn"
                 className="w-full"
             >
-                {needReview ? "Requisitar" : "Atualizar"}
+                {submitLabel ?? (needReview ? "Requisitar" : "Atualizar")}
             </Button>
         </div>
     );

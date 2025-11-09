@@ -3,7 +3,7 @@ import { Spinner } from "@/components/common";
 import cn from "classnames";
 import Link, { LinkProps } from "next/link";
 
-type ButtonVariant = "primary" | "secondary" | "danger";
+type ButtonVariant = "primary" | "secondary" | "danger" | "success";
 
 type CommonButtonProps = {
     children?: ReactNode;
@@ -47,6 +47,8 @@ const Button = ({
                 variant === "secondary",
             "bg-danger text-white hover:bg-danger hover:bg-opacity-80 focus-visible:outline-danger":
                 variant === "danger",
+            "bg-success text-white hover:bg-success/90 focus-visible:outline-success":
+                variant === "success",
             "bg-opacity-70 text-white hover:bg-opacity-80 focus-visible:outline-secondary":
                 disabled,
         }

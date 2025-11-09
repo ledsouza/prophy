@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import {
-    ClientOperationDTO,
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
+import type { ClientOperationDTO } from "@/types/client";
 import {
     UnitDTO,
     useCreateDeleteUnitOperationMutation,
@@ -241,7 +241,7 @@ function ClientPage() {
                 />
             )}
 
-            <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] flex flex-col min-h-0 gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
                 <Typography element="h2" size="title2" className="font-bold">
                     Unidades
                 </Typography>
@@ -255,7 +255,9 @@ function ClientPage() {
                     />
                 )}
 
-                <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
+                <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable] px-3 py-3">
+                    <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
+                </div>
 
                 <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
                     Adicionar unidade

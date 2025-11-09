@@ -67,7 +67,8 @@ class Command(BaseCommand):
                 message.send()
                 sent_count += 1
                 self.stdout.write(
-                    f"  - Sent notification for Report ID {report.id} to {', '.join(recipient_emails)}"
+                    f"  - Sent notification for Report ID {report.id}",
+                    " to {', '.join(recipient_emails)}",
                 )
             except Exception as e:
                 logger.error(
@@ -93,14 +94,16 @@ class Command(BaseCommand):
             client = report.equipment.unit.client
         if not client:
             logger.error(
-                f"Data Integrity Issue: Report ID {report.id} has no associated Client."
+                f"Data Integrity Issue: Report ID {report.id}",
+                " has no associated Client.",
             )
             return None
 
         all_associated_users = client.users.all()
         if not all_associated_users.exists():
             logger.error(
-                f"Data Integrity Issue: Client '{client.name}' (ID: {client.id}) has no associated users."
+                f"Data Integrity Issue: Client '{client.name}' (ID: {client.id})",
+                " has no associated users.",
             )
             return None
 
@@ -110,8 +113,10 @@ class Command(BaseCommand):
                 recipient_emails.append(user.email)
             else:
                 logger.warning(
-                    f"Data Quality Issue: User '{user.name}' (ID: {user.id}) of Client '{client.name}' "
-                    f"was skipped for Report ID {report.id} because they have no email address."
+                    f"Data Quality Issue: User '{user.name}' (ID: {user.id})",
+                    f" of Client '{client.name}' ",
+                    f"was skipped for Report ID {report.id}",
+                    " because they have no email address.",
                 )
 
         return (client, recipient_emails) if recipient_emails else None

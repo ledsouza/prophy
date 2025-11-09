@@ -127,7 +127,7 @@ class Client(models.Model):
         "Estado da instituição", max_length=2, choices=STATE_CHOICES
     )
     city = models.CharField("Cidade da instituição", max_length=50)
-    active = models.BooleanField("Ativo", default=False)
+    is_active = models.BooleanField("Ativo", default=False)
 
     @admin.display(description="Responsáveis")
     def responsables(self):
@@ -368,8 +368,8 @@ class Proposal(models.Model):
         email (EmailField): Contact person's email address
         date (DateField): Date when the proposal was created
         value (DecimalField): Proposed contract value
-        contract_type (CharField): Type of contract (Annual or Monthly)
-        status (CharField): Current status of the proposal (Accepted, Rejected or Pending)
+        contract_type (CharField): Type of contract
+        status (CharField): Current status of the proposal
     Methods:
         approved_client(): Returns True if proposal status is Accepted, False otherwise
         proposal_month(): Returns the month name when proposal was created
@@ -454,48 +454,67 @@ class ServiceOrder(models.Model):
         equipments (ManyToManyField): Equipments related to this order.
         description (TextField): Detailed description of the requested work.
         conclusion (TextField): Summary of the work performed and resolution.
+        updates (TextField): A running log of updates and notes for the service order.
     """
 
     subject = models.CharField(
         "Assunto",
         max_length=50,
-        help_text="A brief, clear summary of the service order's purpose.",
     )
-    equipments = models.ManyToManyField(Equipment, related_name="service_orders")
+    equipments = models.ManyToManyField(
+        Equipment,
+        related_name="service_orders",
+    )
     description = models.TextField(
         "Descrição",
-        help_text="A detailed description of the problem or service required.",
     )
     conclusion = models.TextField(
-        "Conclusão", help_text="A summary of the work performed and the resolution."
+        "Conclusão",
+    )
+    updates = models.TextField(
+        "Atualização",
+        blank=True,
+        null=True,
     )
 
     def __str__(self):
         return self.subject
 
 
-class Visit(models.Model):
+class Appointment(models.Model):
     """
-    A Django model representing an on-site visit that generates a ServiceOrder.
+    A Django model representing an appointment that generates a ServiceOrder.
 
     Records scheduling and execution details for a specific client unit, including
-    status and contact information. Each Visit is linked one-to-one with a
-    ServiceOrder.
+    status, type (in-person or online), and contact information. Each Appointment
+    is linked one-to-one with a ServiceOrder.
 
     Attributes:
-        date (DateTimeField): Scheduled datetime of the visit.
-        status (CharField): Visit status. One of P (Pendente), C (Confirmado),
-            F (Realizado), U (Não realizado).
+        date (DateTimeField): Scheduled datetime of the appointment.
+        type (CharField): Appointment type. One of I (Presencial), O (Online).
+        status (CharField): Appointment status. One of P (Pendente), C (Confirmado),
+            F (Realizado), U (Não realizado), R (Reagendada).
+        justification (TextField): Optional justification for status changes.
         contact_phone (CharField): Contact phone for the attendant at the unit.
         contact_name (CharField): Contact name for the attendant at the unit.
         service_order (OneToOneField): The associated ServiceOrder to be generated.
-        unit (ForeignKey): The client Unit where the visit will occur.
+        unit (ForeignKey): The client Unit where the appointment will occur.
 
     Properties:
         periodicity (str | None): Contract periodicity derived from the most recent
             approved Proposal for the associated Client. Returns one of the values from
             Proposal.ContractType or None if unavailable.
     """
+
+    class Type(TextChoices):
+        IN_PERSON = (
+            "I",
+            "Presencial",
+        )
+        ONLINE = (
+            "O",
+            "Online",
+        )
 
     class Status(TextChoices):
         PENDING = (
@@ -510,24 +529,53 @@ class Visit(models.Model):
             "F",
             "Realizado",
         )
-        UNFULFILLED = "U", "Não realizado"
+        UNFULFILLED = (
+            "U",
+            "Não realizado",
+        )
+        RESCHEDULED = (
+            "R",
+            "Reagendada",
+        )
 
     date = models.DateTimeField("Data")
-    status = models.CharField(
-        "Status", max_length=1, choices=Status.choices, default=Status.PENDING
+    type = models.CharField(
+        "Tipo",
+        max_length=1,
+        choices=Type.choices,
+        default=Type.IN_PERSON,
     )
-    contact_phone = models.CharField("Telefone do contato", max_length=13)
-    contact_name = models.CharField("Nome do contato", max_length=50)
+    status = models.CharField(
+        "Status",
+        max_length=1,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    justification = models.TextField(
+        "Justificativa",
+        blank=True,
+        null=True,
+    )
+    contact_phone = models.CharField(
+        "Telefone do contato",
+        max_length=13,
+    )
+    contact_name = models.CharField(
+        "Nome do contato",
+        max_length=50,
+    )
     service_order = models.OneToOneField(
         ServiceOrder,
         on_delete=models.CASCADE,
-        related_name="visit",
+        related_name="appointment",
         verbose_name="Ordem de Serviço",
+        blank=True,
+        null=True,
     )
     unit = models.ForeignKey(
         Unit,
         on_delete=models.CASCADE,
-        related_name="visits",
+        related_name="appointments",
         blank=True,
         null=True,
         verbose_name="Unidade",
@@ -536,10 +584,10 @@ class Visit(models.Model):
     @property
     def periodicity(self) -> str | None:
         """
-        Calculates the contract periodicity for this visit.
+        Calculates the contract periodicity for this appointment.
 
         It finds the most recent, approved proposal for the client
-        associated with this visit's unit and returns its contract type.
+        associated with this appointment's unit and returns its contract type.
         Returns None if no such proposal or client is found.
         """
         try:
@@ -559,11 +607,11 @@ class Visit(models.Model):
         return None
 
     class Meta:
-        verbose_name = "Visita"
-        verbose_name_plural = "Visitas"
+        verbose_name = "Agendamento"
+        verbose_name_plural = "Agendamentos"
 
     def __str__(self) -> str:
-        return f"Visita ${self.client.name} - ${self.date.day}"
+        return f"Agendamento {self.unit.client.name if self.unit and self.unit.client else 'N/A'} - {self.date.day}"
 
 
 class Report(models.Model):
@@ -651,13 +699,17 @@ class Report(models.Model):
             if not self.equipment:
                 raise ValidationError(
                     {
-                        "equipment": f'Relatórios do tipo "{self.get_report_type_display()}" devem ter um equipamento associado.'
+                        "equipment": f'Relatórios do tipo "{
+                            self.get_report_type_display()
+                        }" devem ter um equipamento associado.'
                     }
                 )
             if self.unit:
                 raise ValidationError(
                     {
-                        "unit": f'Relatórios do tipo "{self.get_report_type_display()}" não devem ter uma unidade associada.'
+                        "unit": f'Relatórios do tipo "{
+                            self.get_report_type_display()
+                        }" não devem ter uma unidade associada.'
                     }
                 )
 
@@ -665,19 +717,24 @@ class Report(models.Model):
             if not self.unit:
                 raise ValidationError(
                     {
-                        "unit": f'Relatórios do tipo "{self.get_report_type_display()}" devem ter uma unidade associada.'
+                        "unit": f'Relatórios do tipo "{
+                            self.get_report_type_display()
+                        }" devem ter uma unidade associada.'
                     }
                 )
             if self.equipment:
                 raise ValidationError(
                     {
-                        "equipment": f'Relatórios do tipo "{self.get_report_type_display()}" não devem ter um equipamento associado.'
+                        "equipment": f'Relatórios do tipo "{
+                            self.get_report_type_display()
+                        }" não devem ter um equipamento associado.'
                     }
                 )
 
     def save(self, *args, **kwargs):
         """
-        Calculates the due date automatically before saving based on completion date and report type.
+        Calculates the due date automatically before saving based on completion date
+        and report type.
         """
         if self.completion_date and not self.due_date:
             if self.report_type == self.ReportType.RADIOMETRIC_SURVEY:

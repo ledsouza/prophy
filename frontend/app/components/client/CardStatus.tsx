@@ -9,13 +9,19 @@ function CardStatus({ status }: CardStatusProps) {
     return (
         <>
             {status === OperationStatus.ACCEPTED && (
-                <Typography className="text-success">Aprovada</Typography>
+                <Typography className="text-success font-medium" size="sm">
+                    Aprovada
+                </Typography>
             )}
             {status === OperationStatus.REJECTED && (
-                <Typography className="text-danger">Rejeitada</Typography>
+                <Typography className="text-danger font-medium" size="sm">
+                    Rejeitada
+                </Typography>
             )}
             {status === OperationStatus.REVIEW && (
-                <Typography className="text-warning">Pendente</Typography>
+                <Typography className="text-warning font-medium" size="sm">
+                    Pendente
+                </Typography>
             )}
         </>
     );

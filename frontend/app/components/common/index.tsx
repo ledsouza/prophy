@@ -9,3 +9,4 @@ export { default as Table } from "./Table";
 export { default as ErrorDisplay } from "./ErrorDisplay";
 export { default as Pagination } from "./Pagination";
 export { default as Tab } from "./Tab";
+export { default as TabbedResourcePanel } from "./TabbedResourcePanel";

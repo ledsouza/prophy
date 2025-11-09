@@ -1,4 +1,3 @@
-import { URLSearchParams } from "url";
 import { SearchTab } from "./enums";
 
 export const buildUrlParams = (
@@ -11,8 +10,8 @@ export const buildUrlParams = (
 
     if (tab === "clients") {
         params.set("client_page", String(page));
-    } else if (tab === "equipments") {
-        params.set("equipment_page", String(page));
+    } else if (tab === "proposals") {
+        params.set("proposal_page", String(page));
     }
 
     Object.entries(filters).forEach(([key, value]) => {
@@ -25,5 +24,5 @@ export const buildUrlParams = (
 };
 
 export const getTabFromParam = (tabParam: string | null): SearchTab => {
-    return tabParam === "equipments" ? SearchTab.EQUIPMENTS : SearchTab.CLIENTS;
+    return tabParam === "proposals" ? SearchTab.PROPOSALS : SearchTab.CLIENTS;
 };

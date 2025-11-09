@@ -6,7 +6,7 @@ import {
     Operation,
     PaginatedResponse,
 } from "../services/apiSlice";
-import { UserDTO } from "./authApiSlice";
+import type { UserDTO } from "@/types/user";
 
 export type UnitDTO = {
     id: number;

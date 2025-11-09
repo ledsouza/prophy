@@ -3,6 +3,7 @@ import { apiSlice } from "./services/apiSlice";
 import { ibgeApiSlice } from "./services/ibgeApiSlice";
 import authReducer from "./features/authSlice";
 import modalReducer from "./features/modalSlice";
+import loggerMiddleware from "./middleware/loggerMiddleware";
 
 export const store = configureStore({
     reducer: {
@@ -14,7 +15,8 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
             apiSlice.middleware,
-            ibgeApiSlice.middleware
+            ibgeApiSlice.middleware,
+            ...(process.env.NODE_ENV !== "production" ? [loggerMiddleware] : [])
         ),
     devTools: process.env.NODE_ENV !== "production",
 });

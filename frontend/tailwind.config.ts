@@ -32,16 +32,16 @@ const config: Config = {
             keyframes: {
                 warning: {
                     "0%, 100%": {
-                        "box-shadow": "0 0 0 2px rgb(161 98 7 / 0.6)",
+                        "box-shadow": "inset 0 0 0 2px rgb(161 98 7 / 0.6)",
                     },
-                    "50%": { "box-shadow": "0 0 0 2px rgb(161 98 7 / 0.1)" },
+                    "50%": { "box-shadow": "inset 0 0 0 2px rgb(161 98 7 / 0.1)" },
                 },
                 danger: {
                     "0%, 100%": {
-                        "box-shadow": "0 0 0 2px rgb(220 38 38 / 0.6)",
+                        "box-shadow": "inset 0 0 0 2px rgb(220 38 38 / 0.6)",
                     },
                     "50%": {
-                        "box-shadow": "0 0 0 2px rgb(220 38 38 / 0.1)",
+                        "box-shadow": "inset 0 0 0 2px rgb(220 38 38 / 0.1)",
                     },
                 },
             },

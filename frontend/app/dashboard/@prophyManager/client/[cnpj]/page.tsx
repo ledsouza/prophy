@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 
 import { apiSlice } from "@/redux/services/apiSlice";
 import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
-import { ClientOperationDTO } from "@/redux/features/clientApiSlice";
+import type { ClientOperationDTO } from "@/types/client";
 import { UnitDTO, useDeleteUnitOperationMutation } from "@/redux/features/unitApiSlice";
 
 import { useSingleClientLoading } from "@/hooks";
@@ -222,7 +222,7 @@ function ClientDetailPage() {
                     />
                 )}
 
-                <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] flex flex-col min-h-0 gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
                     <Typography element="h2" size="title2" className="font-bold">
                         Unidades
                     </Typography>
@@ -236,7 +236,9 @@ function ClientDetailPage() {
                         />
                     )}
 
-                    <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
+                    <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable] px-3 py-3">
+                        <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
+                    </div>
 
                     {filteredClient && (
                         <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">

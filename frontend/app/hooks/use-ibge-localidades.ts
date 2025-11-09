@@ -15,8 +15,7 @@ const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
         isSuccess: isEstadosSuccess,
         error: estadosError,
     } = useGetEstadosQuery();
-    const [selectedEstado, setSelectedEstado] =
-        useState<ComboboxDataProps | null>(null);
+    const [selectedEstado, setSelectedEstado] = useState<ComboboxDataProps | null>(null);
 
     if (estadosError) {
         console.error("useGetEstadosQuery error: ", estadosError);
@@ -27,14 +26,10 @@ const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
         isSuccess: isMunicipiosSuccess,
         error: municipiosError,
     } = useGetMunicipiosByEstadosIdQuery(selectedEstado?.id ?? skipToken);
-    const [selectedMunicipio, setSelectedMunicipio] =
-        useState<ComboboxDataProps | null>(null);
+    const [selectedMunicipio, setSelectedMunicipio] = useState<ComboboxDataProps | null>(null);
 
     if (municipiosError) {
-        console.error(
-            "useGetMunicipiosByEstadosIdQuery error: ",
-            municipiosError
-        );
+        console.error("useGetMunicipiosByEstadosIdQuery error: ", municipiosError);
     }
 
     const cleanSelectedMunicipio = useCallback(() => {
@@ -50,18 +45,16 @@ const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
     const handleEstadoChange = (selectedEstado: ComboboxDataProps | null) => {
         setSelectedEstado(selectedEstado);
         if (selectedEstado) {
-            setValue("state", selectedEstado.sigla);
+            setValue("state", selectedEstado.sigla, { shouldValidate: true });
             return;
         }
-        setValue("state", "");
-        setValue("city", "");
+        setValue("state", "", { shouldValidate: true });
+        setValue("city", "", { shouldValidate: true });
     };
 
-    const handleMunicipioChange = (
-        selectedMunicipio: ComboboxDataProps | null
-    ) => {
+    const handleMunicipioChange = (selectedMunicipio: ComboboxDataProps | null) => {
         setSelectedMunicipio(selectedMunicipio);
-        setValue("city", selectedMunicipio?.name || "");
+        setValue("city", selectedMunicipio?.name || "", { shouldValidate: true });
     };
 
     return {

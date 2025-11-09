@@ -1,39 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { getUnitOperation } from "@/redux/services/helpers";
-import { apiSlice } from "@/redux/services/apiSlice";
-import {
-    UnitDTO,
-    useListAllUnitsOperationsQuery,
-    useListAllUnitsQuery,
-} from "@/redux/features/unitApiSlice";
 import {
     EquipmentDTO,
     useListAllEquipmentsOperationsQuery,
     useListAllEquipmentsQuery,
 } from "@/redux/features/equipmentApiSlice";
+import {
+    UnitDTO,
+    useListAllUnitsOperationsQuery,
+    useListAllUnitsQuery,
+} from "@/redux/features/unitApiSlice";
+import { apiSlice } from "@/redux/services/apiSlice";
+import { getUnitOperation } from "@/redux/services/helpers";
 
-import { getIdFromUrl } from "@/utils/url";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
 
-import { Typography } from "@/components/foundation";
-import { Button, Modal, Spinner } from "@/components/common";
 import {
-    Input,
-    EditUnitForm,
+    AppointmentPanel,
+    EquipmentDetails,
+    EquipmentPanel,
+    ReportPanel,
+    UnitDetails,
+} from "@/components/client";
+import { Button, Modal, Spinner, TabbedResourcePanel } from "@/components/common";
+import {
     AddEquipmentForm,
     EditEquipmentForm,
-    ReviewDeleteUnitForm,
+    EditUnitForm,
     ReviewDeleteEquipmentForm,
+    ReviewDeleteUnitForm,
 } from "@/components/forms";
-import { UnitDetails, EquipmentDetails, EquipmentList } from "@/components/client";
+import { Typography } from "@/components/foundation";
+import { ModalDeleteEquipment, ModalDeleteUnit } from "@/components/modals";
 import { OperationType } from "@/enums";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
-import { ModalDeleteEquipment, ModalDeleteUnit } from "@/components/modals";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -52,7 +57,6 @@ function UnitPage() {
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
     const [filteredEquipmentsByUnit, setFilteredEquipmentsByUnit] = useState<EquipmentDTO[]>([]);
-    const [searchedEquipments, setSearchedEquipments] = useState<EquipmentDTO[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
 
     const { data: units, isLoading: isLoadingUnits, error: errorUnits } = useListAllUnitsQuery();
@@ -82,12 +86,9 @@ function UnitPage() {
                 { type: "UnitOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
+                { type: "Appointment", id: "LIST" },
             ])
         );
-    };
-
-    const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(event.target.value);
     };
 
     const handleModalAddEquipment = () => {
@@ -127,23 +128,6 @@ function UnitPage() {
             ...AddEquipmentsInOperation,
         ]);
     }, [equipmentsOperations, equipments, selectedUnit]);
-
-    // Filter equipments by search term
-    useEffect(() => {
-        if (filteredEquipmentsByUnit.length > 0) {
-            if (searchTerm.length > 0) {
-                setSearchedEquipments(
-                    filteredEquipmentsByUnit.filter((equipment) =>
-                        equipment.model.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                );
-            } else {
-                setSearchedEquipments(filteredEquipmentsByUnit);
-            }
-        } else {
-            setSearchedEquipments([]);
-        }
-    }, [filteredEquipmentsByUnit, searchTerm]);
 
     // Filter equipments by query params
     useEffect(() => {
@@ -203,29 +187,32 @@ function UnitPage() {
                     unitOperation={getUnitOperation(selectedUnit, unitsOperations)}
                 />
 
-                <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] overflow-y-auto flex flex-col gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
-                    <Typography element="h2" size="title2" className="font-bold">
-                        Equipamentos
-                    </Typography>
-
-                    {filteredEquipmentsByUnit?.length !== 0 && (
-                        <Input
-                            placeholder="Buscar equipamentos por modelo"
-                            value={searchTerm}
-                            onChange={handleSearchInputChange}
-                            dataTestId="input-search-equipments"
-                        />
-                    )}
-
-                    <EquipmentList
-                        searchedEquipments={searchedEquipments}
-                        filteredEquipmentsByUnit={filteredEquipmentsByUnit}
-                    />
-
-                    <Button onClick={handleModalAddEquipment} data-testid="btn-add-equipment">
-                        Adicionar equipamento
-                    </Button>
-                </div>
+                <TabbedResourcePanel
+                    tabs={[
+                        {
+                            id: "equipments",
+                            label: "Equipamentos",
+                            render: () => (
+                                <EquipmentPanel
+                                    filteredEquipmentsByUnit={filteredEquipmentsByUnit}
+                                    searchTerm={searchTerm}
+                                    onSearchTermChange={setSearchTerm}
+                                    onAddEquipment={handleModalAddEquipment}
+                                />
+                            ),
+                        },
+                        {
+                            id: "appointments",
+                            label: "Agendamentos",
+                            render: () => <AppointmentPanel unitId={unitId} />,
+                        },
+                        {
+                            id: "reports",
+                            label: "Relatórios",
+                            render: () => <ReportPanel unitId={unitId} />,
+                        },
+                    ]}
+                />
 
                 <Modal
                     isOpen={isModalOpen}

@@ -1,9 +1,10 @@
-import { ClientDTO } from "@/redux/features/clientApiSlice";
+import type { ClientDTO } from "@/types/client";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 import { getUserByRole } from "@/utils/api";
 import { formatPhoneNumber } from "@/utils/format";
 import { Typography } from "@/components/foundation";
+import Role from "@/enums/Role";
 
 type ClientContactProps = {
     client: ClientDTO;
@@ -12,17 +13,17 @@ type ClientContactProps = {
 function ClientContact({ client }: ClientContactProps) {
     const { data: userData } = useRetrieveUserQuery();
 
-    const clientManager = getUserByRole(client, "GGC");
-    const gerenteProphy = getUserByRole(client, "GP");
-    const fisicoMedicoInterno = getUserByRole(client, "FMI");
-    const fisicoMedicoExterno = getUserByRole(client, "FME");
-    const comercial = getUserByRole(client, "C");
+    const clientManager = getUserByRole(client, Role.GGC);
+    const gerenteProphy = getUserByRole(client, Role.GP);
+    const fisicoMedicoInterno = getUserByRole(client, Role.FMI);
+    const fisicoMedicoExterno = getUserByRole(client, Role.FME);
+    const comercial = getUserByRole(client, Role.C);
 
     if (
-        userData?.role === "GGC" ||
-        userData?.role === "GU" ||
-        userData?.role === "FME" ||
-        userData?.role === "GP"
+        userData?.role === Role.GGC ||
+        userData?.role === Role.GU ||
+        userData?.role === Role.FME ||
+        userData?.role === Role.GP
     ) {
         return (
             <>
@@ -62,7 +63,7 @@ function ClientContact({ client }: ClientContactProps) {
                                 </div>
                             )}
 
-                            {fisicoMedicoExterno && userData.role !== "FME" && (
+                            {fisicoMedicoExterno && userData.role !== Role.FME && (
                                 <div data-testid="fisico-medico-externo">
                                     <Typography element="p" size="md">
                                         {fisicoMedicoExterno.name}
@@ -112,7 +113,7 @@ function ClientContact({ client }: ClientContactProps) {
         );
     }
 
-    if (userData?.role === "FMI") {
+    if (userData?.role === Role.FMI) {
         return (
             <>
                 <div>

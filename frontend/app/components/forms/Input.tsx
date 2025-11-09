@@ -1,5 +1,5 @@
+import clsx from "clsx";
 import { forwardRef, InputHTMLAttributes } from "react";
-import cn from "classnames";
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
     disabled?: boolean;
@@ -9,8 +9,11 @@ export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
     ({ disabled = false, errorMessage, dataTestId, children, type, ...props }: InputProps, ref) => {
-        const inputClassName = cn(
-            "block w-full rounded-md border-0 text-gray-primary shadow-md ring-1 ring-inset placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
+        const inputClassName = clsx(
+            "block w-full rounded-md border-0",
+            "text-gray-primary shadow-md",
+            "ring-1 ring-inset placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary",
+            "sm:text-sm sm:leading-6",
             {
                 "py-1.5 ring-tertiary": disabled,
                 "bg-danger bg-opacity-5 ring-danger": errorMessage,

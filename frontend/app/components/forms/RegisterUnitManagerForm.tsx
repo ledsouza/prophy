@@ -15,8 +15,8 @@ import { closeModal } from "@/redux/features/modalSlice";
 import {
     useRegisterUnitManagerMutation,
     useLazyGetByCPFQuery,
-    UserDTO,
 } from "@/redux/features/authApiSlice";
+import type { UserDTO } from "@/types/user";
 import { handleApiError } from "@/redux/services/errorHandling";
 
 import { Form, Input } from "@/components/forms";
