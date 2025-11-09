@@ -1,35 +1,13 @@
 import { OperationStatus, OperationType } from "@/enums";
-import { apiSlice, ListQueryParams, Operation, PaginatedResponse } from "../services/apiSlice";
-import { UserDTO } from "./authApiSlice";
-
-export type ClientDTO = {
-    id: number;
-    cnpj: string;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    state: string;
-    city: string;
-    status: string;
-    users: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
-};
-
-export type ClientOperationDTO = ClientDTO &
-    Operation & {
-        original_client?: number;
-    };
-
-type PutClientOperationDTO = Partial<
-    Omit<
-        ClientOperationDTO,
-        "id" | "users" | "status" | "operation_type" | "cnpj" | "note" | "original_client"
-    >
->;
-
-type Status = {
-    status: boolean;
-};
+import { apiSlice, ListQueryParams, PaginatedResponse } from "../services/apiSlice";
+import type {
+    ClientDTO,
+    ClientOperationDTO,
+    ListClientsArgs,
+    Status,
+    CreateClientPayload,
+    UpdateClientPayload,
+} from "@/types/client";
 
 const clientApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -57,18 +35,17 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 params: { cnpj, page },
             }),
         }),
-        listClients: builder.query<
-            PaginatedResponse<ClientDTO>,
-            ListQueryParams & {
-                cnpj?: string;
-                name?: string;
-                city?: string;
-                user_role?: string;
-                contract_type?: string;
-                operation_status?: string;
-            }
-        >({
-            query: ({ page = 1, cnpj, name, city, user_role, contract_type, operation_status }) => {
+        listClients: builder.query<PaginatedResponse<ClientDTO>, ListClientsArgs>({
+            query: ({
+                page = 1,
+                cnpj,
+                name,
+                city,
+                user_role,
+                contract_type,
+                operation_status,
+                is_active,
+            }) => {
                 const params: Record<string, any> = { page };
                 if (cnpj) params.cnpj = cnpj;
                 if (name) params.name = name;
@@ -76,6 +53,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 if (user_role) params.user_role = user_role;
                 if (contract_type) params.contract_type = contract_type;
                 if (operation_status) params.operation_status = operation_status;
+                if (is_active) params.is_active = is_active;
 
                 return {
                     url: "clients/",
@@ -168,7 +146,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "status" | "operation_type" | "operation_status"
+                "id" | "users" | "is_active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -188,7 +166,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "status" | "operation_type" | "operation_status"
+                "id" | "users" | "is_active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -229,7 +207,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             Omit<
                 ClientOperationDTO,
-                "id" | "users" | "status" | "operation_type" | "operation_status"
+                "id" | "users" | "is_active" | "operation_type" | "operation_status"
             >
         >({
             query: (clientData) => ({
@@ -250,7 +228,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
             ClientOperationDTO,
             {
                 clientID: number;
-                clientData: PutClientOperationDTO;
+                clientData: UpdateClientPayload;
             }
         >({
             query: ({ clientID, clientData }) => ({
@@ -260,6 +238,23 @@ const clientApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [
                 { type: "ClientOperation", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
+        }),
+        updateClient: builder.mutation<
+            ClientDTO,
+            {
+                id: number;
+                is_active: boolean;
+            }
+        >({
+            query: ({ id, is_active }) => ({
+                url: `clients/${id}/`,
+                method: "PATCH",
+                body: { is_active },
+            }),
+            invalidatesTags: (result, error, { id }) => [
+                { type: "Client", id },
                 { type: "Client", id: "LIST" },
             ],
         }),
@@ -280,4 +275,5 @@ export const {
     useCreateDeleteClientOperationMutation,
     useCreateClientMutation,
     useEditClientMutation,
+    useUpdateClientMutation,
 } = clientApiSlice;

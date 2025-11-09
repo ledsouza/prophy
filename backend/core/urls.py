@@ -9,11 +9,10 @@ from drf_yasg import openapi
 schema_view = get_schema_view(
     openapi.Info(
         title="Prophy Medical Physics Management System API",
-        default_version='v1',
+        default_version="v1",
         description="API documentation for Prophy's comprehensive medical physics management system.",
         terms_of_service="https://www.prophy.med.com/terms/",  # Placeholder
-        contact=openapi.Contact(
-            email="leandro.souza.159@gmail.com"),  # Placeholder
+        contact=openapi.Contact(email="leandro.souza.159@gmail.com"),  # Placeholder
         license=openapi.License(name="GPL-3.0 License"),
     ),
     public=True,
@@ -25,10 +24,13 @@ urlpatterns = [
     path("api/", include("users.urls")),
     path("api/", include("clients_management.urls")),
     path("api/", include("requisitions.urls")),
-    path('api/docs/', schema_view.with_ui('swagger',
-         cache_timeout=0), name='schema-swagger-ui'),
+    path("api/", include("materials.urls")),
+    path(
+        "api/docs/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

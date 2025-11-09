@@ -8,32 +8,38 @@ import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
-import { usePendingOperations } from "@/hooks";
-import { ClientDTO } from "@/redux/features/clientApiSlice";
+import {
+    usePendingOperations,
+    useTabNavigation,
+    usePageNavigation,
+    useFilterApplication,
+    useFilterClear,
+    useFilterRestoration,
+} from "@/hooks";
+import { buildStandardUrlParams } from "@/utils/url-params";
+import type { ClientDTO } from "@/types/client";
 import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
 import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
+import { restoreTextFilterStates, restoreSelectFilterStates } from "@/utils/filter-restoration";
 
 import { Button, ErrorDisplay, Pagination, Spinner, Tab, Table } from "@/components/common";
 import { Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
-import { SearchTab } from "./enums";
+import { SearchTab, getTabFromParam } from "./enums";
 import { useSearchQueries } from "./hooks";
 import {
     getContractTypeFromOptionId,
     getOperationStatusFromOptionId,
     getUserRoleFromOptionId,
-    resetPageState,
+    getContractTypeOptionIdFromValue,
+    getOperationStatusOptionIdFromValue,
+    getUserRoleOptionIdFromValue,
     restoreManufacturerFilterState,
     restoreModalityFilterState,
-    restorePageState,
-    restoreSelectFilterStates,
-    restoreTabState,
-    restoreTextFilterStates,
 } from "./state";
 import { ClientFilters, EquipmentFilters } from "./types";
-import { buildUrlParams } from "./url";
 
 function SearchPage() {
     const router = useRouter();
@@ -113,156 +119,129 @@ function SearchPage() {
         [manufacturersData?.manufacturers]
     );
 
-    const handleTabChange = (index: number) => {
-        const params = new URLSearchParams();
-        setSelectedTabIndex(index);
+    const { handleTabChange } = useTabNavigation(setSelectedTabIndex, {
+        [SearchTab.CLIENTS]: {
+            tabName: "clients",
+            pageKey: "client_page",
+            currentPage: clientCurrentPage,
+            buildFilters: () => ({
+                name: selectedClientName,
+                cnpj: selectedClientCNPJ,
+                city: selectedClientCity,
+                user_role: getUserRoleFromOptionId(selectedUserRole.id),
+                contract_type: getContractTypeFromOptionId(selectedContractType.id),
+                operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
+            }),
+        },
+        [SearchTab.EQUIPMENTS]: {
+            tabName: "equipments",
+            pageKey: "equipment_page",
+            currentPage: equipmentCurrentPage,
+            buildFilters: () => ({
+                modality: String(selectedEquipmentModality.id),
+                manufacturer: selectedEquipmentManufacturer.value,
+                client_name: selectedEquipmentClient,
+            }),
+        },
+    });
 
-        switch (index) {
-            case SearchTab.CLIENTS:
-                const clientFilters: ClientFilters = {
-                    name: selectedClientName,
-                    cnpj: selectedClientCNPJ,
-                    city: selectedClientCity,
-                    user_role: getUserRoleFromOptionId(selectedUserRole.id),
-                    contract_type: getContractTypeFromOptionId(selectedContractType.id),
-                    operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
-                };
-
-                buildUrlParams(params, "clients", clientCurrentPage, clientFilters);
-                break;
-
-            case SearchTab.EQUIPMENTS:
-                const equipmentFilters: EquipmentFilters = {
-                    modality: String(selectedEquipmentModality.id),
-                    manufacturer: selectedEquipmentManufacturer.value,
-                    client_name: selectedEquipmentClient,
-                };
-
-                buildUrlParams(params, "equipments", equipmentCurrentPage, equipmentFilters);
-                break;
-
-            default:
-                break;
-        }
-
-        router.push(`?${params.toString()}`);
-    };
-
-    const handleClientPageChange = (page: number) => {
-        const params = new URLSearchParams();
-        setClientCurrentPage(page);
-
-        const clientFilters = {
+    const { handlePageChange: handleClientPageChange } = usePageNavigation({
+        tabName: "clients",
+        pageKey: "client_page",
+        buildFilters: () => ({
             name: selectedClientName,
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
             user_role: getUserRoleFromOptionId(selectedUserRole.id),
             contract_type: getContractTypeFromOptionId(selectedContractType.id),
             operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
-        };
+        }),
+        setCurrentPage: setClientCurrentPage,
+    });
 
-        buildUrlParams(params, "clients", page, clientFilters);
-        router.push(`?${params.toString()}`);
-    };
-
-    const handleApplyClientFilters = () => {
-        const params = new URLSearchParams();
-
-        resetPageState(clientCurrentPage, setClientCurrentPage);
-
-        const clientFilters = {
+    const { handleApplyFilters: handleApplyClientFilters } = useFilterApplication({
+        tabName: "clients",
+        pageKey: "client_page",
+        currentPage: clientCurrentPage,
+        setCurrentPage: setClientCurrentPage,
+        setAppliedFilters: setClientAppliedFilters,
+        buildFilters: () => ({
             name: selectedClientName,
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
             user_role: getUserRoleFromOptionId(selectedUserRole.id),
             contract_type: getContractTypeFromOptionId(selectedContractType.id),
             operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
-        };
+        }),
+    });
 
-        setClientAppliedFilters(clientFilters);
-
-        buildUrlParams(params, "clients", 1, clientFilters);
-        router.push(`?${params.toString()}`);
-    };
-
-    const handleClearClientFilters = () => {
-        const params = new URLSearchParams();
-
-        setSelectedClientName("");
-        setSelectedClientCNPJ("");
-        setSelectedClientCity("");
-        setSelectedUserRole({ id: 0, value: "Todos" });
-        setSelectedContractType({ id: 0, value: "Todos" });
-        setSelectedOperationStatus({ id: 0, value: "Todos" });
-
-        setClientCurrentPage(1);
-
-        setClientAppliedFilters({
+    const { handleClearFilters: handleClearClientFilters } = useFilterClear({
+        tabName: "clients",
+        pageKey: "client_page",
+        setCurrentPage: setClientCurrentPage,
+        setAppliedFilters: setClientAppliedFilters,
+        resetFilters: () => {
+            setSelectedClientName("");
+            setSelectedClientCNPJ("");
+            setSelectedClientCity("");
+            setSelectedUserRole({ id: 0, value: "Todos" });
+            setSelectedContractType({ id: 0, value: "Todos" });
+            setSelectedOperationStatus({ id: 0, value: "Todos" });
+        },
+        emptyFilters: {
             name: "",
             cnpj: "",
             city: "",
             user_role: "",
             contract_type: "",
             operation_status: "",
-        });
+        },
+    });
 
-        buildUrlParams(params, "clients", 1, {});
-        router.push(`?${params.toString()}`);
-    };
-
-    const handleApplyEquipmentFilters = () => {
-        const params = new URLSearchParams();
-
-        resetPageState(equipmentCurrentPage, setEquipmentCurrentPage);
-
-        const equipmentFilters = {
+    const { handleApplyFilters: handleApplyEquipmentFilters } = useFilterApplication({
+        tabName: "equipments",
+        pageKey: "equipment_page",
+        currentPage: equipmentCurrentPage,
+        setCurrentPage: setEquipmentCurrentPage,
+        setAppliedFilters: setEquipmentAppliedFilters,
+        buildFilters: () => ({
             modality:
                 selectedEquipmentModality.id !== 0 ? selectedEquipmentModality.id.toString() : "",
             manufacturer:
                 selectedEquipmentManufacturer.id !== 0 ? selectedEquipmentManufacturer.value : "",
             client_name: selectedEquipmentClient,
-        };
+        }),
+    });
 
-        setEquipmentAppliedFilters(equipmentFilters);
-
-        buildUrlParams(params, "equipments", 1, equipmentFilters);
-        router.push(`?${params.toString()}`);
-    };
-
-    const handleClearEquipmentFilters = () => {
-        const params = new URLSearchParams();
-
-        setSelectedEquipmentModality({ id: 0, value: "Todos" });
-        setSelectedEquipmentManufacturer({ id: 0, value: "Todos" });
-        setSelectedEquipmentClient("");
-
-        setEquipmentCurrentPage(1);
-
-        setEquipmentAppliedFilters({
+    const { handleClearFilters: handleClearEquipmentFilters } = useFilterClear({
+        tabName: "equipments",
+        pageKey: "equipment_page",
+        setCurrentPage: setEquipmentCurrentPage,
+        setAppliedFilters: setEquipmentAppliedFilters,
+        resetFilters: () => {
+            setSelectedEquipmentModality({ id: 0, value: "Todos" });
+            setSelectedEquipmentManufacturer({ id: 0, value: "Todos" });
+            setSelectedEquipmentClient("");
+        },
+        emptyFilters: {
             modality: "",
             manufacturer: "",
             client_name: "",
-        });
+        },
+    });
 
-        buildUrlParams(params, "equipments", 1, {});
-        router.push(`?${params.toString()}`);
-    };
-
-    const handleEquipmentPageChange = (page: number) => {
-        const params = new URLSearchParams();
-        setEquipmentCurrentPage(page);
-
-        const equipmentFilters = {
+    const { handlePageChange: handleEquipmentPageChange } = usePageNavigation({
+        tabName: "equipments",
+        pageKey: "equipment_page",
+        buildFilters: () => ({
             modality:
                 selectedEquipmentModality.id !== 0 ? selectedEquipmentModality.id.toString() : "",
             manufacturer:
                 selectedEquipmentManufacturer.id !== 0 ? selectedEquipmentManufacturer.value : "",
             client_name: selectedEquipmentClient,
-        };
-
-        buildUrlParams(params, "equipments", page, equipmentFilters);
-        router.push(`?${params.toString()}`);
-    };
+        }),
+        setCurrentPage: setEquipmentCurrentPage,
+    });
 
     const handleViewProposals = (cnpj: string) => {
         router.push(`/dashboard/proposals?cnpj=${cnpj}`);
@@ -272,64 +251,90 @@ function SearchPage() {
         router.push(`/dashboard/client/${cnpj}`);
     };
 
-    // restore filters from URL
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams);
-        const clientName = params.get("name") || "";
-        const clientCNPJ = params.get("cnpj") || "";
-        const clientCity = params.get("city") || "";
-        const role = params.get("user_role");
-        const clientContractType = params.get("contract_type");
-        const operationStatus = params.get("operation_status");
+    useFilterRestoration({
+        searchParams,
+        setSelectedTabIndex,
+        getTabFromParam,
+        tabs: {
+            [SearchTab.CLIENTS]: {
+                pageParam: "client_page",
+                currentPage: clientCurrentPage,
+                setCurrentPage: setClientCurrentPage,
+                restoreFilters: (params) => {
+                    const clientName = params.get("clients_name") || "";
+                    const clientCNPJ = params.get("clients_cnpj") || "";
+                    const clientCity = params.get("clients_city") || "";
+                    const role = params.get("clients_user_role");
+                    const clientContractType = params.get("clients_contract_type");
+                    const operationStatus = params.get("clients_operation_status");
 
-        const clientPageParam = params.get("client_page");
-        const tabParam = params.get("tab");
+                    restoreTextFilterStates(clientName, setSelectedClientName);
+                    restoreTextFilterStates(clientCNPJ, setSelectedClientCNPJ);
+                    restoreTextFilterStates(clientCity, setSelectedClientCity);
 
-        const equipmentModalityId = params.get("modality");
-        const equipmentManufacturer = params.get("manufacturer") || "";
-        const equipmentClientName = params.get("client_name") || "";
-        const equipmentPageParam = params.get("equipment_page");
+                    const roleOptionId = getUserRoleOptionIdFromValue(role);
+                    const contractTypeOptionId =
+                        getContractTypeOptionIdFromValue(clientContractType);
+                    const operationStatusOptionId =
+                        getOperationStatusOptionIdFromValue(operationStatus);
 
-        restoreTabState(tabParam, setSelectedTabIndex);
+                    restoreSelectFilterStates(
+                        roleOptionId.toString(),
+                        USER_ROLE_OPTIONS,
+                        setSelectedUserRole
+                    );
+                    restoreSelectFilterStates(
+                        contractTypeOptionId.toString(),
+                        CONTRACT_TYPE_OPTIONS,
+                        setSelectedContractType
+                    );
+                    restoreSelectFilterStates(
+                        operationStatusOptionId.toString(),
+                        OPERATION_STATUS_OPTIONS,
+                        setSelectedOperationStatus
+                    );
+                },
+                setAppliedFilters: setClientAppliedFilters,
+                buildAppliedFilters: (params) => ({
+                    name: params.get("clients_name") || "",
+                    cnpj: params.get("clients_cnpj") || "",
+                    city: params.get("clients_city") || "",
+                    user_role: params.get("clients_user_role") || "",
+                    contract_type: params.get("clients_contract_type") || "",
+                    operation_status: params.get("clients_operation_status") || "",
+                }),
+            },
+            [SearchTab.EQUIPMENTS]: {
+                pageParam: "equipment_page",
+                currentPage: equipmentCurrentPage,
+                setCurrentPage: setEquipmentCurrentPage,
+                restoreFilters: (params) => {
+                    const equipmentModalityId = params.get("equipments_modality");
+                    const equipmentManufacturer = params.get("equipments_manufacturer") || "";
+                    const equipmentClientName = params.get("equipments_client_name") || "";
 
-        restorePageState(clientPageParam, clientCurrentPage, setClientCurrentPage);
-        restoreTextFilterStates(clientName, setSelectedClientName);
-        restoreTextFilterStates(clientCNPJ, setSelectedClientCNPJ);
-        restoreTextFilterStates(clientCity, setSelectedClientCity);
-        restoreSelectFilterStates(role, USER_ROLE_OPTIONS, setSelectedUserRole);
-        restoreSelectFilterStates(
-            clientContractType,
-            CONTRACT_TYPE_OPTIONS,
-            setSelectedContractType
-        );
-        restoreSelectFilterStates(
-            operationStatus,
-            OPERATION_STATUS_OPTIONS,
-            setSelectedOperationStatus
-        );
-        setClientAppliedFilters({
-            name: clientName,
-            cnpj: clientCNPJ,
-            city: clientCity,
-            user_role: role || "",
-            contract_type: clientContractType || "",
-            operation_status: operationStatus || "",
-        });
-
-        restorePageState(equipmentPageParam, equipmentCurrentPage, setEquipmentCurrentPage);
-        setEquipmentAppliedFilters({
-            modality: equipmentModalityId || "",
-            manufacturer: equipmentManufacturer,
-            client_name: equipmentClientName,
-        });
-        restoreTextFilterStates(equipmentClientName, setSelectedEquipmentClient);
-        restoreManufacturerFilterState(
-            equipmentManufacturer,
-            manufacturers,
-            setSelectedEquipmentManufacturer
-        );
-        restoreModalityFilterState(equipmentModalityId, modalities, setSelectedEquipmentModality);
-    }, [searchParams, modalities, manufacturers]);
+                    restoreTextFilterStates(equipmentClientName, setSelectedEquipmentClient);
+                    restoreManufacturerFilterState(
+                        equipmentManufacturer,
+                        manufacturers,
+                        setSelectedEquipmentManufacturer
+                    );
+                    restoreModalityFilterState(
+                        equipmentModalityId,
+                        modalities,
+                        setSelectedEquipmentModality
+                    );
+                },
+                setAppliedFilters: setEquipmentAppliedFilters,
+                buildAppliedFilters: (params) => ({
+                    modality: params.get("equipments_modality") || "",
+                    manufacturer: params.get("equipments_manufacturer") || "",
+                    client_name: params.get("equipments_client_name") || "",
+                }),
+            },
+        },
+        dependencies: [modalities, manufacturers],
+    });
 
     if (clientsLoading) {
         return <Spinner fullscreen />;
@@ -635,6 +640,7 @@ function SearchPage() {
                                     setSelect={setSelectedEquipmentModality}
                                     label="Modalidade"
                                     dataTestId="filter-equipment-modality"
+                                    disabled={modalitiesLoading}
                                 />
 
                                 <Select
@@ -651,6 +657,7 @@ function SearchPage() {
                                     setSelect={setSelectedEquipmentManufacturer}
                                     label="Fabricante"
                                     dataTestId="filter-equipment-manufacturer"
+                                    disabled={manufacturersLoading}
                                 />
 
                                 <Input
@@ -688,6 +695,13 @@ function SearchPage() {
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
+
+                                {equipmentsError && (
+                                    <ErrorDisplay
+                                        title="Erro ao carregar equipamentos"
+                                        message="Ocorreu um erro ao carregar os dados dos equipamentos. Tente novamente mais tarde."
+                                    />
+                                )}
 
                                 {equipments.length === 0 && !equipmentsLoading ? (
                                     <div className="text-center py-8">

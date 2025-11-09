@@ -1,4 +1,4 @@
-import { ClientOperationDTO } from "@/redux/features/clientApiSlice";
+import type { ClientOperationDTO } from "@/types/client";
 import {
     clientFormErrors,
     confirmReject,
@@ -32,14 +32,9 @@ describe("Internal Medical Physicist Client CRUD", () => {
 
             it("should succesfully update the name of the client", () => {
                 const newName = faker.company.name();
-                cy.getByTestId("institution-name-input")
-                    .should("exist")
-                    .clear()
-                    .type(newName);
+                cy.getByTestId("institution-name-input").should("exist").clear().type(newName);
                 cy.getByTestId("submit-btn").should("exist").click();
-                cy.contains(toastMessages.successEditClient).should(
-                    "be.visible"
-                );
+                cy.contains(toastMessages.successEditClient).should("be.visible");
                 cy.getByTestId("client-options")
                     .should("be.visible")
                     .click()
@@ -60,15 +55,10 @@ describe("Internal Medical Physicist Client CRUD", () => {
                 cy.getByTestId("reject-btn").should("exist").click();
                 cy.getByTestId("rejection-note-input").type("TEST");
                 cy.getByTestId("submit-rejection-btn").should("exist").click();
-                cy.contains(toastMessages.successReviewRejectEditClient).should(
-                    "be.visible"
-                );
+                cy.contains(toastMessages.successReviewRejectEditClient).should("be.visible");
 
                 cy.fixture("users.json").then((users) => {
-                    cy.loginSession(
-                        users.client_user.cpf,
-                        users.client_user.password
-                    );
+                    cy.loginSession(users.client_user.cpf, users.client_user.password);
                 });
                 cy.visit("/dashboard");
                 confirmReject();
@@ -79,26 +69,19 @@ describe("Internal Medical Physicist Client CRUD", () => {
                 cy.getByTestId("btn-review-edit-client").click();
 
                 const newEmail = "test@email.com";
-                cy.getByTestId("institution-email-input")
-                    .first()
-                    .clear()
-                    .type(newEmail);
+                cy.getByTestId("institution-email-input").first().clear().type(newEmail);
 
                 cy.getByTestId("submit-btn").should("exist").click();
-                cy.contains(toastMessages.successEditClient).should(
-                    "be.visible"
-                );
+                cy.contains(toastMessages.successEditClient).should("be.visible");
 
                 cy.getByTestId("client-details").should("contain", newEmail);
-                cy.get<ClientOperationDTO>("@newClientOperation").then(
-                    (newClientOperation) => {
-                        cy.getByTestId("client-options")
-                            .should("be.visible")
-                            .click()
-                            .get('[role="option"]')
-                            .contains(newClientOperation.name);
-                    }
-                );
+                cy.get<ClientOperationDTO>("@newClientOperation").then((newClientOperation) => {
+                    cy.getByTestId("client-options")
+                        .should("be.visible")
+                        .click()
+                        .get('[role="option"]')
+                        .contains(newClientOperation.name);
+                });
             });
         });
 
@@ -108,16 +91,11 @@ describe("Internal Medical Physicist Client CRUD", () => {
                 cy.getByTestId("btn-review-edit-client").click();
                 cy.getByTestId("reject-btn").should("exist").click();
                 cy.getByTestId("submit-rejection-btn").should("exist").click();
-                cy.getByTestId("validation-error").should(
-                    "contain",
-                    clientFormErrors.emptyNote
-                );
+                cy.getByTestId("validation-error").should("contain", clientFormErrors.emptyNote);
 
                 cy.getByTestId("back-btn").click();
                 cy.getByTestId("submit-btn").click();
-                cy.contains(toastMessages.successEditClient).should(
-                    "be.visible"
-                );
+                cy.contains(toastMessages.successEditClient).should("be.visible");
             });
         });
     });

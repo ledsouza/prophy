@@ -6,7 +6,7 @@ import * as cnpj from "validation-br/dist/cnpj";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { OperationStatus, OperationType } from "@/enums";
 import { EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
-import { ClientDTO, ClientOperationDTO } from "@/redux/features/clientApiSlice";
+import type { ClientDTO, ClientOperationDTO } from "@/types/client";
 
 const apiUrl = Cypress.env("apiUrl");
 

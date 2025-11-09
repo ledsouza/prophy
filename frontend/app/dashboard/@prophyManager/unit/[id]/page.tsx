@@ -20,7 +20,13 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
 
-import { EquipmentDetails, EquipmentPanel, UnitDetails, VisitPanel } from "@/components/client";
+import {
+    AppointmentPanel,
+    EquipmentDetails,
+    EquipmentPanel,
+    ReportPanel,
+    UnitDetails,
+} from "@/components/client";
 import { Button, Modal, Spinner, TabbedResourcePanel } from "@/components/common";
 import {
     AddEquipmentForm,
@@ -80,7 +86,7 @@ function UnitPage() {
                 { type: "UnitOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
-                { type: "Visit", id: "LIST" },
+                { type: "Appointment", id: "LIST" },
             ])
         );
     };
@@ -196,9 +202,14 @@ function UnitPage() {
                             ),
                         },
                         {
-                            id: "visits",
-                            label: "Visitas",
-                            render: () => <VisitPanel unitId={unitId} />,
+                            id: "appointments",
+                            label: "Agendamentos",
+                            render: () => <AppointmentPanel unitId={unitId} />,
+                        },
+                        {
+                            id: "reports",
+                            label: "Relatórios",
+                            render: () => <ReportPanel unitId={unitId} />,
                         },
                     ]}
                 />

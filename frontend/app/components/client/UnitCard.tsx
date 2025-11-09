@@ -4,6 +4,7 @@ import cn from "classnames";
 import { useRouter } from "next/navigation";
 
 import { OperationStatus } from "@/enums";
+import Role from "@/enums/Role";
 
 import {
     UnitDTO,
@@ -33,7 +34,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
     const dispatch = useAppDispatch();
 
     const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+    const isStaff = userData?.role === Role.FMI || userData?.role === Role.GP;
 
     const { data: equipmentOperations } = useListAllEquipmentsOperationsQuery();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();

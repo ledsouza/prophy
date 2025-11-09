@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidPhonePTBR } from "@/utils/validation";
+import AppointmentType from "@/enums/AppointmentType";
 
 const base = z.object({
     date: z
@@ -20,21 +21,24 @@ const base = z.object({
         .refine((value) => isValidPhonePTBR(value), {
             message: "Telefone inválido.",
         }),
+    type: z.nativeEnum(AppointmentType, {
+        errorMap: () => ({ message: "Tipo de agendamento é obrigatório." }),
+    }),
     justification: z
         .string()
         .transform((value) => (value === "" ? undefined : value))
         .optional(),
 });
 
-export const makeVisitScheduleSchema = (opts?: { requireJustification?: boolean }) => {
+export const makeAppointmentScheduleSchema = (opts?: { requireJustification?: boolean }) => {
     if (opts?.requireJustification) {
         return base.extend({
-            justification: z.string().min(1, { message: "Justificativa é obrigatória." }).trim(),
+            justification: z.string().trim().min(1, { message: "Justificativa é obrigatória." }),
         });
     }
     return base;
 };
 
-const visitScheduleSchema = makeVisitScheduleSchema();
+const appointmentScheduleSchema = makeAppointmentScheduleSchema();
 
-export default visitScheduleSchema;
+export default appointmentScheduleSchema;

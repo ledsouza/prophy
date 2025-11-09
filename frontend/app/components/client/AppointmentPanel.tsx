@@ -1,51 +1,51 @@
 "use client";
 
-import { VisitList } from "@/components/client";
+import { AppointmentList } from "@/components/client";
 import { Button, ErrorDisplay, Modal, Spinner } from "@/components/common";
-import { VisitScheduleForm } from "@/components/forms";
+import { AppointmentScheduleForm } from "@/components/forms";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
-import { useListVisitsQuery } from "@/redux/features/visitApiSlice";
+import { useListAppointmentsQuery } from "@/redux/features/appointmentApiSlice";
 import { child } from "@/utils/logger";
 import clsx from "clsx";
 import { useState } from "react";
 
-type VisitPanelProps = {
+type AppointmentPanelProps = {
     unitId?: number;
-    onScheduleVisit?: () => void;
+    onScheduleAppointment?: () => void;
     scheduleButtonTestId?: string;
     containerClassName?: string;
 };
 
 /**
- * VisitPanel component for displaying and managing visits for a specific unit.
+ * AppointmentPanel component for displaying and managing appointments for a specific unit.
  *
  * Layout notes
  * - Intended to be used inside TabbedResourcePanel or another fixed-height flex container.
  * - The root uses min-h-0 and the list is wrapped in a flex-1 overflow-y-auto div so the list
  *   can scroll while the bottom button remains visible.
  *
- * @param unitId - The ID of the unit to fetch visits for. If not provided, fetches all visits.
- * @param onScheduleVisit - Callback invoked when the schedule visit button is clicked.
- * @param scheduleButtonTestId - Test ID for the schedule visit button.
+ * @param unitId - The ID of the unit to fetch appointments for. If not provided, fetches all appointments.
+ * @param onScheduleAppointment - Callback invoked when the schedule appointment button is clicked.
+ * @param scheduleButtonTestId - Test ID for the schedule appointment button.
  * @param containerClassName - Additional CSS classes to apply to the container div.
  */
-function VisitPanel({
+function AppointmentPanel({
     unitId,
-    onScheduleVisit,
-    scheduleButtonTestId = "btn-schedule-visit",
+    onScheduleAppointment,
+    scheduleButtonTestId = "btn-schedule-appointment",
     containerClassName = "",
-}: VisitPanelProps) {
+}: AppointmentPanelProps) {
     const {
-        data: visits,
+        data: appointments,
         isLoading,
         error,
-    } = useListVisitsQuery(unitId ? { unit: unitId } : undefined);
+    } = useListAppointmentsQuery(unitId ? { unit: unitId } : undefined);
 
     const [scheduleOpen, setScheduleOpen] = useState(false);
     const { data: user } = useRetrieveUserQuery();
     const allowedRoles = new Set(["GP", "FMI", "C"]);
     const canSchedule = !!user && allowedRoles.has(user.role);
-    const log = child({ component: "VisitPanel" });
+    const log = child({ component: "AppointmentPanel" });
 
     if (isLoading) {
         return (
@@ -57,14 +57,17 @@ function VisitPanel({
 
     if (error) {
         log.error(
-            { unitId, error: (error as any)?.status ?? (error as any)?.message ?? "unknown" },
-            "Failed to load visits"
+            {
+                unitId,
+                error: (error as any)?.status ?? (error as any)?.message ?? "unknown",
+            },
+            "Failed to load appointments"
         );
         return (
             <div className={containerClassName}>
                 <ErrorDisplay
-                    title="Erro ao carregar visitas"
-                    message="Não foi possível carregar a lista de visitas. Tente novamente."
+                    title="Erro ao carregar agendamentos"
+                    message="Não foi possível carregar a lista de agendamentos. Tente novamente."
                 />
             </div>
         );
@@ -73,15 +76,15 @@ function VisitPanel({
     return (
         <div className={clsx("flex flex-col gap-6 h-full min-h-0", containerClassName)}>
             <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable] pr-2">
-                <VisitList visits={visits || []} />
+                <AppointmentList appointments={appointments || []} />
             </div>
 
             {canSchedule && (
                 <Button
-                    onClick={onScheduleVisit ?? (() => setScheduleOpen(true))}
+                    onClick={onScheduleAppointment ?? (() => setScheduleOpen(true))}
                     data-testid={scheduleButtonTestId}
                 >
-                    Agendar visita
+                    Agendar atendimento
                 </Button>
             )}
 
@@ -90,15 +93,15 @@ function VisitPanel({
                 onClose={() => setScheduleOpen(false)}
                 className="max-w-md px-2 sm:px-6"
             >
-                <VisitScheduleForm
+                <AppointmentScheduleForm
                     unitId={unitId}
                     onCancel={() => setScheduleOpen(false)}
                     onSuccess={() => setScheduleOpen(false)}
-                    title="Agendar visita"
+                    title="Agendar atendimento"
                 />
             </Modal>
         </div>
     );
 }
 
-export default VisitPanel;
+export default AppointmentPanel;

@@ -108,7 +108,7 @@ const TabbedResourcePanel = ({
                         {tabs.map((t) => (
                             <Tab key={t.id}>
                                 <div
-                                    className="flex items-center gap-2"
+                                    className="flex items-center justify-center gap-2"
                                     data-testid={t.tabTestId || `tab-${t.id}`}
                                 >
                                     <span>{t.label}</span>

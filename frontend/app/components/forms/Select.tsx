@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import cn from "classnames";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import Role from "@/enums/Role";
 
 import {
     Field,
@@ -99,7 +100,7 @@ const Select = ({
     const [isRejected, setIsRejected] = useState(false);
 
     const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+    const isStaff = userData?.role === Role.FMI || userData?.role === Role.GP;
 
     useEffect(() => {
         if (rejectedOperationIDs !== undefined && rejectedOperationIDs.size > 0) {

@@ -7,6 +7,7 @@ from datetime import date, timedelta
 
 from clients_management.models import (
     Accessory,
+    Appointment,
     Client,
     Modality,
     Proposal,
@@ -14,7 +15,6 @@ from clients_management.models import (
     Equipment,
     Report,
     ServiceOrder,
-    Visit,
 )
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -374,7 +374,7 @@ class Command(BaseCommand):
                 "address": client_obj.address,
                 "state": client_obj.state,
                 "city": client_obj.city,
-                "active": client_obj.active,
+                "is_active": client_obj.is_active,
                 "id": client_obj.id,
             }
 
@@ -390,7 +390,7 @@ class Command(BaseCommand):
             address="Rua Ramiro Barcelos, 2350 Bloco A, Av. Protásio Alves, 211 - Bloco B e C - Santa Cecília",
             state="RS",
             city="Porto Alegre",
-            active=True,
+            is_active=True,
             id=1000,
         )
         client1.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -407,7 +407,7 @@ class Command(BaseCommand):
             address="Rua Professor Annes Dias, 295 - Centro Histórico",
             state="RS",
             city="Porto Alegre",
-            active=True,
+            is_active=True,
             id=1001,
         )
         client2.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -426,7 +426,7 @@ class Command(BaseCommand):
             address="Rua Domingos Rubbo, 20 - Cristo Redentor",
             state="RS",
             city="Porto Alegre",
-            active=True,
+            is_active=True,
             id=1002,
         )
         client_empty.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -442,7 +442,7 @@ class Command(BaseCommand):
             address="Av. Ipiranga, 6690 - Partenon",
             state="RS",
             city="Porto Alegre",
-            active=True,
+            is_active=True,
             id=1003,
         )
         client_with_comercial.users.add(users.get(cpf=CPF_CLIENT_MANAGER))
@@ -462,7 +462,7 @@ class Command(BaseCommand):
                 address=fake.address(),
                 state=choice(STATE_CHOICES)[0],
                 city=fake.city(),
-                active=True,
+                is_active=True,
             )
             client.users.add(
                 choice(
@@ -747,7 +747,7 @@ class Command(BaseCommand):
                 )
 
     def populate_service_orders(self, num_service_orders_per_unit=2):
-        """Populates the ServiceOrder and Visit models with example data."""
+        """Populates the ServiceOrder and Appointment models with example data."""
         # Common service order subjects for medical equipment
         service_subjects = [
             "Calibração de Mamógrafo",
@@ -844,24 +844,27 @@ class Command(BaseCommand):
         if default_equipments:
             service_order1.equipments.add(default_equipments[0])
 
-        # Create corresponding visit for service_order1
-        visit_date = fake.date_time_between(
+        # Create corresponding appointment for service_order1 (IN_PERSON)
+        appointment_date = fake.date_time_between(
             start_date="-30d", end_date="+30d", tzinfo=timezone.get_current_timezone()
         )
         status1 = choice(
             [
-                Visit.Status.PENDING,
-                Visit.Status.CONFIRMED,
-                Visit.Status.FULFILLED,
+                Appointment.Status.PENDING,
+                Appointment.Status.CONFIRMED,
+                Appointment.Status.FULFILLED,
             ]
         )
-        Visit.objects.create(
-            date=visit_date,
+        Appointment.objects.create(
+            date=appointment_date,
             status=status1,
+            type=Appointment.Type.IN_PERSON,
             justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
-            service_order=service_order1 if status1 == Visit.Status.FULFILLED else None,
+            service_order=(
+                service_order1 if status1 == Appointment.Status.FULFILLED else None
+            ),
             unit=(default_equipments[0].unit if default_equipments else choice(units)),
             id=1000,
         )
@@ -881,24 +884,27 @@ class Command(BaseCommand):
         if len(default_equipments) > 1:
             service_order2.equipments.add(default_equipments[1])
 
-        # Create corresponding visit for service_order2
-        visit_date2 = fake.date_time_between(
+        # Create corresponding appointment for service_order2 (ONLINE)
+        appointment_date2 = fake.date_time_between(
             start_date="-60d", end_date="+60d", tzinfo=timezone.get_current_timezone()
         )
         status2 = choice(
             [
-                Visit.Status.PENDING,
-                Visit.Status.CONFIRMED,
-                Visit.Status.FULFILLED,
+                Appointment.Status.PENDING,
+                Appointment.Status.CONFIRMED,
+                Appointment.Status.FULFILLED,
             ]
         )
-        Visit.objects.create(
-            date=visit_date2,
+        Appointment.objects.create(
+            date=appointment_date2,
             status=status2,
+            type=Appointment.Type.ONLINE,
             justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
-            service_order=service_order2 if status2 == Visit.Status.FULFILLED else None,
+            service_order=(
+                service_order2 if status2 == Appointment.Status.FULFILLED else None
+            ),
             unit=(
                 default_equipments[1].unit
                 if len(default_equipments) > 1
@@ -907,13 +913,15 @@ class Command(BaseCommand):
             id=1001,
         )
 
-        # Additional default pending visits without associated service order
-        pending_visit_date1 = fake.date_time_between(
+        # Additional default pending appointments without associated service order
+        # First one is IN_PERSON
+        pending_appointment_date1 = fake.date_time_between(
             start_date="-15d", end_date="+45d", tzinfo=timezone.get_current_timezone()
         )
-        Visit.objects.create(
-            date=pending_visit_date1,
-            status=Visit.Status.PENDING,
+        Appointment.objects.create(
+            date=pending_appointment_date1,
+            status=Appointment.Status.PENDING,
+            type=Appointment.Type.IN_PERSON,
             justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
@@ -922,12 +930,14 @@ class Command(BaseCommand):
             id=1002,
         )
 
-        pending_visit_date2 = fake.date_time_between(
+        # Second one is ONLINE
+        pending_appointment_date2 = fake.date_time_between(
             start_date="-10d", end_date="+60d", tzinfo=timezone.get_current_timezone()
         )
-        Visit.objects.create(
-            date=pending_visit_date2,
-            status=Visit.Status.PENDING,
+        Appointment.objects.create(
+            date=pending_appointment_date2,
+            status=Appointment.Status.PENDING,
+            type=Appointment.Type.ONLINE,
             justification=None,
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
@@ -940,11 +950,12 @@ class Command(BaseCommand):
             id=1003,
         )
 
-        # Deterministic past UNFULFILLED visit for testing rescheduling guard
+        # Deterministic past UNFULFILLED appointment for testing rescheduling guard (ONLINE)
         unfulfilled_past_date = timezone.now() - timedelta(days=7)
-        Visit.objects.create(
+        Appointment.objects.create(
             date=unfulfilled_past_date,
-            status=Visit.Status.UNFULFILLED,
+            status=Appointment.Status.UNFULFILLED,
+            type=Appointment.Type.ONLINE,
             justification="Visita não realizada no dia agendado.",
             contact_phone=fake_phone_number(),
             contact_name=fake.name(),
@@ -982,34 +993,47 @@ class Command(BaseCommand):
                 )
                 service_order.equipments.set(selected_equipments)
 
-                # Create corresponding visit
-                visit_date = fake.date_time_between(
+                # Create corresponding appointment with random type (mix of IN_PERSON and ONLINE)
+                appointment_date = fake.date_time_between(
                     start_date="-90d",
                     end_date="+90d",
                     tzinfo=timezone.get_current_timezone(),
                 )
                 status = choice(
                     [
-                        Visit.Status.PENDING,
-                        Visit.Status.CONFIRMED,
-                        Visit.Status.FULFILLED,
-                        Visit.Status.UNFULFILLED,
-                        Visit.Status.RESCHEDULED,
+                        Appointment.Status.PENDING,
+                        Appointment.Status.CONFIRMED,
+                        Appointment.Status.FULFILLED,
+                        Appointment.Status.UNFULFILLED,
+                        Appointment.Status.RESCHEDULED,
                     ]
                 )
                 justification = (
                     fake.sentence(nb_words=8)
-                    if status in [Visit.Status.UNFULFILLED, Visit.Status.RESCHEDULED]
+                    if status
+                    in [Appointment.Status.UNFULFILLED, Appointment.Status.RESCHEDULED]
                     else None
                 )
-                Visit.objects.create(
-                    date=visit_date,
+                # Randomly assign type: 60% IN_PERSON, 40% ONLINE
+                appointment_type = choice(
+                    [
+                        Appointment.Type.IN_PERSON,
+                        Appointment.Type.IN_PERSON,
+                        Appointment.Type.ONLINE,
+                        Appointment.Type.ONLINE,
+                    ]
+                )
+                Appointment.objects.create(
+                    date=appointment_date,
                     status=status,
+                    type=appointment_type,
                     justification=justification,
                     contact_phone=fake_phone_number(),
                     contact_name=fake.name(),
                     service_order=(
-                        service_order if status == Visit.Status.FULFILLED else None
+                        service_order
+                        if status == Appointment.Status.FULFILLED
+                        else None
                     ),
                     unit=unit,
                 )

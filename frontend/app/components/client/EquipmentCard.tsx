@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import cn from "classnames";
 
 import { OperationStatus } from "@/enums";
+import Role from "@/enums/Role";
 
 import {
     EquipmentDTO,
@@ -33,7 +34,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
     const dispatch = useAppDispatch();
 
     const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === "FMI" || userData?.role === "GP";
+    const isStaff = userData?.role === Role.FMI || userData?.role === Role.GP;
 
     const [status, setStatus] = useState<OperationStatus>();
     const [hasOperation, setHasOperation] = useState(false);

@@ -3,6 +3,7 @@ from os import getenv, path
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+from google.oauth2 import service_account
 
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "storages",
     "rest_framework",
     "djoser",
     "corsheaders",
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
     "users",
     "clients_management",
     "requisitions",
+    "materials",
 ]
 
 MIDDLEWARE = [
@@ -127,10 +130,42 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR.joinpath("static")
-MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR.joinpath("media")
+if DEBUG:
+    STATIC_URL = "static/"
+    STATIC_ROOT = BASE_DIR.joinpath("static")
+    MEDIA_URL = "media/"
+    MEDIA_ROOT = BASE_DIR.joinpath("media")
+
+else:
+    STATIC_URL = f'https://storage.googleapis.com/{getenv("GCS_BUCKET_NAME")}/static/'
+    MEDIA_URL = f'https://storage.googleapis.com/{getenv("GCS_BUCKET_NAME")}/media/'
+
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    )
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {
+                "bucket_name": getenv("GCS_BUCKET_NAME"),
+                "project_id": getenv("GCS_PROJECT_ID"),
+                "credentials": GS_CREDENTIALS,
+                "iam_sign_blob": True,
+                "location": "media",
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {
+                "bucket_name": getenv("GCS_BUCKET_NAME"),
+                "project_id": getenv("GCS_PROJECT_ID"),
+                "credentials": GS_CREDENTIALS,
+                "iam_sign_blob": True,
+                "location": "static",
+            },
+        },
+    }
 
 FRONTEND_URL = getenv("FRONTEND_URL")
 

@@ -30,7 +30,13 @@ import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
-import { EquipmentDetails, EquipmentPanel, UnitDetails, VisitPanel } from "@/components/client";
+import {
+    EquipmentDetails,
+    EquipmentPanel,
+    ReportPanel,
+    UnitDetails,
+    AppointmentPanel,
+} from "@/components/client";
 import { Button, Modal, Spinner, TabbedResourcePanel } from "@/components/common";
 import {
     AddEquipmentForm,
@@ -40,7 +46,8 @@ import {
 } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { OperationType } from "@/enums";
-import { useDeleterUserMutation, UserDTO } from "@/redux/features/authApiSlice";
+import { useDeleterUserMutation } from "@/redux/features/authApiSlice";
+import type { UserDTO } from "@/types/user";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
 
@@ -95,7 +102,7 @@ function UnitPage() {
                 { type: "UnitOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
-                { type: "Visit", id: "LIST" },
+                { type: "Appointment", id: "LIST" },
             ])
         );
     };
@@ -304,9 +311,14 @@ function UnitPage() {
                             ),
                         },
                         {
-                            id: "visits",
-                            label: "Visitas",
-                            render: () => <VisitPanel unitId={unitId} />,
+                            id: "appointments",
+                            label: "Agendamentos",
+                            render: () => <AppointmentPanel unitId={unitId} />,
+                        },
+                        {
+                            id: "reports",
+                            label: "Relatórios",
+                            render: () => <ReportPanel unitId={unitId} />,
                         },
                     ]}
                 />

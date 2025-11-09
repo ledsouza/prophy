@@ -1,33 +1,23 @@
 import { apiSlice } from "../services/apiSlice";
+import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
 
-export type ServiceOrderDTO = {
-    id: number;
+type CreateServiceOrderArgs = {
+    visit: number;
     subject: string;
     description: string;
     conclusion: string;
     equipments: number[];
 };
 
-export type ServiceOrderBasePayload = Pick<
-    ServiceOrderDTO,
-    "subject" | "description" | "conclusion" | "equipments"
->;
-
-export type CreateServiceOrderPayload = ServiceOrderBasePayload & {
-    visit: number;
-};
-
-export type UpdateServiceOrderPayload = Partial<ServiceOrderBasePayload>;
-
-const serviceOrderApiSlice = apiSlice.injectEndpoints({
+export const serviceOrderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
-        createServiceOrder: builder.mutation<ServiceOrderDTO, CreateServiceOrderPayload>({
-            query: (body) => ({
+        createServiceOrder: builder.mutation<ServiceOrderDTO, CreateServiceOrderArgs>({
+            query: (data) => ({
                 url: "service-orders/",
                 method: "POST",
-                body,
+                body: data,
             }),
-            invalidatesTags: [{ type: "Visit", id: "LIST" }],
+            invalidatesTags: [{ type: "Appointment", id: "LIST" }],
         }),
         updateServiceOrder: builder.mutation<
             ServiceOrderDTO,
@@ -38,11 +28,21 @@ const serviceOrderApiSlice = apiSlice.injectEndpoints({
                 method: "PATCH",
                 body: data,
             }),
-            invalidatesTags: [{ type: "Visit", id: "LIST" }],
+            invalidatesTags: [{ type: "Appointment", id: "LIST" }],
+        }),
+        downloadServiceOrderPDF: builder.query<Blob, number>({
+            query: (id) => ({
+                url: `service-orders/${id}/pdf/`,
+                method: "GET",
+                responseHandler: (response) => response.blob(),
+            }),
+            keepUnusedDataFor: 0,
         }),
     }),
 });
 
-export const { useCreateServiceOrderMutation, useUpdateServiceOrderMutation } =
-    serviceOrderApiSlice;
-export default serviceOrderApiSlice;
+export const {
+    useCreateServiceOrderMutation,
+    useUpdateServiceOrderMutation,
+    useLazyDownloadServiceOrderPDFQuery,
+} = serviceOrderApiSlice;

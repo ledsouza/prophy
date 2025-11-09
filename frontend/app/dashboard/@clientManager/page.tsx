@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import {
-    ClientOperationDTO,
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
+import type { ClientOperationDTO } from "@/types/client";
 import {
     UnitDTO,
     useCreateDeleteUnitOperationMutation,

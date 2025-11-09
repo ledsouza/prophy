@@ -1,9 +1,7 @@
 import { useMemo } from "react";
 import { OperationStatus } from "@/enums";
-import {
-    useListAllClientsOperationsQuery,
-    ClientOperationDTO,
-} from "@/redux/features/clientApiSlice";
+import { useListAllClientsOperationsQuery } from "@/redux/features/clientApiSlice";
+import type { ClientOperationDTO } from "@/types/client";
 import { useListAllUnitsOperationsQuery, UnitOperationDTO } from "@/redux/features/unitApiSlice";
 import {
     useListAllEquipmentsOperationsQuery,

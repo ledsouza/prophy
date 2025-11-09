@@ -38,6 +38,7 @@ import { Button, Spinner, Modal } from "@/components/common";
 import { Typography } from "@/components/foundation";
 import { Form, Input, Select, FormButtons, Textarea } from "@/components/forms";
 import { OperationStatus } from "@/enums";
+import Role from "@/enums/Role";
 import { XCircle } from "@phosphor-icons/react";
 
 const editAccessorySchema = accessorySchema
@@ -277,7 +278,11 @@ const EditEquipmentForm = ({
         equipmentFormData.append("anvisa_registry", data.anvisa_registry);
 
         // Add additional fields if user has appropriate role
-        if (!reviewMode && !needReview && (userData?.role === "FMI" || userData?.role === "GP")) {
+        if (
+            !reviewMode &&
+            !needReview &&
+            (userData?.role === Role.FMI || userData?.role === Role.GP)
+        ) {
             if (data.channels) equipmentFormData.append("channels", data.channels);
             if (data.official_max_load)
                 equipmentFormData.append("official_max_load", data.official_max_load.toString());
@@ -455,7 +460,7 @@ const EditEquipmentForm = ({
 
         return (
             <>
-                {userData?.role !== "GGC" &&
+                {userData?.role !== Role.GGC &&
                     (modalityOptions && selectedModality ? (
                         <Select
                             options={modalityOptions}
@@ -571,7 +576,7 @@ const EditEquipmentForm = ({
                 {!reviewMode &&
                     !disabled &&
                     !needReview &&
-                    (userData?.role === "FMI" || userData?.role === "GP") && (
+                    (userData?.role === Role.FMI || userData?.role === Role.GP) && (
                         <div className="flex flex-col gap-2 mt-6 border-t pt-4">
                             <Typography element="h3" size="title3" className="font-semibold mb-4">
                                 Informações adicionais do equipamento

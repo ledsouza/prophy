@@ -6,10 +6,8 @@ import { toast } from "react-toastify";
 
 import { apiSlice } from "@/redux/services/apiSlice";
 import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
-import {
-    ClientOperationDTO,
-    useListAllClientsOperationsQuery,
-} from "@/redux/features/clientApiSlice";
+import { useListAllClientsOperationsQuery } from "@/redux/features/clientApiSlice";
+import type { ClientOperationDTO } from "@/types/client";
 import {
     UnitDTO,
     useDeleteUnitOperationMutation,
