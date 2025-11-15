@@ -11,6 +11,29 @@ type Props = {
     className?: string;
 };
 
+/**
+ * Modal: controlled, accessible dialog built on @headlessui/react Dialog.
+ * Renders a full-screen backdrop and a centered panel with transitions.
+ *
+ * Spacing with className (per consumer):
+ * - Apply p-* to set inner padding of the white panel (e.g., p-6, p-8).
+ * - Add mx-* to keep horizontal gutter on small screens (e.g., mx-6).
+ * - Constrain width with max-w-* (works with default sm:w-full).
+ * - Default vertical margin is sm:my-8; override with sm:my-0 or a custom value.
+ *   Tailwind utilities in className come last, so matching breakpoint utilities
+ *   override defaults.
+ *
+ * Example:
+ *   <Modal isOpen={open} onClose={setOpen} className="max-w-4xl mx-6 p-8">
+ *     <MyForm />
+ *   </Modal>
+ *
+ * @param {object} props
+ * @param {React.ReactNode} props.children - Modal content.
+ * @param {boolean} props.isOpen - Controls visibility.
+ * @param {(value: boolean) => void} props.onClose - Called on backdrop/ESC to close.
+ * @param {string} [props.className] - Tailwind classes for the panel (padding, margins, width).
+ */
 const Modal = ({ children, isOpen, onClose, className }: Props) => {
     return (
         <Dialog open={isOpen} onClose={onClose} className="relative z-10" data-testid="modal">
