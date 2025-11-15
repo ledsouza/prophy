@@ -7,11 +7,7 @@ import { useLogoutMutation } from "@/redux/features/authApiSlice";
 import { logout as setLogout } from "@/redux/features/authSlice";
 
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import {
-    Disclosure,
-    DisclosureButton,
-    DisclosurePanel,
-} from "@headlessui/react";
+import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 
 import { NavLink } from "@/components/common";
 
@@ -44,10 +40,14 @@ export default function Navbar() {
                 Painel de Gerenciamento
             </NavLink>
             <NavLink
+                isSelected={isSelected("/dashboard/materials/")}
                 isMobile={isMobile}
-                onClick={handleLogout}
-                dataTestId="logout-btn"
+                href="/dashboard/materials/"
+                dataTestId="materials-dashboard-nav"
             >
+                Painel de Materiais Institucionais
+            </NavLink>
+            <NavLink isMobile={isMobile} onClick={handleLogout} dataTestId="logout-btn">
                 Sair
             </NavLink>
         </>
@@ -55,11 +55,7 @@ export default function Navbar() {
 
     const guestLinks = (isMobile: boolean) => (
         <>
-            <NavLink
-                isSelected={isSelected("/auth/login/")}
-                isMobile={isMobile}
-                href="/auth/login"
-            >
+            <NavLink isSelected={isSelected("/auth/login/")} isMobile={isMobile} href="/auth/login">
                 Acessar a sua conta
             </NavLink>
             <NavLink
@@ -80,19 +76,11 @@ export default function Navbar() {
                         <div className="relative flex h-16 items-center justify-between">
                             <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
                                 <DisclosureButton className="inline-flex items-center justify-center rounded-md p-2 text-gray-tertiary hover:bg-tertiary hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
-                                    <span className="sr-only">
-                                        Abrir menu principal
-                                    </span>
+                                    <span className="sr-only">Abrir menu principal</span>
                                     {open ? (
-                                        <XMarkIcon
-                                            className="block h-6 w-6"
-                                            aria-hidden="true"
-                                        />
+                                        <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
                                     ) : (
-                                        <Bars3Icon
-                                            className="block h-6 w-6"
-                                            aria-hidden="true"
-                                        />
+                                        <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
                                     )}
                                 </DisclosureButton>
                             </div>
@@ -104,9 +92,7 @@ export default function Navbar() {
                                 </div>
                                 <div className="hidden sm:ml-6 sm:block">
                                     <div className="flex space-x-4">
-                                        {isAuthenticated
-                                            ? authLinks(false)
-                                            : guestLinks(false)}
+                                        {isAuthenticated ? authLinks(false) : guestLinks(false)}
                                     </div>
                                 </div>
                             </div>
@@ -115,9 +101,7 @@ export default function Navbar() {
 
                     <DisclosurePanel className="sm:hidden">
                         <div className="space-y-1 px-2 pb-3 pt-2">
-                            {isAuthenticated
-                                ? authLinks(true)
-                                : guestLinks(true)}
+                            {isAuthenticated ? authLinks(true) : guestLinks(true)}
                         </div>
                     </DisclosurePanel>
                 </>
