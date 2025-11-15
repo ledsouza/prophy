@@ -27,6 +27,7 @@ from faker import Faker
 from localflavor.br.br_states import STATE_CHOICES
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from users.models import UserAccount
+from materials.models import InstitutionalMaterial
 
 fake = Faker("pt_BR")
 
@@ -184,6 +185,7 @@ class Command(BaseCommand):
         self.populate_accessories()
         self.populate_service_orders()
         self.populate_reports()
+        self.populate_materials()
         approved_cnpjs = self.populate_proposals()
         self.create_json_fixture(
             approved_cnpjs, users, default_clients, default_units, default_equipments
@@ -745,6 +747,106 @@ class Command(BaseCommand):
                     unit=unit,
                     report_type=rtype,
                 )
+
+    def make_material_file(self, title: str) -> ContentFile:
+        """Create a small text file for institutional material uploads."""
+        uid = uuid.uuid4().hex[:8]
+        filename = f"material-{safe_slug(title)}-{uid}.txt"
+        content = (
+            f"Material Institucional: {title}\n"
+            f"Arquivo gerado automaticamente para testes.\n"
+        )
+        return ContentFile(content, name=filename)
+
+    def populate_materials(self):
+        """Create fake Institutional Materials (public and internal) for testing."""
+        users = UserAccount.objects.all()
+        external_users = list(
+            users.filter(role=UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST)
+        )
+
+        # Public materials (no specific permissions)
+        public_defs = [
+            (
+                InstitutionalMaterial.PublicCategory.SIGNS,
+                "Sinalizações de Segurança – {city}",
+            ),
+            (
+                InstitutionalMaterial.PublicCategory.TEAM_IO,
+                "IOE – Procedimentos Gerais",
+            ),
+            (
+                InstitutionalMaterial.PublicCategory.TERMS,
+                "Termos de Consentimento – {state}",
+            ),
+            (InstitutionalMaterial.PublicCategory.POPS, "POP – Controle de Qualidade"),
+            (InstitutionalMaterial.PublicCategory.LAW, "Legislação Vigente – {state}"),
+            (
+                InstitutionalMaterial.PublicCategory.GUIDES,
+                "Guia de Atendimento – {city}",
+            ),
+            (
+                InstitutionalMaterial.PublicCategory.MANUALS,
+                "Manual do Colaborador – {city}",
+            ),
+            (
+                InstitutionalMaterial.PublicCategory.OTHERS,
+                "Orientações Gerais – {city}",
+            ),
+        ]
+
+        for cat, title_tpl in public_defs:
+            title = title_tpl.format(city=fake.city(), state=choice(STATE_CHOICES)[0])
+            InstitutionalMaterial.objects.create(
+                title=title,
+                description=fake.sentence(nb_words=10),
+                visibility=InstitutionalMaterial.Visibility.PUBLIC,
+                category=cat,
+                file=self.make_material_file(title),
+            )
+
+        # Internal materials (some with explicit permissions to external users)
+        internal_defs = [
+            (
+                InstitutionalMaterial.InternalCategory.TEAM_IO,
+                "IOE – Rotinas Internas – {city}",
+            ),
+            (
+                InstitutionalMaterial.InternalCategory.POPS,
+                "POP – Verificações Internas",
+            ),
+            (InstitutionalMaterial.InternalCategory.GUIDES, "Guia Interno – Operações"),
+            (
+                InstitutionalMaterial.InternalCategory.MANUALS,
+                "Manual Interno – {state}",
+            ),
+            (
+                InstitutionalMaterial.InternalCategory.REPORT_TEMPLATES,
+                "Modelo de Relatório – {city}",
+            ),
+            (
+                InstitutionalMaterial.InternalCategory.DOC_TEMPLATES,
+                "Modelo de Documento – {state}",
+            ),
+            # Optionally add IDV/OUT more samples as needed
+        ]
+
+        for idx, (cat, title_tpl) in enumerate(internal_defs):
+            title = title_tpl.format(city=fake.city(), state=choice(STATE_CHOICES)[0])
+            mat = InstitutionalMaterial.objects.create(
+                title=title,
+                description=fake.sentence(nb_words=12),
+                visibility=InstitutionalMaterial.Visibility.INTERNAL,
+                category=cat,
+                file=self.make_material_file(title),
+            )
+            # Assign to some externals to validate restricted access on frontend
+            if external_users and idx % 2 == 0:
+                # choose 1-2 external users deterministically
+                assignees = [external_users[0]]
+                if len(external_users) > 1 and randint(0, 1):
+                    assignees.append(external_users[1])
+                mat.allowed_external_users.set(assignees)
 
     def populate_service_orders(self, num_service_orders_per_unit=2):
         """Populates the ServiceOrder and Appointment models with example data."""
