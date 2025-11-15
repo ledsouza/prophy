@@ -393,25 +393,22 @@ function SearchPage() {
                                     value={selectedClientName}
                                     onChange={(e) => setSelectedClientName(e.target.value)}
                                     placeholder="Digite o nome do cliente"
-                                >
-                                    Nome
-                                </Input>
+                                    label="Nome"
+                                ></Input>
 
                                 <Input
                                     value={selectedClientCNPJ}
                                     onChange={(e) => setSelectedClientCNPJ(e.target.value)}
                                     placeholder="Digite o CNPJ"
-                                >
-                                    CNPJ
-                                </Input>
+                                    label="CNPJ"
+                                ></Input>
 
                                 <Input
                                     value={selectedClientCity}
                                     onChange={(e) => setSelectedClientCity(e.target.value)}
                                     placeholder="Digite a cidade"
-                                >
-                                    Cidade
-                                </Input>
+                                    label="Cidade"
+                                ></Input>
 
                                 <Select
                                     options={CONTRACT_TYPE_OPTIONS}
@@ -636,17 +633,15 @@ function SearchPage() {
                                     value={selectedProposalCNPJ}
                                     onChange={(e) => setSelectedProposalCNPJ(e.target.value)}
                                     placeholder="Digite o CNPJ"
-                                >
-                                    CNPJ
-                                </Input>
+                                    label="CNPJ"
+                                ></Input>
 
                                 <Input
                                     value={selectedProposalContactName}
                                     onChange={(e) => setSelectedProposalContactName(e.target.value)}
                                     placeholder="Digite o nome do contato"
-                                >
-                                    Nome do Contato
-                                </Input>
+                                    label="Nome do Contato"
+                                ></Input>
 
                                 <Select
                                     options={CONTRACT_TYPE_OPTIONS}

@@ -151,9 +151,8 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                     placeholder="Digite o nome da unidade"
                     disabled={disabled}
                     data-testid="unit-name-input"
-                >
-                    Nome
-                </Input>
+                    label="Nome"
+                />
                 <Input
                     {...register("cnpj")}
                     type="text"
@@ -161,9 +160,8 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                     placeholder="Digite o CNPJ da unidade"
                     disabled={disabled}
                     data-testid="unit-cnpj-input"
-                >
-                    {disabled ? <br /> : "CNPJ"}
-                </Input>
+                    label="CNPJ"
+                />
                 <Input
                     {...register("email")}
                     type="text"
@@ -171,9 +169,8 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                     placeholder="nome@email.com"
                     disabled={disabled}
                     data-testid="unit-email-input"
-                >
-                    {disabled ? <br /> : "E-mail"}
-                </Input>
+                    label="E-mail"
+                />
                 <Input
                     {...register("phone")}
                     type="text"
@@ -181,9 +178,8 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                     placeholder="DD9XXXXXXXX"
                     disabled={disabled}
                     data-testid="unit-phone-input"
-                >
-                    {disabled ? <br /> : "Telefone"}
-                </Input>
+                    label="Telefone"
+                />
                 {isEstadosSuccess && estados ? (
                     <ComboBox
                         data={estados.map((estado) => ({
@@ -226,9 +222,8 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                         errorMessage={errors.city ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Selecione um estado"
                         data-testid="unit-city-input"
-                    >
-                        {disabled ? <br /> : "Cidade"}
-                    </Input>
+                        label="Cidade"
+                    />
                 )}
                 <Input
                     {...register("address")}
@@ -237,9 +232,8 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                     placeholder="Rua, número, bairro"
                     disabled={disabled}
                     data-testid="unit-address-input"
-                >
-                    {disabled ? <br /> : "Endereço"}
-                </Input>
+                    label="Endereço"
+                />
             </>
         );
     };

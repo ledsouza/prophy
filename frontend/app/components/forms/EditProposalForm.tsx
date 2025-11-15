@@ -127,30 +127,27 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
                     type="text"
                     errorMessage={errors.contact_name?.message}
                     placeholder="Digite o nome do contato"
+                    label="Nome do Contato"
                     data-testid="proposal-contact-name-input"
-                >
-                    Nome do Contato
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("contact_phone")}
                     type="text"
                     errorMessage={errors.contact_phone?.message}
                     placeholder="Digite o telefone do contato"
+                    label="Telefone do Contato"
                     data-testid="proposal-contact-phone-input"
-                >
-                    Telefone do Contato
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("email")}
                     type="email"
                     errorMessage={errors.email?.message}
                     placeholder="Digite o e-mail do contato"
+                    label="E-mail"
                     data-testid="proposal-email-input"
-                >
-                    E-mail
-                </Input>
+                ></Input>
 
                 <Select
                     options={PROPOSAL_STATUS_OPTIONS}

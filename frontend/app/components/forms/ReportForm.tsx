@@ -109,10 +109,9 @@ const ReportForm = ({
                     {...register("completion_date")}
                     type="date"
                     errorMessage={errors.completion_date?.message}
+                    label="Data de conclusão"
                     data-testid="report-completion-date-input"
-                >
-                    Data de conclusão
-                </Input>
+                ></Input>
 
                 <Select
                     options={options}
@@ -130,10 +129,9 @@ const ReportForm = ({
                     type="file"
                     accept=".pdf,.doc,.docx"
                     errorMessage={errors.file?.message}
+                    label="Arquivo do relatório"
                     data-testid="report-file-input"
-                >
-                    Arquivo do relatório
-                </Input>
+                ></Input>
 
                 <div className="flex gap-2 py-4">
                     <Button

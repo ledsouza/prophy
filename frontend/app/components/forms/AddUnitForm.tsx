@@ -101,36 +101,32 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                     errorMessage={errors.name?.message}
                     placeholder="Digite o nome da unidade"
                     data-testid="unit-name-input"
-                >
-                    Nome
-                </Input>
+                    label="Nome"
+                />
                 <Input
                     {...register("cnpj")}
                     type="text"
                     errorMessage={errors.cnpj?.message}
                     placeholder="Digite o CNPJ da unidade"
                     data-testid="unit-cnpj-input"
-                >
-                    CNPJ
-                </Input>
+                    label="CNPJ"
+                />
                 <Input
                     {...register("email")}
                     type="text"
                     errorMessage={errors.email?.message}
                     placeholder="nome@email.com"
                     data-testid="unit-email-input"
-                >
-                    E-mail
-                </Input>
+                    label="E-mail"
+                />
                 <Input
                     {...register("phone")}
                     type="text"
                     errorMessage={errors.phone?.message}
                     placeholder="DD9XXXXXXXX"
                     data-testid="unit-phone-input"
-                >
-                    Telefone
-                </Input>
+                    label="Telefone"
+                />
                 {isEstadosSuccess && estados ? (
                     <ComboBox
                         data={estados.map((estado) => ({
@@ -171,9 +167,8 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                         errorMessage={errors.state ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Selecione um estado"
                         data-testid="unit-city-input"
-                    >
-                        Cidade
-                    </Input>
+                        label="Cidade"
+                    />
                 )}
                 <Input
                     {...register("address")}
@@ -181,9 +176,8 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                     errorMessage={errors.address?.message}
                     placeholder="Rua, número, bairro"
                     data-testid="unit-address-input"
-                >
-                    Endereço
-                </Input>
+                    label="Endereço"
+                />
 
                 <div className="flex gap-2 py-4">
                     <Button

@@ -19,9 +19,7 @@ import { clearApiCache } from "@/redux/services/apiSlice";
 
 const loginFieldsSchema = z.object({
     cpf: z.string().min(1, { message: "O CPF é necessário" }),
-    password: z
-        .string()
-        .min(8, { message: "A senha deve conter no mínimo 8 caracteres" }),
+    password: z.string().min(8, { message: "A senha deve conter no mínimo 8 caracteres" }),
 });
 
 type LoginFields = z.infer<typeof loginFieldsSchema>;
@@ -54,11 +52,7 @@ const LoginForm = () => {
 
     return (
         <>
-            <HeaderForm
-                src={prophyIcon}
-                alt="Icone da Prophy"
-                title="Acesse a sua conta"
-            />
+            <HeaderForm src={prophyIcon} alt="Icone da Prophy" title="Acesse a sua conta" />
             <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <Input
@@ -67,18 +61,16 @@ const LoginForm = () => {
                         errorMessage={errors.cpf?.message}
                         data-testid="cpf-input"
                         placeholder="86453108054"
-                    >
-                        CPF
-                    </Input>
+                        label="CPF"
+                    />
                     <Input
                         {...register("password")}
                         type="password"
                         errorMessage={errors.password?.message}
                         data-testid="password-input"
                         placeholder="Digite a sua senha"
-                    >
-                        Senha
-                    </Input>
+                        label="Senha"
+                    />
                     <Button
                         type="submit"
                         disabled={isSubmitting}

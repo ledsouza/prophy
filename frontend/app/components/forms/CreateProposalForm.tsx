@@ -123,10 +123,9 @@ const CreateProposalForm = ({ title, description }: CreateProposalFormProps) => 
                     type="text"
                     errorMessage={errors.cnpj?.message}
                     placeholder="Digite o CNPJ"
+                    label="CNPJ"
                     data-testid="proposal-cnpj-input"
-                >
-                    CNPJ
-                </Input>
+                ></Input>
 
                 {isEstadosSuccess && estados ? (
                     <ComboBox
@@ -171,10 +170,9 @@ const CreateProposalForm = ({ title, description }: CreateProposalFormProps) => 
                         disabled
                         errorMessage={errors.city ? "Cidade da instituição é obrigatório." : ""}
                         placeholder="Selecione um estado"
+                        label="Cidade"
                         data-testid="proposal-city-input"
-                    >
-                        Cidade
-                    </Input>
+                    ></Input>
                 )}
 
                 <Input
@@ -182,39 +180,35 @@ const CreateProposalForm = ({ title, description }: CreateProposalFormProps) => 
                     type="text"
                     errorMessage={errors.contact_name?.message}
                     placeholder="Digite o nome do contato"
+                    label="Nome do Contato"
                     data-testid="proposal-contact-name-input"
-                >
-                    Nome do Contato
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("contact_phone")}
                     type="text"
                     errorMessage={errors.contact_phone?.message}
                     placeholder="Digite o telefone do contato"
+                    label="Telefone do Contato"
                     data-testid="proposal-contact-phone-input"
-                >
-                    Telefone do Contato
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("email")}
                     type="email"
                     errorMessage={errors.email?.message}
                     placeholder="Digite o e-mail do contato"
+                    label="E-mail"
                     data-testid="proposal-email-input"
-                >
-                    E-mail
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("date")}
                     type="date"
                     errorMessage={errors.date?.message}
+                    label="Data"
                     data-testid="proposal-date-input"
-                >
-                    Data
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("value")}
@@ -222,10 +216,9 @@ const CreateProposalForm = ({ title, description }: CreateProposalFormProps) => 
                     step="0.01"
                     errorMessage={errors.value?.message}
                     placeholder="Digite o valor da proposta"
+                    label="Valor"
                     data-testid="proposal-value-input"
-                >
-                    Valor
-                </Input>
+                ></Input>
 
                 <Select
                     options={CONTRACT_TYPE_OPTIONS}

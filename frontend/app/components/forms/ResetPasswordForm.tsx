@@ -77,19 +77,17 @@ const ResetPasswordForm = () => {
                 type="password"
                 errorMessage={errors.new_password?.message}
                 placeholder="Crie uma senha forte"
+                label="Senha"
                 data-testid="password-input"
-            >
-                Senha
-            </Input>
+            ></Input>
             <Input
                 {...register("re_new_password")}
                 type="password"
                 errorMessage={errors.re_new_password?.message}
                 placeholder="Digite a senha novamente"
+                label="Confirmação da senha"
                 data-testid="repassword-input"
-            >
-                Confirmação da senha
-            </Input>
+            ></Input>
 
             <div className="flex gap-2 py-4">
                 <Button

@@ -49,27 +49,24 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 errorMessage={errors.cpf?.message}
                 placeholder="Digite o seu CPF (apenas dígitos)"
                 data-testid="cpf-input"
-            >
-                CPF
-            </Input>
+                label="CPF"
+            />
             <Input
                 {...register("password")}
                 type="password"
                 errorMessage={errors.password?.message}
                 placeholder="Crie uma senha forte"
                 data-testid="password-input"
-            >
-                Senha
-            </Input>
+                label="Senha"
+            />
             <Input
                 {...register("rePassword")}
                 type="password"
                 errorMessage={errors.rePassword?.message}
                 placeholder="Digite a senha novamente"
                 data-testid="repassword-input"
-            >
-                Confirmação de senha
-            </Input>
+                label="Confirmação de senha"
+            />
 
             <h3 className="text-center text-xl font-bold leading-9 tracking-tight text-gray-900">
                 Dados da sua instituição
@@ -80,27 +77,24 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 errorMessage={errors.institutionName?.message}
                 placeholder="Digite o nome completo da instituição"
                 data-testid="institution-name-input"
-            >
-                Nome
-            </Input>
+                label="Nome"
+            />
             <Input
                 {...register("institutionEmail")}
                 type="text"
                 errorMessage={errors.institutionEmail?.message}
                 placeholder="nome@email.com"
                 data-testid="institution-email-input"
-            >
-                E-mail
-            </Input>
+                label="E-mail"
+            />
             <Input
                 {...register("institutionPhone")}
                 type="text"
                 errorMessage={errors.institutionPhone?.message}
                 placeholder="DD9XXXXXXXX"
                 data-testid="institution-phone-input"
-            >
-                Telefone
-            </Input>
+                label="Telefone"
+            />
             {isEstadosSuccess && estados ? (
                 <ComboBox
                     data={estados.map((estado) => ({
@@ -142,9 +136,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     errorMessage={errors.city ? "Cidade da instituição é obrigatório." : ""}
                     placeholder="Selecione um estado"
                     data-testid="institution-city-input"
-                >
-                    Cidade
-                </Input>
+                    label="Cidade"
+                />
             )}
             <Input
                 {...register("address")}
@@ -152,9 +145,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 errorMessage={errors.address?.message}
                 placeholder="Rua, número, bairro"
                 data-testid="institution-address-input"
-            >
-                Endereço
-            </Input>
+                label="Endereço"
+            />
 
             <h3 className="text-center text-xl font-bold leading-9 tracking-tight text-gray-900">
                 Dados de contato
@@ -165,27 +157,24 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 errorMessage={errors.contactName?.message}
                 placeholder="Digite seu nome completo"
                 data-testid="name-input"
-            >
-                Nome
-            </Input>
+                label="Nome"
+            />
             <Input
                 {...register("contactEmail")}
                 type="text"
                 errorMessage={errors.contactEmail?.message}
                 placeholder="nome@email.com"
                 data-testid="email-input"
-            >
-                E-mail
-            </Input>
+                label="E-mail"
+            />
             <Input
                 {...register("contactPhone")}
                 type="text"
                 errorMessage={errors.contactPhone?.message}
                 placeholder="DD9XXXXXXXX"
                 data-testid="contact-phone-input"
-            >
-                Celular
-            </Input>
+                label="Celular"
+            />
             <div className="flex gap-2 py-4">
                 <Button
                     type="button"

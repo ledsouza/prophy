@@ -139,41 +139,37 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                     type="text"
                     errorMessage={errors.cpf?.message}
                     placeholder="Digite o CPF do gerente de unidade"
+                    label="CPF"
                     disabled={isCPFChecking}
                     data-testid="unit-manager-cpf-input"
-                >
-                    CPF {isCPFChecking && <span className="text-gray-500">(verificando...)</span>}
-                </Input>
+                ></Input>
                 <Input
                     {...register("name")}
                     type="text"
                     errorMessage={errors.name?.message}
                     placeholder="Digite o nome completo do gerente de unidade"
+                    label="Nome"
                     disabled={isRegisteredUserMatch}
                     data-testid="unit-manager-name-input"
-                >
-                    Nome
-                </Input>
+                ></Input>
                 <Input
                     {...register("email")}
                     type="text"
                     errorMessage={errors.email?.message}
                     placeholder="Digite o email do gerente de unidade"
+                    label="E-mail"
                     disabled={isRegisteredUserMatch}
                     data-testid="unit-manager-email-input"
-                >
-                    E-mail
-                </Input>
+                ></Input>
                 <Input
                     {...register("phone")}
                     type="text"
                     errorMessage={errors.phone?.message}
                     placeholder="Digite o número de celular do gerente de unidade"
+                    label="Número do celular"
                     disabled={isRegisteredUserMatch}
                     data-testid="unit-manager-phone-input"
-                >
-                    Número do celular
-                </Input>
+                ></Input>
 
                 <div className="flex gap-2 py-4">
                     <Button

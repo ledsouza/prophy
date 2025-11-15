@@ -175,9 +175,8 @@ const EditClientForm = ({
                     placeholder="Digite o nome completo da instituição"
                     disabled={disabled}
                     data-testid="institution-name-input"
-                >
-                    {disabled ? <br /> : "Nome"}
-                </Input>
+                    label="Nome"
+                />
                 <Input
                     {...register("email")}
                     type="text"
@@ -185,9 +184,8 @@ const EditClientForm = ({
                     placeholder="nome@email.com"
                     disabled={disabled}
                     data-testid="institution-email-input"
-                >
-                    {disabled ? <br /> : "E-mail"}
-                </Input>
+                    label="E-mail"
+                />
                 <Input
                     {...register("phone")}
                     type="text"
@@ -195,9 +193,8 @@ const EditClientForm = ({
                     placeholder="DD9XXXXXXXX"
                     disabled={disabled}
                     data-testid="institution-phone-input"
-                >
-                    {disabled ? <br /> : "Telefone"}
-                </Input>
+                    label="Telefone"
+                />
                 {isEstadosSuccess && estados ? (
                     <ComboBox
                         data={estados.map((estado) => ({
@@ -240,9 +237,8 @@ const EditClientForm = ({
                         errorMessage={errors.city ? "Cidade da instituição é obrigatória." : ""}
                         placeholder="Selecione um estado"
                         data-testid="institution-city-input"
-                    >
-                        {disabled ? <br /> : "Cidade"}
-                    </Input>
+                        label="Cidade"
+                    />
                 )}
                 <Input
                     {...register("address")}
@@ -251,9 +247,8 @@ const EditClientForm = ({
                     placeholder="Rua, número, bairro"
                     disabled={disabled}
                     data-testid="institution-address-input"
-                >
-                    {disabled ? <br /> : "Endereço"}
-                </Input>
+                    label="Endereço"
+                />
             </>
         );
     };

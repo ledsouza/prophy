@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, CSSProperties } from "react";
 import cn from "classnames";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
@@ -14,6 +14,7 @@ import {
     ListboxOption,
     ListboxOptions,
     ListboxProps,
+    Portal,
 } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
@@ -26,7 +27,7 @@ export type SelectData = {
 
 type SelectProps = {
     options: SelectData[];
-    selectedData: SelectData;
+    selectedData: SelectData | null;
     setSelect: (value: SelectData) => void;
     label?: string;
     operationsIDs?: Set<number>;
@@ -40,6 +41,7 @@ type SelectProps = {
     labelSize?: "sm" | "md" | "lg";
     disabled?: boolean;
     dataTestId?: string | undefined;
+    placeholder?: string;
 } & ListboxProps;
 
 /**
@@ -88,13 +90,14 @@ const Select = ({
     rejectedOperationIDs,
     listBoxStyles = "",
     listBoxButtonStyles = "",
-    listBoxButtonSize = "md",
+    listBoxButtonSize = "sm",
     listOptionStyles = "",
     listOptionSize = "md",
     labelStyles = "",
-    labelSize = "md",
+    labelSize = "sm",
     disabled = false,
     dataTestId,
+    placeholder,
 }: SelectProps) => {
     const [hasOperation, setHasOperation] = useState(false);
     const [isRejected, setIsRejected] = useState(false);
@@ -115,10 +118,40 @@ const Select = ({
         }
     }, [operationsIDs, rejectedOperationIDs]);
 
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const [optionsStyle, setOptionsStyle] = useState<CSSProperties>({});
+
+    const updatePosition = () => {
+        const el = buttonRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        setOptionsStyle({
+            position: "fixed",
+            top: rect.bottom + 4,
+            left: rect.left,
+            width: rect.width,
+            zIndex: 9999,
+        });
+    };
+
+    useEffect(() => {
+        const onScrollOrResize = () => updatePosition();
+        window.addEventListener("scroll", onScrollOrResize, true);
+        window.addEventListener("resize", onScrollOrResize);
+        return () => {
+            window.removeEventListener("scroll", onScrollOrResize, true);
+            window.removeEventListener("resize", onScrollOrResize);
+        };
+    }, []);
+
+    useEffect(() => {
+        updatePosition();
+    }, [selectedData]);
+
     const listBoxButtonStyle = cn(
-        "relative",
-        "w-full rounded-md py-1.5 pr-10 mb-2 sm:leading-6",
-        "bg-white shadow-md ring-1 ring-inset ring-primary",
+        "relative w-full rounded-md border-0 h-9 bg-white pr-10 sm:leading-6 flex items-center",
+        "shadow-md ring-1 ring-inset",
+        disabled ? "ring-tertiary" : "ring-primary",
         "text-left sm:text-sm",
         "focus:ring-2 focus:ring-inset focus:ring-primary",
         {
@@ -128,21 +161,34 @@ const Select = ({
         listBoxButtonStyles
     );
 
+    const isPlaceholder = !selectedData;
+
     return (
         <div data-testid={dataTestId}>
             <Field disabled={disabled}>
-                <Listbox value={selectedData} onChange={setSelect}>
+                <Listbox value={selectedData ?? undefined} onChange={setSelect} by="id">
                     <Typography element="p" size={labelSize}>
                         <Label className={labelStyles}>{label}</Label>
                     </Typography>
                     <div className={`relative mt-2 ${listBoxStyles}`}>
-                        <ListboxButton className={listBoxButtonStyle}>
+                        <ListboxButton
+                            ref={buttonRef}
+                            className={listBoxButtonStyle}
+                            onClick={updatePosition}
+                        >
                             <Typography
                                 element="span"
                                 size={listBoxButtonSize}
-                                className="ml-3 block truncate text-primary font-semibold"
+                                className={cn(
+                                    "ml-3 block truncate",
+                                    isPlaceholder
+                                        ? "text-placeholder font-normal"
+                                        : "text-gray-primary font-normal"
+                                )}
                             >
-                                {selectedData.value}
+                                {isPlaceholder
+                                    ? (placeholder ?? "Selecione...")
+                                    : selectedData?.value}
                             </Typography>
                             {!disabled && (
                                 <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
@@ -154,63 +200,68 @@ const Select = ({
                             )}
                         </ListboxButton>
 
-                        <ListboxOptions
-                            transition
-                            className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
-                        >
-                            {options.map((option) => {
-                                const listBoxOptionStyle = cn(
-                                    "group relative",
-                                    "cursor-default select-none",
-                                    "py-2 pl-3 pr-9",
-                                    "text-primary",
-                                    "data-[focus]:bg-primary data-[focus]:text-white",
-                                    {
-                                        "animate-warning": operationsIDs?.has(option.id),
-                                        "animate-danger":
-                                            rejectedOperationIDs?.has(option.id) && !isStaff,
-                                    },
-                                    listOptionStyles
-                                );
+                        <Portal>
+                            <ListboxOptions
+                                transition
+                                style={optionsStyle}
+                                className="fixed z-[9999] mt-1 max-h-56 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
+                            >
+                                {options.map((option) => {
+                                    const listBoxOptionStyle = cn(
+                                        "group relative",
+                                        "cursor-default select-none",
+                                        "py-2 pl-3 pr-9",
+                                        "text-primary",
+                                        "data-[focus]:bg-primary data-[focus]:text-white",
+                                        {
+                                            "animate-warning": operationsIDs?.has(option.id),
+                                            "animate-danger":
+                                                rejectedOperationIDs?.has(option.id) && !isStaff,
+                                        },
+                                        listOptionStyles
+                                    );
 
-                                const typographyStyle = cn("block truncate", "ml-3", {
-                                    "font-semibold": selectedData.id === option.id,
-                                });
+                                    const isSelected = selectedData?.id === option.id;
 
-                                const checkIconStyle = cn(
-                                    "absolute",
-                                    "inset-y-0 right-0 pr-4",
-                                    "flex items-center",
-                                    "text-primary",
-                                    "group-data-[focus]:text-white",
-                                    {
-                                        hidden: selectedData.id !== option.id,
-                                    }
-                                );
+                                    const typographyStyle = cn("block truncate", "ml-3", {
+                                        "font-semibold": isSelected,
+                                    });
 
-                                return (
-                                    <ListboxOption
-                                        key={option.id}
-                                        value={option}
-                                        className={listBoxOptionStyle}
-                                    >
-                                        <div className="flex items-center">
-                                            <Typography
-                                                element="span"
-                                                size={listOptionSize}
-                                                className={typographyStyle}
-                                            >
-                                                {option.value}
-                                            </Typography>
-                                        </div>
+                                    const checkIconStyle = cn(
+                                        "absolute",
+                                        "inset-y-0 right-0 pr-4",
+                                        "flex items-center",
+                                        "text-primary",
+                                        "group-data-[focus]:text-white",
+                                        {
+                                            hidden: !isSelected,
+                                        }
+                                    );
 
-                                        <span className={checkIconStyle}>
-                                            <CheckIcon aria-hidden="true" className="h-5 w-5" />
-                                        </span>
-                                    </ListboxOption>
-                                );
-                            })}
-                        </ListboxOptions>
+                                    return (
+                                        <ListboxOption
+                                            key={option.id}
+                                            value={option}
+                                            className={listBoxOptionStyle}
+                                        >
+                                            <div className="flex items-center">
+                                                <Typography
+                                                    element="span"
+                                                    size={listOptionSize}
+                                                    className={typographyStyle}
+                                                >
+                                                    {option.value}
+                                                </Typography>
+                                            </div>
+
+                                            <span className={checkIconStyle}>
+                                                <CheckIcon aria-hidden="true" className="h-5 w-5" />
+                                            </span>
+                                        </ListboxOption>
+                                    );
+                                })}
+                            </ListboxOptions>
+                        </Portal>
                     </div>
                 </Listbox>
             </Field>

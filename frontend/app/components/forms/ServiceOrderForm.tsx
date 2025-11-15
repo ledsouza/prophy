@@ -135,11 +135,10 @@ const ServiceOrderForm = ({
                     type="text"
                     disabled={disabled}
                     placeholder="Assunto da ordem de serviço"
+                    label="Assunto"
                     errorMessage={errors.subject?.message}
                     dataTestId="service-order-subject"
-                >
-                    Assunto
-                </Input>
+                ></Input>
 
                 <Textarea
                     {...register("description")}

@@ -489,9 +489,8 @@ const EditEquipmentForm = ({
                     placeholder="Digite o nome do fabricante"
                     disabled={disabled}
                     data-testid="equipment-manufacturer-input"
-                >
-                    Fabricante
-                </Input>
+                    label="Fabricante"
+                />
 
                 <Input
                     {...register("model")}
@@ -500,9 +499,8 @@ const EditEquipmentForm = ({
                     placeholder="Digite o nome do modelo"
                     disabled={disabled}
                     data-testid="equipment-model-input"
-                >
-                    Modelo
-                </Input>
+                    label="Modelo"
+                />
 
                 <Input
                     {...register("series_number")}
@@ -511,9 +509,8 @@ const EditEquipmentForm = ({
                     placeholder="Digite o número de série, se houver"
                     disabled={disabled}
                     data-testid="equipment-series-number-input"
-                >
-                    Número de série
-                </Input>
+                    label="Número de série"
+                />
 
                 <Input
                     {...register("anvisa_registry")}
@@ -522,9 +519,8 @@ const EditEquipmentForm = ({
                     placeholder="Digite o registro na ANVISA, se houver"
                     disabled={disabled}
                     data-testid="equipment-anvisa-registry-input"
-                >
-                    Registro na ANVISA
-                </Input>
+                    label="Registro na ANVISA"
+                />
 
                 <div className="flex flex-col gap-4">
                     <Typography element="p" size="sm" className="font-medium">
@@ -589,9 +585,8 @@ const EditEquipmentForm = ({
                                 placeholder="Digite o número de canais"
                                 disabled={disabled}
                                 data-testid="equipment-channels-input"
-                            >
-                                Canais
-                            </Input>
+                                label="Canais"
+                            />
 
                             <Input
                                 {...register("official_max_load")}
@@ -600,9 +595,8 @@ const EditEquipmentForm = ({
                                 placeholder="Digite a carga máxima oficial"
                                 disabled={disabled}
                                 data-testid="equipment-official-max-load-input"
-                            >
-                                Carga máxima oficial
-                            </Input>
+                                label="Carga máxima oficial"
+                            />
 
                             <Input
                                 {...register("usual_max_load")}
@@ -611,9 +605,8 @@ const EditEquipmentForm = ({
                                 placeholder="Digite a carga máxima usual"
                                 disabled={disabled}
                                 data-testid="equipment-usual-max-load-input"
-                            >
-                                Carga máxima usual
-                            </Input>
+                                label="Carga máxima usual"
+                            />
 
                             <Input
                                 {...register("purchase_installation_date")}
@@ -621,9 +614,8 @@ const EditEquipmentForm = ({
                                 errorMessage={errors.purchase_installation_date?.message}
                                 disabled={disabled}
                                 data-testid="equipment-purchase-installation-date-input"
-                            >
-                                Data de instalação da compra
-                            </Input>
+                                label="Data de instalação da compra"
+                            />
 
                             <Input
                                 {...register("maintenance_responsable")}
@@ -632,9 +624,8 @@ const EditEquipmentForm = ({
                                 placeholder="Digite o nome do responsável pela manutenção"
                                 disabled={disabled}
                                 data-testid="equipment-maintenance-responsable-input"
-                            >
-                                Responsável pela manutenção
-                            </Input>
+                                label="Responsável pela manutenção"
+                            />
 
                             <Input
                                 {...register("email_maintenance_responsable")}
@@ -643,9 +634,8 @@ const EditEquipmentForm = ({
                                 placeholder="Digite o e-mail do responsável pela manutenção"
                                 disabled={disabled}
                                 data-testid="equipment-email-maintenance-responsable-input"
-                            >
-                                E-mail do responsável pela manutenção
-                            </Input>
+                                label="E-mail do responsável pela manutenção"
+                            />
 
                             <Input
                                 {...register("phone_maintenance_responsable")}
@@ -654,9 +644,8 @@ const EditEquipmentForm = ({
                                 placeholder="Digite o telefone do responsável pela manutenção"
                                 disabled={disabled}
                                 data-testid="equipment-phone-maintenance-responsable-input"
-                            >
-                                Telefone do responsável pela manutenção
-                            </Input>
+                                label="Telefone do responsável pela manutenção"
+                            />
                         </div>
                     )}
             </>
@@ -692,9 +681,8 @@ const EditEquipmentForm = ({
                     placeholder="Digite o nome do fabricante"
                     disabled={disabled}
                     data-testid="accessory-manufacturer-input"
-                >
-                    Fabricante
-                </Input>
+                    label="Fabricante"
+                />
 
                 <Input
                     {...register(`accessories.${accessoryIndex}.model`)}
@@ -703,9 +691,8 @@ const EditEquipmentForm = ({
                     placeholder="Digite o nome do modelo"
                     disabled={disabled}
                     data-testid="equipment-model-input"
-                >
-                    Modelo
-                </Input>
+                    label="Modelo"
+                />
 
                 <Input
                     {...register(`accessories.${accessoryIndex}.series_number`)}
@@ -714,9 +701,8 @@ const EditEquipmentForm = ({
                     placeholder="Digite o número de série, se houver"
                     disabled={disabled}
                     data-testid="equipment-series-number-input"
-                >
-                    Número de série
-                </Input>
+                    label="Número de série"
+                />
 
                 <Typography element="p" size="sm" className="font-medium">
                     Foto do equipamento

@@ -213,60 +213,54 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     type="text"
                     errorMessage={errors.manufacturer?.message}
                     placeholder="Digite o nome do fabricante"
+                    label="Fabricante"
                     data-testid="equipment-manufacturer-input"
-                >
-                    Fabricante
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("model")}
                     type="text"
                     errorMessage={errors.model?.message}
                     placeholder="Digite o nome do modelo"
+                    label="Modelo"
                     data-testid="equipment-model-input"
-                >
-                    Modelo
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("series_number")}
                     type="text"
                     errorMessage={errors.series_number?.message}
                     placeholder="Digite o número de série, se houver"
+                    label="Número de série"
                     data-testid="equipment-series-number-input"
-                >
-                    Número de série
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("anvisa_registry")}
                     type="text"
                     errorMessage={errors.anvisa_registry?.message}
                     placeholder="Digite o registro na ANVISA, se houver"
+                    label="Registro na ANVISA"
                     data-testid="equipment-anvisa-registry-input"
-                >
-                    Registro na ANVISA
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("equipment_photo")}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png"
                     errorMessage={errors.equipment_photo?.message}
+                    label="Foto do equipamento"
                     data-testid="equipment-photo-input"
-                >
-                    Foto do equipamento
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("label_photo")}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png"
                     errorMessage={errors.label_photo?.message}
+                    label="Foto do rótulo do equipamento"
                     data-testid="equipment-label-input"
-                >
-                    Foto do rótulo do equipamento
-                </Input>
+                ></Input>
             </>
         );
     };
@@ -296,50 +290,45 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.manufacturer?.message}
                     placeholder="Digite o nome do fabricante"
+                    label="Fabricante"
                     data-testid={`equipment-manufacturer-input-${accessoryIndex}`}
-                >
-                    Fabricante
-                </Input>
+                ></Input>
 
                 <Input
                     {...register(`accessories.${accessoryIndex}.model`)}
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.model?.message}
                     placeholder="Digite o nome do modelo"
+                    label="Modelo"
                     data-testid={`equipment-model-input-${accessoryIndex}`}
-                >
-                    Modelo
-                </Input>
+                ></Input>
 
                 <Input
                     {...register(`accessories.${accessoryIndex}.series_number`)}
                     type="text"
                     errorMessage={errors.accessories?.[accessoryIndex]?.series_number?.message}
                     placeholder="Digite o número de série, se houver"
+                    label="Número de série"
                     data-testid={`equipment-series-number-input-${accessoryIndex}`}
-                >
-                    Número de série
-                </Input>
+                ></Input>
 
                 <Input
                     {...register(`accessories.${accessoryIndex}.equipment_photo`)}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png"
                     errorMessage={errors.accessories?.[accessoryIndex]?.equipment_photo?.message}
+                    label="Foto do equipamento"
                     data-testid={`equipment-photo-input-${accessoryIndex}`}
-                >
-                    Foto do equipamento
-                </Input>
+                ></Input>
 
                 <Input
                     {...register(`accessories.${accessoryIndex}.label_photo`)}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png"
                     errorMessage={errors.accessories?.[accessoryIndex]?.label_photo?.message}
+                    label="Foto do rótulo do equipamento"
                     data-testid={`equipment-label-input-${accessoryIndex}`}
-                >
-                    Foto do rótulo do equipamento
-                </Input>
+                ></Input>
             </div>
         );
     };

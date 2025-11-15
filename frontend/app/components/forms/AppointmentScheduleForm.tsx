@@ -246,10 +246,9 @@ const AppointmentScheduleForm = ({
                     {...register("date")}
                     type="datetime-local"
                     errorMessage={errors.date?.message}
+                    label="Data/Hora"
                     dataTestId="appointment-date-input"
-                >
-                    Data/Hora
-                </Input>
+                ></Input>
 
                 <div className="mb-4">
                     <Select
@@ -272,20 +271,18 @@ const AppointmentScheduleForm = ({
                     type="text"
                     errorMessage={errors.contact_name?.message}
                     placeholder="Nome do contato"
+                    label="Nome do contato"
                     dataTestId="appointment-contact-name-input"
-                >
-                    Nome do contato
-                </Input>
+                ></Input>
 
                 <Input
                     {...register("contact_phone")}
                     type="text"
                     errorMessage={errors.contact_phone?.message}
                     placeholder="DD9XXXXXXXX"
+                    label="Telefone do contato"
                     dataTestId="appointment-contact-phone-input"
-                >
-                    Telefone do contato
-                </Input>
+                ></Input>
 
                 {isUpdate && (
                     <Textarea

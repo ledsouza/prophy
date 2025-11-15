@@ -15,13 +15,10 @@ import { useVerifyClientStatusMutation } from "@/redux/features/clientApiSlice";
 import { toast } from "react-toastify";
 
 const cnpjSchema = z.object({
-    cnpj: z
-        .string()
-        .length(14, { message: "O CNPJ deve conter 14 caracteres." })
-        .refine(isCNPJ, {
-            message:
-                "CNPJ inválido. Certifique-se de que você digitou todos os 14 dígitos corretamente.",
-        }),
+    cnpj: z.string().length(14, { message: "O CNPJ deve conter 14 caracteres." }).refine(isCNPJ, {
+        message:
+            "CNPJ inválido. Certifique-se de que você digitou todos os 14 dígitos corretamente.",
+    }),
 });
 
 type CNPJFields = z.infer<typeof cnpjSchema>;
@@ -75,9 +72,8 @@ const CNPJForm = ({ onSubmit }: CNPJFormProps) => {
                     errorMessage={errors.cnpj?.message}
                     placeholder="21835755000186"
                     data-testid="input-cnpj"
-                >
-                    CNPJ
-                </Input>
+                    label="CNPJ"
+                />
                 <Button
                     type="submit"
                     disabled={isSubmitting}

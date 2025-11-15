@@ -370,25 +370,22 @@ function SearchPage() {
                                     value={selectedClientName}
                                     onChange={(e) => setSelectedClientName(e.target.value)}
                                     placeholder="Digite o nome do cliente"
-                                >
-                                    Nome
-                                </Input>
+                                    label="Nome"
+                                ></Input>
 
                                 <Input
                                     value={selectedClientCNPJ}
                                     onChange={(e) => setSelectedClientCNPJ(e.target.value)}
                                     placeholder="Digite o CNPJ"
-                                >
-                                    CNPJ
-                                </Input>
+                                    label="CNPJ"
+                                ></Input>
 
                                 <Input
                                     value={selectedClientCity}
                                     onChange={(e) => setSelectedClientCity(e.target.value)}
                                     placeholder="Digite a cidade"
-                                >
-                                    Cidade
-                                </Input>
+                                    label="Cidade"
+                                ></Input>
 
                                 <Select
                                     options={USER_ROLE_OPTIONS}
@@ -664,9 +661,8 @@ function SearchPage() {
                                     value={selectedEquipmentClient}
                                     onChange={(e) => setSelectedEquipmentClient(e.target.value)}
                                     placeholder="Digite o nome do cliente"
-                                >
-                                    Cliente
-                                </Input>
+                                    label="Cliente"
+                                ></Input>
                             </div>
 
                             {/* Equipment Action Buttons */}

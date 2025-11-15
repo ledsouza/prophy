@@ -198,10 +198,9 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                         type="file"
                         accept=".pdf,.doc,.docx"
                         errorMessage={errors.file?.message}
+                        label="Arquivo do relatório"
                         data-testid="report-file-input"
-                    >
-                        Arquivo do relatório
-                    </Input>
+                    ></Input>
 
                     <div className="flex justify-end gap-2">
                         <Button
