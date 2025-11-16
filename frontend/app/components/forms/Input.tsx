@@ -1,3 +1,5 @@
+"use client";
+
 import clsx from "clsx";
 import { forwardRef, InputHTMLAttributes, useState, useId, type ChangeEvent } from "react";
 import { Field, Label } from "@headlessui/react";
