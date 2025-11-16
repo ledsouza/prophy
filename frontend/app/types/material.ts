@@ -45,3 +45,10 @@ export type CreateMaterialArgs = {
      */
     allowed_external_user_ids?: number[];
 };
+
+export type UpdateMaterialArgs = {
+    id: number;
+    title?: string;
+    description?: string;
+    file?: File;
+};

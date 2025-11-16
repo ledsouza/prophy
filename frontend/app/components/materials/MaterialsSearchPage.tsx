@@ -27,6 +27,7 @@ import type { MaterialCategoryCode, MaterialDTO, MaterialVisibility } from "@/ty
 import { restoreTextFilterStates } from "@/utils/filter-restoration";
 import { buildStandardUrlParams } from "@/utils/url-params";
 import MaterialForm from "./MaterialForm";
+import MaterialUpdateForm from "./MaterialUpdateForm";
 import ConfirmDelete from "@/components/common/ConfirmDelete";
 import { toast } from "react-toastify";
 
@@ -238,6 +239,9 @@ const MaterialsSearchPage = () => {
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [materialToDelete, setMaterialToDelete] = useState<MaterialDTO | null>(null);
 
+    const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+    const [materialToEdit, setMaterialToEdit] = useState<MaterialDTO | null>(null);
+
     const handleConfirmDelete = async (m: MaterialDTO) => {
         await deleteMaterial(m.id).unwrap();
         toast.success("Material excluído com sucesso.");
@@ -438,16 +442,28 @@ const MaterialsSearchPage = () => {
                                                         Baixar
                                                     </Button>
                                                     {isProphyManager && (
-                                                        <Button
-                                                            variant="danger"
-                                                            onClick={() => {
-                                                                setMaterialToDelete(row);
-                                                                setIsDeleteOpen(true);
-                                                            }}
-                                                            className="w-full text-xs"
-                                                        >
-                                                            Excluir
-                                                        </Button>
+                                                        <>
+                                                            <Button
+                                                                variant="secondary"
+                                                                onClick={() => {
+                                                                    setMaterialToEdit(row);
+                                                                    setIsUpdateOpen(true);
+                                                                }}
+                                                                className="w-full text-xs"
+                                                            >
+                                                                Editar
+                                                            </Button>
+                                                            <Button
+                                                                variant="danger"
+                                                                onClick={() => {
+                                                                    setMaterialToDelete(row);
+                                                                    setIsDeleteOpen(true);
+                                                                }}
+                                                                className="w-full text-xs"
+                                                            >
+                                                                Excluir
+                                                            </Button>
+                                                        </>
                                                     )}
                                                 </div>
                                             ),
@@ -520,6 +536,29 @@ const MaterialsSearchPage = () => {
                             confirmLabel="Excluir"
                             cancelLabel="Cancelar"
                             confirmTestId="btn-material-delete-submit"
+                        />
+                    )}
+                </Modal>
+            )}
+
+            {/* Update Modal */}
+            {isProphyManager && (
+                <Modal
+                    isOpen={isUpdateOpen}
+                    onClose={() => setIsUpdateOpen(false)}
+                    className="max-w-3xl mx-6 p-8"
+                >
+                    {materialToEdit && (
+                        <MaterialUpdateForm
+                            initial={materialToEdit}
+                            onSuccess={() => {
+                                setIsUpdateOpen(false);
+                                setMaterialToEdit(null);
+                            }}
+                            onCancel={() => {
+                                setIsUpdateOpen(false);
+                                setMaterialToEdit(null);
+                            }}
                         />
                     )}
                 </Modal>

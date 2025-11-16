@@ -1,5 +1,11 @@
 import { apiSlice, PaginatedResponse } from "../services/apiSlice";
-import type { CreateMaterialArgs, ListMaterialsArgs, MaterialDTO } from "@/types/material";
+import type {
+    CreateMaterialArgs,
+    ListMaterialsArgs,
+    MaterialDTO,
+    UpdateMaterialArgs,
+} from "@/types/material";
+import { toFormData, camelToSnake } from "@/utils/formData";
 
 const materialApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -36,20 +42,21 @@ const materialApiSlice = apiSlice.injectEndpoints({
                 file,
                 allowed_external_user_ids,
             }) => {
-                const formData = new FormData();
-                formData.append("title", title);
-                if (description) formData.append("description", description);
-                formData.append("visibility", visibility);
-                formData.append("category", category);
-                formData.append("file", file);
-
-                // Only send allowed_external_users when explicitly provided (INT + GP case)
-                if (allowed_external_user_ids && allowed_external_user_ids.length > 0) {
-                    // The backend serializer expects "allowed_external_users" as PK list
-                    allowed_external_user_ids.forEach((id) =>
-                        formData.append("allowed_external_users", String(id))
-                    );
-                }
+                const formData = toFormData(
+                    {
+                        title,
+                        description,
+                        visibility,
+                        category,
+                        file,
+                        allowed_external_user_ids,
+                    },
+                    {
+                        keyMap: { allowed_external_user_ids: "allowed_external_users" },
+                        transformKey: camelToSnake,
+                        fileListMode: "first",
+                    }
+                );
 
                 return {
                     url: "materials/",
@@ -69,6 +76,23 @@ const materialApiSlice = apiSlice.injectEndpoints({
                 { type: "Material", id },
             ],
         }),
+        updateMaterial: builder.mutation<MaterialDTO, UpdateMaterialArgs>({
+            query: ({ id, title, description, file }) => {
+                const formData = toFormData(
+                    { title, description, file },
+                    { transformKey: camelToSnake, fileListMode: "first" }
+                );
+                return {
+                    url: `materials/${id}/`,
+                    method: "PATCH",
+                    body: formData,
+                };
+            },
+            invalidatesTags: (_result, _error, { id }) => [
+                { type: "Material", id },
+                { type: "Material", id: "LIST" },
+            ],
+        }),
         downloadMaterialFile: builder.query<Blob, number>({
             query: (id) => ({
                 url: `materials/${id}/download/`,
@@ -84,6 +108,7 @@ export const {
     useListMaterialsQuery,
     useCreateMaterialMutation,
     useDeleteMaterialMutation,
+    useUpdateMaterialMutation,
     useLazyDownloadMaterialFileQuery,
 } = materialApiSlice;
 
