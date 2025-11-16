@@ -37,9 +37,21 @@ class InstitutionalMaterialCreateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs: dict[str, object]) -> dict[str, object]:
-        visibility = attrs.get("visibility")
-        category = attrs.get("category")
-        allowed_external_users = attrs.get("allowed_external_users") or []
+        instance = getattr(self, "instance", None)
+
+        visibility = attrs.get("visibility", getattr(instance, "visibility", None))
+        category = attrs.get("category", getattr(instance, "category", None))
+
+        allowed_external_users = attrs.get("allowed_external_users", None)
+        if allowed_external_users is None:
+            if instance is not None:
+                try:
+                    allowed_external_users = list(instance.allowed_external_users.all())
+                except Exception:
+                    allowed_external_users = []
+            else:
+                allowed_external_users = []
+
         has_specific_permissions = bool(allowed_external_users)
 
         public_set = {c for c, _ in InstitutionalMaterial.PublicCategory.choices}

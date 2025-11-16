@@ -147,23 +147,18 @@ class InstitutionalMaterialViewSet(PaginationMixin, viewsets.ModelViewSet):
             404: "Material not found",
         },
     )
-    def update(self, request: Request, pk: int | None = None) -> Response:
+    def update(self, request: Request, *args, **kwargs) -> Response:
         if request.user.role != UserAccount.Role.PROPHY_MANAGER:
             return Response(
                 {"detail": "You do not have permission to update materials."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        try:
-            material = InstitutionalMaterial.objects.get(pk=pk)
-        except InstitutionalMaterial.DoesNotExist:
-            return Response(
-                {"detail": "Material não encontrado."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
 
         serializer = InstitutionalMaterialCreateSerializer(
-            material, data=request.data, partial=True
+            instance, data=request.data, partial=partial
         )
         if serializer.is_valid():
             serializer.save()
