@@ -8,6 +8,7 @@ import { Button, ErrorDisplay, Modal, Pagination, Spinner, Table } from "@/compo
 import { Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
+import ConfirmDelete from "@/components/common/ConfirmDelete";
 import {
     INTERNAL_CATEGORY_OPTIONS,
     PUBLIC_CATEGORY_OPTIONS,
@@ -17,19 +18,25 @@ import {
 } from "@/constants/materials";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
 import Role from "@/enums/Role";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
+    useGetByIdQuery,
+    useLazyGetByCPFQuery,
+    useRetrieveUserQuery,
+} from "@/redux/features/authApiSlice";
+import {
+    useDeleteMaterialMutation,
     useLazyDownloadMaterialFileQuery,
     useListMaterialsQuery,
-    useDeleteMaterialMutation,
+    useSetMaterialPermissionsMutation,
 } from "@/redux/features/materialApiSlice";
+import { handleApiError } from "@/redux/services/errorHandling";
 import type { MaterialCategoryCode, MaterialDTO, MaterialVisibility } from "@/types/material";
+import { UserDTO } from "@/types/user";
 import { restoreTextFilterStates } from "@/utils/filter-restoration";
 import { buildStandardUrlParams } from "@/utils/url-params";
+import { toast } from "react-toastify";
 import MaterialForm from "./MaterialForm";
 import MaterialUpdateForm from "./MaterialUpdateForm";
-import ConfirmDelete from "@/components/common/ConfirmDelete";
-import { toast } from "react-toastify";
 
 type MaterialFilters = {
     visibility: "" | MaterialVisibility;
@@ -69,7 +76,6 @@ const MaterialsSearchPage = () => {
     const canUpload = isProphyManager || isInternalMP || isExternalMP;
     const isInternal = isProphyManager || isInternalMP;
 
-    // State
     const [currentPage, setCurrentPage] = useState(1);
     const [appliedFilters, setAppliedFilters] = useState<MaterialFilters>({
         visibility: "",
@@ -77,7 +83,6 @@ const MaterialsSearchPage = () => {
         search: "",
     });
 
-    // UI filter state
     const initialVisibilityOption =
         isClientGeneralManager || isUnitManager ? VISIBILITY_OPTIONS[1] : VISIBILITY_OPTIONS[0];
     const [selectedVisibility, setSelectedVisibility] = useState<{
@@ -107,7 +112,6 @@ const MaterialsSearchPage = () => {
         return getCategoryOptionsForVisibility(selectedVisibility.code);
     }, [selectedVisibility]);
 
-    // Build query args for API
     const queryArgs = useMemo(() => {
         const args: any = { page: currentPage };
         if (appliedFilters.visibility) args.visibility = appliedFilters.visibility;
@@ -242,11 +246,38 @@ const MaterialsSearchPage = () => {
     const [isUpdateOpen, setIsUpdateOpen] = useState(false);
     const [materialToEdit, setMaterialToEdit] = useState<MaterialDTO | null>(null);
 
+    const [isPermissionsOpen, setIsPermissionsOpen] = useState(false);
+    const [materialForPermissions, setMaterialForPermissions] = useState<MaterialDTO | null>(null);
+    const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+    const [cpfSearch, setCpfSearch] = useState("");
+
+    const [setMaterialPermissions, { isLoading: isSavingPermissions }] =
+        useSetMaterialPermissionsMutation();
+    const [triggerSearchByCPF, { data: cpfResults, isFetching: isSearching }] =
+        useLazyGetByCPFQuery();
+
+    // Small helper to render a selected user with remove action
+    const UserBadge = ({ id, onRemove }: { id: number; onRemove: (id: number) => void }) => {
+        const { data } = useGetByIdQuery(id);
+        return (
+            <div className="flex items-center gap-2 border rounded px-2 py-1">
+                <span className="text-sm">{data?.name ?? `Usuário #${id}`}</span>
+                <Button variant="secondary" onClick={() => onRemove(id)} className="text-xs">
+                    Remover
+                </Button>
+            </div>
+        );
+    };
+
     const handleConfirmDelete = async (m: MaterialDTO) => {
-        await deleteMaterial(m.id).unwrap();
-        toast.success("Material excluído com sucesso.");
-        setIsDeleteOpen(false);
-        setMaterialToDelete(null);
+        try {
+            await deleteMaterial(m.id).unwrap();
+            toast.success("Material excluído com sucesso.");
+            setIsDeleteOpen(false);
+            setMaterialToDelete(null);
+        } catch (e: unknown) {
+            handleApiError(e, "Falha ao excluir material");
+        }
     };
 
     const handleCancelDelete = () => {
@@ -266,9 +297,44 @@ const MaterialsSearchPage = () => {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-        } catch (err) {
-            // Silent fail with small user feedback
-            alert("Não foi possível baixar o arquivo. Tente novamente mais tarde.");
+        } catch (e: unknown) {
+            handleApiError(e, "Falha ao baixar arquivo");
+        }
+    };
+
+    // Permissions helpers
+    const openPermissions = (row: MaterialDTO) => {
+        setMaterialForPermissions(row);
+        setSelectedUserIds(row.allowed_external_users || []);
+        setCpfSearch("");
+        setIsPermissionsOpen(true);
+    };
+
+    const addUserId = (id: number) => {
+        setSelectedUserIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    };
+
+    const removeUserId = (id: number) => {
+        setSelectedUserIds((prev) => prev.filter((x) => x !== id));
+    };
+
+    const handleSearchCPF = () => {
+        const v = cpfSearch.trim();
+        if (v) triggerSearchByCPF(v);
+    };
+
+    const handleSavePermissions = async () => {
+        if (!materialForPermissions) return;
+        try {
+            await setMaterialPermissions({
+                id: materialForPermissions.id,
+                allowed_external_user_ids: selectedUserIds,
+            }).unwrap();
+            toast.success("Permissões atualizadas.");
+            setIsPermissionsOpen(false);
+            setMaterialForPermissions(null);
+        } catch (e: unknown) {
+            handleApiError(e, "Falha ao salvar permissões");
         }
     };
 
@@ -453,6 +519,18 @@ const MaterialsSearchPage = () => {
                                                             >
                                                                 Editar
                                                             </Button>
+                                                            {row.visibility === "INT" && (
+                                                                <Button
+                                                                    variant="secondary"
+                                                                    onClick={() =>
+                                                                        openPermissions(row)
+                                                                    }
+                                                                    className="w-full text-xs"
+                                                                    data-testid="btn-open-permissions-modal"
+                                                                >
+                                                                    Permissões
+                                                                </Button>
+                                                            )}
                                                             <Button
                                                                 variant="danger"
                                                                 onClick={() => {
@@ -560,6 +638,143 @@ const MaterialsSearchPage = () => {
                                 setMaterialToEdit(null);
                             }}
                         />
+                    )}
+                </Modal>
+            )}
+
+            {/* Permissions Modal */}
+            {isProphyManager && (
+                <Modal
+                    isOpen={isPermissionsOpen}
+                    onClose={() => setIsPermissionsOpen(false)}
+                    className="max-w-3xl mx-6 p-8"
+                >
+                    {materialForPermissions && (
+                        <div className="flex flex-col gap-4">
+                            <Typography element="h3" size="title3" className="font-bold">
+                                Gerenciar permissões: {materialForPermissions.title}
+                            </Typography>
+
+                            <div>
+                                <Typography
+                                    element="p"
+                                    size="sm"
+                                    className="text-gray-secondary mb-2"
+                                >
+                                    Usuários externos com acesso
+                                </Typography>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedUserIds.length === 0 && (
+                                        <Typography
+                                            element="p"
+                                            size="sm"
+                                            className="text-gray-secondary"
+                                        >
+                                            Nenhum usuário selecionado
+                                        </Typography>
+                                    )}
+                                    {selectedUserIds.map((id) => (
+                                        <UserBadge key={id} id={id} onRemove={removeUserId} />
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="border-t pt-4 mt-2">
+                                <Typography
+                                    element="p"
+                                    size="sm"
+                                    className="text-gray-secondary mb-2"
+                                >
+                                    Adicionar por CPF
+                                </Typography>
+                                <div className="flex gap-2 items-end">
+                                    <Input
+                                        label="CPF"
+                                        value={cpfSearch}
+                                        onChange={(e) => setCpfSearch(e.target.value)}
+                                    />
+                                    <Button
+                                        onClick={handleSearchCPF}
+                                        disabled={!cpfSearch.trim() || isSearching}
+                                    >
+                                        {isSearching ? "Buscando..." : "Buscar"}
+                                    </Button>
+                                </div>
+
+                                <div className="mt-3">
+                                    {(cpfResults?.results?.length ?? 0) > 0 ? (
+                                        <div className="flex flex-col gap-2">
+                                            {(cpfResults?.results ?? [])
+                                                .filter((u: UserDTO) => u.role === Role.FME)
+                                                .map((u: UserDTO) => (
+                                                    <div
+                                                        key={u.id}
+                                                        className="flex justify-between items-center border rounded px-3 py-2"
+                                                        data-testid={`permissions-user-item-${u.id}`}
+                                                    >
+                                                        <div>
+                                                            <div className="text-sm font-medium">
+                                                                {u.name}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500">
+                                                                {u.email}
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            variant="secondary"
+                                                            onClick={() => addUserId(u.id)}
+                                                            disabled={selectedUserIds.includes(
+                                                                u.id
+                                                            )}
+                                                            className="text-xs"
+                                                        >
+                                                            {selectedUserIds.includes(u.id)
+                                                                ? "Adicionado"
+                                                                : "Adicionar"}
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            {(cpfResults?.results ?? []).filter(
+                                                (u: UserDTO) => u.role === Role.FME
+                                            ).length === 0 && (
+                                                <Typography
+                                                    element="p"
+                                                    size="sm"
+                                                    className="text-gray-secondary"
+                                                >
+                                                    Nenhum Físico Médico Externo encontrado para
+                                                    este CPF.
+                                                </Typography>
+                                            )}
+                                        </div>
+                                    ) : cpfResults ? (
+                                        <Typography
+                                            element="p"
+                                            size="sm"
+                                            className="text-gray-secondary"
+                                        >
+                                            Nenhum usuário encontrado.
+                                        </Typography>
+                                    ) : null}
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 justify-end mt-4">
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setIsPermissionsOpen(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    onClick={handleSavePermissions}
+                                    disabled={isSavingPermissions}
+                                    data-testid="btn-save-permissions"
+                                >
+                                    {isSavingPermissions ? "Salvando..." : "Salvar"}
+                                </Button>
+                            </div>
+                        </div>
                     )}
                 </Modal>
             )}

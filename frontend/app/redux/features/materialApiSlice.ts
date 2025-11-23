@@ -4,6 +4,7 @@ import type {
     ListMaterialsArgs,
     MaterialDTO,
     UpdateMaterialArgs,
+    SetPermissionsArgs,
 } from "@/types/material";
 import { toFormData, camelToSnake } from "@/utils/formData";
 
@@ -76,6 +77,17 @@ const materialApiSlice = apiSlice.injectEndpoints({
                 { type: "Material", id },
             ],
         }),
+        setMaterialPermissions: builder.mutation<void, SetPermissionsArgs>({
+            query: ({ id, allowed_external_user_ids }) => ({
+                url: `materials/${id}/set_permissions/`,
+                method: "POST",
+                body: { allowed_external_user_ids },
+            }),
+            invalidatesTags: (_result, _error, { id }) => [
+                { type: "Material", id },
+                { type: "Material", id: "LIST" },
+            ],
+        }),
         updateMaterial: builder.mutation<MaterialDTO, UpdateMaterialArgs>({
             query: ({ id, title, description, file }) => {
                 const formData = toFormData(
@@ -110,6 +122,7 @@ export const {
     useDeleteMaterialMutation,
     useUpdateMaterialMutation,
     useLazyDownloadMaterialFileQuery,
+    useSetMaterialPermissionsMutation,
 } = materialApiSlice;
 
 export default materialApiSlice;

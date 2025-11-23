@@ -46,6 +46,11 @@ export type CreateMaterialArgs = {
     allowed_external_user_ids?: number[];
 };
 
+export type SetPermissionsArgs = {
+    id: number;
+    allowed_external_user_ids: number[];
+};
+
 export type UpdateMaterialArgs = {
     id: number;
     title?: string;
