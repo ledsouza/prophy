@@ -111,9 +111,8 @@ const MaterialUpdateForm = ({
                             {...register("description")}
                             errorMessage={errors.description?.message}
                             data-testid="material-update-description-input"
-                        >
-                            Descrição
-                        </Textarea>
+                            label="Descrição"
+                        />
                     </div>
 
                     <div className="md:col-span-2">

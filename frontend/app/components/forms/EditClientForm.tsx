@@ -162,7 +162,7 @@ const EditClientForm = ({
                     errorMessage={errors.note?.message}
                     placeholder="Justifique o motivo da rejeição"
                     data-testid="rejection-note-input"
-                ></Textarea>
+                />
             );
         }
 

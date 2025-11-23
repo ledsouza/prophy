@@ -137,7 +137,7 @@ const ReviewDeleteEquipmentForm = ({
                             errorMessage={errors.note?.message}
                             placeholder="Justifique o motivo da rejeição"
                             data-testid="rejection-note-input"
-                        ></Textarea>
+                        />
 
                         <div className="flex flex-row gap-2">
                             <Button

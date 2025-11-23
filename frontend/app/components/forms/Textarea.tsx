@@ -1,17 +1,35 @@
 import {
     Textarea as HeadlessTextarea,
     TextareaProps as HeadlessTextareaProps,
+    Field,
+    Label,
 } from "@headlessui/react";
 import clsx from "clsx";
-import { forwardRef, ReactNode } from "react";
+import { forwardRef } from "react";
+import { Typography } from "@/components/foundation";
 
-type TextareaProps = Omit<HeadlessTextareaProps, "children"> & {
+export type TextareaProps = Omit<HeadlessTextareaProps, "children"> & {
     errorMessage?: string;
-    children?: ReactNode;
+    dataTestId?: string;
+    label?: string;
+    labelStyles?: string;
+    labelSize?: "sm" | "md" | "lg";
+    children?: never;
 };
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-    ({ errorMessage, children, disabled, ...props }: TextareaProps, ref) => {
+    (
+        {
+            errorMessage,
+            disabled,
+            dataTestId,
+            label,
+            labelStyles = "",
+            labelSize = "sm",
+            ...props
+        }: TextareaProps,
+        ref
+    ) => {
         const inputClassName = clsx(
             "block w-full rounded-md border-0",
             "text-gray-primary shadow-md",
@@ -25,15 +43,12 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         );
 
         return (
-            <div>
-                {children && (
-                    <div className="flex justify-between align-center">
-                        <label className="block text-sm font-medium leading-6 text-gray-primary">
-                            {children}
-                        </label>
-                    </div>
+            <Field disabled={disabled} data-testid={dataTestId}>
+                {label && (
+                    <Typography element="p" size={labelSize}>
+                        <Label className={labelStyles}>{label}</Label>
+                    </Typography>
                 )}
-
                 <div className="mt-2">
                     <HeadlessTextarea
                         ref={ref}
@@ -48,7 +63,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                         {errorMessage}
                     </div>
                 )}
-            </div>
+            </Field>
         );
     }
 );

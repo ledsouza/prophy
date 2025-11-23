@@ -188,9 +188,8 @@ const MaterialForm = ({
                             {...register("description")}
                             errorMessage={errors.description?.message}
                             data-testid="material-description-input"
-                        >
-                            Descrição
-                        </Textarea>
+                            label="Descrição"
+                        />
                     </div>
 
                     <Select

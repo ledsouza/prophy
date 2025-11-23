@@ -84,9 +84,8 @@ const AppointmentJustificationForm = ({
                     placeholder="Descreva o motivo"
                     data-testid="appointment-justify-input"
                     rows={4}
-                >
-                    Justificativa
-                </Textarea>
+                    label="Justificativa"
+                />
 
                 <FormButtons
                     isSubmitting={isSubmitting}

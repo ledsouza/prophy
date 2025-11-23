@@ -146,9 +146,8 @@ const ServiceOrderForm = ({
                     disabled={disabled}
                     placeholder="Descrição detalhada"
                     errorMessage={errors.description?.message}
-                >
-                    Descrição
-                </Textarea>
+                    label="Descrição"
+                />
 
                 <Textarea
                     {...register("conclusion")}
@@ -156,9 +155,8 @@ const ServiceOrderForm = ({
                     disabled={disabled}
                     placeholder="Conclusão do serviço"
                     errorMessage={errors.conclusion?.message}
-                >
-                    Conclusão
-                </Textarea>
+                    label="Conclusão"
+                />
 
                 {shouldShowUpdates && (
                     <Textarea
@@ -167,9 +165,8 @@ const ServiceOrderForm = ({
                         disabled={!canEditUpdates}
                         placeholder="Atualizações"
                         errorMessage={errors.updates?.message as string | undefined}
-                    >
-                        Atualizações
-                    </Textarea>
+                        label="Atualizações"
+                    />
                 )}
 
                 <div>

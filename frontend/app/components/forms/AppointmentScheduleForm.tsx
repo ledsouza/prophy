@@ -291,9 +291,8 @@ const AppointmentScheduleForm = ({
                         placeholder="Descreva o motivo do reagendamento"
                         data-testid="appointment-justification-input"
                         rows={4}
-                    >
-                        Justificativa
-                    </Textarea>
+                        label="Justificativa"
+                    />
                 )}
 
                 <FormButtons

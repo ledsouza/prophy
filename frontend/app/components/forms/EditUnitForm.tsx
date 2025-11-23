@@ -138,7 +138,7 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                     errorMessage={errors.note?.message}
                     placeholder="Justifique o motivo da rejeição"
                     data-testid="rejection-note-input"
-                ></Textarea>
+                />
             );
         }
 
