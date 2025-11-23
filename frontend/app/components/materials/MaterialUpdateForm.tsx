@@ -90,6 +90,11 @@ const MaterialUpdateForm = ({
                     Editar material
                 </Typography>
 
+                <Typography variant="secondary" className="mt-1">
+                    Você pode escolher o campo que deseja atualizar e manter os outros como estão se
+                    não quiser alterar nada.
+                </Typography>
+
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="md:col-span-2">
                         <Input
