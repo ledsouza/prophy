@@ -21,7 +21,7 @@ from django.contrib.auth.models import Group, Permission
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.utils import timezone
 from faker import Faker
 from localflavor.br.br_states import STATE_CHOICES
@@ -260,7 +260,7 @@ class Command(BaseCommand):
 
             group.permissions.set(permissions_to_assign)
 
-    def populate_users(self, num_users=10):
+    def populate_users(self, num_users=10, num_external_physicists=10):
         """Populates the User model with example data."""
 
         def _create_user_fixture_data(user_account):
@@ -333,6 +333,25 @@ class Command(BaseCommand):
             role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
             id=1005,
         )
+
+        # Create additional external medical physicists for testing
+        extra_external_count = num_external_physicists
+        if extra_external_count and extra_external_count > 0:
+            created = 0
+            while created < extra_external_count:
+                try:
+                    UserAccount.objects.create_user(
+                        cpf=fake_cpf(),
+                        email=fake.email(),
+                        phone=fake_phone_number(),
+                        password=PASSWORD,
+                        name=fake.name(),
+                        role=UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+                    )
+                    created += 1
+                except IntegrityError:
+                    # Collision on unique fields; retry
+                    continue
 
         users = {
             "admin_user": _create_user_fixture_data(admin_user),
