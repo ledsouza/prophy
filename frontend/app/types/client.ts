@@ -5,9 +5,8 @@
  Keeps immutable/server-managed fields (id, users, status) out of
  writes and allows different create vs update shapes.
 */
-import type { UserDTO } from "@/types/user";
 import type { ListQueryParams, Operation } from "@/redux/services/apiSlice";
-import { OperationStatus, OperationType } from "@/enums";
+import type { UserDTO } from "@/types/user";
 
 /**
  * Client entity as returned by the backend API.
@@ -23,6 +22,12 @@ export type ClientDTO = {
     city: string;
     is_active: boolean;
     users: Pick<UserDTO, "name" | "role" | "email" | "phone">[];
+    /**
+     * Indicates if the client has a latest accepted annual proposal
+     * without any appointment scheduled after the proposal date.
+     * Present on list endpoints that explicitly compute this field.
+     */
+    needs_appointment?: boolean;
 };
 
 /**

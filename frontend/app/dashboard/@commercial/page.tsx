@@ -8,6 +8,7 @@ import {
     PencilSimpleIcon,
     XCircleIcon,
 } from "@phosphor-icons/react";
+import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -510,6 +511,18 @@ function SearchPage() {
                                                         header: "Ações",
                                                         cell: (client: ClientDTO) => (
                                                             <div className="flex flex-col gap-2">
+                                                                {client.needs_appointment && (
+                                                                    <span
+                                                                        className={clsx(
+                                                                            "inline-flex w-full justify-center px-2.5 py-0.5",
+                                                                            "rounded-full text-xs font-medium text-center",
+                                                                            "bg-red-100 text-red-800 mb-1"
+                                                                        )}
+                                                                    >
+                                                                        Agendamento pendente
+                                                                    </span>
+                                                                )}
+
                                                                 <Button
                                                                     variant="primary"
                                                                     onClick={() =>
@@ -578,6 +591,11 @@ function SearchPage() {
                                                     },
                                                 ]}
                                                 keyExtractor={(client: ClientDTO) => client.id}
+                                                rowClassName={(client: ClientDTO) =>
+                                                    client.needs_appointment
+                                                        ? "bg-red-50 animate-danger"
+                                                        : undefined
+                                                }
                                             />
                                         )}
 
