@@ -15,9 +15,10 @@ type TableProps<T> = {
     data: T[];
     columns: ColumnDefinition<T>[];
     keyExtractor: (row: T) => string | number;
+    rowClassName?: (row: T) => string | undefined;
 };
 
-const Table = <T extends {}>({ data, columns, keyExtractor }: TableProps<T>) => {
+const Table = <T extends {}>({ data, columns, keyExtractor, rowClassName }: TableProps<T>) => {
     const hasCustomWidths = columns.some((column) => column.width);
     const [scrollState, setScrollState] = useState({
         isScrollable: false,
@@ -111,7 +112,13 @@ const Table = <T extends {}>({ data, columns, keyExtractor }: TableProps<T>) => 
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {data.map((row) => (
-                            <tr key={keyExtractor(row)} className="hover:bg-gray-50">
+                            <tr
+                                key={keyExtractor(row)}
+                                className={clsx(
+                                    "hover:bg-gray-50",
+                                    rowClassName && rowClassName(row)
+                                )}
+                            >
                                 {columns.map((column) => (
                                     <td
                                         key={column.header}
