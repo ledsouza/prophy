@@ -5,7 +5,16 @@ from io import StringIO
 
 from core.pagination import PaginationMixin
 from django.core.management import call_command
-from django.db.models import Exists, OuterRef, Q, Subquery
+from django.db.models import (
+    BooleanField,
+    Case,
+    Exists,
+    OuterRef,
+    Q,
+    Subquery,
+    Value,
+    When,
+)
 from django.http import HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -16,9 +25,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from users.authentication import GoogleOIDCAuthentication
 from users.models import UserAccount
+
 from clients_management.models import (
     Accessory,
     Appointment,
@@ -33,6 +42,7 @@ from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.serializers import (
     AccessorySerializer,
     AppointmentSerializer,
+    ClientListSerializer,
     ClientSerializer,
     CNPJSerializer,
     EquipmentSerializer,
@@ -469,22 +479,35 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
     lookup_value_regex = r"\d+"
 
     @swagger_auto_schema(
-        operation_summary="List active and accepted clients",
+        operation_summary="List clients with contract and appointment indicators",
         operation_description="""
-        Retrieve a paginated list of active and accepted clients.
+        Retrieve a paginated list of clients with optional filtering.
+
+        This endpoint also returns a derived field `needs_appointment` for each client:
+
+        - `true` when the client has a latest **accepted annual** proposal and
+          there is **no** appointment scheduled for any of its units **after**
+          the proposal date.
+        - `false` otherwise.
+
+        Example:
 
         ```json
         {
-            "count": 123,  // Total number of clients
-            "next": "http://api.example.com/clients/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
-            "results": [
-                {
-                    "id": 1,
-                    // ... other client fields
-                },
-                // ... more clients on this page
-            ]
+          "count": 123,
+          "next": "http://api.example.com/clients/?page=2",
+          "previous": null,
+          "results": [
+            {
+              "id": 1,
+              "cnpj": "12345678000190",
+              "name": "Hospital X",
+              "city": "São Paulo",
+              "is_active": true,
+              "needs_appointment": true
+              // ... other client fields
+            }
+          ]
         }
         ```
         """,
@@ -534,8 +557,8 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         ],
         responses={
             200: openapi.Response(
-                description="Paginated list of active and accepted clients",
-                schema=ClientSerializer(many=True),
+                description="Paginated list of clients with contract and appointment indicators",
+                schema=ClientListSerializer(many=True),
             ),
             401: "Unauthorized access",
             403: "Permission denied",
@@ -544,8 +567,13 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
     def list(self, request):
         queryset = self._get_base_queryset(request.user)
         queryset = self._apply_filters(queryset, request.query_params)
-        queryset = queryset.order_by("id")
-        return self._paginate_response(queryset, request, ClientSerializer)
+        queryset = self._annotate_appointment_requirements(queryset)
+        queryset = queryset.order_by(
+            "-needs_appointment",
+            "latest_annual_accepted_proposal_date",
+            "id",
+        )
+        return self._paginate_response(queryset, request, ClientListSerializer)
 
     def _get_base_queryset(self, user):
         """
@@ -609,6 +637,45 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         if is_active is not None:
             is_active_bool = is_active.lower() == "true"
             queryset = queryset.filter(is_active=is_active_bool)
+
+        return queryset
+
+    def _annotate_appointment_requirements(self, queryset):
+        """
+        Annotate queryset with the 'needs_appointment' boolean field.
+        """
+        latest_annual_proposals = Proposal.objects.filter(
+            cnpj=OuterRef("cnpj"),
+            status=Proposal.Status.ACCEPTED,
+            contract_type=Proposal.ContractType.ANNUAL,
+        ).order_by("-date")
+
+        queryset = queryset.annotate(
+            latest_annual_accepted_proposal_date=Subquery(
+                latest_annual_proposals.values("date")[:1]
+            )
+        )
+
+        appointments_after = Appointment.objects.filter(
+            unit__client__cnpj=OuterRef("cnpj"),
+            date__date__gt=OuterRef("latest_annual_accepted_proposal_date"),
+        )
+
+        queryset = queryset.annotate(
+            has_appointment_after_latest_annual_proposal=Exists(appointments_after)
+        )
+
+        queryset = queryset.annotate(
+            needs_appointment=Case(
+                When(
+                    latest_annual_accepted_proposal_date__isnull=False,
+                    has_appointment_after_latest_annual_proposal=False,
+                    then=Value(True),
+                ),
+                default=Value(False),
+                output_field=BooleanField(),
+            )
+        )
 
         return queryset
 

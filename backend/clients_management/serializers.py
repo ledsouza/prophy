@@ -1,6 +1,7 @@
-from rest_framework import serializers
 from typing import Any
+
 from django.db import transaction
+from rest_framework import serializers
 from users.models import UserAccount
 
 from clients_management.models import (
@@ -37,7 +38,18 @@ class ClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = "__all__"
+        fields = [
+            "id",
+            "cnpj",
+            "name",
+            "email",
+            "phone",
+            "address",
+            "state",
+            "city",
+            "is_active",
+            "users",
+        ]
 
     def to_representation(self, instance: Client):
         representation = super().to_representation(instance)
@@ -51,6 +63,13 @@ class ClientSerializer(serializers.ModelSerializer):
             for user in representation["users"]
         ]
         return representation
+
+
+class ClientListSerializer(ClientSerializer):
+    needs_appointment = serializers.BooleanField(read_only=True)
+
+    class Meta(ClientSerializer.Meta):
+        fields = ClientSerializer.Meta.fields + ["needs_appointment"]
 
 
 class UnitSerializer(serializers.ModelSerializer):
