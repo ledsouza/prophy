@@ -102,7 +102,10 @@ const proposalApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: data,
             }),
-            invalidatesTags: [{ type: "Proposal", id: "LIST" }],
+            invalidatesTags: [
+                { type: "Proposal", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
         }),
         updateProposal: builder.mutation<ProposalDTO, { id: number; data: UpdateProposalPayload }>({
             query: ({ id, data }) => ({
@@ -113,6 +116,7 @@ const proposalApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: (result, error, { id }) => [
                 { type: "Proposal", id },
                 { type: "Proposal", id: "LIST" },
+                { type: "Client", id: "LIST" },
             ],
         }),
     }),

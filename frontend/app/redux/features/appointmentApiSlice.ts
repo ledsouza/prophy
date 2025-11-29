@@ -24,7 +24,10 @@ const appointmentApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: data,
             }),
-            invalidatesTags: [{ type: "Appointment", id: "LIST" }],
+            invalidatesTags: [
+                { type: "Appointment", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
         }),
         updateAppointment: builder.mutation<
             AppointmentDTO,
@@ -35,14 +38,20 @@ const appointmentApiSlice = apiSlice.injectEndpoints({
                 method: "PATCH",
                 body: data,
             }),
-            invalidatesTags: [{ type: "Appointment", id: "LIST" }],
+            invalidatesTags: [
+                { type: "Appointment", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
         }),
         deleteAppointment: builder.mutation<{ success: boolean; id: number }, number>({
             query: (id) => ({
                 url: `appointments/${id}/`,
                 method: "DELETE",
             }),
-            invalidatesTags: [{ type: "Appointment", id: "LIST" }],
+            invalidatesTags: [
+                { type: "Appointment", id: "LIST" },
+                { type: "Client", id: "LIST" },
+            ],
         }),
     }),
 });
