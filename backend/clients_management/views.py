@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from io import StringIO
 
 from core.pagination import PaginationMixin
+from dateutil.relativedelta import relativedelta
 from django.core.management import call_command
 from django.db.models import (
     BooleanField,
@@ -14,6 +15,7 @@ from django.db.models import (
     Subquery,
     Value,
     When,
+    F,
 )
 from django.http import HttpResponse
 from drf_yasg import openapi
@@ -39,6 +41,9 @@ from clients_management.models import (
     ServiceOrder,
 )
 from clients_management.pdf.service_order_pdf import build_service_order_pdf
+from clients_management.query_utils import (
+    annotate_latest_annual_accepted_proposal_date,
+)
 from clients_management.serializers import (
     AccessorySerializer,
     AppointmentSerializer,
@@ -192,6 +197,16 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
                 type=openapi.TYPE_STRING,
                 description="Filter by proposal status. Options: A (Accepted), R (Rejected), P (Pending)",
             ),
+            openapi.Parameter(
+                name="expiring_annual",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_BOOLEAN,
+                description=(
+                    "When true, returns only the latest ACCEPTED annual proposal per CNPJ "
+                    "whose proposal date is at least 11 months old. "
+                    "Useful to identify contracts close to renewal."
+                ),
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -287,6 +302,20 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
         status = query_params.get("status")
         if status is not None:
             queryset = queryset.filter(status=status)
+
+        expiring_annual = query_params.get("expiring_annual")
+        if expiring_annual is not None and expiring_annual.lower() == "true":
+            # Annotate with latest accepted annual proposal date per CNPJ
+            queryset = annotate_latest_annual_accepted_proposal_date(queryset)
+
+            cutoff_date = date.today() - relativedelta(months=11)
+
+            queryset = queryset.filter(
+                contract_type=Proposal.ContractType.ANNUAL,
+                status=Proposal.Status.ACCEPTED,
+                date=F("latest_annual_accepted_proposal_date"),
+                latest_annual_accepted_proposal_date__lte=cutoff_date,
+            ).order_by("date", "cnpj")
 
         return queryset
 
@@ -644,17 +673,7 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         """
         Annotate queryset with the 'needs_appointment' boolean field.
         """
-        latest_annual_proposals = Proposal.objects.filter(
-            cnpj=OuterRef("cnpj"),
-            status=Proposal.Status.ACCEPTED,
-            contract_type=Proposal.ContractType.ANNUAL,
-        ).order_by("-date")
-
-        queryset = queryset.annotate(
-            latest_annual_accepted_proposal_date=Subquery(
-                latest_annual_proposals.values("date")[:1]
-            )
-        )
+        queryset = annotate_latest_annual_accepted_proposal_date(queryset)
 
         appointments_after = Appointment.objects.filter(
             unit__client__cnpj=OuterRef("cnpj"),
