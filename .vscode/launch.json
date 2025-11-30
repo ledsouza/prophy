@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Django: backend",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/manage.py",
+            "args": ["runserver", "0.0.0.0:8000"],
+            "django": true,
+            "cwd": "${workspaceFolder}/backend",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Next.js: frontend",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
+            "skipFiles": ["<node_internals>/**/*.js"],
+            "cwd": "${workspaceFolder}/frontend",
+            "sourceMaps": true,
+            "outputCapture": "console"
+        },
+        {
+            "name": "Next.js: client (Chrome)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/frontend",
+            "sourceMaps": true,
+            "skipFiles": ["<node_internals>/**/*.js"]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Launch Backend & Frontend",
+            "configurations": ["Django: backend", "Next.js: frontend", "Next.js: client (Chrome)"]
+        }
+    ]
+}
