@@ -401,18 +401,48 @@ class Proposal(models.Model):
         )
         WEEKLY = "W", "Semanal"
 
-    cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
-    state = models.CharField(
-        "Estado da instituição", max_length=2, choices=STATE_CHOICES
+    cnpj = models.CharField(
+        "CNPJ",
+        max_length=14,
+        validators=[CNPJValidator()],
     )
-    city = models.CharField("Cidade da instituição", max_length=50)
-    contact_name = models.CharField("Nome do contato", max_length=50)
-    contact_phone = models.CharField("Telefone do contato", max_length=13)
+    state = models.CharField(
+        "Estado da instituição",
+        max_length=2,
+        choices=STATE_CHOICES,
+    )
+    city = models.CharField(
+        "Cidade da instituição",
+        max_length=50,
+    )
+    contact_name = models.CharField(
+        "Nome do contato",
+        max_length=50,
+    )
+    contact_phone = models.CharField(
+        "Telefone do contato",
+        max_length=13,
+    )
     email = models.EmailField("E-mail do contato")
-    date = models.DateField("Data da proposta", default=date.today)
-    value = models.DecimalField("Valor proposto", max_digits=10, decimal_places=2)
+    date = models.DateField(
+        "Data da proposta",
+        default=date.today,
+    )
+    value = models.DecimalField(
+        "Valor proposto",
+        max_digits=10,
+        decimal_places=2,
+    )
     contract_type = models.CharField(
-        "Tipo de contrato", max_length=1, choices=ContractType.choices
+        "Tipo de contrato",
+        max_length=1,
+        choices=ContractType.choices,
+    )
+    pdf_version = models.FileField(
+        upload_to="proposals/pdfs/",
+    )
+    word_version = models.FileField(
+        upload_to="proposals/words/",
     )
     status = models.CharField(
         max_length=1,
