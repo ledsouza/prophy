@@ -95,6 +95,7 @@ function SearchPage() {
         contact_name: "",
         contract_type: "",
         status: "",
+        expiring_annual: "",
     });
 
     const [selectedProposalCNPJ, setSelectedProposalCNPJ] = useState("");
@@ -107,6 +108,7 @@ function SearchPage() {
         id: 0,
         value: "Todos",
     });
+    const [selectedProposalExpiringAnnual, setSelectedProposalExpiringAnnual] = useState(false);
 
     const {
         clientsData,
@@ -150,6 +152,7 @@ function SearchPage() {
                 contact_name: selectedProposalContactName,
                 contract_type: getContractTypeFromOptionId(selectedProposalContractType.id),
                 status: getProposalStatusFromOptionId(selectedProposalStatus.id),
+                expiring_annual: selectedProposalExpiringAnnual ? "true" : "",
             }),
         },
     });
@@ -211,6 +214,7 @@ function SearchPage() {
             contact_name: selectedProposalContactName,
             contract_type: getContractTypeFromOptionId(selectedProposalContractType.id),
             status: getProposalStatusFromOptionId(selectedProposalStatus.id),
+            expiring_annual: selectedProposalExpiringAnnual ? "true" : "",
         }),
         setCurrentPage: setProposalCurrentPage,
     });
@@ -226,6 +230,7 @@ function SearchPage() {
             contact_name: selectedProposalContactName,
             contract_type: getContractTypeFromOptionId(selectedProposalContractType.id),
             status: getProposalStatusFromOptionId(selectedProposalStatus.id),
+            expiring_annual: selectedProposalExpiringAnnual ? "true" : "",
         }),
     });
 
@@ -239,12 +244,14 @@ function SearchPage() {
             setSelectedProposalContactName("");
             setSelectedProposalContractType({ id: 0, value: "Todos" });
             setSelectedProposalStatus({ id: 0, value: "Todos" });
+            setSelectedProposalExpiringAnnual(false);
         },
         emptyFilters: {
             cnpj: "",
             contact_name: "",
             contract_type: "",
             status: "",
+            expiring_annual: "",
         },
     });
 
@@ -329,6 +336,7 @@ function SearchPage() {
                     const proposalContactName = params.get("proposals_contact_name") || "";
                     const proposalContractType = params.get("proposals_contract_type");
                     const proposalStatus = params.get("proposals_status");
+                    const proposalExpiringAnnual = params.get("proposals_expiring_annual") || "";
 
                     restoreTextFilterStates(proposalCNPJ, setSelectedProposalCNPJ);
                     restoreTextFilterStates(proposalContactName, setSelectedProposalContactName);
@@ -348,6 +356,8 @@ function SearchPage() {
                         PROPOSAL_STATUS_OPTIONS,
                         setSelectedProposalStatus
                     );
+
+                    setSelectedProposalExpiringAnnual(proposalExpiringAnnual === "true");
                 },
                 setAppliedFilters: setProposalAppliedFilters,
                 buildAppliedFilters: (params) => ({
@@ -355,6 +365,7 @@ function SearchPage() {
                     contact_name: params.get("proposals_contact_name") || "",
                     contract_type: params.get("proposals_contract_type") || "",
                     status: params.get("proposals_status") || "",
+                    expiring_annual: params.get("proposals_expiring_annual") || "",
                 }),
             },
         },
@@ -676,6 +687,24 @@ function SearchPage() {
                                     label="Situação"
                                     dataTestId="filter-proposal-status"
                                 />
+
+                                <div className="flex items-center gap-2 md:col-span-2 lg:col-span-3">
+                                    <input
+                                        id="expiring-annual-filter"
+                                        type="checkbox"
+                                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                                        checked={selectedProposalExpiringAnnual}
+                                        onChange={(e) =>
+                                            setSelectedProposalExpiringAnnual(e.target.checked)
+                                        }
+                                    />
+                                    <label
+                                        htmlFor="expiring-annual-filter"
+                                        className="text-sm text-gray-primary cursor-pointer"
+                                    >
+                                        Somente propostas anuais próximas da renovação (11+ meses)
+                                    </label>
+                                </div>
                             </div>
 
                             {/* Proposal Action Buttons */}
@@ -711,6 +740,20 @@ function SearchPage() {
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
+
+                                {proposalAppliedFilters.expiring_annual === "true" && (
+                                    <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
+                                        <Typography
+                                            element="p"
+                                            size="sm"
+                                            className="text-yellow-900"
+                                        >
+                                            Exibindo as propostas anuais mais recentes para todos os
+                                            cliente que têm 11 ou mais meses de vigência. As
+                                            propostas listadas requerem ação de renovação imediata.
+                                        </Typography>
+                                    </div>
+                                )}
 
                                 {proposalsError && (
                                     <ErrorDisplay

@@ -20,6 +20,7 @@ type ListProposalsParams = ListQueryParams & {
     contact_name?: string;
     contract_type?: string;
     status?: string;
+    expiring_annual?: string;
 };
 
 export type CreateProposalPayload = {
@@ -39,25 +40,14 @@ export type UpdateProposalPayload = Partial<CreateProposalPayload>;
 const proposalApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         listProposals: builder.query<PaginatedResponse<ProposalDTO>, ListProposalsParams>({
-            query: ({ page = 1, cnpj, contact_name, contract_type, status }) => {
-                const params: Record<string, any> = { page };
-                if (cnpj) {
-                    params.cnpj = cnpj;
-                }
-                if (contact_name) {
-                    params.contact_name = contact_name;
-                }
-                if (contract_type) {
-                    params.contract_type = contract_type;
-                }
-                if (status) {
-                    params.status = status;
-                }
-
+            query: ({ page = 1, ...filters }) => {
                 return {
                     url: "proposals/",
                     method: "GET",
-                    params,
+                    params: {
+                        page,
+                        ...filters,
+                    },
                 };
             },
             providesTags: (result) =>

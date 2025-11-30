@@ -51,6 +51,9 @@ export const useSearchQueries = ({
         if (proposalAppliedFilters.contract_type)
             params.contract_type = proposalAppliedFilters.contract_type;
         if (proposalAppliedFilters.status) params.status = proposalAppliedFilters.status;
+        if (proposalAppliedFilters.expiring_annual === "true") {
+            params.expiring_annual = "true";
+        }
 
         return params;
     }, [proposalCurrentPage, proposalAppliedFilters]);
