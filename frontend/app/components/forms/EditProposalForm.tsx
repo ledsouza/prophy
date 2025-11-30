@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 
 import { ProposalStatus } from "@/enums";
-import { proposalSchema } from "@/schemas";
+import { proposalPdfFileSchema, proposalSchema, proposalWordFileSchema } from "@/schemas";
 
 import type { ProposalDTO } from "@/redux/features/proposalApiSlice";
 import { useUpdateProposalMutation } from "@/redux/features/proposalApiSlice";
@@ -28,6 +28,14 @@ const editProposalSchema = proposalSchema
         status: z.nativeEnum(ProposalStatus, {
             errorMap: () => ({ message: "Status é obrigatório." }),
         }),
+        pdf_version: z.preprocess(
+            (v) => (v instanceof FileList && v.length === 0 ? undefined : v),
+            proposalPdfFileSchema.optional()
+        ),
+        word_version: z.preprocess(
+            (v) => (v instanceof FileList && v.length === 0 ? undefined : v),
+            proposalWordFileSchema.optional()
+        ),
     });
 
 export type EditProposalFields = z.infer<typeof editProposalSchema>;
@@ -147,6 +155,24 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
                     placeholder="Digite o e-mail do contato"
                     label="E-mail"
                     data-testid="proposal-email-input"
+                ></Input>
+
+                <Input
+                    {...register("pdf_version")}
+                    type="file"
+                    accept="application/pdf"
+                    errorMessage={errors.pdf_version?.message}
+                    label="Versão PDF (opcional, substitui o arquivo atual)"
+                    data-testid="proposal-pdf-input"
+                ></Input>
+
+                <Input
+                    {...register("word_version")}
+                    type="file"
+                    accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    errorMessage={errors.word_version?.message}
+                    label="Versão Word (opcional, substitui o arquivo atual)"
+                    data-testid="proposal-word-input"
                 ></Input>
 
                 <Select

@@ -849,6 +849,25 @@ function SearchPage() {
                                                         },
                                                     },
                                                     {
+                                                        header: "Arquivos",
+                                                        cell: (proposal: ProposalDTO) => (
+                                                            <div className="flex flex-col gap-1">
+                                                                <a
+                                                                    href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/pdf/`}
+                                                                    className="text-primary hover:underline text-xs"
+                                                                >
+                                                                    PDF
+                                                                </a>
+                                                                <a
+                                                                    href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/word/`}
+                                                                    className="text-primary hover:underline text-xs"
+                                                                >
+                                                                    Word
+                                                                </a>
+                                                            </div>
+                                                        ),
+                                                    },
+                                                    {
                                                         header: "Ações",
                                                         cell: (proposal: ProposalDTO) => (
                                                             <div className="flex flex-col gap-2">

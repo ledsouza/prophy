@@ -1,5 +1,6 @@
 import { ContractType, ProposalStatus } from "@/enums";
 import { apiSlice, ListQueryParams, PaginatedResponse } from "../services/apiSlice";
+import { toFormData } from "@/utils/formData";
 
 export type ProposalDTO = {
     id: number;
@@ -13,6 +14,8 @@ export type ProposalDTO = {
     value: string; // Decimal as string
     contract_type: ContractType;
     status: ProposalStatus;
+    pdf_version: string | null;
+    word_version: string | null;
 };
 
 type ListProposalsParams = ListQueryParams & {
@@ -23,7 +26,7 @@ type ListProposalsParams = ListQueryParams & {
     expiring_annual?: string;
 };
 
-export type CreateProposalPayload = {
+type ProposalBaseData = {
     cnpj: string;
     state: string;
     city: string;
@@ -35,7 +38,19 @@ export type CreateProposalPayload = {
     contract_type: ContractType;
 };
 
-export type UpdateProposalPayload = Partial<CreateProposalPayload>;
+export type CreateProposalPayload = ProposalBaseData & {
+    pdf_version: FileList;
+    word_version: FileList;
+};
+
+export type UpdateProposalPayload = {
+    contact_name?: string;
+    contact_phone?: string;
+    email?: string;
+    status?: ProposalStatus;
+    pdf_version?: FileList;
+    word_version?: FileList;
+};
 
 const proposalApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -90,7 +105,14 @@ const proposalApiSlice = apiSlice.injectEndpoints({
             query: (data) => ({
                 url: "proposals/",
                 method: "POST",
-                body: data,
+                body: toFormData(
+                    {
+                        ...data,
+                    },
+                    {
+                        fileListMode: "first",
+                    }
+                ),
             }),
             invalidatesTags: [
                 { type: "Proposal", id: "LIST" },
@@ -101,7 +123,14 @@ const proposalApiSlice = apiSlice.injectEndpoints({
             query: ({ id, data }) => ({
                 url: `proposals/${id}/`,
                 method: "PATCH",
-                body: data,
+                body: toFormData(
+                    {
+                        ...data,
+                    },
+                    {
+                        fileListMode: "first",
+                    }
+                ),
             }),
             invalidatesTags: (result, error, { id }) => [
                 { type: "Proposal", id },

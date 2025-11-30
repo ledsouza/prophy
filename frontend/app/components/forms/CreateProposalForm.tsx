@@ -8,16 +8,24 @@ import { z } from "zod";
 import { ContractType } from "@/enums";
 import { useIBGELocalidades } from "@/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
-import { useCreateProposalMutation } from "@/redux/features/proposalApiSlice";
+import {
+    useCreateProposalMutation,
+    type CreateProposalPayload,
+} from "@/redux/features/proposalApiSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { handleApiError } from "@/redux/services/errorHandling";
-import { proposalSchema } from "@/schemas";
+import { proposalPdfFileSchema, proposalSchema, proposalWordFileSchema } from "@/schemas";
 
 import { Button, Spinner } from "@/components/common";
 import { ComboBox, Form, Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
-export type CreateProposalFields = z.infer<typeof proposalSchema>;
+const createProposalSchema = proposalSchema.extend({
+    pdf_version: proposalPdfFileSchema,
+    word_version: proposalWordFileSchema,
+});
+
+export type CreateProposalFields = z.infer<typeof createProposalSchema>;
 
 type CreateProposalFormProps = {
     title?: string;
@@ -40,7 +48,7 @@ const CreateProposalForm = ({ title, description }: CreateProposalFormProps) => 
         setValue,
         watch,
     } = useForm<CreateProposalFields>({
-        resolver: zodResolver(proposalSchema),
+        resolver: zodResolver(createProposalSchema),
         defaultValues: {
             date: new Date().toISOString().split("T")[0], // Today's date in YYYY-MM-DD format
             contract_type: ContractType.ANNUAL,
@@ -64,7 +72,7 @@ const CreateProposalForm = ({ title, description }: CreateProposalFormProps) => 
 
     const onSubmit: SubmitHandler<CreateProposalFields> = async (data) => {
         try {
-            const response = await createProposal(data);
+            const response = await createProposal(data as unknown as CreateProposalPayload);
 
             if (response.error) {
                 handleApiError(response.error, "Proposal creation error");
@@ -227,6 +235,24 @@ const CreateProposalForm = ({ title, description }: CreateProposalFormProps) => 
                     label="Tipo de Contrato"
                     dataTestId="proposal-contract-type-select"
                 />
+
+                <Input
+                    {...register("pdf_version")}
+                    type="file"
+                    accept="application/pdf"
+                    errorMessage={errors.pdf_version?.message}
+                    label="Versão PDF"
+                    data-testid="proposal-pdf-input"
+                ></Input>
+
+                <Input
+                    {...register("word_version")}
+                    type="file"
+                    accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    errorMessage={errors.word_version?.message}
+                    label="Versão Word"
+                    data-testid="proposal-word-input"
+                ></Input>
 
                 <div className="flex gap-2 py-4">
                     <Button

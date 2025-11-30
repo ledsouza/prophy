@@ -14,3 +14,5 @@ export {
 export { default as reportFileSchema } from "./report-file-schema";
 export { default as proposalSchema } from "./proposal-schema";
 export { default as materialUpdateSchema } from "./material-update-schema";
+export { default as proposalPdfFileSchema } from "./proposal-pdf-schema";
+export { default as proposalWordFileSchema } from "./proposal-word-schema";
