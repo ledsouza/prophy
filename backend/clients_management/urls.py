@@ -17,6 +17,7 @@ from clients_management.views import (
     TriggerReportNotificationView,
     TriggerUpdateAppointmentsView,
     UnitViewSet,
+    ProposalFileDownloadView,
 )
 
 router = DefaultRouter()
@@ -35,6 +36,10 @@ urlpatterns = [
     path("clients/status/", ClientStatusView.as_view()),
     path("service-orders/<int:order_id>/pdf/", ServiceOrderPDFView.as_view()),
     path("reports/<int:report_id>/download/", ReportFileDownloadView.as_view()),
+    path(
+        "proposals/<int:proposal_id>/download/<str:file_type>/",
+        ProposalFileDownloadView.as_view(),
+    ),
     path(
         "reports/tasks/run-report-notifications/",
         TriggerReportNotificationView.as_view(),

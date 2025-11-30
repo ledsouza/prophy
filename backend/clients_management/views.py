@@ -2394,6 +2394,92 @@ class ReportFileDownloadView(APIView):
             )
 
 
+class ProposalFileDownloadView(APIView):
+    """
+    Download a proposal file (PDF or Word) with authentication.
+
+    Returns the file with proper Content-Disposition header to preserve
+    the original filename.
+    Permissions: Same as ProposalViewSet (PROPHY_MANAGER and COMMERCIAL).
+    """
+
+    @swagger_auto_schema(
+        operation_summary="Download Proposal File",
+        manual_parameters=[
+            openapi.Parameter(
+                name="proposal_id",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_INTEGER,
+                description="ID da Proposta",
+            ),
+            openapi.Parameter(
+                name="file_type",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_STRING,
+                description="Tipo de arquivo: 'pdf' ou 'word'.",
+            ),
+        ],
+        responses={
+            200: "File bytes",
+            400: "Invalid file type",
+            403: "Forbidden",
+            404: "Not found",
+        },
+    )
+    def get(self, request: Request, proposal_id: int, file_type: str):
+        try:
+            proposal: Proposal = Proposal.objects.get(pk=proposal_id)
+        except Proposal.DoesNotExist:
+            return Response(
+                {"detail": f'Proposal with ID "{proposal_id}" does not exist.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user: UserAccount = request.user
+        if user.role not in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]:
+            return Response(
+                {"detail": "You do not have permission to download this proposal."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if file_type == "pdf":
+            file_field = proposal.pdf_version
+        elif file_type == "word":
+            file_field = proposal.word_version
+        else:
+            return Response(
+                {"detail": "Invalid file type. Use 'pdf' or 'word'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not file_field:
+            return Response(
+                {"detail": "Proposal has no file attached for this type."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            file_handle = file_field.open("rb")
+            response = HttpResponse(
+                file_handle,
+                content_type="application/octet-stream",
+            )
+            filename = os.path.basename(file_field.name)
+            response["Content-Disposition"] = f'attachment; filename="{filename}"'
+            return response
+        except Exception as e:
+            logger.error(
+                "Error serving proposal file %s (%s): %s", proposal_id, file_type, e
+            )
+            return Response(
+                {"detail": "Error reading proposal file."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class TriggerReportNotificationView(APIView):
     """
     A secure API view to be triggered by Google Cloud Scheduler.
