@@ -72,6 +72,8 @@ MODALITIES = [
 
 EQUIPMENT_PHOTO_PATH = BASE_DIR / "static" / "mamografia.jpg"
 EQUIPMENT_LABEL_PHOTO_PATH = BASE_DIR / "static" / "serial-number.jpg"
+PROPOSAL_PDF_PATH = BASE_DIR / "static" / "placeholder.pdf"
+PROPOSAL_WORD_PATH = BASE_DIR / "static" / "Placeholder.docx"
 
 FIXTURE_PATH = os.path.join(project_root, "frontend", "cypress", "fixtures")
 
@@ -1175,42 +1177,51 @@ class Command(BaseCommand):
 
         approved_cnpjs = []
 
-        # Defaults Proposal for automated testing
-        Proposal.objects.create(
-            cnpj=REJECTED_PROPOSAL_CNPJ,
-            city=fake.city(),
-            state=choice(STATE_CHOICES)[0],
-            contact_name=fake.name(),
-            contact_phone=fake_phone_number(),
-            email=fake.email(),
-            date=fake.date(),
-            value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
-            contract_type=choice(contract_type_choices),
-            status=Proposal.Status.REJECTED,
-        )
+        with PROPOSAL_PDF_PATH.open(mode="rb") as pdf, PROPOSAL_WORD_PATH.open(
+            mode="rb"
+        ) as word:
+            pdf_file = File(pdf, name=PROPOSAL_PDF_PATH.name)
+            word_file = File(word, name=PROPOSAL_WORD_PATH.name)
 
-        Proposal.objects.create(
-            cnpj=APPROVED_PROPOSAL_CNPJ,
-            city=fake.city(),
-            state=choice(STATE_CHOICES)[0],
-            contact_name=fake.name(),
-            contact_phone=fake_phone_number(),
-            email=fake.email(),
-            date=fake.date(),
-            value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
-            contract_type=choice(contract_type_choices),
-            status=Proposal.Status.ACCEPTED,
-        )
+            # Defaults Proposal for automated testing
+            Proposal.objects.create(
+                cnpj=REJECTED_PROPOSAL_CNPJ,
+                city=fake.city(),
+                state=choice(STATE_CHOICES)[0],
+                contact_name=fake.name(),
+                contact_phone=fake_phone_number(),
+                email=fake.email(),
+                date=fake.date(),
+                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                contract_type=choice(contract_type_choices),
+                status=Proposal.Status.REJECTED,
+                pdf_version=pdf_file,
+                word_version=word_file,
+            )
 
-        # Create proposals for all existing clients to ensure each client has at least one proposal
-        existing_clients = Client.objects.all()
-        proposals_to_create = []
-        for i, client in enumerate(existing_clients):
-            # Use different statuses for variety in testing
-            status = status_choices_all[i % len(status_choices_all)]
+            Proposal.objects.create(
+                cnpj=APPROVED_PROPOSAL_CNPJ,
+                city=fake.city(),
+                state=choice(STATE_CHOICES)[0],
+                contact_name=fake.name(),
+                contact_phone=fake_phone_number(),
+                email=fake.email(),
+                date=fake.date(),
+                value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
+                contract_type=choice(contract_type_choices),
+                status=Proposal.Status.ACCEPTED,
+                pdf_version=pdf_file,
+                word_version=word_file,
+            )
 
-            proposals_to_create.append(
-                Proposal(
+            # Create proposals for all existing clients to ensure each client has at least one proposal
+            existing_clients = Client.objects.all()
+            for i, client in enumerate(existing_clients):
+                # Use different statuses for variety in testing
+                status = status_choices_all[i % len(status_choices_all)]
+
+                # First proposal with deterministic status
+                Proposal.objects.create(
                     cnpj=client.cnpj,
                     city=client.city,
                     state=client.state,
@@ -1221,11 +1232,12 @@ class Command(BaseCommand):
                     value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                     contract_type=choice(contract_type_choices),
                     status=status_choices_all[0],
+                    pdf_version=pdf_file,
+                    word_version=word_file,
                 )
-            )
 
-            proposals_to_create.append(
-                Proposal(
+                # Second proposal
+                Proposal.objects.create(
                     cnpj=client.cnpj,
                     city=client.city,
                     state=client.state,
@@ -1236,11 +1248,12 @@ class Command(BaseCommand):
                     value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                     contract_type=choice(contract_type_choices),
                     status=status,
+                    pdf_version=pdf_file,
+                    word_version=word_file,
                 )
-            )
 
-            proposals_to_create.append(
-                Proposal(
+                # Third proposal
+                Proposal.objects.create(
                     cnpj=client.cnpj,
                     city=client.city,
                     state=client.state,
@@ -1251,20 +1264,20 @@ class Command(BaseCommand):
                     value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                     contract_type=choice(contract_type_choices),
                     status=status,
+                    pdf_version=pdf_file,
+                    word_version=word_file,
                 )
-            )
 
-            # Track approved proposals for fixture generation
-            if status == Proposal.Status.ACCEPTED:
-                approved_cnpjs.append(client.cnpj)
+                # Track approved proposals for fixture generation
+                if status == Proposal.Status.ACCEPTED:
+                    approved_cnpjs.append(client.cnpj)
 
-        # Continue with existing random proposal generation for additional test data
-        for _ in range(num_proposals):
-            cnpj = fake_cnpj()
-            approved_cnpjs.append(cnpj)
+            # Continue with existing random proposal generation for additional test data
+            for _ in range(num_proposals):
+                cnpj = fake_cnpj()
+                approved_cnpjs.append(cnpj)
 
-            proposals_to_create.append(
-                Proposal(
+                Proposal.objects.create(
                     cnpj=cnpj,
                     city=fake.city(),
                     state=choice(STATE_CHOICES)[0],
@@ -1275,11 +1288,11 @@ class Command(BaseCommand):
                     value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                     contract_type=choice(contract_type_choices),
                     status=Proposal.Status.ACCEPTED,
+                    pdf_version=pdf_file,
+                    word_version=word_file,
                 )
-            )
 
-            proposals_to_create.append(
-                Proposal(
+                Proposal.objects.create(
                     cnpj=fake_cnpj(),
                     city=fake.city(),
                     state=choice(STATE_CHOICES)[0],
@@ -1290,11 +1303,9 @@ class Command(BaseCommand):
                     value=fake.pydecimal(left_digits=5, right_digits=2, positive=True),
                     contract_type=choice(contract_type_choices),
                     status=choice(status_choices_all),
+                    pdf_version=pdf_file,
+                    word_version=word_file,
                 )
-            )
-
-        if proposals_to_create:
-            Proposal.objects.bulk_create(proposals_to_create)
 
         return approved_cnpjs
 
