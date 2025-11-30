@@ -2400,7 +2400,6 @@ class ProposalFileDownloadView(APIView):
 
     Returns the file with proper Content-Disposition header to preserve
     the original filename.
-    Permissions: Same as ProposalViewSet (PROPHY_MANAGER and COMMERCIAL).
     """
 
     @swagger_auto_schema(
