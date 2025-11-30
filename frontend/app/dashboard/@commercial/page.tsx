@@ -748,9 +748,11 @@ function SearchPage() {
                                             size="sm"
                                             className="text-yellow-900"
                                         >
-                                            Exibindo as propostas anuais mais recentes para todos os
-                                            cliente que têm 11 ou mais meses de vigência. As
-                                            propostas listadas requerem ação de renovação imediata.
+                                            Exibindo a proposta anual mais recente por cliente para
+                                            todos os que têm 11 ou mais meses de vigência. A
+                                            listagem é apresentada em ordem crescente de data (da
+                                            mais antiga para a mais recente), priorizando os casos
+                                            mais urgentes que requerem ação de renovação imediata.
                                         </Typography>
                                     </div>
                                 )}
