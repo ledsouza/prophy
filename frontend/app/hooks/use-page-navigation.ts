@@ -1,10 +1,16 @@
 import { useRouter } from "next/navigation";
+import { buildStandardUrlParams } from "@/utils/url-params";
 
 type UsePageNavigationConfig = {
     tabName: string;
     pageKey: string;
     buildFilters: () => Record<string, string>;
     setCurrentPage: (page: number) => void;
+    /**
+     * Optional explicit prefix for filter params.
+     * If omitted, buildStandardUrlParams will fall back to tabName.
+     */
+    paramPrefix?: string;
 };
 
 /**
@@ -18,17 +24,16 @@ export function usePageNavigation(config: UsePageNavigationConfig) {
     const router = useRouter();
 
     const handlePageChange = (page: number) => {
-        const params = new URLSearchParams();
         config.setCurrentPage(page);
 
-        params.set("tab", config.tabName);
-        params.set(config.pageKey, String(page));
-
         const filters = config.buildFilters();
-        Object.entries(filters).forEach(([key, value]) => {
-            if (value && value !== "Todos" && value !== "0") {
-                params.set(key, value);
-            }
+
+        const params = buildStandardUrlParams({
+            tabName: config.tabName,
+            pageKey: config.pageKey,
+            page,
+            filters,
+            paramPrefix: config.paramPrefix,
         });
 
         router.push(`?${params.toString()}`);

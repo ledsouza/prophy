@@ -114,20 +114,15 @@ export function useFilterRestoration({
         const params = new URLSearchParams(searchParams);
         const tabParam = params.get("tab");
 
-        // Restore tab state
         setSelectedTabIndex(getTabFromParam(tabParam));
 
-        // Restore state for each configured tab
         Object.entries(tabs).forEach(([_, tabConfig]) => {
             const pageParam = params.get(tabConfig.pageParam);
 
-            // Restore page state
             restorePageState(pageParam, tabConfig.currentPage, tabConfig.setCurrentPage);
 
-            // Restore filters using the provided function
             tabConfig.restoreFilters(params);
 
-            // Build and set applied filters
             const appliedFilters = tabConfig.buildAppliedFilters(params);
             tabConfig.setAppliedFilters(appliedFilters);
         });
