@@ -61,7 +61,6 @@ function writeToConsole(entry: Record<string, unknown> & { level: number; msg?: 
     // Message string first, then structured data.
     if (lvl === "trace" || lvl === "debug") {
         if (process.env.NODE_ENV !== "production") {
-            // eslint-disable-next-line no-console
             console.debug(msg ?? "", rest);
         }
         return;
@@ -69,20 +68,16 @@ function writeToConsole(entry: Record<string, unknown> & { level: number; msg?: 
 
     switch (lvl) {
         case "info":
-            // eslint-disable-next-line no-console
             console.info(msg ?? "", rest);
             break;
         case "warn":
-            // eslint-disable-next-line no-console
             console.warn(msg ?? "", rest);
             break;
         case "error":
         case "fatal":
-            // eslint-disable-next-line no-console
             console.error(msg ?? "", rest);
             break;
         default:
-            // eslint-disable-next-line no-console
             console.log(msg ?? "", rest);
             break;
     }
