@@ -1,6 +1,6 @@
 import { restorePageState } from "@/utils/filter-restoration";
 import { ReadonlyURLSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Configuration for a single tab's filter restoration.
@@ -63,10 +63,11 @@ type UseFilterRestorationConfig = {
     tabs: Record<number, TabFilterConfig>;
 
     /**
-     * Optional dependencies that should trigger re-restoration.
-     * Useful for async data like modalities or manufacturers.
+     * Optional dependency token that should trigger re-restoration
+     * when it changes. Callers can pass anything (including arrays)
+     * and it will be treated as a single dependency value.
      */
-    dependencies?: any[];
+    dependencies?: unknown;
 };
 
 /**
@@ -78,45 +79,37 @@ type UseFilterRestorationConfig = {
  * - Restoring filter values from URL parameters
  * - Setting applied filters based on URL state
  *
- * @example
- * useFilterRestoration({
- *     searchParams,
- *     setSelectedTabIndex,
- *     tabs: {
- *         [SearchTab.CLIENTS]: {
- *             pageParam: "client_page",
- *             currentPage: clientCurrentPage,
- *             setCurrentPage: setClientCurrentPage,
- *             restoreFilters: (params) => {
- *                 restoreTextFilterStates(
- *                     params.get("clients_name") || "",
- *                     setSelectedClientName
- *                 );
- *             },
- *             setAppliedFilters: setClientAppliedFilters,
- *             buildAppliedFilters: (params) => ({
- *                 name: params.get("clients_name") || "",
- *                 cnpj: params.get("clients_cnpj") || "",
- *             }),
- *         },
- *     },
- *     dependencies: [modalities, manufacturers],
- * });
+ * It is intentionally idempotent: for a given combination of
+ * `searchParams` and `dependencies`, it will only apply restoration
+ * once, even if the component re-renders multiple times.
  */
 export function useFilterRestoration({
     searchParams,
     setSelectedTabIndex,
     getTabFromParam,
     tabs,
-    dependencies = [],
+    dependencies,
 }: UseFilterRestorationConfig) {
+    const lastKeyRef = useRef<string | null>(null);
+
     useEffect(() => {
         const params = new URLSearchParams(searchParams);
         const tabParam = params.get("tab");
 
+        const searchKey = params.toString();
+        const dependencyKey =
+            dependencies === undefined || dependencies === null ? "" : String(dependencies);
+        const combinedKey = `${searchKey}|${dependencyKey}`;
+
+        if (lastKeyRef.current === combinedKey) {
+            return;
+        }
+
+        lastKeyRef.current = combinedKey;
+
         setSelectedTabIndex(getTabFromParam(tabParam));
 
-        Object.entries(tabs).forEach(([_, tabConfig]) => {
+        Object.entries(tabs).forEach(([, tabConfig]) => {
             const pageParam = params.get(tabConfig.pageParam);
 
             restorePageState(pageParam, tabConfig.currentPage, tabConfig.setCurrentPage);
@@ -126,8 +119,5 @@ export function useFilterRestoration({
             const appliedFilters = tabConfig.buildAppliedFilters(params);
             tabConfig.setAppliedFilters(appliedFilters);
         });
-        // We intentionally spread `dependencies` to allow callers to trigger re-restoration
-        // based on arbitrary external state (e.g., async-loaded options).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams, setSelectedTabIndex, getTabFromParam, tabs, ...dependencies]);
+    }, [searchParams, setSelectedTabIndex, getTabFromParam, tabs, dependencies]);
 }
