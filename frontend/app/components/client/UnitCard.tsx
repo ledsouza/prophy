@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
 import cn from "classnames";
+import { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -14,13 +14,13 @@ import {
 
 import { CardButtons, CardStatus } from "@/components/client";
 import { Typography } from "@/components/foundation";
-import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
-import { useAppDispatch } from "@/redux/hooks";
-import { Modals, openModal, setUnit, setUnitOperation } from "@/redux/features/modalSlice";
-import { isResponseError } from "@/redux/services/helpers";
-import { toast } from "react-toastify";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import { useListAllEquipmentsOperationsQuery } from "@/redux/features/equipmentApiSlice";
+import { Modals, openModal, setUnit, setUnitOperation } from "@/redux/features/modalSlice";
+import { useAppDispatch } from "@/redux/hooks";
+import { isResponseError } from "@/redux/services/helpers";
 import { shouldHideRejectedAddOperation } from "@/utils/operations";
+import { toast } from "react-toastify";
 
 type UnitCardProps = {
     unit: UnitDTO;
@@ -126,7 +126,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
             return;
         }
         setStatus(unitOperation ? unitOperation.operation_status : OperationStatus.ACCEPTED);
-    }, [unitOperation]);
+    }, [unitOperation, isStaff]);
 
     useEffect(() => {
         const unitIDsFromEquipmentOpsReview = equipmentOperations
@@ -153,7 +153,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
             setHasOperation(false);
             setIsRejected(false);
         }
-    }, [status, equipmentOperations]);
+    }, [status, equipmentOperations, unit.id]);
 
     if (shouldHideRejectedAddOperation(isStaff, unitOperation)) {
         return;

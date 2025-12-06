@@ -2,27 +2,27 @@
 
 import { useEffect, useState } from "react";
 
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { z } from "zod";
 
-import { isErrorWithMessages } from "@/redux/services/helpers";
 import { closeModal } from "@/redux/features/modalSlice";
 import {
     UnitDTO,
     useCreateEditUnitOperationMutation,
     useUpdateUnitMutation,
 } from "@/redux/features/unitApiSlice";
+import { isErrorWithMessages } from "@/redux/services/helpers";
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
 
-import { ComboBox, Form, Input, Textarea, FormButtons } from "@/components/forms";
-import { Typography } from "@/components/foundation";
 import { Spinner } from "@/components/common";
-import { unitSchema } from "@/schemas";
+import { ComboBox, Form, FormButtons, Input, Textarea } from "@/components/forms";
+import { Typography } from "@/components/foundation";
 import { OperationStatus } from "@/enums";
 import { useAppDispatch } from "@/redux/hooks";
+import { unitSchema } from "@/schemas";
 
 export type EditUnitFields = z.infer<typeof unitSchema>;
 
@@ -266,14 +266,22 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
         if (estados && municipios) {
             setIsLoadingIBGE(false);
         }
-    }, [estados, municipios]);
+    }, [
+        estados,
+        municipios,
+        unit.state,
+        unit.city,
+        handleEstadoChange,
+        handleMunicipioChange,
+        isLoadingIBGE,
+    ]);
 
     // If the user clicks in go back, it's required to transform the note to undefined
     useEffect(() => {
         if (!isRejected) {
             setValue("note", undefined);
         }
-    }, [isRejected]);
+    }, [isRejected, setValue]);
 
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">

@@ -87,7 +87,7 @@ function CommercialUnitPage() {
         }
 
         setSelectedUnit(unit);
-    }, [units, unitId, isLoadingUnits]);
+    }, [units, unitId, isLoadingUnits, router]);
 
     // Set filtered equipments
     useEffect(() => {
@@ -102,7 +102,7 @@ function CommercialUnitPage() {
             ...equipments.filter((equipment) => equipment.unit === unitId),
             ...addEquipmentsInOperation,
         ]);
-    }, [equipmentsOperations, equipments, selectedUnit]);
+    }, [equipmentsOperations, equipments, selectedUnit, unitId, isLoadingEquipments]);
 
     if (
         isLoadingUnits ||

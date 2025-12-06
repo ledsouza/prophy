@@ -6,17 +6,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
+import { useAppDispatch } from "@/redux/hooks";
 
 import { Button } from "@/components/common";
 import { Form, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
-import { useEffect, useState } from "react";
-import { useUpdateUnitMutation } from "@/redux/features/unitApiSlice";
 import { OperationStatus } from "@/enums";
+import { useUpdateUnitMutation } from "@/redux/features/unitApiSlice";
 import { isErrorWithMessages } from "@/redux/services/helpers";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const noteSchema = unitSchema.pick({ note: true });
@@ -82,7 +82,7 @@ const ReviewDeleteUnitForm = ({ title, unitOperationID }: ReviewDeleteUnitFormPr
         if (!isRejected) {
             setValue("note", undefined);
         }
-    }, [isRejected]);
+    }, [isRejected, setValue]);
 
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">

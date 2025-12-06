@@ -31,11 +31,11 @@ import { ArrowClockwise } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
 import {
+    AppointmentPanel,
     EquipmentDetails,
     EquipmentPanel,
     ReportPanel,
     UnitDetails,
-    AppointmentPanel,
 } from "@/components/client";
 import { Button, Modal, Spinner, TabbedResourcePanel } from "@/components/common";
 import {
@@ -47,9 +47,9 @@ import {
 import { Typography } from "@/components/foundation";
 import { OperationType } from "@/enums";
 import { useDeleterUserMutation } from "@/redux/features/authApiSlice";
-import type { UserDTO } from "@/types/user";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
+import type { UserDTO } from "@/types/user";
 
 function UnitPage() {
     const pathname = usePathname();
@@ -229,7 +229,7 @@ function UnitPage() {
         }
 
         setSelectedUnit(unit);
-    }, [units, unitId, isLoadingUnits]);
+    }, [units, unitId, isLoadingUnits, router]);
 
     // Set filtered equipments
     useEffect(() => {
@@ -244,7 +244,7 @@ function UnitPage() {
             ...equipments.filter((equipment) => equipment.unit === unitId),
             ...AddEquipmentsInOperation,
         ]);
-    }, [equipmentsOperations, equipments, selectedUnit]);
+    }, [equipmentsOperations, equipments, selectedUnit, unitId, isLoadingEquipments]);
 
     if (
         isLoadingUnits ||

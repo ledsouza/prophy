@@ -228,6 +228,8 @@ function ClientDetails({
         clientsOperations,
         unitsOperations,
         equipmentsOperations,
+        isStaff,
+        units,
     ]);
 
     if (isLoading) {

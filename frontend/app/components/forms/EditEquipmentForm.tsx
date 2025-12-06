@@ -1,22 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { z } from "zod";
 
 import AccessoryCreationError from "@/errors/accessory-error";
 import { accessorySchema, equipmentSchema, optionalFileSchema } from "@/schemas";
 
-import {
-    EquipmentDTO,
-    EquipmentOperationDTO,
-    useCreateEditEquipmentOperationMutation,
-    useEditEquipmentMutation,
-} from "@/redux/features/equipmentApiSlice";
 import {
     AccessoryDTO,
     useCreateAccessoryMutation,
@@ -24,19 +18,25 @@ import {
     useGetAccessoriesQuery,
     useUpdateAccessoryMutation,
 } from "@/redux/features/accessoryApiSlice";
+import {
+    EquipmentDTO,
+    EquipmentOperationDTO,
+    useCreateEditEquipmentOperationMutation,
+    useEditEquipmentMutation,
+} from "@/redux/features/equipmentApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useAppDispatch } from "@/redux/hooks";
 
-import { fetchPhoto } from "@/utils/media";
-import { displaySingularAccessoryType } from "@/utils/format";
+import { useNeedReview } from "@/hooks";
 import { useModality } from "@/hooks/use-modality";
 import useRequireAuth from "@/hooks/use-require-auth";
-import { useNeedReview } from "@/hooks";
+import { displaySingularAccessoryType } from "@/utils/format";
+import { fetchPhoto } from "@/utils/media";
 
-import { Button, Spinner, Modal } from "@/components/common";
+import { Button, Modal, Spinner } from "@/components/common";
+import { Form, FormButtons, Input, Select, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Form, Input, Select, FormButtons, Textarea } from "@/components/forms";
 import { OperationStatus } from "@/enums";
 import Role from "@/enums/Role";
 import { XCircle } from "@phosphor-icons/react";
@@ -969,7 +969,7 @@ const EditEquipmentForm = ({
                 original_label_photo: accessory.label_photo || undefined,
             }))
         );
-    }, [filteredAccessories]);
+    }, [filteredAccessories, isLoadingAccessories, setValue]);
 
     // Filter accessories by equipment ID
     useEffect(() => {
@@ -979,7 +979,7 @@ const EditEquipmentForm = ({
         setFilteredAccessories(
             accessories.filter((accessory) => accessory.equipment === equipment.id)
         );
-    }, [accessories]);
+    }, [accessories, isLoadingAccessories, equipment.id]);
 
     // Fetch equipment photos from the server
     useEffect(() => {

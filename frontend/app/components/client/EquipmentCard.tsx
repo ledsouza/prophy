@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
 import cn from "classnames";
+import { useEffect, useState } from "react";
 
 import { OperationStatus } from "@/enums";
 import Role from "@/enums/Role";
@@ -10,19 +10,19 @@ import {
     useDeleteEquipmentOperationMutation,
 } from "@/redux/features/equipmentApiSlice";
 
-import { Typography } from "@/components/foundation";
 import { CardButtons, CardStatus } from "@/components/client";
-import { useAppDispatch } from "@/redux/hooks";
+import { Typography } from "@/components/foundation";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
     Modals,
     openModal,
     setEquipment,
     setEquipmentOperation,
 } from "@/redux/features/modalSlice";
-import { toast } from "react-toastify";
+import { useAppDispatch } from "@/redux/hooks";
 import { isResponseError } from "@/redux/services/helpers";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { shouldHideRejectedAddOperation } from "@/utils/operations";
+import { toast } from "react-toastify";
 
 type EquipmentCardProps = {
     equipment: EquipmentDTO;
@@ -133,7 +133,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
         setStatus(
             equipmentOperation ? equipmentOperation.operation_status : OperationStatus.ACCEPTED
         );
-    }, [equipmentOperation]);
+    }, [equipmentOperation, isStaff]);
 
     useEffect(() => {
         if (status === OperationStatus.REJECTED) {

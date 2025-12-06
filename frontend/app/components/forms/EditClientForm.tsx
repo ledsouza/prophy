@@ -13,7 +13,6 @@ import {
     useCreateEditClientOperationMutation,
     useEditClientMutation,
 } from "@/redux/features/clientApiSlice";
-import { isErrorWithMessages } from "@/redux/services/helpers";
 import type { ClientDTO } from "@/types/client";
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
@@ -21,10 +20,10 @@ import { useIBGELocalidades, useNeedReview } from "@/hooks";
 import { Button, Spinner } from "@/components/common";
 import { ComboBox, Form, Input, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import { OperationStatus } from "@/enums";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { handleApiError } from "@/redux/services/errorHandling";
-import { OperationStatus } from "@/enums";
 
 const editClientSchema = clientSchema;
 
@@ -365,13 +364,21 @@ const EditClientForm = ({
         if (estados && municipios) {
             setIsInitialLoad(false);
         }
-    }, [estados, municipios]);
+    }, [
+        estados,
+        municipios,
+        client.state,
+        client.city,
+        handleEstadoChange,
+        handleMunicipioChange,
+        isInitialLoad,
+    ]);
 
     useEffect(() => {
         if (!isRejected) {
             setValue("note", undefined);
         }
-    }, [isRejected]);
+    }, [isRejected, setValue]);
 
     return (
         <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">

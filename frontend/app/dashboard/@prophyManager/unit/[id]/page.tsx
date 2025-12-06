@@ -112,7 +112,7 @@ function UnitPage() {
         }
 
         setSelectedUnit(unit);
-    }, [units, unitId, isLoadingUnits]);
+    }, [units, unitId, isLoadingUnits, router]);
 
     // Set filtered equipments
     useEffect(() => {
@@ -127,7 +127,7 @@ function UnitPage() {
             ...equipments.filter((equipment) => equipment.unit === unitId),
             ...AddEquipmentsInOperation,
         ]);
-    }, [equipmentsOperations, equipments, selectedUnit]);
+    }, [equipmentsOperations, equipments, selectedUnit, unitId, isLoadingEquipments]);
 
     // Filter equipments by query params
     useEffect(() => {

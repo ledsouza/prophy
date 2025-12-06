@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { ReadonlyURLSearchParams } from "next/navigation";
 import { restorePageState } from "@/utils/filter-restoration";
+import { ReadonlyURLSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 /**
  * Configuration for a single tab's filter restoration.
@@ -126,5 +126,8 @@ export function useFilterRestoration({
             const appliedFilters = tabConfig.buildAppliedFilters(params);
             tabConfig.setAppliedFilters(appliedFilters);
         });
-    }, [searchParams, ...dependencies]);
+        // We intentionally spread `dependencies` to allow callers to trigger re-restoration
+        // based on arbitrary external state (e.g., async-loaded options).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams, setSelectedTabIndex, getTabFromParam, tabs, ...dependencies]);
 }

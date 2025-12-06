@@ -1,27 +1,27 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { debounce } from "lodash";
-import { toast } from "react-toastify";
-import { SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { debounce } from "lodash";
+import { SubmitHandler, useForm, useWatch } from "react-hook-form";
+import { toast } from "react-toastify";
 import { z } from "zod";
 
 import { unitManagerSchema } from "@/schemas";
 
-import { useAppDispatch } from "@/redux/hooks";
-import { closeModal } from "@/redux/features/modalSlice";
 import {
-    useRegisterUnitManagerMutation,
     useLazyGetByCPFQuery,
+    useRegisterUnitManagerMutation,
 } from "@/redux/features/authApiSlice";
-import type { UserDTO } from "@/types/user";
+import { closeModal } from "@/redux/features/modalSlice";
+import { useAppDispatch } from "@/redux/hooks";
 import { handleApiError } from "@/redux/services/errorHandling";
+import type { UserDTO } from "@/types/user";
 
+import { Button } from "@/components/common";
 import { Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Button } from "@/components/common";
 import { useUpdateUnitMutation } from "@/redux/features/unitApiSlice";
 
 export type RegisterFields = z.infer<typeof unitManagerSchema>;
@@ -63,28 +63,29 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
     // Check if the current CPF matches a registered user's CPF
     const isRegisteredUserMatch = registeredUser?.cpf === cpfValue;
 
-    const debouncedCPFCheck = useCallback(
-        debounce(async (cpf: string) => {
-            const cpfSchema = unitManagerSchema.shape.cpf;
-            const result = cpfSchema.safeParse(cpf);
+    const debouncedCPFCheck = useMemo(
+        () =>
+            debounce(async (cpf: string) => {
+                const cpfSchema = unitManagerSchema.shape.cpf;
+                const result = cpfSchema.safeParse(cpf);
 
-            if (result.success) {
-                try {
-                    const response = await triggerGetByCPF(cpf).unwrap();
-                    if (response.results && response.results.length > 0) {
-                        const user = response.results[0];
-                        setValue("name", user.name, { shouldValidate: true });
-                        setValue("email", user.email, { shouldValidate: true });
-                        setValue("phone", user.phone, { shouldValidate: true });
-                        setRegisteredUser(user);
-                        toast.info("Usuário já cadastrado. Dados preenchidos automaticamente.");
+                if (result.success) {
+                    try {
+                        const response = await triggerGetByCPF(cpf).unwrap();
+                        if (response.results && response.results.length > 0) {
+                            const user = response.results[0];
+                            setValue("name", user.name, { shouldValidate: true });
+                            setValue("email", user.email, { shouldValidate: true });
+                            setValue("phone", user.phone, { shouldValidate: true });
+                            setRegisteredUser(user);
+                            toast.info("Usuário já cadastrado. Dados preenchidos automaticamente.");
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar CPF:", error);
                     }
-                } catch (error) {
-                    console.error("Erro ao verificar CPF:", error);
                 }
-            }
-        }, 500),
-        [triggerGetByCPF]
+            }, 500),
+        [triggerGetByCPF, setValue, setRegisteredUser]
     );
 
     const onSubmit: SubmitHandler<RegisterFields> = async (data) => {

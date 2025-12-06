@@ -1,17 +1,12 @@
-import { useEffect, useState } from "react";
-import {
-    EquipmentDTO,
-    useListEquipmentsQuery,
-} from "@/redux/features/equipmentApiSlice";
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { EquipmentDTO, useListEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 import { SerializedError } from "@reduxjs/toolkit";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { useEffect, useState } from "react";
 
 export const useAllEquipments = () => {
     const [allEquipments, setAllEquipments] = useState<EquipmentDTO[]>([]);
     const [isLoadingAll, setIsLoadingAll] = useState(true);
-    const [errorAll, setErrorAll] = useState<
-        FetchBaseQueryError | SerializedError | null
-    >(null);
+    const [errorAll, setErrorAll] = useState<FetchBaseQueryError | SerializedError | null>(null);
     const [currentPage, setcurrentPage] = useState(1);
     const { data, error, isLoading } = useListEquipmentsQuery({
         page: currentPage,
@@ -52,6 +47,10 @@ export const useAllEquipments = () => {
 
     useEffect(() => {
         fetchAllEquipments();
+        // We intentionally run this once on mount and do not re-run when
+        // `fetchAllEquipments` identity changes. The function internally
+        // manages pagination state.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return { allEquipments, isLoadingAll, errorAll };

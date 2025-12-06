@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { mask as cnpjMask } from "validation-br/dist/cnpj";
 import { ArrowLeft } from "@phosphor-icons/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
-import { useListProposalsQuery, ProposalDTO } from "@/redux/features/proposalApiSlice";
+import { ProposalDTO, useListProposalsQuery } from "@/redux/features/proposalApiSlice";
 
-import { ContractType, ProposalStatus } from "@/enums";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
+import { ContractType, ProposalStatus } from "@/enums";
 
-import { Typography } from "@/components/foundation";
 import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/common";
+import { Typography } from "@/components/foundation";
 
 const getStatusDisplay = (status: string) => {
     switch (status) {
@@ -80,7 +80,7 @@ function ProposalListPage() {
                 setCurrentPage(page);
             }
         }
-    }, [searchParams]);
+    }, [searchParams, currentPage]);
 
     // Reset to page 1 when CNPJ changes
     useEffect(() => {
@@ -91,6 +91,10 @@ function ProposalListPage() {
             params.set("page", "1");
             router.replace(`?${params.toString()}`);
         }
+        // We intentionally only depend on `cnpj` here.
+        // Adding `currentPage` would cause any page change to be reset to 1,
+        // but this effect is meant to run only when the CNPJ filter changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cnpj]);
 
     // Validate CNPJ parameter

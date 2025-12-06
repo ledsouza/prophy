@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { SelectData } from "@/components/forms/Select";
 import {
     AccessoryType,
     ModalityDTO,
     useListModalitiesQuery,
 } from "@/redux/features/modalityApiSlice";
-import { SelectData } from "@/components/forms/Select";
+import { useEffect, useState } from "react";
 
 /**
  * A custom hook for managing modality selection and related state in forms.
@@ -59,7 +59,7 @@ export const useModality = (
                 value: defaultModality?.name || modalities[0].name,
             });
         }
-    }, [modalities]);
+    }, [modalities, defaultModality]);
 
     // Set the value for the modality field when the modalities are loaded
     // and when the selected modality changes
@@ -71,7 +71,7 @@ export const useModality = (
             const modality = modalities?.find((modality) => modality.id === selectedModality.id);
             setAccessoryType(modality?.accessory_type);
         }
-    }, [selectedModality]);
+    }, [selectedModality, modalities, setValue]);
 
     return {
         modalities,

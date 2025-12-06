@@ -21,11 +21,11 @@ import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
 
 import {
+    AppointmentPanel,
     EquipmentDetails,
     EquipmentPanel,
     ReportPanel,
     UnitDetails,
-    AppointmentPanel,
 } from "@/components/client";
 import { Button, Modal, Spinner, TabbedResourcePanel } from "@/components/common";
 import {
@@ -111,7 +111,7 @@ function UnitPage() {
         }
 
         setSelectedUnit(unit);
-    }, [units, unitId, isLoadingUnits]);
+    }, [units, unitId, isLoadingUnits, router]);
 
     // Set filtered equipments
     useEffect(() => {
@@ -126,7 +126,7 @@ function UnitPage() {
             ...equipments.filter((equipment) => equipment.unit === unitId),
             ...AddEquipmentsInOperation,
         ]);
-    }, [equipmentsOperations, equipments, selectedUnit]);
+    }, [equipmentsOperations, equipments, selectedUnit, unitId, isLoadingEquipments]);
 
     if (
         isLoadingUnits ||
