@@ -31,7 +31,7 @@
     "gerador-validador-cpf": "^5.0.2",
     "lodash": "^4.17.21",
     "next": "14.2.33",
-    "npm": "^11.6.2",
+    "npm": "^11.6.4",
     "pino": "^9.11.0",
     "react": "^18",
     "react-dom": "^18",
