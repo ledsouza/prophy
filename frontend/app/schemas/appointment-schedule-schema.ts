@@ -6,8 +6,7 @@ const base = z.object({
     date: z
         .string()
         .min(1, { message: "Data é obrigatório." })
-        .transform((value) => (value === "" ? undefined : value))
-        .refine((value) => value === undefined || !Number.isNaN(Date.parse(value)), {
+        .refine((value) => !Number.isNaN(Date.parse(value)), {
             message: "Data inválida.",
         }),
     contact_name: z
