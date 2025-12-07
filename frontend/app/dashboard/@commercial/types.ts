@@ -13,3 +13,11 @@ export type ProposalFilters = {
     status: string;
     expiring_annual?: string;
 };
+
+export type AppointmentFilters = {
+    date_start: string;
+    date_end: string;
+    status: string;
+    client_name: string;
+    unit_city: string;
+};

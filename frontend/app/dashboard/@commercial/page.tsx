@@ -15,6 +15,7 @@ import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
+import { appointmentStatusLabel } from "@/enums/AppointmentStatus";
 import {
     useFilterApplication,
     useFilterClear,
@@ -23,8 +24,10 @@ import {
     useTabNavigation,
 } from "@/hooks";
 import { ProposalDTO } from "@/redux/features/proposalApiSlice";
+import type { AppointmentDTO } from "@/types/appointment";
 import type { ClientDTO } from "@/types/client";
 import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
+import { child } from "@/utils/logger";
 import { buildStandardUrlParams } from "@/utils/url-params";
 
 import { Button, ErrorDisplay, Modal, Pagination, Spinner, Tab, Table } from "@/components/common";
@@ -37,14 +40,23 @@ import { useUpdateClientMutation } from "@/redux/features/clientApiSlice";
 import {
     formatCurrency,
     formatDate,
+    formatDateTime,
     formatPhoneNumber,
     getContractTypeDisplay,
     getStatusDisplay,
 } from "@/utils/format";
-import { CLIENT_STATUS_OPTIONS, CONTRACT_TYPE_OPTIONS, PROPOSAL_STATUS_OPTIONS } from "./constants";
+import {
+    APPOINTMENT_STATUS_OPTIONS,
+    CLIENT_STATUS_OPTIONS,
+    CONTRACT_TYPE_OPTIONS,
+    PROPOSAL_STATUS_OPTIONS,
+} from "./constants";
 import { SearchTab, getTabFromParam } from "./enums";
 import { useSearchQueries } from "./hooks";
 import {
+    getAppointmentStatusClasses,
+    getAppointmentStatusFromOptionId,
+    getAppointmentStatusOptionIdFromValue,
     getClientStatusFromOptionId,
     getClientStatusOptionIdFromValue,
     getContractTypeFromOptionId,
@@ -52,7 +64,9 @@ import {
     getProposalStatusFromOptionId,
     getProposalStatusOptionIdFromValue,
 } from "./state";
-import { ClientFilters, ProposalFilters } from "./types";
+import { AppointmentFilters, ClientFilters, ProposalFilters } from "./types";
+
+const log = child({ component: "CommercialSearchPage" });
 
 function SearchPage() {
     const router = useRouter();
@@ -110,6 +124,26 @@ function SearchPage() {
     });
     const [selectedProposalExpiringAnnual, setSelectedProposalExpiringAnnual] = useState(false);
 
+    // Appointment state
+    const [appointmentsCurrentPage, setAppointmentsCurrentPage] = useState(1);
+    const [appointmentsAppliedFilters, setAppointmentsAppliedFilters] =
+        useState<AppointmentFilters>({
+            date_start: "",
+            date_end: "",
+            status: "",
+            client_name: "",
+            unit_city: "",
+        });
+
+    const [selectedAppointmentDateStart, setSelectedAppointmentDateStart] = useState("");
+    const [selectedAppointmentDateEnd, setSelectedAppointmentDateEnd] = useState("");
+    const [selectedAppointmentStatus, setSelectedAppointmentStatus] = useState<SelectData>({
+        id: 0,
+        value: "Todos",
+    });
+    const [selectedAppointmentClientName, setSelectedAppointmentClientName] = useState("");
+    const [selectedAppointmentUnitCity, setSelectedAppointmentUnitCity] = useState("");
+
     const {
         clientsData,
         clientsLoading,
@@ -117,11 +151,16 @@ function SearchPage() {
         proposalsData,
         proposalsLoading,
         proposalsError,
+        appointmentsData,
+        appointmentsLoading,
+        appointmentsError,
     } = useSearchQueries({
         clientCurrentPage,
         clientAppliedFilters,
         proposalCurrentPage,
         proposalAppliedFilters,
+        appointmentsCurrentPage,
+        appointmentsAppliedFilters,
     });
 
     const clients = useMemo(() => clientsData?.results || [], [clientsData?.results]);
@@ -129,6 +168,12 @@ function SearchPage() {
 
     const proposals = useMemo(() => proposalsData?.results || [], [proposalsData?.results]);
     const totalProposalsCount = proposalsData?.count || 0;
+
+    const appointments = useMemo(
+        () => appointmentsData?.results || [],
+        [appointmentsData?.results]
+    );
+    const totalAppointmentsCount = appointmentsData?.count || 0;
 
     const { handleTabChange } = useTabNavigation(setSelectedTabIndex, {
         [SearchTab.CLIENTS]: {
@@ -153,6 +198,18 @@ function SearchPage() {
                 contract_type: getContractTypeFromOptionId(selectedProposalContractType.id),
                 status: getProposalStatusFromOptionId(selectedProposalStatus.id),
                 expiring_annual: selectedProposalExpiringAnnual ? "true" : "",
+            }),
+        },
+        [SearchTab.APPOINTMENTS]: {
+            tabName: "appointments",
+            pageKey: "appointments_page",
+            currentPage: appointmentsCurrentPage,
+            buildFilters: () => ({
+                date_start: selectedAppointmentDateStart,
+                date_end: selectedAppointmentDateEnd,
+                status: getAppointmentStatusFromOptionId(selectedAppointmentStatus.id),
+                client_name: selectedAppointmentClientName,
+                unit_city: selectedAppointmentUnitCity,
             }),
         },
     });
@@ -255,6 +312,56 @@ function SearchPage() {
         },
     });
 
+    const { handlePageChange: handleAppointmentPageChange } = usePageNavigation({
+        tabName: "appointments",
+        pageKey: "appointments_page",
+        buildFilters: () => ({
+            date_start: selectedAppointmentDateStart,
+            date_end: selectedAppointmentDateEnd,
+            status: getAppointmentStatusFromOptionId(selectedAppointmentStatus.id),
+            client_name: selectedAppointmentClientName,
+            unit_city: selectedAppointmentUnitCity,
+        }),
+        setCurrentPage: setAppointmentsCurrentPage,
+    });
+
+    const { handleApplyFilters: handleApplyAppointmentFilters } = useFilterApplication({
+        tabName: "appointments",
+        pageKey: "appointments_page",
+        currentPage: appointmentsCurrentPage,
+        setCurrentPage: setAppointmentsCurrentPage,
+        setAppliedFilters: setAppointmentsAppliedFilters,
+        buildFilters: () => ({
+            date_start: selectedAppointmentDateStart,
+            date_end: selectedAppointmentDateEnd,
+            status: getAppointmentStatusFromOptionId(selectedAppointmentStatus.id),
+            client_name: selectedAppointmentClientName,
+            unit_city: selectedAppointmentUnitCity,
+        }),
+    });
+
+    const { handleClearFilters: handleClearAppointmentFilters } =
+        useFilterClear<AppointmentFilters>({
+            tabName: "appointments",
+            pageKey: "appointments_page",
+            setCurrentPage: setAppointmentsCurrentPage,
+            setAppliedFilters: setAppointmentsAppliedFilters,
+            resetFilters: () => {
+                setSelectedAppointmentDateStart("");
+                setSelectedAppointmentDateEnd("");
+                setSelectedAppointmentStatus({ id: 0, value: "Todos" });
+                setSelectedAppointmentClientName("");
+                setSelectedAppointmentUnitCity("");
+            },
+            emptyFilters: {
+                date_start: "",
+                date_end: "",
+                status: "",
+                client_name: "",
+                unit_city: "",
+            },
+        });
+
     const handleViewProposals = (cnpj: string) => {
         const params = buildStandardUrlParams({
             tabName: "proposals",
@@ -269,6 +376,10 @@ function SearchPage() {
         router.push(`/dashboard/client/${cnpj}`);
     };
 
+    const handleViewUnitDetails = (unitId: number) => {
+        router.push(`/dashboard/unit/${unitId}?tab=appointments`);
+    };
+
     const handleToggleClientStatus = async (client: ClientDTO) => {
         setTogglingClientId(client.id);
         try {
@@ -277,7 +388,10 @@ function SearchPage() {
                 is_active: !client.is_active,
             }).unwrap();
         } catch (error) {
-            console.error("Failed to toggle client status:", error);
+            log.error(
+                { error: (error as Error)?.message ?? String(error) },
+                "Failed to toggle client status"
+            );
         } finally {
             setTogglingClientId(null);
         }
@@ -368,6 +482,40 @@ function SearchPage() {
                     expiring_annual: params.get("proposals_expiring_annual") || "",
                 }),
             },
+            [SearchTab.APPOINTMENTS]: {
+                pageParam: "appointments_page",
+                currentPage: appointmentsCurrentPage,
+                setCurrentPage: setAppointmentsCurrentPage,
+                restoreFilters: (params) => {
+                    const dateStart = params.get("appointments_date_start") || "";
+                    const dateEnd = params.get("appointments_date_end") || "";
+                    const appointmentStatus = params.get("appointments_status");
+                    const clientName = params.get("appointments_client_name") || "";
+                    const unitCity = params.get("appointments_unit_city") || "";
+
+                    restoreTextFilterStates(dateStart, setSelectedAppointmentDateStart);
+                    restoreTextFilterStates(dateEnd, setSelectedAppointmentDateEnd);
+                    restoreTextFilterStates(clientName, setSelectedAppointmentClientName);
+                    restoreTextFilterStates(unitCity, setSelectedAppointmentUnitCity);
+
+                    const appointmentStatusOptionId =
+                        getAppointmentStatusOptionIdFromValue(appointmentStatus);
+
+                    restoreSelectFilterStates(
+                        appointmentStatusOptionId.toString(),
+                        APPOINTMENT_STATUS_OPTIONS,
+                        setSelectedAppointmentStatus
+                    );
+                },
+                setAppliedFilters: setAppointmentsAppliedFilters,
+                buildAppliedFilters: (params) => ({
+                    date_start: params.get("appointments_date_start") || "",
+                    date_end: params.get("appointments_date_end") || "",
+                    status: params.get("appointments_status") || "",
+                    client_name: params.get("appointments_client_name") || "",
+                    unit_city: params.get("appointments_unit_city") || "",
+                }),
+            },
         },
     });
 
@@ -395,6 +543,7 @@ function SearchPage() {
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
                         <Tab>Clientes</Tab>
                         <Tab>Propostas</Tab>
+                        <Tab>Agendamentos</Tab>
                     </TabList>
 
                     <TabPanels>
@@ -938,6 +1087,228 @@ function SearchPage() {
                                                     )}
                                                     {totalProposalsCount === 0 &&
                                                         "Nenhuma proposta encontrada"}
+                                                </Typography>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </TabPanel>
+
+                        <TabPanel>
+                            {/* Appointment Search Filters */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                <Input
+                                    type="date"
+                                    value={selectedAppointmentDateStart}
+                                    onChange={(e) =>
+                                        setSelectedAppointmentDateStart(e.target.value)
+                                    }
+                                    label="Data Início"
+                                />
+
+                                <Input
+                                    type="date"
+                                    value={selectedAppointmentDateEnd}
+                                    onChange={(e) => setSelectedAppointmentDateEnd(e.target.value)}
+                                    label="Data Fim"
+                                />
+
+                                <Select
+                                    options={APPOINTMENT_STATUS_OPTIONS}
+                                    selectedData={selectedAppointmentStatus}
+                                    setSelect={setSelectedAppointmentStatus}
+                                    label="Situação"
+                                    dataTestId="filter-appointment-status"
+                                />
+
+                                <Input
+                                    value={selectedAppointmentClientName}
+                                    onChange={(e) =>
+                                        setSelectedAppointmentClientName(e.target.value)
+                                    }
+                                    placeholder="Digite o nome do cliente"
+                                    label="Nome do Cliente"
+                                />
+
+                                <Input
+                                    value={selectedAppointmentUnitCity}
+                                    onChange={(e) => setSelectedAppointmentUnitCity(e.target.value)}
+                                    placeholder="Digite a cidade da unidade"
+                                    label="Cidade da Unidade"
+                                />
+                            </div>
+
+                            {/* Appointment Action Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                                <Button
+                                    onClick={handleApplyAppointmentFilters}
+                                    className="flex-1 sm:flex-initial"
+                                    disabled={appointmentsLoading}
+                                    data-testid="btn-apply-appointment-filters"
+                                >
+                                    {appointmentsLoading ? "Carregando..." : "Aplicar Filtros"}
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleClearAppointmentFilters}
+                                    className="flex-1 sm:flex-initial"
+                                    disabled={appointmentsLoading}
+                                    data-testid="btn-clear-appointment-filters"
+                                >
+                                    Limpar Filtros
+                                </Button>
+                            </div>
+
+                            {/* Appointment Results Section */}
+                            <div className="bg-gray-50 rounded-xl p-6">
+                                <Typography element="h2" size="title3" className="font-bold mb-4">
+                                    Resultados
+                                </Typography>
+
+                                {appointmentsError && (
+                                    <ErrorDisplay
+                                        title="Erro ao carregar agendamentos"
+                                        message="Ocorreu um erro ao carregar os dados dos agendamentos. Tente novamente mais tarde."
+                                    />
+                                )}
+
+                                {appointments.length === 0 && !appointmentsLoading ? (
+                                    <div className="text-center py-8">
+                                        <Typography
+                                            element="p"
+                                            size="lg"
+                                            className="text-gray-secondary"
+                                        >
+                                            Nenhum agendamento encontrado com os filtros aplicados
+                                        </Typography>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        {appointmentsLoading && (
+                                            <div className="flex justify-center py-8">
+                                                <Spinner />
+                                            </div>
+                                        )}
+
+                                        {!appointmentsLoading && (
+                                            <Table
+                                                data={appointments}
+                                                columns={[
+                                                    {
+                                                        header: "Data/Hora",
+                                                        cell: (appointment: AppointmentDTO) =>
+                                                            formatDateTime(appointment.date),
+                                                        width: "160px",
+                                                    },
+                                                    {
+                                                        header: "Cliente",
+                                                        cell: (appointment: AppointmentDTO) =>
+                                                            appointment.client_name || "N/A",
+                                                    },
+                                                    {
+                                                        header: "Unidade",
+                                                        cell: (appointment: AppointmentDTO) =>
+                                                            appointment.unit_name || "N/A",
+                                                    },
+                                                    {
+                                                        header: "Endereço",
+                                                        cell: (appointment: AppointmentDTO) =>
+                                                            appointment.unit_full_address || "N/A",
+                                                    },
+                                                    {
+                                                        header: "Modalidade",
+                                                        cell: (appointment: AppointmentDTO) =>
+                                                            appointment.type_display || "N/A",
+                                                    },
+                                                    {
+                                                        header: "Situação",
+                                                        cell: (appointment: AppointmentDTO) => {
+                                                            const statusClasses =
+                                                                getAppointmentStatusClasses(
+                                                                    appointment.status
+                                                                );
+                                                            return (
+                                                                <span
+                                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}`}
+                                                                >
+                                                                    {
+                                                                        appointmentStatusLabel[
+                                                                            appointment.status
+                                                                        ]
+                                                                    }
+                                                                </span>
+                                                            );
+                                                        },
+                                                        width: "100px",
+                                                    },
+                                                    {
+                                                        header: "Ações",
+                                                        cell: (appointment: AppointmentDTO) => (
+                                                            <div className="flex flex-col gap-2">
+                                                                <Button
+                                                                    variant="primary"
+                                                                    onClick={() =>
+                                                                        handleViewUnitDetails(
+                                                                            appointment.unit
+                                                                        )
+                                                                    }
+                                                                    className="flex items-center gap-2 text-xs"
+                                                                    data-testid={`view-unit-${appointment.id}`}
+                                                                >
+                                                                    <InfoIcon size={16} />
+                                                                    Detalhes
+                                                                </Button>
+                                                            </div>
+                                                        ),
+                                                    },
+                                                ]}
+                                                keyExtractor={(appointment: AppointmentDTO) =>
+                                                    appointment.id
+                                                }
+                                            />
+                                        )}
+
+                                        {/* Appointment Pagination */}
+                                        {!appointmentsLoading &&
+                                            totalAppointmentsCount > ITEMS_PER_PAGE && (
+                                                <div className="mt-6">
+                                                    <Pagination
+                                                        currentPage={appointmentsCurrentPage}
+                                                        totalCount={totalAppointmentsCount}
+                                                        itemsPerPage={ITEMS_PER_PAGE}
+                                                        onPageChange={handleAppointmentPageChange}
+                                                        isLoading={appointmentsLoading}
+                                                    />
+                                                </div>
+                                            )}
+
+                                        {/* Appointment Results Summary */}
+                                        {!appointmentsLoading && (
+                                            <div className="mt-4 text-center">
+                                                <Typography
+                                                    element="p"
+                                                    size="sm"
+                                                    className="text-gray-secondary"
+                                                >
+                                                    {totalAppointmentsCount > 0 && (
+                                                        <>
+                                                            Mostrando{" "}
+                                                            {(appointmentsCurrentPage - 1) *
+                                                                ITEMS_PER_PAGE +
+                                                                1}
+                                                            -
+                                                            {Math.min(
+                                                                appointmentsCurrentPage *
+                                                                    ITEMS_PER_PAGE,
+                                                                totalAppointmentsCount
+                                                            )}{" "}
+                                                            de {totalAppointmentsCount}{" "}
+                                                            agendamento(s)
+                                                        </>
+                                                    )}
+                                                    {totalAppointmentsCount === 0 &&
+                                                        "Nenhum agendamento encontrado"}
                                                 </Typography>
                                             </div>
                                         )}

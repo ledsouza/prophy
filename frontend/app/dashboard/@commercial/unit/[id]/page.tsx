@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import {
@@ -36,6 +36,7 @@ function CommercialUnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
     const router = useRouter();
+    const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
 
     const { isModalOpen, currentModal, selectedEquipment } = useAppSelector((state) => state.modal);
@@ -83,7 +84,8 @@ function CommercialUnitPage() {
 
         const unit = units.find((u) => u.id === unitId);
         if (!unit) {
-            return router.push("/dashboard");
+            router.push("/dashboard");
+            return;
         }
 
         setSelectedUnit(unit);
@@ -98,6 +100,7 @@ function CommercialUnitPage() {
             equipmentsOperations?.filter(
                 (operation) => operation.operation_type === OperationType.ADD
             ) || [];
+
         setFilteredEquipmentsByUnit([
             ...equipments.filter((equipment) => equipment.unit === unitId),
             ...addEquipmentsInOperation,
@@ -135,69 +138,72 @@ function CommercialUnitPage() {
         );
     }
 
-    if (selectedUnit) {
-        return (
-            <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
-                <Button
-                    variant="secondary"
-                    className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
-                    disabled={isLoadingUnitOperations}
-                    onClick={handleUpdateData}
-                >
-                    <div className="flex items-center gap-2">
-                        <ArrowClockwiseIcon size="24" /> Atualizar
-                    </div>
-                </Button>
-
-                <UnitDetails
-                    unit={selectedUnit}
-                    unitOperation={getUnitOperation(selectedUnit, unitsOperations)}
-                />
-
-                <TabbedResourcePanel
-                    tabs={[
-                        {
-                            id: "equipments",
-                            label: "Equipamentos",
-                            render: () => (
-                                <EquipmentPanel
-                                    filteredEquipmentsByUnit={filteredEquipmentsByUnit}
-                                    searchTerm={searchTerm}
-                                    onSearchTermChange={setSearchTerm}
-                                    onAddEquipment={() => {}}
-                                />
-                            ),
-                        },
-                        {
-                            id: "appointments",
-                            label: "Agendamentos",
-                            render: () => <AppointmentPanel unitId={unitId} />,
-                        },
-                        {
-                            id: "reports",
-                            label: "Relatórios",
-                            render: () => <ReportPanel unitId={unitId} />,
-                        },
-                    ]}
-                />
-
-                <Modal
-                    isOpen={isModalOpen}
-                    onClose={() => dispatch(closeModal())}
-                    className={
-                        currentModal === Modals.EQUIPMENT_DETAILS ? "max-w-6xl mx-6" : "max-w-lg"
-                    }
-                >
-                    {currentModal === Modals.EQUIPMENT_DETAILS && selectedEquipment && (
-                        <EquipmentDetails
-                            equipment={selectedEquipment}
-                            onClose={() => dispatch(closeModal())}
-                        />
-                    )}
-                </Modal>
-            </main>
-        );
+    if (!selectedUnit) {
+        return null;
     }
+
+    return (
+        <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
+            <Button
+                variant="secondary"
+                className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
+                disabled={isLoadingUnitOperations}
+                onClick={handleUpdateData}
+            >
+                <div className="flex items-center gap-2">
+                    <ArrowClockwiseIcon size="24" /> Atualizar
+                </div>
+            </Button>
+
+            <UnitDetails
+                unit={selectedUnit}
+                unitOperation={getUnitOperation(selectedUnit, unitsOperations)}
+            />
+
+            <TabbedResourcePanel
+                tabs={[
+                    {
+                        id: "equipments",
+                        label: "Equipamentos",
+                        render: () => (
+                            <EquipmentPanel
+                                filteredEquipmentsByUnit={filteredEquipmentsByUnit}
+                                searchTerm={searchTerm}
+                                onSearchTermChange={setSearchTerm}
+                                onAddEquipment={() => {}}
+                            />
+                        ),
+                    },
+                    {
+                        id: "appointments",
+                        label: "Agendamentos",
+                        render: () => <AppointmentPanel unitId={unitId} />,
+                    },
+                    {
+                        id: "reports",
+                        label: "Relatórios",
+                        render: () => <ReportPanel unitId={unitId} />,
+                    },
+                ]}
+                initialTabId={searchParams.get("tab") ?? undefined}
+            />
+
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => dispatch(closeModal())}
+                className={
+                    currentModal === Modals.EQUIPMENT_DETAILS ? "max-w-6xl mx-6" : "max-w-lg"
+                }
+            >
+                {currentModal === Modals.EQUIPMENT_DETAILS && selectedEquipment && (
+                    <EquipmentDetails
+                        equipment={selectedEquipment}
+                        onClose={() => dispatch(closeModal())}
+                    />
+                )}
+            </Modal>
+        </main>
+    );
 }
 
 export default CommercialUnitPage;

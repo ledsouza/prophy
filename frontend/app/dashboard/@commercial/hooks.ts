@@ -1,17 +1,22 @@
 import { useMemo } from "react";
+
 import { useListClientsQuery } from "@/redux/features/clientApiSlice";
+import { useListProposalsQuery, type ProposalDTO } from "@/redux/features/proposalApiSlice";
+import { useListAppointmentsPageQuery } from "@/redux/features/appointmentApiSlice";
 import type { ClientDTO } from "@/types/client";
-import { ProposalDTO, useListProposalsQuery } from "@/redux/features/proposalApiSlice";
+import type { AppointmentDTO } from "@/types/appointment";
 import { PaginatedResponse } from "@/redux/services/apiSlice";
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import { SerializedError } from "@reduxjs/toolkit";
-import { ClientFilters, ProposalFilters } from "./types";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import type { SerializedError } from "@reduxjs/toolkit";
+import type { AppointmentFilters, ClientFilters, ProposalFilters } from "./types";
 
 type UseSearchQueriesParams = {
     clientCurrentPage: number;
     clientAppliedFilters: ClientFilters;
     proposalCurrentPage: number;
     proposalAppliedFilters: ProposalFilters;
+    appointmentsCurrentPage: number;
+    appointmentsAppliedFilters: AppointmentFilters;
 };
 
 type UseSearchQueriesReturn = {
@@ -21,6 +26,9 @@ type UseSearchQueriesReturn = {
     proposalsData: PaginatedResponse<ProposalDTO> | undefined;
     proposalsLoading: boolean;
     proposalsError: FetchBaseQueryError | SerializedError | undefined;
+    appointmentsData: PaginatedResponse<AppointmentDTO> | undefined;
+    appointmentsLoading: boolean;
+    appointmentsError: FetchBaseQueryError | SerializedError | undefined;
 };
 
 export const useSearchQueries = ({
@@ -28,9 +36,11 @@ export const useSearchQueries = ({
     clientAppliedFilters,
     proposalCurrentPage,
     proposalAppliedFilters,
+    appointmentsCurrentPage,
+    appointmentsAppliedFilters,
 }: UseSearchQueriesParams): UseSearchQueriesReturn => {
     const clientQueryParams = useMemo(() => {
-        const params: any = { page: clientCurrentPage };
+        const params: Record<string, unknown> = { page: clientCurrentPage };
 
         if (clientAppliedFilters.name) params.name = clientAppliedFilters.name;
         if (clientAppliedFilters.cnpj) params.cnpj = clientAppliedFilters.cnpj;
@@ -43,7 +53,7 @@ export const useSearchQueries = ({
     }, [clientCurrentPage, clientAppliedFilters]);
 
     const proposalQueryParams = useMemo(() => {
-        const params: any = { page: proposalCurrentPage };
+        const params: Record<string, unknown> = { page: proposalCurrentPage };
 
         if (proposalAppliedFilters.cnpj) params.cnpj = proposalAppliedFilters.cnpj;
         if (proposalAppliedFilters.contact_name)
@@ -58,6 +68,28 @@ export const useSearchQueries = ({
         return params;
     }, [proposalCurrentPage, proposalAppliedFilters]);
 
+    const appointmentsQueryParams = useMemo(() => {
+        const params: Record<string, unknown> = { page: appointmentsCurrentPage };
+
+        if (appointmentsAppliedFilters.date_start) {
+            params.date_start = appointmentsAppliedFilters.date_start;
+        }
+        if (appointmentsAppliedFilters.date_end) {
+            params.date_end = appointmentsAppliedFilters.date_end;
+        }
+        if (appointmentsAppliedFilters.status) {
+            params.status = appointmentsAppliedFilters.status;
+        }
+        if (appointmentsAppliedFilters.client_name) {
+            params.client_name = appointmentsAppliedFilters.client_name;
+        }
+        if (appointmentsAppliedFilters.unit_city) {
+            params.unit_city = appointmentsAppliedFilters.unit_city;
+        }
+
+        return params;
+    }, [appointmentsCurrentPage, appointmentsAppliedFilters]);
+
     const {
         data: clientsData,
         isLoading: clientsLoading,
@@ -70,6 +102,12 @@ export const useSearchQueries = ({
         error: proposalsError,
     } = useListProposalsQuery(proposalQueryParams);
 
+    const {
+        data: appointmentsData,
+        isLoading: appointmentsLoading,
+        error: appointmentsError,
+    } = useListAppointmentsPageQuery(appointmentsQueryParams);
+
     return {
         clientsData,
         clientsLoading,
@@ -77,5 +115,8 @@ export const useSearchQueries = ({
         proposalsData,
         proposalsLoading,
         proposalsError,
+        appointmentsData,
+        appointmentsLoading,
+        appointmentsError,
     };
 };
