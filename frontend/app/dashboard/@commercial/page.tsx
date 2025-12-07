@@ -142,6 +142,7 @@ function SearchPage() {
             status: "",
             client_name: "",
             unit_city: "",
+            unit_name: "",
         });
 
     const [selectedAppointmentDateStart, setSelectedAppointmentDateStart] = useState("");
@@ -152,6 +153,7 @@ function SearchPage() {
     });
     const [selectedAppointmentClientName, setSelectedAppointmentClientName] = useState("");
     const [selectedAppointmentUnitCity, setSelectedAppointmentUnitCity] = useState("");
+    const [selectedAppointmentUnitName, setSelectedAppointmentUnitName] = useState("");
 
     const {
         clientsData,
@@ -219,6 +221,7 @@ function SearchPage() {
                 status: getAppointmentStatusFromOptionId(selectedAppointmentStatus?.id ?? 0),
                 client_name: selectedAppointmentClientName,
                 unit_city: selectedAppointmentUnitCity,
+                unit_name: selectedAppointmentUnitName,
             }),
         },
     });
@@ -330,6 +333,7 @@ function SearchPage() {
             status: getAppointmentStatusFromOptionId(selectedAppointmentStatus?.id ?? 0),
             client_name: selectedAppointmentClientName,
             unit_city: selectedAppointmentUnitCity,
+            unit_name: selectedAppointmentUnitName,
         }),
         setCurrentPage: setAppointmentsCurrentPage,
     });
@@ -346,6 +350,7 @@ function SearchPage() {
             status: getAppointmentStatusFromOptionId(selectedAppointmentStatus?.id ?? 0),
             client_name: selectedAppointmentClientName,
             unit_city: selectedAppointmentUnitCity,
+            unit_name: selectedAppointmentUnitName,
         }),
     });
 
@@ -361,6 +366,7 @@ function SearchPage() {
                 setSelectedAppointmentStatus({ id: 0, value: "Todos" });
                 setSelectedAppointmentClientName("");
                 setSelectedAppointmentUnitCity("");
+                setSelectedAppointmentUnitName("");
             },
             emptyFilters: {
                 date_start: "",
@@ -368,6 +374,7 @@ function SearchPage() {
                 status: "",
                 client_name: "",
                 unit_city: "",
+                unit_name: "",
             },
         });
 
@@ -501,11 +508,13 @@ function SearchPage() {
                     const appointmentStatus = params.get("appointments_status");
                     const clientName = params.get("appointments_client_name") || "";
                     const unitCity = params.get("appointments_unit_city") || "";
+                    const unitName = params.get("appointments_unit_name") || "";
 
                     restoreTextFilterStates(dateStart, setSelectedAppointmentDateStart);
                     restoreTextFilterStates(dateEnd, setSelectedAppointmentDateEnd);
                     restoreTextFilterStates(clientName, setSelectedAppointmentClientName);
                     restoreTextFilterStates(unitCity, setSelectedAppointmentUnitCity);
+                    restoreTextFilterStates(unitName, setSelectedAppointmentUnitName);
 
                     const appointmentStatusOptionId =
                         getAppointmentStatusOptionIdFromValue(appointmentStatus);
@@ -523,6 +532,7 @@ function SearchPage() {
                     status: params.get("appointments_status") || "",
                     client_name: params.get("appointments_client_name") || "",
                     unit_city: params.get("appointments_unit_city") || "",
+                    unit_name: params.get("appointments_unit_name") || "",
                 }),
             },
         },
@@ -1145,6 +1155,13 @@ function SearchPage() {
                                     onChange={(e) => setSelectedAppointmentUnitCity(e.target.value)}
                                     placeholder="Digite a cidade da unidade"
                                     label="Cidade da Unidade"
+                                />
+
+                                <Input
+                                    value={selectedAppointmentUnitName}
+                                    onChange={(e) => setSelectedAppointmentUnitName(e.target.value)}
+                                    placeholder="Digite o nome da unidade"
+                                    label="Nome da Unidade"
                                 />
                             </div>
 

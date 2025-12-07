@@ -1183,6 +1183,14 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                 type=openapi.TYPE_STRING,
                 description="Filter appointments by unit city (case-insensitive contains).",
             ),
+            openapi.Parameter(
+                name="unit_name",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description=(
+                    "Filter appointments by unit name " "(case-insensitive contains)."
+                ),
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -1431,6 +1439,10 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         unit_city = query_params.get("unit_city")
         if unit_city is not None:
             queryset = queryset.filter(unit__city__icontains=unit_city)
+
+        unit_name = query_params.get("unit_name")
+        if unit_name is not None:
+            queryset = queryset.filter(unit__name__icontains=unit_name)
 
         return queryset
 

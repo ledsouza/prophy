@@ -20,4 +20,5 @@ export type AppointmentFilters = {
     status: string;
     client_name: string;
     unit_city: string;
+    unit_name: string;
 };

@@ -86,6 +86,9 @@ export const useSearchQueries = ({
         if (appointmentsAppliedFilters.unit_city) {
             params.unit_city = appointmentsAppliedFilters.unit_city;
         }
+        if (appointmentsAppliedFilters.unit_name) {
+            params.unit_name = appointmentsAppliedFilters.unit_name;
+        }
 
         return params;
     }, [appointmentsCurrentPage, appointmentsAppliedFilters]);
