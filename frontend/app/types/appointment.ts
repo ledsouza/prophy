@@ -23,6 +23,10 @@ export type AppointmentDTO = {
     contact_name: string;
     service_order?: ServiceOrderDTO | null;
     unit: number;
+    unit_name?: string;
+    client_name?: string;
+    unit_full_address?: string;
+    type_display?: string;
 };
 
 /**

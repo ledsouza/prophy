@@ -1,4 +1,5 @@
 import { apiSlice } from "../services/apiSlice";
+import type { PaginatedResponse } from "../services/apiSlice";
 import { createPaginatedQueryFn } from "../services/paginationHelpers";
 import type {
     AppointmentDTO,
@@ -16,6 +17,21 @@ const appointmentApiSlice = apiSlice.injectEndpoints({
          */
         listAppointments: builder.query<AppointmentDTO[], ListAppointmentsArgs | void>({
             queryFn: createPaginatedQueryFn<AppointmentDTO, ListAppointmentsArgs>("appointments/"),
+            providesTags: [{ type: "Appointment", id: "LIST" }],
+        }),
+        /**
+         * Lists a single paginated page of appointments, preserving count/next/previous.
+         * Intended for UI tables that need total counts for pagination controls.
+         */
+        listAppointmentsPage: builder.query<
+            PaginatedResponse<AppointmentDTO>,
+            ListAppointmentsArgs | void
+        >({
+            query: (args) => ({
+                url: "appointments/",
+                method: "GET",
+                params: (args ?? {}) as Record<string, unknown>,
+            }),
             providesTags: [{ type: "Appointment", id: "LIST" }],
         }),
         createAppointment: builder.mutation<AppointmentDTO, CreateAppointmentPayload>({
@@ -58,6 +74,7 @@ const appointmentApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useListAppointmentsQuery,
+    useListAppointmentsPageQuery,
     useCreateAppointmentMutation,
     useUpdateAppointmentMutation,
     useDeleteAppointmentMutation,
