@@ -198,6 +198,25 @@ class AppointmentSerializer(serializers.ModelSerializer):
         model = Appointment
         fields = "__all__"
 
+    def to_representation(self, instance: Appointment):
+        representation = super().to_representation(instance)
+
+        unit = getattr(instance, "unit", None)
+        if unit is not None:
+            representation["unit_name"] = unit.name
+
+            client = getattr(unit, "client", None)
+            if client is not None:
+                representation["client_name"] = client.name
+
+            representation["unit_full_address"] = (
+                f"{unit.address} - {unit.state}, {unit.city}"
+            )
+
+        representation["type_display"] = instance.get_type_display()
+
+        return representation
+
 
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:

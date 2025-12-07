@@ -1150,7 +1150,39 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_INTEGER,
                 description="Filter appointments by unit ID.",
-            )
+            ),
+            openapi.Parameter(
+                name="date_start",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATE,
+                description="Filter appointments with date greater than or equal to this date (YYYY-MM-DD).",
+            ),
+            openapi.Parameter(
+                name="date_end",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                format=openapi.FORMAT_DATE,
+                description="Filter appointments with date less than or equal to this date (YYYY-MM-DD).",
+            ),
+            openapi.Parameter(
+                name="status",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter appointments by status. Options: P (Pending), C (Confirmed), R (Rescheduled), F (Fulfilled), U (Unfulfilled)",
+            ),
+            openapi.Parameter(
+                name="client_name",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter appointments by client name (case-insensitive contains).",
+            ),
+            openapi.Parameter(
+                name="unit_city",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description="Filter appointments by unit city (case-insensitive contains).",
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -1379,6 +1411,27 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         unit = query_params.get("unit")
         if unit is not None:
             queryset = queryset.filter(unit=unit)
+
+        date_start = query_params.get("date_start")
+        if date_start is not None:
+            queryset = queryset.filter(date__date__gte=date_start)
+
+        date_end = query_params.get("date_end")
+        if date_end is not None:
+            queryset = queryset.filter(date__date__lte=date_end)
+
+        status_param = query_params.get("status")
+        if status_param is not None:
+            queryset = queryset.filter(status=status_param)
+
+        client_name = query_params.get("client_name")
+        if client_name is not None:
+            queryset = queryset.filter(unit__client__name__icontains=client_name)
+
+        unit_city = query_params.get("unit_city")
+        if unit_city is not None:
+            queryset = queryset.filter(unit__city__icontains=unit_city)
+
         return queryset
 
     def _can_create_appointment(self, user: UserAccount) -> bool:
