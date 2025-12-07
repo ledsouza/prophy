@@ -25,7 +25,7 @@ export type ComboBoxProps = {
     placeholder?: string;
     data: ComboboxDataProps[];
     selectedValue: ComboboxDataProps | null;
-    onChange: (value: ComboboxDataProps) => void;
+    onChange: (value: ComboboxDataProps | null) => void;
     disabled?: boolean;
     errorMessage?: string;
     "data-testid"?: string;
@@ -51,9 +51,7 @@ const ComboBox = ({
                 query === ""
                     ? data
                     : data.filter((value) => {
-                          return value.name
-                              .toLowerCase()
-                              .includes(query.toLowerCase());
+                          return value.name.toLowerCase().includes(query.toLowerCase());
                       });
             setFilteredOptions(filtered);
         }, 100);
@@ -91,16 +89,13 @@ const ComboBox = ({
                 >
                     <ComboboxInput
                         aria-label="Assignee"
-                        displayValue={(value: ComboboxDataProps) => value?.name}
+                        displayValue={(value: ComboboxDataProps | null) => value?.name ?? ""}
                         placeholder={placeholder}
                         onChange={handleInputChange}
                         className={inputClassName}
                     />
                     {errorMessage && (
-                        <div
-                            data-testid="validation-error"
-                            className="text-danger mt-1"
-                        >
+                        <div data-testid="validation-error" className="text-danger mt-1">
                             {errorMessage}
                         </div>
                     )}

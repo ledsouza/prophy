@@ -5,24 +5,25 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
 
+import {
+    useCreateAppointmentMutation,
+    useUpdateAppointmentMutation,
+} from "@/redux/features/appointmentApiSlice";
 import type {
     AppointmentDTO,
     CreateAppointmentPayload,
     UpdateAppointmentPayload,
 } from "@/types/appointment";
-import {
-    useCreateAppointmentMutation,
-    useUpdateAppointmentMutation,
-} from "@/redux/features/appointmentApiSlice";
 
 import { appointmentScheduleSchema, makeAppointmentScheduleSchema } from "@/schemas";
 
 import { Form, FormButtons, Input, Select, Textarea } from "@/components/forms";
-import { Typography } from "@/components/foundation";
-import AppointmentStatus from "@/enums/AppointmentStatus";
-import AppointmentType, { appointmentTypeLabel } from "@/enums/AppointmentType";
-import { child } from "@/utils/logger";
 import type { SelectData } from "@/components/forms/Select";
+import { Typography } from "@/components/foundation";
+import { APPOINTMENT_TYPE_OPTIONS, getAppointmentTypeById } from "@/constants/appointment";
+import AppointmentStatus from "@/enums/AppointmentStatus";
+import AppointmentType from "@/enums/AppointmentType";
+import { child } from "@/utils/logger";
 
 type AppointmentScheduleFields = z.infer<typeof appointmentScheduleSchema>;
 
@@ -209,16 +210,10 @@ const AppointmentScheduleForm = ({
         }
     };
 
-    const appointmentTypeOptions: SelectData[] = [
-        {
-            id: 1,
-            value: appointmentTypeLabel[AppointmentType.IN_PERSON],
-        },
-        {
-            id: 2,
-            value: appointmentTypeLabel[AppointmentType.ONLINE],
-        },
-    ];
+    const appointmentTypeOptions: SelectData[] = APPOINTMENT_TYPE_OPTIONS.map((opt) => ({
+        id: opt.id,
+        value: opt.label,
+    }));
 
     const getSelectedTypeData = (): SelectData => {
         if (selectedType === AppointmentType.IN_PERSON) {
@@ -230,8 +225,11 @@ const AppointmentScheduleForm = ({
         return appointmentTypeOptions[0];
     };
 
-    const handleTypeChange = (selected: SelectData) => {
-        const typeValue = selected.id === 1 ? AppointmentType.IN_PERSON : AppointmentType.ONLINE;
+    const handleTypeChange = (selected: SelectData | null) => {
+        if (!selected) {
+            return;
+        }
+        const typeValue = getAppointmentTypeById(selected.id);
         setValue("type", typeValue, { shouldValidate: true });
     };
 

@@ -28,7 +28,7 @@ export type SelectData = {
 type SelectProps = {
     options: SelectData[];
     selectedData: SelectData | null;
-    setSelect: (value: SelectData) => void;
+    setSelect: (value: SelectData | null) => void;
     label?: string;
     operationsIDs?: Set<number>;
     rejectedOperationIDs?: Set<number>;
@@ -42,7 +42,7 @@ type SelectProps = {
     disabled?: boolean;
     dataTestId?: string | undefined;
     placeholder?: string;
-} & ListboxProps;
+};
 
 /**
  * A customizable select component built with Headless UI's Listbox.
@@ -166,7 +166,7 @@ const Select = ({
     return (
         <div data-testid={dataTestId}>
             <Field disabled={disabled}>
-                <Listbox value={selectedData ?? undefined} onChange={setSelect} by="id">
+                <Listbox value={selectedData} onChange={setSelect} by="id">
                     <Typography element="p" size={labelSize}>
                         <Label className={labelStyles}>{label}</Label>
                     </Typography>

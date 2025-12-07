@@ -18,6 +18,7 @@ import { proposalPdfFileSchema, proposalSchema, proposalWordFileSchema } from "@
 
 import { Button, Spinner } from "@/components/common";
 import { ComboBox, Form, Input, Select } from "@/components/forms";
+import type { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
 
 const createProposalSchema = proposalSchema.extend({
@@ -99,7 +100,11 @@ const CreateProposalForm = ({ title, description }: CreateProposalFormProps) => 
         }
     };
 
-    const handleContractTypeChange = (selected: { id: number; value: string }) => {
+    const handleContractTypeChange = (selected: SelectData | null) => {
+        if (!selected) {
+            return;
+        }
+
         switch (selected.id) {
             case 1:
                 setValue("contract_type", ContractType.ANNUAL, { shouldValidate: true });

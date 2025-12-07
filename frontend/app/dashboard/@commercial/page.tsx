@@ -31,7 +31,13 @@ import { child } from "@/utils/logger";
 import { buildStandardUrlParams } from "@/utils/url-params";
 
 import { Button, ErrorDisplay, Modal, Pagination, Spinner, Tab, Table } from "@/components/common";
-import { CreateProposalForm, EditProposalForm, Input, Select } from "@/components/forms";
+import {
+    CreateAppointmentForm,
+    CreateProposalForm,
+    EditProposalForm,
+    Input,
+    Select,
+} from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Modals, closeModal, openModal, setProposal } from "@/redux/features/modalSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -93,14 +99,16 @@ function SearchPage() {
     const [selectedClientName, setSelectedClientName] = useState("");
     const [selectedClientCNPJ, setSelectedClientCNPJ] = useState("");
     const [selectedClientCity, setSelectedClientCity] = useState("");
-    const [selectedClientStatus, setSelectedClientStatus] = useState<SelectData>({
+    const [selectedClientStatus, setSelectedClientStatus] = useState<SelectData | null>({
         id: 0,
         value: "Todos",
     });
-    const [selectedClientContractType, setSelectedClientContractType] = useState<SelectData>({
-        id: 0,
-        value: "Todos",
-    });
+    const [selectedClientContractType, setSelectedClientContractType] = useState<SelectData | null>(
+        {
+            id: 0,
+            value: "Todos",
+        }
+    );
 
     // Proposal state
     const [proposalCurrentPage, setProposalCurrentPage] = useState(1);
@@ -114,11 +122,12 @@ function SearchPage() {
 
     const [selectedProposalCNPJ, setSelectedProposalCNPJ] = useState("");
     const [selectedProposalContactName, setSelectedProposalContactName] = useState("");
-    const [selectedProposalContractType, setSelectedProposalContractType] = useState<SelectData>({
-        id: 0,
-        value: "Todos",
-    });
-    const [selectedProposalStatus, setSelectedProposalStatus] = useState<SelectData>({
+    const [selectedProposalContractType, setSelectedProposalContractType] =
+        useState<SelectData | null>({
+            id: 0,
+            value: "Todos",
+        });
+    const [selectedProposalStatus, setSelectedProposalStatus] = useState<SelectData | null>({
         id: 0,
         value: "Todos",
     });
@@ -137,7 +146,7 @@ function SearchPage() {
 
     const [selectedAppointmentDateStart, setSelectedAppointmentDateStart] = useState("");
     const [selectedAppointmentDateEnd, setSelectedAppointmentDateEnd] = useState("");
-    const [selectedAppointmentStatus, setSelectedAppointmentStatus] = useState<SelectData>({
+    const [selectedAppointmentStatus, setSelectedAppointmentStatus] = useState<SelectData | null>({
         id: 0,
         value: "Todos",
     });
@@ -184,8 +193,8 @@ function SearchPage() {
                 name: selectedClientName,
                 cnpj: selectedClientCNPJ,
                 city: selectedClientCity,
-                contract_type: getContractTypeFromOptionId(selectedClientContractType.id),
-                is_active: getClientStatusFromOptionId(selectedClientStatus.id),
+                contract_type: getContractTypeFromOptionId(selectedClientContractType?.id ?? 0),
+                is_active: getClientStatusFromOptionId(selectedClientStatus?.id ?? 0),
             }),
         },
         [SearchTab.PROPOSALS]: {
@@ -195,8 +204,8 @@ function SearchPage() {
             buildFilters: () => ({
                 cnpj: selectedProposalCNPJ,
                 contact_name: selectedProposalContactName,
-                contract_type: getContractTypeFromOptionId(selectedProposalContractType.id),
-                status: getProposalStatusFromOptionId(selectedProposalStatus.id),
+                contract_type: getContractTypeFromOptionId(selectedProposalContractType?.id ?? 0),
+                status: getProposalStatusFromOptionId(selectedProposalStatus?.id ?? 0),
                 expiring_annual: selectedProposalExpiringAnnual ? "true" : "",
             }),
         },
@@ -207,7 +216,7 @@ function SearchPage() {
             buildFilters: () => ({
                 date_start: selectedAppointmentDateStart,
                 date_end: selectedAppointmentDateEnd,
-                status: getAppointmentStatusFromOptionId(selectedAppointmentStatus.id),
+                status: getAppointmentStatusFromOptionId(selectedAppointmentStatus?.id ?? 0),
                 client_name: selectedAppointmentClientName,
                 unit_city: selectedAppointmentUnitCity,
             }),
@@ -221,8 +230,8 @@ function SearchPage() {
             name: selectedClientName,
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
-            contract_type: getContractTypeFromOptionId(selectedClientContractType.id),
-            is_active: getClientStatusFromOptionId(selectedClientStatus.id),
+            contract_type: getContractTypeFromOptionId(selectedClientContractType?.id ?? 0),
+            is_active: getClientStatusFromOptionId(selectedClientStatus?.id ?? 0),
         }),
         setCurrentPage: setClientCurrentPage,
     });
@@ -237,8 +246,8 @@ function SearchPage() {
             name: selectedClientName,
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
-            contract_type: getContractTypeFromOptionId(selectedClientContractType.id),
-            is_active: getClientStatusFromOptionId(selectedClientStatus.id),
+            contract_type: getContractTypeFromOptionId(selectedClientContractType?.id ?? 0),
+            is_active: getClientStatusFromOptionId(selectedClientStatus?.id ?? 0),
         }),
     });
 
@@ -269,8 +278,8 @@ function SearchPage() {
         buildFilters: () => ({
             cnpj: selectedProposalCNPJ,
             contact_name: selectedProposalContactName,
-            contract_type: getContractTypeFromOptionId(selectedProposalContractType.id),
-            status: getProposalStatusFromOptionId(selectedProposalStatus.id),
+            contract_type: getContractTypeFromOptionId(selectedProposalContractType?.id ?? 0),
+            status: getProposalStatusFromOptionId(selectedProposalStatus?.id ?? 0),
             expiring_annual: selectedProposalExpiringAnnual ? "true" : "",
         }),
         setCurrentPage: setProposalCurrentPage,
@@ -285,8 +294,8 @@ function SearchPage() {
         buildFilters: () => ({
             cnpj: selectedProposalCNPJ,
             contact_name: selectedProposalContactName,
-            contract_type: getContractTypeFromOptionId(selectedProposalContractType.id),
-            status: getProposalStatusFromOptionId(selectedProposalStatus.id),
+            contract_type: getContractTypeFromOptionId(selectedProposalContractType?.id ?? 0),
+            status: getProposalStatusFromOptionId(selectedProposalStatus?.id ?? 0),
             expiring_annual: selectedProposalExpiringAnnual ? "true" : "",
         }),
     });
@@ -318,7 +327,7 @@ function SearchPage() {
         buildFilters: () => ({
             date_start: selectedAppointmentDateStart,
             date_end: selectedAppointmentDateEnd,
-            status: getAppointmentStatusFromOptionId(selectedAppointmentStatus.id),
+            status: getAppointmentStatusFromOptionId(selectedAppointmentStatus?.id ?? 0),
             client_name: selectedAppointmentClientName,
             unit_city: selectedAppointmentUnitCity,
         }),
@@ -334,7 +343,7 @@ function SearchPage() {
         buildFilters: () => ({
             date_start: selectedAppointmentDateStart,
             date_end: selectedAppointmentDateEnd,
-            status: getAppointmentStatusFromOptionId(selectedAppointmentStatus.id),
+            status: getAppointmentStatusFromOptionId(selectedAppointmentStatus?.id ?? 0),
             client_name: selectedAppointmentClientName,
             unit_city: selectedAppointmentUnitCity,
         }),
@@ -1158,6 +1167,13 @@ function SearchPage() {
                                 >
                                     Limpar Filtros
                                 </Button>
+                                <Button
+                                    onClick={() => dispatch(openModal(Modals.CREATE_APPOINTMENT))}
+                                    className="flex-1 sm:flex-initial ml-auto"
+                                    data-testid="btn-create-appointment"
+                                >
+                                    Novo Agendamento
+                                </Button>
                             </div>
 
                             {/* Appointment Results Section */}
@@ -1332,6 +1348,12 @@ function SearchPage() {
                         title="Editar Proposta"
                         description="Atualize os dados da proposta comercial abaixo."
                         proposal={selectedProposal}
+                    />
+                )}
+                {currentModal === Modals.CREATE_APPOINTMENT && (
+                    <CreateAppointmentForm
+                        title="Novo Agendamento"
+                        description="Selecione o cliente e a unidade para criar um novo agendamento."
                     />
                 )}
             </Modal>
