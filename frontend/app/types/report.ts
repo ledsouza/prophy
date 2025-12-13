@@ -12,6 +12,21 @@ export type ReportTypeCode =
     | "O";
 
 /**
+ * Derived status for a report based on its due_date.
+ * Computed by the backend serializer.
+ */
+export type ReportStatus = "overdue" | "due_soon" | "ok" | "unknown";
+
+/**
+ * Responsible user information for a report.
+ */
+export type ReportResponsible = {
+    id: number;
+    name: string;
+    role: string;
+};
+
+/**
  * Data Transfer Object for Report as exposed by the backend REST API.
  * Dates are ISO strings; file is expected to be a direct URL for download.
  */
@@ -23,6 +38,19 @@ export type ReportDTO = {
     unit: number | null;
     equipment: number | null;
     file: string;
+};
+
+/**
+ * Extended Report DTO with search-specific fields.
+ * Includes derived status, responsible users, and denormalized names.
+ */
+export type ReportSearchDTO = ReportDTO & {
+    status: ReportStatus;
+    responsibles: ReportResponsible[];
+    responsibles_display: string;
+    unit_name?: string;
+    client_name?: string;
+    equipment_name?: string;
 };
 
 /**
@@ -50,3 +78,18 @@ export const reportTypeLabel: Record<ReportTypeCode, string> = {
 export type ListReportsArgs =
     | { page: number; unit?: number; equipment?: number }
     | { unit?: number; equipment?: number };
+
+/**
+ * Arguments for searching reports with filters.
+ * Used in the Reports search tab for GP, FMI, and FME roles.
+ */
+export type SearchReportsArgs = {
+    page?: number;
+    status?: ReportStatus;
+    due_date_start?: string;
+    due_date_end?: string;
+    client_name?: string;
+    client_cnpj?: string;
+    unit_name?: string;
+    unit_city?: string;
+};

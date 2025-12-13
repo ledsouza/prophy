@@ -1,6 +1,12 @@
-import { apiSlice } from "../services/apiSlice";
+import { apiSlice, PaginatedResponse } from "../services/apiSlice";
 import { createPaginatedQueryFn } from "../services/paginationHelpers";
-import type { ReportDTO, ListReportsArgs, ReportTypeCode } from "@/types/report";
+import type {
+    ReportDTO,
+    ListReportsArgs,
+    ReportTypeCode,
+    ReportSearchDTO,
+    SearchReportsArgs,
+} from "@/types/report";
 
 type UpdateReportFileArgs = {
     id: number;
@@ -62,6 +68,52 @@ const reportApiSlice = apiSlice.injectEndpoints({
             }),
             keepUnusedDataFor: 0,
         }),
+        /**
+         * Searches reports with filters.
+         * Returns paginated results with derived fields (status,
+         * responsibles).
+         * Role-based access control is enforced by the backend:
+         * - GP sees all reports
+         * - FMI/FME see only reports where they are assigned via
+         *   client.users
+         */
+        searchReports: builder.query<PaginatedResponse<ReportSearchDTO>, SearchReportsArgs>({
+            query: ({
+                page = 1,
+                status,
+                due_date_start,
+                due_date_end,
+                client_name,
+                client_cnpj,
+                unit_name,
+                unit_city,
+            }) => {
+                const params: Record<string, any> = { page };
+                if (status) params.status = status;
+                if (due_date_start) params.due_date_start = due_date_start;
+                if (due_date_end) params.due_date_end = due_date_end;
+                if (client_name) params.client_name = client_name;
+                if (client_cnpj) params.client_cnpj = client_cnpj;
+                if (unit_name) params.unit_name = unit_name;
+                if (unit_city) params.unit_city = unit_city;
+
+                return {
+                    url: "reports/",
+                    method: "GET",
+                    params,
+                };
+            },
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.results.map(({ id }) => ({
+                              type: "Report" as const,
+                              id,
+                          })),
+                          { type: "Report", id: "SEARCH" },
+                      ]
+                    : [{ type: "Report", id: "SEARCH" }],
+        }),
     }),
 });
 
@@ -70,5 +122,6 @@ export const {
     useCreateReportMutation,
     useUpdateReportFileMutation,
     useLazyDownloadReportFileQuery,
+    useSearchReportsQuery,
 } = reportApiSlice;
 export default reportApiSlice;
