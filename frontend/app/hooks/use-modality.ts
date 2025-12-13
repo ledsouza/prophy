@@ -40,8 +40,8 @@ export const useModality = (
         isError: isErrorModalities,
     } = useListModalitiesQuery();
 
-    const [modalityOptions, setModalityOptions] = useState<SelectData[]>();
-    const [selectedModality, setSelectedModality] = useState<SelectData>();
+    const [modalityOptions, setModalityOptions] = useState<SelectData[]>([]);
+    const [selectedModality, setSelectedModality] = useState<SelectData | null>(null);
     const [accessoryType, setAccessoryType] = useState<AccessoryType>();
 
     // Set the modality options when the modalities are loaded
@@ -58,6 +58,9 @@ export const useModality = (
                 id: defaultModality?.id || modalities[0].id,
                 value: defaultModality?.name || modalities[0].name,
             });
+        } else {
+            setModalityOptions([]);
+            setSelectedModality(null);
         }
     }, [modalities, defaultModality]);
 

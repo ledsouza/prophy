@@ -265,9 +265,13 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         );
     };
 
-    const renderAccessoryInputs = (accessoryIndex: number, remove: (index: number) => void) => {
+    const renderAccessoryInputs = (
+        accessoryIndex: number,
+        remove: (index: number) => void,
+        fieldId: string
+    ) => {
         return (
-            <div key={accessoryIndex} className="flex flex-col gap-4">
+            <div key={fieldId} className="flex flex-col gap-4">
                 <div className="flex justify-between gap-24 items-center">
                     <Typography element="h3" className="font-semibold">
                         {displaySingularAccessoryType(accessoryType!)}&nbsp;{accessoryIndex + 1}
@@ -458,7 +462,8 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 )}
 
                 {!addAccessory && renderEquipmentInputs()}
-                {addAccessory && fields.map((_, index) => renderAccessoryInputs(index, remove))}
+                {addAccessory &&
+                    fields.map((field, index) => renderAccessoryInputs(index, remove, field.id))}
 
                 {addAccessory && fields.length === 0 && (
                     <Typography element="p" className="font-semibold">
@@ -474,8 +479,8 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                 )}
                 {fields.length > 0 &&
                     !addAccessory &&
-                    fields.map((_, index) => (
-                        <div>
+                    fields.map((field, index) => (
+                        <div key={field.id}>
                             <Typography element="p">
                                 {getValues(`accessories.${index}.model`) === ""
                                     ? displaySingularAccessoryType(accessoryType!) +

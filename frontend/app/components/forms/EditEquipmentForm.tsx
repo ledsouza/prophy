@@ -652,9 +652,9 @@ const EditEquipmentForm = ({
         );
     };
 
-    const renderAccessoryInputs = (accessoryIndex: number) => {
+    const renderAccessoryInputs = (accessoryIndex: number, fieldId: string) => {
         return (
-            <div key={accessoryIndex} className="flex flex-col gap-4">
+            <div key={fieldId} className="flex flex-col gap-4">
                 <div className="flex justify-between gap-24 items-center">
                     <Typography element="h3" className="font-semibold">
                         {displaySingularAccessoryType(accessoryType!)}&nbsp;{accessoryIndex + 1}
@@ -1026,7 +1026,8 @@ const EditEquipmentForm = ({
 
                 {!editAccessories && renderEquipmentInputs()}
 
-                {editAccessories && fields.map((_, index) => renderAccessoryInputs(index))}
+                {editAccessories &&
+                    fields.map((field, index) => renderAccessoryInputs(index, field.id))}
 
                 {editAccessories && fields.length === 0 && (
                     <Typography element="p" className="font-semibold">
@@ -1044,8 +1045,8 @@ const EditEquipmentForm = ({
                     {fields.length > 0 &&
                         !editAccessories &&
                         !isRejected &&
-                        fields.map((_, index) => (
-                            <div key={index}>
+                        fields.map((field, index) => (
+                            <div key={field.id}>
                                 <Typography element="p">
                                     {getValues(`accessories.${index}.model`) === ""
                                         ? displaySingularAccessoryType(accessoryType!) +
