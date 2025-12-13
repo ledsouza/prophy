@@ -14,6 +14,7 @@ from clients_management.views import (
     ReportViewSet,
     ServiceOrderPDFView,
     ServiceOrderViewSet,
+    TriggerContractNotificationsView,
     TriggerReportNotificationView,
     TriggerUpdateAppointmentsView,
     UnitViewSet,
@@ -49,6 +50,11 @@ urlpatterns = [
         "appointments/tasks/update-overdue/",
         TriggerUpdateAppointmentsView.as_view(),
         name="trigger_update_appointments",
+    ),
+    path(
+        "proposals/tasks/run-contract-notifications/",
+        TriggerContractNotificationsView.as_view(),
+        name="trigger_contract_notifications",
     ),
     path("", include(router.urls)),
 ]

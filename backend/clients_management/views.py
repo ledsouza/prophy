@@ -2633,3 +2633,49 @@ class TriggerUpdateAppointmentsView(APIView):
                 {"status": "error", "message": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class TriggerContractNotificationsView(APIView):
+    """
+    A secure API view to be triggered by Google Cloud Scheduler.
+
+    This view is protected by OIDC authentication, ensuring that only
+    authenticated Google services can access it. When a valid POST
+    request is received, it executes the `send_contract_notifications`
+    management command.
+    """
+
+    authentication_classes = [GoogleOIDCAuthentication]
+
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Handles the POST request from Cloud Scheduler to run the command.
+        """
+        logger.info("Received request to trigger contract notifications...")
+        try:
+            output = StringIO()
+            call_command("send_contract_notifications", stdout=output)
+            command_output = output.getvalue()
+
+            logger.info(
+                "Command 'send_contract_notifications' executed successfully. Output: %s",
+                command_output.strip(),
+            )
+            return Response(
+                {
+                    "status": "ok",
+                    "message": "send_contract_notifications executed",
+                    "output": command_output,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logger.error(
+                "An error occurred while running send_contract_notifications command: %s",
+                e,
+                exc_info=True,
+            )
+            return Response(
+                {"status": "error", "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

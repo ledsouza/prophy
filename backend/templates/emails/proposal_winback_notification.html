@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Oportunidade de Reconquista</title>
+    </head>
+    <body
+        style="
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #111827;
+            background-color: #ffffff;
+        "
+    >
+        <table
+            width="100%"
+            border="0"
+            cellspacing="0"
+            cellpadding="0"
+            style="background-color: #ffffff"
+        >
+            <tr>
+                <td align="center">
+                    <table
+                        width="600"
+                        border="0"
+                        cellspacing="0"
+                        cellpadding="0"
+                        style="
+                            max-width: 600px;
+                            margin: 20px auto;
+                            background-color: #ffffff;
+                            border: 1px solid #dddddd;
+                            border-radius: 8px;
+                            overflow: hidden;
+                        "
+                    >
+                        <tr>
+                            <td
+                                style="
+                                    background-color: #1c388c;
+                                    color: #ffffff;
+                                    padding: 20px;
+                                    text-align: center;
+                                "
+                            >
+                                <h1 style="margin: 0; font-size: 24px; color: #ffffff">
+                                    Oportunidade de Reconquista
+                                </h1>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 25px; color: #111827">
+                                <p>Olá,</p>
+                                <p>
+                                    Este é um lembrete de que já se passaram
+                                    <strong>{{ months_since_rejection }} meses</strong> desde que a
+                                    proposta para o cliente <strong>{{ client_name }}</strong> foi
+                                    rejeitada.
+                                </p>
+                                <table
+                                    style="width: 100%; border-collapse: collapse; margin: 25px 0"
+                                >
+                                    <tbody>
+                                        <tr>
+                                            <td
+                                                style="
+                                                    padding: 12px;
+                                                    border: 1px solid #eeeeee;
+                                                    background-color: #f9f9f9;
+                                                    font-weight: bold;
+                                                    width: 35%;
+                                                "
+                                            >
+                                                Cliente
+                                            </td>
+                                            <td style="padding: 12px; border: 1px solid #eeeeee">
+                                                {{ client_name }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td
+                                                style="
+                                                    padding: 12px;
+                                                    border: 1px solid #eeeeee;
+                                                    background-color: #f9f9f9;
+                                                    font-weight: bold;
+                                                "
+                                            >
+                                                Contato
+                                            </td>
+                                            <td style="padding: 12px; border: 1px solid #eeeeee">
+                                                {{ contact_name }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td
+                                                style="
+                                                    padding: 12px;
+                                                    border: 1px solid #eeeeee;
+                                                    background-color: #f9f9f9;
+                                                    font-weight: bold;
+                                                "
+                                            >
+                                                Data da Rejeição
+                                            </td>
+                                            <td style="padding: 12px; border: 1px solid #eeeeee">
+                                                {{ rejection_date }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td
+                                                style="
+                                                    padding: 12px;
+                                                    border: 1px solid #eeeeee;
+                                                    background-color: #f9f9f9;
+                                                    font-weight: bold;
+                                                "
+                                            >
+                                                Tempo Decorrido
+                                            </td>
+                                            <td
+                                                style="
+                                                    padding: 12px;
+                                                    border: 1px solid #eeeeee;
+                                                    font-weight: bold;
+                                                    color: #dc2626;
+                                                "
+                                            >
+                                                {{ months_since_rejection }} meses
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p>
+                                    Este pode ser um bom momento para entrar em contato novamente e
+                                    apresentar uma nova proposta comercial. As circunstâncias podem
+                                    ter mudado e o cliente pode estar mais receptivo agora.
+                                </p>
+                                <p>
+                                    <strong>Sugestões para a abordagem:</strong>
+                                </p>
+                                <ul style="margin: 15px 0; padding-left: 20px">
+                                    <li>
+                                        Verifique se houve mudanças na gestão ou necessidades do
+                                        cliente
+                                    </li>
+                                    <li>Apresente novos serviços ou melhorias implementadas</li>
+                                    <li>
+                                        Ofereça condições especiais ou diferenciais competitivos
+                                    </li>
+                                    <li>Demonstre cases de sucesso com outros clientes</li>
+                                </ul>
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td align="center" style="padding: 10px 0 20px 0">
+                                            <a
+                                                href="{{ dashboard_url }}"
+                                                target="_blank"
+                                                style="
+                                                    background-color: #2c51bf;
+                                                    color: #ffffff;
+                                                    padding: 12px 25px;
+                                                    text-decoration: none;
+                                                    border-radius: 5px;
+                                                    font-weight: bold;
+                                                    display: inline-block;
+                                                    border: 1px solid #2c51bf;
+                                                "
+                                                >Acessar o Sistema</a
+                                            >
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p>Atenciosamente,<br />Equipe Prophy</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td
+                                style="
+                                    background-color: #f0f0f0;
+                                    color: #777777;
+                                    padding: 15px;
+                                    text-align: center;
+                                    font-size: 12px;
+                                "
+                            >
+                                <p style="margin: 0">
+                                    &copy; {{ current_year }} Prophy. Todos os direitos reservados.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
