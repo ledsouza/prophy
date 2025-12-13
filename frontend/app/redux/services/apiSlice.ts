@@ -85,7 +85,26 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
     }
     if (result.error && result.error.status !== 401) {
         const status = result.error.status;
-        log.error({ status }, "API request failed");
+        const endpoint = typeof args === "string" ? args : args.url;
+        const method = typeof args === "string" ? "GET" : (args.method ?? "GET");
+
+        const errorMessage =
+            typeof result.error === "object" && result.error && "error" in result.error
+                ? String((result.error as { error?: unknown }).error ?? "")
+                : "";
+
+        const fields = {
+            status,
+            endpoint,
+            method,
+            error: errorMessage.length > 0 ? errorMessage : undefined,
+        };
+
+        if (typeof status === "number" && status >= 500) {
+            log.error(fields, "API request failed");
+        } else {
+            log.warn(fields, "API request failed");
+        }
     }
     return result;
 };
