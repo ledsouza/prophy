@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import Any
 
 from django.db import transaction
@@ -219,6 +220,10 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 
 class ReportSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    responsibles = serializers.SerializerMethodField()
+    responsibles_display = serializers.SerializerMethodField()
+
     class Meta:
         model = Report
         fields = "__all__"
@@ -237,3 +242,57 @@ class ReportSerializer(serializers.ModelSerializer):
                 representation["client_name"] = instance.equipment.unit.client.name
 
         return representation
+
+    def get_status(self, obj: Report) -> str:
+        """Derive report status from due_date."""
+        if not obj.due_date:
+            return "unknown"
+
+        today = date.today()
+        if obj.due_date < today:
+            return "overdue"
+        elif obj.due_date <= today + timedelta(days=30):
+            return "due_soon"
+        else:
+            return "ok"
+
+    def get_responsibles(self, obj: Report) -> list[dict]:
+        """
+        Return list of responsible users (FMI, FME, GP) from the
+        associated client.
+        """
+        client = None
+        if obj.unit and obj.unit.client:
+            client = obj.unit.client
+        elif obj.equipment and obj.equipment.unit and obj.equipment.unit.client:
+            client = obj.equipment.unit.client
+
+        if not client:
+            return []
+
+        physicist_roles = [
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.PROPHY_MANAGER,
+        ]
+
+        responsibles = client.users.filter(role__in=physicist_roles).values(
+            "id", "name", "role"
+        )
+        return list(responsibles)
+
+    def get_responsibles_display(self, obj: Report) -> str:
+        """
+        Return a formatted string of responsible users for display in
+        tables.
+        """
+        responsibles = self.get_responsibles(obj)
+        if not responsibles:
+            return "—"
+
+        parts = []
+        for user in responsibles:
+            role_display = UserAccount.Role(user["role"]).label
+            parts.append(f"{role_display}: {user['name']}")
+
+        return "; ".join(parts)

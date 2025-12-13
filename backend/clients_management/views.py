@@ -2187,7 +2187,17 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         },
     )
     def list(self, request):
-        queryset = self._get_base_queryset(request.user)
+        queryset = (
+            self._get_base_queryset(request.user)
+            .select_related(
+                "unit__client",
+                "equipment__unit__client",
+            )
+            .prefetch_related(
+                "unit__client__users",
+                "equipment__unit__client__users",
+            )
+        )
         queryset = self._apply_filters(queryset, request.query_params)
         queryset = queryset.order_by("-completion_date")
         return self._paginate_response(queryset, request, ReportSerializer)
@@ -2218,9 +2228,17 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         user: UserAccount = request.user
 
         try:
-            report = Report.objects.select_related(
-                "unit__client", "equipment__unit__client"
-            ).get(pk=pk)
+            report = (
+                Report.objects.select_related(
+                    "unit__client",
+                    "equipment__unit__client",
+                )
+                .prefetch_related(
+                    "unit__client__users",
+                    "equipment__unit__client__users",
+                )
+                .get(pk=pk)
+            )
         except Report.DoesNotExist:
             return Response(
                 {"detail": "Relatório não encontrado."},
@@ -2270,9 +2288,17 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             )
 
         try:
-            report = Report.objects.select_related(
-                "unit__client", "equipment__unit__client"
-            ).get(pk=pk)
+            report = (
+                Report.objects.select_related(
+                    "unit__client",
+                    "equipment__unit__client",
+                )
+                .prefetch_related(
+                    "unit__client__users",
+                    "equipment__unit__client__users",
+                )
+                .get(pk=pk)
+            )
         except Report.DoesNotExist:
             return Response(
                 {"detail": "Relatório não encontrado."},
@@ -2292,32 +2318,34 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def _get_base_queryset(self, user: UserAccount):
-        """
-        Get base queryset based on user role and permissions.
-        """
-        if (
-            user.role == UserAccount.Role.PROPHY_MANAGER
-            or user.role == UserAccount.Role.COMMERCIAL
-        ):
+        """Get base queryset based on user role and report access scope."""
+        if user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]:
             return Report.objects.all()
-        elif user.role in [
+
+        if user.role in [
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]:
-            return Report.objects.all()
-        elif user.role == UserAccount.Role.UNIT_MANAGER:
-            return Report.objects.filter(
-                Q(unit__user=user) | Q(equipment__unit__user=user)
-            )
-        else:
+            # Medical physicists can only view reports assigned to them via
+            # Client.users association.
             return Report.objects.filter(
                 Q(unit__client__users=user) | Q(equipment__unit__client__users=user)
             )
 
+        if user.role == UserAccount.Role.UNIT_MANAGER:
+            return Report.objects.filter(
+                Q(unit__user=user) | Q(equipment__unit__user=user)
+            )
+
+        return Report.objects.filter(
+            Q(unit__client__users=user) | Q(equipment__unit__client__users=user)
+        )
+
     def _apply_filters(self, queryset, query_params):
-        """
-        Apply filtering based on query parameters.
-        """
+        """Apply filtering based on query parameters."""
         unit = query_params.get("unit")
         if unit is not None:
             queryset = queryset.filter(unit=unit)
@@ -2330,9 +2358,61 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         if report_type is not None:
             queryset = queryset.filter(report_type=report_type)
 
+        # Due date range filtering
+        due_date_start = query_params.get("due_date_start")
+        if due_date_start:
+            queryset = queryset.filter(due_date__gte=due_date_start)
+
+        due_date_end = query_params.get("due_date_end")
+        if due_date_end:
+            queryset = queryset.filter(due_date__lte=due_date_end)
+
+        # Client / Unit filters
+        client_name = query_params.get("client_name")
+        if client_name:
+            queryset = queryset.filter(
+                Q(unit__client__name__icontains=client_name)
+                | Q(equipment__unit__client__name__icontains=client_name)
+            )
+
+        client_cnpj = query_params.get("client_cnpj")
+        if client_cnpj:
+            queryset = queryset.filter(
+                Q(unit__client__cnpj=client_cnpj)
+                | Q(equipment__unit__client__cnpj=client_cnpj)
+            )
+
+        unit_name = query_params.get("unit_name")
+        if unit_name:
+            queryset = queryset.filter(
+                Q(unit__name__icontains=unit_name)
+                | Q(equipment__unit__name__icontains=unit_name)
+            )
+
+        unit_city = query_params.get("unit_city")
+        if unit_city:
+            queryset = queryset.filter(
+                Q(unit__city__icontains=unit_city)
+                | Q(equipment__unit__city__icontains=unit_city)
+            )
+
+        # Derived status filters (computed from due_date)
+        status_param = query_params.get("status")
+        today = date.today()
+        if status_param == "overdue":
+            queryset = queryset.filter(due_date__lt=today)
+        elif status_param == "due_soon":
+            queryset = queryset.filter(
+                due_date__gte=today,
+                due_date__lte=today + timedelta(days=30),
+            )
+        elif status_param == "ok":
+            queryset = queryset.filter(due_date__gt=today + timedelta(days=30))
+
+        # Backwards-compatible filter
         due_soon = query_params.get("due_soon")
         if due_soon is not None and due_soon.lower() == "true":
-            thirty_days_from_now = date.today() + timedelta(days=30)
+            thirty_days_from_now = today + timedelta(days=30)
             queryset = queryset.filter(due_date__lte=thirty_days_from_now)
 
         return queryset
@@ -2358,19 +2438,25 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         ]
 
     def _has_report_access(self, user: UserAccount, report: Report) -> bool:
-        """
-        Check if user has access to a specific report using structural
-        pattern matching.
-        """
+        """Check if user has access to a specific report."""
         match user.role:
             case UserAccount.Role.PROPHY_MANAGER:
+                return True
+
+            case UserAccount.Role.COMMERCIAL:
+                # Keep existing behavior: commercial has global access
                 return True
 
             case (
                 UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST
                 | UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST
             ):
-                return True
+                return (
+                    report.unit and report.unit.client.users.filter(pk=user.pk).exists()
+                ) or (
+                    report.equipment
+                    and report.equipment.unit.client.users.filter(pk=user.pk).exists()
+                )
 
             case UserAccount.Role.UNIT_MANAGER:
                 return (report.unit and report.unit.user == user) or (
