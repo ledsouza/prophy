@@ -115,7 +115,7 @@ const Table = <T extends {}>({ data, columns, keyExtractor, rowClassName }: Tabl
                             <tr
                                 key={keyExtractor(row)}
                                 className={clsx(
-                                    "hover:bg-gray-50",
+                                    "hover:bg-light transition-colors duration-150",
                                     rowClassName && rowClassName(row)
                                 )}
                             >
