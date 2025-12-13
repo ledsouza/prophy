@@ -21,9 +21,19 @@ import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityAp
 import type { ClientDTO } from "@/types/client";
 import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
 
-import { Button, ErrorDisplay, Pagination, Spinner, Tab, Table } from "@/components/common";
+import {
+    Button,
+    ErrorDisplay,
+    Pagination,
+    ReportsSearchTab,
+    Spinner,
+    Tab,
+    Table,
+} from "@/components/common";
 import { Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import Role from "@/enums/Role";
 
 import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
 import { SearchTab, getTabFromParam } from "./enums";
@@ -371,6 +381,7 @@ function SearchPage() {
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
                         <Tab>Clientes</Tab>
                         <Tab>Equipamentos</Tab>
+                        <Tab>Relatórios</Tab>
                     </TabList>
 
                     <TabPanels>
@@ -832,6 +843,10 @@ function SearchPage() {
                                     </div>
                                 )}
                             </div>
+                        </TabPanel>
+
+                        <TabPanel>
+                            <ReportsSearchTab currentUserRole={Role.GP} />
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>

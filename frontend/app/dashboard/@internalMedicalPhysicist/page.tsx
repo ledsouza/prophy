@@ -1,5 +1,6 @@
 "use client";
 
+import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
@@ -30,8 +31,9 @@ import {
     ReviewDeleteUnitForm,
 } from "@/components/forms";
 import { ModalDeleteUnit } from "@/components/modals";
-import { Button, Modal, Spinner } from "@/components/common";
+import { Button, Modal, ReportsSearchTab, Spinner, Tab } from "@/components/common";
 import { ClientDetails, UnitList } from "@/components/client";
+import Role from "@/enums/Role";
 
 function ClientPage() {
     const router = useRouter();
@@ -179,7 +181,7 @@ function ClientPage() {
     }
 
     return (
-        <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
+        <main className="flex flex-col gap-6 px-4 md:px-6 lg:px-8 py-4">
             <Button
                 variant="secondary"
                 className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
@@ -192,39 +194,65 @@ function ClientPage() {
                 </div>
             </Button>
 
-            {clientOptions && selectedClient && filteredClient && clientsOperations && (
-                <ClientDetails
-                    title="Informações do cliente"
-                    isLoading={isLoadingClientData}
-                    clientOptions={clientOptions}
-                    selectedClient={selectedClient}
-                    setSelectedClient={setSelectedClient}
-                    filteredClient={filteredClient}
-                    selectedClientInOperation={selectedClientInOperation}
-                />
-            )}
+            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <TabGroup>
+                    <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
+                        <Tab>Clientes</Tab>
+                        <Tab>Relatórios</Tab>
+                    </TabList>
 
-            <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] flex flex-col min-h-0 gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
-                <Typography element="h2" size="title2" className="font-bold">
-                    Unidades
-                </Typography>
+                    <TabPanels>
+                        <TabPanel>
+                            <div className="flex flex-col md:flex-row gap-6 h-[80vh] min-h-[560px]">
+                                {clientOptions &&
+                                    selectedClient &&
+                                    filteredClient &&
+                                    clientsOperations && (
+                                        <ClientDetails
+                                            title="Informações do cliente"
+                                            isLoading={isLoadingClientData}
+                                            clientOptions={clientOptions}
+                                            selectedClient={selectedClient}
+                                            setSelectedClient={setSelectedClient}
+                                            filteredClient={filteredClient}
+                                            selectedClientInOperation={selectedClientInOperation}
+                                            containerClassName="flex flex-col gap-6 w-full md:w-2/5 h-full min-h-0 overflow-y-auto [scrollbar-gutter:stable] p-6"
+                                        />
+                                    )}
 
-                {filteredUnits?.length !== 0 && (
-                    <Input
-                        placeholder="Buscar unidades por nome"
-                        value={searchTerm}
-                        onChange={handleSearchInputChange}
-                        dataTestId="input-search-unit"
-                    />
-                )}
+                                <div className="w-full md:w-3/5 h-full flex flex-col min-h-0 gap-6 p-6">
+                                    <Typography element="h2" size="title2" className="font-bold">
+                                        Unidades
+                                    </Typography>
 
-                <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable] px-3 py-3">
-                    <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
-                </div>
+                                    {filteredUnits?.length !== 0 && (
+                                        <Input
+                                            placeholder="Buscar unidades por nome"
+                                            value={searchTerm}
+                                            onChange={handleSearchInputChange}
+                                            dataTestId="input-search-unit"
+                                        />
+                                    )}
 
-                <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
-                    Adicionar unidade
-                </Button>
+                                    <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable] px-3 py-3 min-h-0">
+                                        <UnitList
+                                            searchedUnits={searchedUnits}
+                                            filteredUnits={filteredUnits}
+                                        />
+                                    </div>
+
+                                    <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
+                                        Adicionar unidade
+                                    </Button>
+                                </div>
+                            </div>
+                        </TabPanel>
+
+                        <TabPanel>
+                            <ReportsSearchTab currentUserRole={Role.FMI} />
+                        </TabPanel>
+                    </TabPanels>
+                </TabGroup>
             </div>
 
             <Modal
