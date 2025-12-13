@@ -5,6 +5,8 @@ import uuid
 import re
 from datetime import date, timedelta
 
+from dateutil.relativedelta import relativedelta
+
 from clients_management.models import (
     Accessory,
     Appointment,
@@ -1226,6 +1228,85 @@ class Command(BaseCommand):
                 status=Proposal.Status.ACCEPTED,
                 pdf_version=pdf_file,
                 word_version=word_file,
+            )
+
+            # Deterministic proposals for testing contract notifications
+            threshold_date = date.today() - relativedelta(months=11)
+
+            # 1) Renewal notification test: ACCEPTED + ANNUAL proposal exactly 11 months old
+            # Use client2 (cnpj="90217758000179") which has GP, C, and GGC users
+            renewal_test_cnpj = "90217758000179"
+            Proposal.objects.create(
+                cnpj=renewal_test_cnpj,
+                city="Porto Alegre",
+                state="RS",
+                contact_name="Contato Renovação Teste",
+                contact_phone=fake_phone_number(),
+                email=fake.email(),
+                date=threshold_date,
+                value=50000.00,
+                contract_type=Proposal.ContractType.ANNUAL,
+                status=Proposal.Status.ACCEPTED,
+                pdf_version=pdf_file,
+                word_version=word_file,
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Created deterministic RENEWAL proposal for CNPJ {renewal_test_cnpj} "
+                    f"with date={threshold_date}"
+                )
+            )
+
+            # 2) Win-back notification test: REJECTED proposal exactly 11 months old
+            # Use REJECTED_PROPOSAL_CNPJ and ensure client exists with COMMERCIAL user
+            winback_test_cnpj = REJECTED_PROPOSAL_CNPJ
+            try:
+                winback_client = Client.objects.get(cnpj=winback_test_cnpj)
+            except Client.DoesNotExist:
+                # Create client if it doesn't exist
+                winback_client = ClientOperation.objects.create(
+                    operation_type=ClientOperation.OperationType.CLOSED,
+                    operation_status=ClientOperation.OperationStatus.ACCEPTED,
+                    created_by=UserAccount.objects.get(cpf=CPF_ADMIN),
+                    cnpj=winback_test_cnpj,
+                    name="Cliente Reconquista Teste",
+                    email=fake.email(),
+                    phone=fake_phone_number(),
+                    address=fake.address(),
+                    state="SP",
+                    city="São Paulo",
+                    is_active=True,
+                )
+                winback_client.users.add(UserAccount.objects.get(cpf=CPF_COMERCIAL))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"Created deterministic client for win-back test: {winback_test_cnpj}"
+                    )
+                )
+
+            # Ensure COMMERCIAL user is associated
+            if not winback_client.users.filter(cpf=CPF_COMERCIAL).exists():
+                winback_client.users.add(UserAccount.objects.get(cpf=CPF_COMERCIAL))
+
+            Proposal.objects.create(
+                cnpj=winback_test_cnpj,
+                city="São Paulo",
+                state="SP",
+                contact_name="Contato Reconquista Teste",
+                contact_phone=fake_phone_number(),
+                email=fake.email(),
+                date=threshold_date,
+                value=30000.00,
+                contract_type=Proposal.ContractType.ANNUAL,
+                status=Proposal.Status.REJECTED,
+                pdf_version=pdf_file,
+                word_version=word_file,
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Created deterministic WIN-BACK proposal for CNPJ {winback_test_cnpj} "
+                    f"with date={threshold_date}"
+                )
             )
 
             # Create proposals for all existing clients to ensure each client has at least one proposal
