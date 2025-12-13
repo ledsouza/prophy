@@ -240,29 +240,33 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
 
     // Load original unit state and city from IBGE API
     useEffect(() => {
-        if (isLoadingIBGE) {
-            const estado = estados?.find(
-                (estado) => estado.sigla?.toLowerCase() === unit.state.toLowerCase()
-            );
-
-            const municipio = municipios?.find(
-                (municipio) => municipio.nome.toLowerCase() === unit.city.toLowerCase()
-            );
-
-            if (estado) {
-                handleEstadoChange({
-                    id: estado.id,
-                    name: estado.nome,
-                    sigla: estado.sigla,
-                });
-            }
-            if (municipio) {
-                handleMunicipioChange({
-                    id: municipio.id,
-                    name: municipio.nome,
-                });
-            }
+        if (!isLoadingIBGE) {
+            return;
         }
+
+        const estado = estados?.find(
+            (estado) => estado.sigla?.toLowerCase() === unit.state.toLowerCase()
+        );
+
+        const municipio = municipios?.find(
+            (municipio) => municipio.nome.toLowerCase() === unit.city.toLowerCase()
+        );
+
+        if (estado && selectedEstado?.id !== estado.id) {
+            handleEstadoChange({
+                id: estado.id,
+                name: estado.nome,
+                sigla: estado.sigla,
+            });
+        }
+
+        if (municipio && selectedMunicipio?.id !== municipio.id) {
+            handleMunicipioChange({
+                id: municipio.id,
+                name: municipio.nome,
+            });
+        }
+
         if (estados && municipios) {
             setIsLoadingIBGE(false);
         }
@@ -274,6 +278,8 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
         handleEstadoChange,
         handleMunicipioChange,
         isLoadingIBGE,
+        selectedEstado?.id,
+        selectedMunicipio?.id,
     ]);
 
     // If the user clicks in go back, it's required to transform the note to undefined

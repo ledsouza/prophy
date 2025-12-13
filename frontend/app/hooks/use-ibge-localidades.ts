@@ -42,20 +42,47 @@ const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
         cleanSelectedMunicipio();
     }, [cleanSelectedMunicipio]);
 
-    const handleEstadoChange = (selectedEstado: ComboboxDataProps | null) => {
-        setSelectedEstado(selectedEstado);
-        if (selectedEstado) {
-            setValue("state", selectedEstado.sigla, { shouldValidate: true });
-            return;
-        }
-        setValue("state", "", { shouldValidate: true });
-        setValue("city", "", { shouldValidate: true });
-    };
+    const handleEstadoChange = useCallback(
+        (newSelectedEstado: ComboboxDataProps | null) => {
+            setSelectedEstado((currentSelectedEstado) => {
+                const currentId = currentSelectedEstado?.id ?? null;
+                const nextId = newSelectedEstado?.id ?? null;
 
-    const handleMunicipioChange = (selectedMunicipio: ComboboxDataProps | null) => {
-        setSelectedMunicipio(selectedMunicipio);
-        setValue("city", selectedMunicipio?.name || "", { shouldValidate: true });
-    };
+                if (currentId === nextId) {
+                    return currentSelectedEstado;
+                }
+
+                return newSelectedEstado;
+            });
+
+            if (newSelectedEstado) {
+                setValue("state", newSelectedEstado.sigla, { shouldValidate: true });
+                return;
+            }
+
+            setValue("state", "", { shouldValidate: true });
+            setValue("city", "", { shouldValidate: true });
+        },
+        [setValue]
+    );
+
+    const handleMunicipioChange = useCallback(
+        (newSelectedMunicipio: ComboboxDataProps | null) => {
+            setSelectedMunicipio((currentSelectedMunicipio) => {
+                const currentId = currentSelectedMunicipio?.id ?? null;
+                const nextId = newSelectedMunicipio?.id ?? null;
+
+                if (currentId === nextId) {
+                    return currentSelectedMunicipio;
+                }
+
+                return newSelectedMunicipio;
+            });
+
+            setValue("city", newSelectedMunicipio?.name || "", { shouldValidate: true });
+        },
+        [setValue]
+    );
 
     return {
         estados,

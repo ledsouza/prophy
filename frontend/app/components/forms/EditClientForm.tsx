@@ -337,28 +337,31 @@ const EditClientForm = ({
     };
 
     useEffect(() => {
-        if (isInitialLoad) {
-            const estado = estados?.find(
-                (estado) => estado.sigla?.toLowerCase() === client.state.toLowerCase()
-            );
+        if (!isInitialLoad) {
+            return;
+        }
 
-            const municipio = municipios?.find(
-                (municipio) => municipio.nome.toLowerCase() === client.city.toLowerCase()
-            );
+        const estado = estados?.find(
+            (estado) => estado.sigla?.toLowerCase() === client.state.toLowerCase()
+        );
 
-            if (estado) {
-                handleEstadoChange({
-                    id: estado.id,
-                    name: estado.nome,
-                    sigla: estado.sigla,
-                });
-            }
-            if (municipio) {
-                handleMunicipioChange({
-                    id: municipio.id,
-                    name: municipio.nome,
-                });
-            }
+        const municipio = municipios?.find(
+            (municipio) => municipio.nome.toLowerCase() === client.city.toLowerCase()
+        );
+
+        if (estado && selectedEstado?.id !== estado.id) {
+            handleEstadoChange({
+                id: estado.id,
+                name: estado.nome,
+                sigla: estado.sigla,
+            });
+        }
+
+        if (municipio && selectedMunicipio?.id !== municipio.id) {
+            handleMunicipioChange({
+                id: municipio.id,
+                name: municipio.nome,
+            });
         }
 
         if (estados && municipios) {
@@ -372,6 +375,8 @@ const EditClientForm = ({
         handleEstadoChange,
         handleMunicipioChange,
         isInitialLoad,
+        selectedEstado?.id,
+        selectedMunicipio?.id,
     ]);
 
     useEffect(() => {

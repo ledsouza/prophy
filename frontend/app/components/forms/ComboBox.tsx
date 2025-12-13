@@ -82,10 +82,13 @@ const ComboBox = ({
                     {children}
                 </Label>
                 <Combobox
+                    by="id"
                     value={selectedValue}
                     virtual={{ options: filteredOptions }}
                     onChange={onChange}
-                    onClose={() => setFilteredOptions(data)}
+                    onClose={() => {
+                        setFilteredOptions(data);
+                    }}
                 >
                     <ComboboxInput
                         aria-label="Assignee"
