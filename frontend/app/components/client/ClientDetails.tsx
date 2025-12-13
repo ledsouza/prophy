@@ -38,6 +38,7 @@ type ClientDetailsProps = {
     filteredClient: ClientDTO;
     selectedClientInOperation: ClientOperationDTO | null;
     hideClientSelector?: boolean;
+    containerClassName?: string;
 };
 
 function ClientDetails({
@@ -49,6 +50,7 @@ function ClientDetails({
     filteredClient,
     selectedClientInOperation,
     hideClientSelector = false,
+    containerClassName = "flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8",
 }: ClientDetailsProps) {
     const router = useRouter();
     const dispatch = useAppDispatch();
@@ -239,7 +241,7 @@ function ClientDetails({
     const isUnitManager = userData?.role === Role.GU;
 
     return (
-        <div className="flex flex-col gap-6 w-full md:w-2/5 rounded-lg p-6 md:p-8">
+        <div className={containerClassName}>
             {hideClientSelector && (
                 <Button
                     variant="secondary"
