@@ -14,6 +14,7 @@ import { useUpdateProposalMutation } from "@/redux/features/proposalApiSlice";
 
 import { Button } from "@/components/common";
 import { Form, Input, Select } from "@/components/forms";
+import { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useAppDispatch } from "@/redux/hooks";
@@ -103,7 +104,11 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
         }
     };
 
-    const handleStatusChange = (selected: { id: number; value: string }) => {
+    const handleStatusChange = (selected: SelectData | null) => {
+        if (!selected) {
+            return;
+        }
+
         switch (selected.id) {
             case 1:
                 setValue("status", ProposalStatus.ACCEPTED, { shouldValidate: true });

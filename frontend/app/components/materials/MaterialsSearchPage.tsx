@@ -89,12 +89,12 @@ const MaterialsSearchPage = () => {
         id: number;
         value: string;
         code?: MaterialVisibility;
-    }>(initialVisibilityOption);
+    } | null>(initialVisibilityOption);
     const [selectedCategory, setSelectedCategory] = useState<{
         id: number;
         value: string;
         code?: MaterialCategoryCode;
-    }>({
+    } | null>({
         id: 0,
         value: "Todos",
     });
@@ -109,7 +109,7 @@ const MaterialsSearchPage = () => {
     }, [isClientGeneralManager, isUnitManager]);
 
     const categoryOptions = useMemo(() => {
-        return getCategoryOptionsForVisibility(selectedVisibility.code);
+        return getCategoryOptionsForVisibility(selectedVisibility?.code);
     }, [selectedVisibility]);
 
     const queryArgs = useMemo(() => {
@@ -160,7 +160,7 @@ const MaterialsSearchPage = () => {
 
         // After setting visibility, compute category option
         const afterVisibilityOptions =
-            !selectedVisibility.code || selectedVisibility.code === "PUB"
+            !selectedVisibility?.code || selectedVisibility?.code === "PUB"
                 ? [{ id: 0, value: "Todos" }, ...PUBLIC_CATEGORY_OPTIONS]
                 : [{ id: 0, value: "Todos" }, ...INTERNAL_CATEGORY_OPTIONS];
 
@@ -193,8 +193,8 @@ const MaterialsSearchPage = () => {
         if (currentPage !== 1) setCurrentPage(1);
 
         const filters: MaterialFilters = {
-            visibility: (selectedVisibility.code as MaterialVisibility) || "",
-            category: (selectedCategory.code as MaterialCategoryCode) || "",
+            visibility: (selectedVisibility?.code as MaterialVisibility) || "",
+            category: (selectedCategory?.code as MaterialCategoryCode) || "",
             search: searchText.trim(),
         };
         setAppliedFilters(filters);

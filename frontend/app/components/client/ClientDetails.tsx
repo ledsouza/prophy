@@ -33,8 +33,8 @@ type ClientDetailsProps = {
     title: string;
     isLoading: boolean;
     clientOptions: SelectData[];
-    selectedClient: SelectData;
-    setSelectedClient: (value: SelectData) => void;
+    selectedClient: SelectData | null;
+    setSelectedClient: (value: SelectData | null) => void;
     filteredClient: ClientDTO;
     selectedClientInOperation: ClientOperationDTO | null;
     hideClientSelector?: boolean;

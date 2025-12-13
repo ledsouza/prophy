@@ -3,24 +3,23 @@
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { FileTextIcon, InfoIcon, WarningIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
 import { SelectData } from "@/components/forms/Select";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
 import {
-    usePendingOperations,
-    useTabNavigation,
-    usePageNavigation,
     useFilterApplication,
     useFilterClear,
     useFilterRestoration,
+    usePageNavigation,
+    usePendingOperations,
+    useTabNavigation,
 } from "@/hooks";
-import { buildStandardUrlParams } from "@/utils/url-params";
-import type { ClientDTO } from "@/types/client";
 import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipmentApiSlice";
 import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
-import { restoreTextFilterStates, restoreSelectFilterStates } from "@/utils/filter-restoration";
+import type { ClientDTO } from "@/types/client";
+import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
 
 import { Button, ErrorDisplay, Pagination, Spinner, Tab, Table } from "@/components/common";
 import { Input, Select } from "@/components/forms";
@@ -31,10 +30,10 @@ import { SearchTab, getTabFromParam } from "./enums";
 import { useSearchQueries } from "./hooks";
 import {
     getContractTypeFromOptionId,
-    getOperationStatusFromOptionId,
-    getUserRoleFromOptionId,
     getContractTypeOptionIdFromValue,
+    getOperationStatusFromOptionId,
     getOperationStatusOptionIdFromValue,
+    getUserRoleFromOptionId,
     getUserRoleOptionIdFromValue,
     restoreManufacturerFilterState,
     restoreModalityFilterState,
@@ -63,12 +62,15 @@ function SearchPage() {
     const [selectedClientName, setSelectedClientName] = useState("");
     const [selectedClientCNPJ, setSelectedClientCNPJ] = useState("");
     const [selectedClientCity, setSelectedClientCity] = useState("");
-    const [selectedUserRole, setSelectedUserRole] = useState<SelectData>({ id: 0, value: "Todos" });
-    const [selectedContractType, setSelectedContractType] = useState<SelectData>({
+    const [selectedUserRole, setSelectedUserRole] = useState<SelectData | null>({
         id: 0,
         value: "Todos",
     });
-    const [selectedOperationStatus, setSelectedOperationStatus] = useState<SelectData>({
+    const [selectedContractType, setSelectedContractType] = useState<SelectData | null>({
+        id: 0,
+        value: "Todos",
+    });
+    const [selectedOperationStatus, setSelectedOperationStatus] = useState<SelectData | null>({
         id: 0,
         value: "Todos",
     });
@@ -81,14 +83,15 @@ function SearchPage() {
         client_name: "",
     });
 
-    const [selectedEquipmentModality, setSelectedEquipmentModality] = useState<SelectData>({
+    const [selectedEquipmentModality, setSelectedEquipmentModality] = useState<SelectData | null>({
         id: 0,
         value: "Todos",
     });
-    const [selectedEquipmentManufacturer, setSelectedEquipmentManufacturer] = useState<SelectData>({
-        id: 0,
-        value: "Todos",
-    });
+    const [selectedEquipmentManufacturer, setSelectedEquipmentManufacturer] =
+        useState<SelectData | null>({
+            id: 0,
+            value: "Todos",
+        });
     const [selectedEquipmentClient, setSelectedEquipmentClient] = useState("");
 
     const {
@@ -128,9 +131,9 @@ function SearchPage() {
                 name: selectedClientName,
                 cnpj: selectedClientCNPJ,
                 city: selectedClientCity,
-                user_role: getUserRoleFromOptionId(selectedUserRole.id),
-                contract_type: getContractTypeFromOptionId(selectedContractType.id),
-                operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
+                user_role: getUserRoleFromOptionId(selectedUserRole?.id ?? 0),
+                contract_type: getContractTypeFromOptionId(selectedContractType?.id ?? 0),
+                operation_status: getOperationStatusFromOptionId(selectedOperationStatus?.id ?? 0),
             }),
         },
         [SearchTab.EQUIPMENTS]: {
@@ -138,8 +141,8 @@ function SearchPage() {
             pageKey: "equipment_page",
             currentPage: equipmentCurrentPage,
             buildFilters: () => ({
-                modality: String(selectedEquipmentModality.id),
-                manufacturer: selectedEquipmentManufacturer.value,
+                modality: String(selectedEquipmentModality?.id ?? 0),
+                manufacturer: selectedEquipmentManufacturer?.value ?? "",
                 client_name: selectedEquipmentClient,
             }),
         },
@@ -152,9 +155,9 @@ function SearchPage() {
             name: selectedClientName,
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
-            user_role: getUserRoleFromOptionId(selectedUserRole.id),
-            contract_type: getContractTypeFromOptionId(selectedContractType.id),
-            operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
+            user_role: getUserRoleFromOptionId(selectedUserRole?.id ?? 0),
+            contract_type: getContractTypeFromOptionId(selectedContractType?.id ?? 0),
+            operation_status: getOperationStatusFromOptionId(selectedOperationStatus?.id ?? 0),
         }),
         setCurrentPage: setClientCurrentPage,
     });
@@ -169,9 +172,9 @@ function SearchPage() {
             name: selectedClientName,
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
-            user_role: getUserRoleFromOptionId(selectedUserRole.id),
-            contract_type: getContractTypeFromOptionId(selectedContractType.id),
-            operation_status: getOperationStatusFromOptionId(selectedOperationStatus.id),
+            user_role: getUserRoleFromOptionId(selectedUserRole?.id ?? 0),
+            contract_type: getContractTypeFromOptionId(selectedContractType?.id ?? 0),
+            operation_status: getOperationStatusFromOptionId(selectedOperationStatus?.id ?? 0),
         }),
     });
 
@@ -206,9 +209,13 @@ function SearchPage() {
         setAppliedFilters: setEquipmentAppliedFilters,
         buildFilters: () => ({
             modality:
-                selectedEquipmentModality.id !== 0 ? selectedEquipmentModality.id.toString() : "",
+                selectedEquipmentModality?.id && selectedEquipmentModality.id !== 0
+                    ? selectedEquipmentModality.id.toString()
+                    : "",
             manufacturer:
-                selectedEquipmentManufacturer.id !== 0 ? selectedEquipmentManufacturer.value : "",
+                selectedEquipmentManufacturer?.id && selectedEquipmentManufacturer.id !== 0
+                    ? selectedEquipmentManufacturer.value
+                    : "",
             client_name: selectedEquipmentClient,
         }),
     });
@@ -235,9 +242,13 @@ function SearchPage() {
         pageKey: "equipment_page",
         buildFilters: () => ({
             modality:
-                selectedEquipmentModality.id !== 0 ? selectedEquipmentModality.id.toString() : "",
+                selectedEquipmentModality?.id && selectedEquipmentModality.id !== 0
+                    ? selectedEquipmentModality.id.toString()
+                    : "",
             manufacturer:
-                selectedEquipmentManufacturer.id !== 0 ? selectedEquipmentManufacturer.value : "",
+                selectedEquipmentManufacturer?.id && selectedEquipmentManufacturer.id !== 0
+                    ? selectedEquipmentManufacturer.value
+                    : "",
             client_name: selectedEquipmentClient,
         }),
         setCurrentPage: setEquipmentCurrentPage,

@@ -14,7 +14,7 @@ type UseReportTypeSelectReturn = {
     options: SelectData[];
     selectedOption: SelectData;
     selectedReportTypeCode: ReportTypeCode;
-    setSelect: (option: SelectData) => void;
+    setSelect: (option: SelectData | null) => void;
 };
 
 /**
@@ -72,7 +72,11 @@ export const useReportTypeSelect = ({
         [availableCodes, selectedIndex]
     );
 
-    const setSelect = (option: SelectData) => {
+    const setSelect = (option: SelectData | null) => {
+        if (!option) {
+            return;
+        }
+
         setSelectedIndex(option.id);
     };
 
