@@ -3,10 +3,12 @@ from datetime import date, timedelta
 
 from anymail.message import AnymailMessage
 from clients_management.models import Client, Report
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models.query import QuerySet
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from users.models import UserAccount
 
 logger = logging.getLogger(__name__)
 
@@ -41,17 +43,30 @@ class Command(BaseCommand):
                 continue
             client, recipient_emails = recipients
 
+            override_recipients_raw = getattr(
+                settings, "NOTIFICATION_OVERRIDE_RECIPIENTS", None
+            )
+            if settings.DEBUG and override_recipients_raw:
+                override_emails = [
+                    e.strip() for e in override_recipients_raw.split(",") if e.strip()
+                ]
+                if override_emails:
+                    recipient_emails = override_emails
+
             subject = (
                 f"Aviso de Vencimento de Relatório: {report.get_report_type_display()}"
             )
 
             try:
+                dashboard_url = (
+                    settings.FRONTEND_URL or "https://medphyshub.prophy.com/dashboard"
+                )
                 context = {
                     "report_type": report.get_report_type_display(),
                     "related_entity": report.unit or report.equipment,
                     "client_name": client.name,
                     "due_date": report.due_date.strftime("%d/%m/%Y"),
-                    "dashboard_url": "https://medphyshub.prophy.com/dashboard",
+                    "dashboard_url": dashboard_url,
                     "current_year": date.today().year,
                 }
                 html_message = render_to_string(
@@ -67,13 +82,10 @@ class Command(BaseCommand):
                 message.send()
                 sent_count += 1
                 self.stdout.write(
-                    f"  - Sent notification for Report ID {report.id}",
-                    " to {', '.join(recipient_emails)}",
+                    f"  - Sent notification for Report ID {report.id} to {', '.join(recipient_emails)}"
                 )
-            except Exception as e:
-                logger.error(
-                    f"Failed to send email for Report ID {report.id}. Error: {e}"
-                )
+            except Exception:
+                logger.exception("Failed to send email for Report ID %s", report.id)
 
         self.stdout.write(
             self.style.SUCCESS(f"Finished. Sent {sent_count} notification(s).")
@@ -94,29 +106,41 @@ class Command(BaseCommand):
             client = report.equipment.unit.client
         if not client:
             logger.error(
-                f"Data Integrity Issue: Report ID {report.id}",
-                " has no associated Client.",
+                "Data integrity issue: Report ID %s has no associated Client.",
+                report.id,
             )
             return None
 
-        all_associated_users = client.users.all()
-        if not all_associated_users.exists():
+        eligible_users = client.users.filter(
+            role__in=[
+                UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+                UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+                UserAccount.Role.PROPHY_MANAGER,
+            ]
+        )
+
+        if not eligible_users.exists():
             logger.error(
-                f"Data Integrity Issue: Client '{client.name}' (ID: {client.id})",
-                " has no associated users.",
+                "No responsible physicist users found for Client '%s' (ID: %s).",
+                client.name,
+                client.id,
+                extra={"report_id": report.id, "client_id": client.id},
             )
             return None
 
-        recipient_emails = []
-        for user in all_associated_users:
-            if user.email:
-                recipient_emails.append(user.email)
-            else:
-                logger.warning(
-                    f"Data Quality Issue: User '{user.name}' (ID: {user.id})",
-                    f" of Client '{client.name}' ",
-                    f"was skipped for Report ID {report.id}",
-                    " because they have no email address.",
-                )
+        recipient_emails = list(
+            eligible_users.exclude(email__isnull=True)
+            .exclude(email="")
+            .values_list("email", flat=True)
+        )
 
-        return (client, recipient_emails) if recipient_emails else None
+        if not recipient_emails:
+            logger.error(
+                "Responsible physicist users have no email addresses for Client '%s' (ID: %s).",
+                client.name,
+                client.id,
+                extra={"report_id": report.id, "client_id": client.id},
+            )
+            return None
+
+        return (client, recipient_emails)

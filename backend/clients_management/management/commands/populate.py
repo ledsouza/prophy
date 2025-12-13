@@ -741,6 +741,20 @@ class Command(BaseCommand):
             report_type=rtype,
         )
 
+        # Deterministic report for testing due-report notifications.
+        #
+        # The notification command (`send_due_report_notifications`) triggers when
+        # due_date is 30-31 days from today. We explicitly set due_date so local
+        # tests always have at least one match.
+        due_report_type = choice(Report.UNIT_ONLY_TYPES)
+        Report.objects.create(
+            completion_date=date.today() - timedelta(days=365 - 30),
+            due_date=date.today() + timedelta(days=30),
+            file=make_report_file(due_report_type, "Unit 1000 - due soon"),
+            unit=Unit.objects.get(id=1000),
+            report_type=due_report_type,
+        )
+
         # Equipment-only reports
         for equipment in Equipment.objects.all():
             for _ in range(randint(1, 3)):

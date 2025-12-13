@@ -240,6 +240,11 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = getenv("DEFAULT_FROM_EMAIL")
 
+# Comma-separated list of recipient emails used ONLY in DEBUG mode to override
+# due-report notification recipients.
+# Example: "person_name@gmail.com"
+NOTIFICATION_OVERRIDE_RECIPIENTS = getenv("NOTIFICATION_OVERRIDE_RECIPIENTS")
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
