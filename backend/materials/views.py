@@ -90,7 +90,7 @@ class InstitutionalMaterialViewSet(PaginationMixin, viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_summary="Create institutional material",
-        operation_description="Create a new institutional material. PROPHY_MANAGER can create Public or Internal; INTERNAL_MEDICAL_PHYSICIST and EXTERNAL_MEDICAL_PHYSICIST may create only Public materials (no specific permissions).",
+        operation_description="Create a new institutional material. PROPHY_MANAGER can create Public or Internal; INTERNAL_MEDICAL_PHYSICIST may create only Public materials (no specific permissions). EXTERNAL_MEDICAL_PHYSICIST cannot create materials.",
         request_body=InstitutionalMaterialCreateSerializer,
         responses={
             201: InstitutionalMaterialSerializer,
@@ -104,24 +104,20 @@ class InstitutionalMaterialViewSet(PaginationMixin, viewsets.ModelViewSet):
         if role not in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
-            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]:
             return Response(
                 {"detail": "You do not have permission to create materials."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if role in [
-            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
-            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
-        ]:
+        if role == UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST:
             visibility = request.data.get("visibility")
             if visibility != InstitutionalMaterial.Visibility.PUBLIC:
                 return Response(
                     {
                         "detail": (
                             "Only public materials can be created by"
-                            + " medical physicists."
+                            + " internal medical physicists."
                         )
                     },
                     status=status.HTTP_400_BAD_REQUEST,

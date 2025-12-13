@@ -52,8 +52,8 @@ const MaterialForm = ({
     const role = user?.role;
 
     const isProphyManager = role === Role.GP;
-    const isInternalOrExternalMP = role === Role.FMI || role === Role.FME;
-    const canUpload = isProphyManager || isInternalOrExternalMP;
+    const isInternalMP = role === Role.FMI;
+    const canUpload = isProphyManager || isInternalMP;
 
     // For non-GP we will force PUB; GP must explicitly choose a visibility
     const defaultPubVisibility = React.useMemo(

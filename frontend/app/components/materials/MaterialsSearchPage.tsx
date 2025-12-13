@@ -69,11 +69,10 @@ const MaterialsSearchPage = () => {
 
     const isProphyManager = role === Role.GP;
     const isInternalMP = role === Role.FMI;
-    const isExternalMP = role === Role.FME;
     const isClientGeneralManager = role === Role.GGC;
     const isUnitManager = role === Role.GU;
 
-    const canUpload = isProphyManager || isInternalMP || isExternalMP;
+    const canUpload = isProphyManager || isInternalMP;
     const isInternal = isProphyManager || isInternalMP;
 
     const [currentPage, setCurrentPage] = useState(1);
