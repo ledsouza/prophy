@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 const require = createRequire(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const pkg = require("./package.json");
 
 const nextConfig = {
@@ -8,9 +14,8 @@ const nextConfig = {
     env: {
         NEXT_PUBLIC_APP_VERSION: pkg.version,
     },
-    experimental: {
-        serverComponentsExternalPackages: ["pino", "pino-pretty"],
-    },
+    serverExternalPackages: ["pino", "pino-pretty"],
+    outputFileTracingRoot: path.join(__dirname, ".."),
     trailingSlash: true,
     images: {
         dangerouslyAllowSVG: true,
