@@ -1,10 +1,10 @@
 "use client";
 
-import { DownloadIcon } from "@phosphor-icons/react";
+import { DownloadIcon, TrashIcon, ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useState } from "react";
 
-import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/common";
+import { Button, ErrorDisplay, Modal, Pagination, Spinner, Table } from "@/components/common";
 import { Input } from "@/components/forms";
 import Select, { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
@@ -13,6 +13,9 @@ import Role from "@/enums/Role";
 import {
     useLazyDownloadReportFileQuery,
     useSearchReportsQuery,
+    useSoftDeleteReportMutation,
+    useHardDeleteReportMutation,
+    useRestoreReportMutation,
 } from "@/redux/features/reportApiSlice";
 import type { ReportSearchDTO, ReportStatus } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
@@ -22,6 +25,7 @@ import {
     getReportStatusFromOptionId,
 } from "@/types/reportStatus";
 import { child } from "@/utils/logger";
+import { toast } from "react-toastify";
 
 const log = child({ component: "ReportsSearchTab" });
 
@@ -30,7 +34,12 @@ type ReportsSearchTabProps = {
 };
 
 export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
+    const isGP = currentUserRole === Role.GP;
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
+    const [softDeleteConfirmOpen, setSoftDeleteConfirmOpen] = useState(false);
+    const [hardDeleteConfirmOpen, setHardDeleteConfirmOpen] = useState(false);
+    const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
     const [appliedFilters, setAppliedFilters] = useState({
         status: undefined as ReportStatus | undefined,
         due_date_start: "",
@@ -58,6 +67,9 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
     });
 
     const [downloadReport] = useLazyDownloadReportFileQuery();
+    const [softDeleteReport, { isLoading: isSoftDeleting }] = useSoftDeleteReportMutation();
+    const [hardDeleteReport, { isLoading: isHardDeleting }] = useHardDeleteReportMutation();
+    const [restoreReport, { isLoading: isRestoring }] = useRestoreReportMutation();
 
     const reports = data?.results || [];
     const totalCount = data?.count || 0;
@@ -103,6 +115,48 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         }
     };
 
+    async function handleSoftDelete() {
+        if (!selectedReportId) return;
+        try {
+            await softDeleteReport({ id: selectedReportId }).unwrap();
+            toast.success("Relatório arquivado com sucesso.");
+            setSoftDeleteConfirmOpen(false);
+            setSelectedReportId(null);
+            log.info({ reportId: selectedReportId }, "Report soft deleted successfully");
+        } catch (err) {
+            log.error({ reportId: selectedReportId, error: err }, "Soft delete failed");
+            toast.error("Não foi possível arquivar o relatório.");
+        }
+    }
+
+    async function handleHardDelete() {
+        if (!selectedReportId) return;
+        try {
+            await hardDeleteReport({ id: selectedReportId }).unwrap();
+            toast.success("Relatório excluído permanentemente.");
+            setHardDeleteConfirmOpen(false);
+            setSelectedReportId(null);
+            log.info({ reportId: selectedReportId }, "Report hard deleted successfully");
+        } catch (err) {
+            log.error({ reportId: selectedReportId, error: err }, "Hard delete failed");
+            toast.error("Não foi possível excluir o relatório permanentemente.");
+        }
+    }
+
+    async function handleRestore() {
+        if (!selectedReportId) return;
+        try {
+            await restoreReport({ id: selectedReportId }).unwrap();
+            toast.success("Relatório desarquivado com sucesso.");
+            setRestoreConfirmOpen(false);
+            setSelectedReportId(null);
+            log.info({ reportId: selectedReportId }, "Report restored successfully");
+        } catch (err) {
+            log.error({ reportId: selectedReportId, error: err }, "Restore failed");
+            toast.error("Não foi possível desarquivar o relatório.");
+        }
+    }
+
     if (error) {
         return (
             <ErrorDisplay
@@ -115,8 +169,16 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
     const columns = [
         {
             header: "Tipo",
-            cell: (report: ReportSearchDTO) =>
-                reportTypeLabel[report.report_type] || report.report_type,
+            cell: (report: ReportSearchDTO) => (
+                <div className="flex items-center gap-2">
+                    <span>{reportTypeLabel[report.report_type] || report.report_type}</span>
+                    {isGP && report.is_deleted && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Arquivado
+                        </span>
+                    )}
+                </div>
+            ),
         },
         {
             header: "Cliente",
@@ -151,7 +213,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                 );
             },
         },
-        ...(currentUserRole === Role.GP
+        ...(isGP
             ? [
                   {
                       header: "Responsável",
@@ -161,15 +223,57 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
             : []),
         {
             header: "Ações",
+            width: "8rem",
             cell: (report: ReportSearchDTO) => (
-                <Button
-                    variant="primary"
-                    onClick={() => handleDownload(report.id)}
-                    className="flex items-center gap-2 text-xs"
-                >
-                    <DownloadIcon size={16} />
-                    Baixar
-                </Button>
+                <div className="flex flex-col gap-2 items-stretch">
+                    <Button
+                        variant="primary"
+                        onClick={() => handleDownload(report.id)}
+                        className="w-full text-xs"
+                        data-testid={`btn-download-${report.id}`}
+                    >
+                        Baixar
+                    </Button>
+                    {isGP && !report.is_deleted && (
+                        <Button
+                            variant="danger"
+                            onClick={() => {
+                                setSelectedReportId(report.id);
+                                setSoftDeleteConfirmOpen(true);
+                            }}
+                            className="w-full text-xs"
+                            data-testid={`btn-soft-delete-${report.id}`}
+                        >
+                            Arquivar
+                        </Button>
+                    )}
+                    {isGP && report.is_deleted && (
+                        <>
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setSelectedReportId(report.id);
+                                    setRestoreConfirmOpen(true);
+                                }}
+                                className="w-full text-xs"
+                                data-testid={`btn-restore-${report.id}`}
+                            >
+                                Desarquivar
+                            </Button>
+                            <Button
+                                variant="danger"
+                                onClick={() => {
+                                    setSelectedReportId(report.id);
+                                    setHardDeleteConfirmOpen(true);
+                                }}
+                                className="w-full text-xs"
+                                data-testid={`btn-hard-delete-${report.id}`}
+                            >
+                                Excluir
+                            </Button>
+                        </>
+                    )}
+                </div>
             ),
         },
     ];
@@ -304,6 +408,126 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                     </div>
                 )}
             </div>
+
+            {/* Soft Delete Confirmation Modal */}
+            <Modal
+                isOpen={softDeleteConfirmOpen}
+                onClose={() => {
+                    setSoftDeleteConfirmOpen(false);
+                    setSelectedReportId(null);
+                }}
+                className="max-w-md px-2 py-4 sm:px-6"
+            >
+                <div className="flex flex-col gap-4">
+                    <Typography element="h3" size="lg">
+                        Arquivar relatório
+                    </Typography>
+                    <Typography element="p" size="md">
+                        Tem certeza que deseja arquivar este relatório? Ele poderá ser desarquivado
+                        posteriormente.
+                    </Typography>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                setSoftDeleteConfirmOpen(false);
+                                setSelectedReportId(null);
+                            }}
+                            disabled={isSoftDeleting}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={handleSoftDelete}
+                            disabled={isSoftDeleting}
+                            data-testid="btn-confirm-soft-delete-search"
+                        >
+                            {isSoftDeleting ? "Arquivando..." : "Arquivar"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Hard Delete Confirmation Modal */}
+            <Modal
+                isOpen={hardDeleteConfirmOpen}
+                onClose={() => {
+                    setHardDeleteConfirmOpen(false);
+                    setSelectedReportId(null);
+                }}
+                className="max-w-md px-2 py-4 sm:px-6"
+            >
+                <div className="flex flex-col gap-4">
+                    <Typography element="h3" size="lg" className="text-red-600">
+                        Excluir permanentemente
+                    </Typography>
+                    <Typography element="p" size="md">
+                        <strong>ATENÇÃO:</strong> Esta ação é irreversível! O relatório será
+                        excluído permanentemente do banco de dados e não poderá ser recuperado.
+                    </Typography>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                setHardDeleteConfirmOpen(false);
+                                setSelectedReportId(null);
+                            }}
+                            disabled={isHardDeleting}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={handleHardDelete}
+                            disabled={isHardDeleting}
+                            data-testid="btn-confirm-hard-delete-search"
+                        >
+                            {isHardDeleting ? "Excluindo..." : "Excluir Permanentemente"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Restore Confirmation Modal */}
+            <Modal
+                isOpen={restoreConfirmOpen}
+                onClose={() => {
+                    setRestoreConfirmOpen(false);
+                    setSelectedReportId(null);
+                }}
+                className="max-w-md px-2 py-4 sm:px-6"
+            >
+                <div className="flex flex-col gap-4">
+                    <Typography element="h3" size="lg">
+                        Desarquivar relatório
+                    </Typography>
+                    <Typography element="p" size="md">
+                        Tem certeza que deseja desarquivar este relatório? Ele voltará a ficar ativo
+                        no sistema.
+                    </Typography>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                setRestoreConfirmOpen(false);
+                                setSelectedReportId(null);
+                            }}
+                            disabled={isRestoring}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleRestore}
+                            disabled={isRestoring}
+                            data-testid="btn-confirm-restore-search"
+                        >
+                            {isRestoring ? "Desarquivando..." : "Desarquivar"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 }
