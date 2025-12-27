@@ -16,14 +16,21 @@ import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
     useUpdateReportFileMutation,
     useLazyDownloadReportFileQuery,
+    useSoftDeleteReportMutation,
+    useHardDeleteReportMutation,
+    useRestoreReportMutation,
 } from "@/redux/features/reportApiSlice";
 import type { ReportDTO } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
 import { reportFileSchema } from "@/schemas";
 
 import { child } from "@/utils/logger";
-import { downloadBlob, extractFilenameFromPath } from "@/utils/download";
-import { FileArrowDownIcon, UploadSimpleIcon } from "@phosphor-icons/react";
+import {
+    FileArrowDownIcon,
+    UploadSimpleIcon,
+    TrashIcon,
+    ArrowCounterClockwiseIcon,
+} from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
 const updateReportFileFormSchema = z.object({
@@ -50,11 +57,19 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
     const { data: userData } = useRetrieveUserQuery();
     const role = userData?.role;
     const canUpdate = role === Role.GP || role === Role.FMI || role === Role.FME;
+    const isGP = role === Role.GP;
     const log = child({ component: "ReportCard" });
 
     const [updateOpen, setUpdateOpen] = useState(false);
+    const [softDeleteConfirmOpen, setSoftDeleteConfirmOpen] = useState(false);
+    const [hardDeleteConfirmOpen, setHardDeleteConfirmOpen] = useState(false);
+    const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
+
     const [updateReportFile, { isLoading: isUpdating }] = useUpdateReportFileMutation();
     const [downloadReportFile, { isLoading: isDownloading }] = useLazyDownloadReportFileQuery();
+    const [softDeleteReport, { isLoading: isSoftDeleting }] = useSoftDeleteReportMutation();
+    const [hardDeleteReport, { isLoading: isHardDeleting }] = useHardDeleteReportMutation();
+    const [restoreReport, { isLoading: isRestoring }] = useRestoreReportMutation();
 
     const {
         register,
@@ -97,10 +112,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             return;
         }
         try {
-            const blob = await downloadReportFile(report.id).unwrap();
-            const filename = extractFilenameFromPath(report.file, "report", report.id);
-            downloadBlob(blob, filename);
-            log.info({ reportId: report.id, filename }, "Report file downloaded successfully");
+            await downloadReportFile(report.id).unwrap();
             toast.success("Relatório exportado com sucesso.");
         } catch (err) {
             log.error({ reportId: report.id, error: (err as any)?.message }, "Download failed");
@@ -131,13 +143,64 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
         }
     }
 
+    async function handleSoftDelete() {
+        try {
+            await softDeleteReport({ id: report.id }).unwrap();
+            toast.success("Relatório arquivado com sucesso.");
+            setSoftDeleteConfirmOpen(false);
+            log.info({ reportId: report.id }, "Report soft deleted successfully");
+        } catch (err) {
+            log.error({ reportId: report.id, error: (err as any)?.message }, "Soft delete failed");
+            toast.error("Não foi possível arquivar o relatório.");
+        }
+    }
+
+    async function handleHardDelete() {
+        try {
+            await hardDeleteReport({ id: report.id }).unwrap();
+            toast.success("Relatório excluído permanentemente.");
+            setHardDeleteConfirmOpen(false);
+            log.info({ reportId: report.id }, "Report hard deleted successfully");
+        } catch (err) {
+            log.error({ reportId: report.id, error: (err as any)?.message }, "Hard delete failed");
+            toast.error("Não foi possível excluir o relatório permanentemente.");
+        }
+    }
+
+    async function handleRestore() {
+        try {
+            await restoreReport({ id: report.id }).unwrap();
+            toast.success("Relatório desarquivado com sucesso.");
+            setRestoreConfirmOpen(false);
+            log.info({ reportId: report.id }, "Report restored successfully");
+        } catch (err) {
+            log.error({ reportId: report.id, error: (err as any)?.message }, "Restore failed");
+            toast.error("Não foi possível desarquivar o relatório.");
+        }
+    }
+
     return (
         <div className={containerStyle} data-testid={dataTestId || `report-card-${report.id}`}>
             {/* Header */}
             <div className="flex flex-col gap-1 pb-4">
-                <Typography element="h3" size="title3">
-                    {reportTypeLabel?.[report.report_type] ?? "Relatório"}
-                </Typography>
+                <div className="flex items-center justify-between">
+                    <Typography element="h3" size="title3">
+                        {reportTypeLabel?.[report.report_type] ?? "Relatório"}
+                    </Typography>
+                    {isGP && (
+                        <span
+                            className={clsx(
+                                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                                report.is_deleted
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-green-100 text-green-800"
+                            )}
+                            data-testid="report-status-badge"
+                        >
+                            {report.is_deleted ? "Arquivado" : "Ativo"}
+                        </span>
+                    )}
+                </div>
             </div>
 
             {/* Body + Actions */}
@@ -169,7 +232,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                         <FileArrowDownIcon size={20} />
                     </Button>
 
-                    {canUpdate && (
+                    {canUpdate && !report.is_deleted && (
                         <Button
                             variant="primary"
                             onClick={() => setUpdateOpen(true)}
@@ -179,6 +242,41 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                         >
                             <UploadSimpleIcon size={20} />
                         </Button>
+                    )}
+
+                    {isGP && !report.is_deleted && (
+                        <Button
+                            variant="danger"
+                            onClick={() => setSoftDeleteConfirmOpen(true)}
+                            data-testid="btn-report-soft-delete"
+                            aria-label="Arquivar relatório"
+                            title="Arquivar relatório"
+                        >
+                            <TrashIcon size={20} />
+                        </Button>
+                    )}
+
+                    {isGP && report.is_deleted && (
+                        <>
+                            <Button
+                                variant="primary"
+                                onClick={() => setRestoreConfirmOpen(true)}
+                                data-testid="btn-report-restore"
+                                aria-label="Desarquivar relatório"
+                                title="Desarquivar relatório"
+                            >
+                                <ArrowCounterClockwiseIcon size={20} />
+                            </Button>
+                            <Button
+                                variant="danger"
+                                onClick={() => setHardDeleteConfirmOpen(true)}
+                                data-testid="btn-report-hard-delete"
+                                aria-label="Excluir permanentemente"
+                                title="Excluir permanentemente"
+                            >
+                                <TrashIcon size={20} weight="fill" />
+                            </Button>
+                        </>
                     )}
                 </div>
             </div>
@@ -221,6 +319,108 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                         </Button>
                     </div>
                 </Form>
+            </Modal>
+
+            {/* Soft Delete Confirmation Modal */}
+            <Modal
+                isOpen={softDeleteConfirmOpen}
+                onClose={() => setSoftDeleteConfirmOpen(false)}
+                className="max-w-md px-2 py-4 sm:px-6"
+            >
+                <div className="flex flex-col gap-4">
+                    <Typography element="h3" size="lg">
+                        Arquivar relatório
+                    </Typography>
+                    <Typography element="p" size="md">
+                        Tem certeza que deseja arquivar este relatório? Ele poderá ser desarquivado
+                        posteriormente.
+                    </Typography>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setSoftDeleteConfirmOpen(false)}
+                            disabled={isSoftDeleting}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={handleSoftDelete}
+                            disabled={isSoftDeleting}
+                            data-testid="btn-confirm-soft-delete"
+                        >
+                            {isSoftDeleting ? "Arquivando..." : "Arquivar"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Hard Delete Confirmation Modal */}
+            <Modal
+                isOpen={hardDeleteConfirmOpen}
+                onClose={() => setHardDeleteConfirmOpen(false)}
+                className="max-w-md px-2 py-4 sm:px-6"
+            >
+                <div className="flex flex-col gap-4">
+                    <Typography element="h3" size="lg" className="text-red-600">
+                        Excluir permanentemente
+                    </Typography>
+                    <Typography element="p" size="md">
+                        <strong>ATENÇÃO:</strong> Esta ação é irreversível! O relatório será
+                        excluído permanentemente do banco de dados e não poderá ser recuperado.
+                    </Typography>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setHardDeleteConfirmOpen(false)}
+                            disabled={isHardDeleting}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={handleHardDelete}
+                            disabled={isHardDeleting}
+                            data-testid="btn-confirm-hard-delete"
+                        >
+                            {isHardDeleting ? "Excluindo..." : "Excluir Permanentemente"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Restore Confirmation Modal */}
+            <Modal
+                isOpen={restoreConfirmOpen}
+                onClose={() => setRestoreConfirmOpen(false)}
+                className="max-w-md px-2 py-4 sm:px-6"
+            >
+                <div className="flex flex-col gap-4">
+                    <Typography element="h3" size="lg">
+                        Desarquivar relatório
+                    </Typography>
+                    <Typography element="p" size="md">
+                        Tem certeza que deseja desarquivar este relatório? Ele voltará a ficar ativo
+                        no sistema.
+                    </Typography>
+                    <div className="flex justify-end gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setRestoreConfirmOpen(false)}
+                            disabled={isRestoring}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={handleRestore}
+                            disabled={isRestoring}
+                            data-testid="btn-confirm-restore"
+                        >
+                            {isRestoring ? "Desarquivando..." : "Desarquivar"}
+                        </Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );
