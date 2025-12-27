@@ -210,7 +210,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                     value={clientCNPJ}
                     onChange={(e) => setClientCNPJ(e.target.value)}
                     placeholder="Digite o CNPJ"
-                    label="CNPJ"
+                    label="CNPJ do Cliente"
                 />
 
                 <Input
