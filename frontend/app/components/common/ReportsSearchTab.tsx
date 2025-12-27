@@ -18,8 +18,8 @@ import type { ReportSearchDTO, ReportStatus } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
 import {
     REPORT_STATUS_OPTIONS,
-    getReportStatusFromOptionId,
     getReportStatusDisplay,
+    getReportStatusFromOptionId,
 } from "@/types/reportStatus";
 import { child } from "@/utils/logger";
 
