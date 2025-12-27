@@ -38,6 +38,7 @@ export type ReportDTO = {
     unit: number | null;
     equipment: number | null;
     file: string;
+    is_deleted: boolean;
 };
 
 /**
