@@ -170,6 +170,45 @@ const reportApiSlice = apiSlice.injectEndpoints({
                       ]
                     : [{ type: "Report", id: "SEARCH" }],
         }),
+        /**
+         * Soft deletes a report.
+         */
+        softDeleteReport: builder.mutation<void, { id: number }>({
+            query: ({ id }) => ({
+                url: `reports/${id}/`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [
+                { type: "Report", id: "LIST" },
+                { type: "Report", id: "SEARCH" },
+            ],
+        }),
+        /**
+         * Hard deletes a report.
+         */
+        hardDeleteReport: builder.mutation<void, { id: number }>({
+            query: ({ id }) => ({
+                url: `reports/${id}/?hard=true`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [
+                { type: "Report", id: "LIST" },
+                { type: "Report", id: "SEARCH" },
+            ],
+        }),
+        /**
+         * Restores a soft-deleted report.
+         */
+        restoreReport: builder.mutation<ReportDTO, { id: number }>({
+            query: ({ id }) => ({
+                url: `reports/${id}/restore/`,
+                method: "POST",
+            }),
+            invalidatesTags: [
+                { type: "Report", id: "LIST" },
+                { type: "Report", id: "SEARCH" },
+            ],
+        }),
     }),
 });
 
@@ -179,5 +218,8 @@ export const {
     useUpdateReportFileMutation,
     useLazyDownloadReportFileQuery,
     useSearchReportsQuery,
+    useSoftDeleteReportMutation,
+    useHardDeleteReportMutation,
+    useRestoreReportMutation,
 } = reportApiSlice;
 export default reportApiSlice;
