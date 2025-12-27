@@ -223,6 +223,7 @@ class ReportSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     responsibles = serializers.SerializerMethodField()
     responsibles_display = serializers.SerializerMethodField()
+    is_deleted = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Report
