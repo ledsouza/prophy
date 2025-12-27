@@ -43,3 +43,70 @@ export function extractFilenameFromPath(
     const filename = urlParts[urlParts.length - 1];
     return filename || `${fallbackPrefix}-${fallbackId}.pdf`;
 }
+
+/**
+ * Extracts filename from Content-Disposition HTTP header.
+ *
+ * Supports both simple filename= and RFC 5987 filename*= formats.
+ *
+ * @param contentDisposition - The Content-Disposition header value.
+ * @returns The extracted filename, or null if not found.
+ *
+ * @example
+ * extractFilenameFromContentDisposition('attachment; filename="report.pdf"')
+ * // Returns: "report.pdf"
+ *
+ * @example
+ * extractFilenameFromContentDisposition("attachment; filename*=UTF-8''report%20file.pdf")
+ * // Returns: "report file.pdf"
+ */
+export function extractFilenameFromContentDisposition(
+    contentDisposition: string | null
+): string | null {
+    if (!contentDisposition) return null;
+
+    // Try RFC 5987 format first: filename*=UTF-8''filename.pdf
+    const filenameStarMatch = contentDisposition.match(/filename\*=(?:UTF-8'')(.+)/i);
+    if (filenameStarMatch) {
+        try {
+            return decodeURIComponent(filenameStarMatch[1]);
+        } catch {
+            // Fall through to simple format
+        }
+    }
+
+    // Try simple format: filename="filename.pdf" or filename=filename.pdf
+    const filenameMatch = contentDisposition.match(/filename="?([^";\n]+)"?/i);
+    if (filenameMatch) {
+        return filenameMatch[1].trim();
+    }
+
+    return null;
+}
+
+/**
+ * Downloads a blob using the filename from Content-Disposition header.
+ *
+ * Convenience wrapper that combines filename extraction and download.
+ *
+ * @param params - Download parameters.
+ * @param params.blob - The blob data to download.
+ * @param params.contentDisposition - The Content-Disposition header value.
+ * @param params.fallbackFilename - Filename to use if extraction fails.
+ *
+ * @example
+ * downloadBlobFromContentDisposition({
+ *   blob: myBlob,
+ *   contentDisposition: response.headers.get("content-disposition"),
+ *   fallbackFilename: "report-123.pdf"
+ * })
+ */
+export function downloadBlobFromContentDisposition(params: {
+    blob: Blob;
+    contentDisposition: string | null;
+    fallbackFilename: string;
+}): void {
+    const { blob, contentDisposition, fallbackFilename } = params;
+    const filename = extractFilenameFromContentDisposition(contentDisposition) || fallbackFilename;
+    downloadBlob(blob, filename);
+}

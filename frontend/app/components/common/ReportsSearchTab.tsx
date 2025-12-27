@@ -21,6 +21,9 @@ import {
     getReportStatusFromOptionId,
     getReportStatusDisplay,
 } from "@/types/reportStatus";
+import { child } from "@/utils/logger";
+
+const log = child({ component: "ReportsSearchTab" });
 
 type ReportsSearchTabProps = {
     currentUserRole: Role;
@@ -92,19 +95,11 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         });
     };
 
-    const handleDownload = async (reportId: number, reportType: string) => {
+    const handleDownload = async (reportId: number) => {
         try {
-            const result = await downloadReport(reportId).unwrap();
-            const url = window.URL.createObjectURL(result);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `relatorio_${reportType}_${reportId}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            await downloadReport(reportId).unwrap();
         } catch (err) {
-            console.error("Failed to download report:", err);
+            log.error({ reportId, error: err }, "Failed to download report");
         }
     };
 
@@ -169,7 +164,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
             cell: (report: ReportSearchDTO) => (
                 <Button
                     variant="primary"
-                    onClick={() => handleDownload(report.id, report.report_type)}
+                    onClick={() => handleDownload(report.id)}
                     className="flex items-center gap-2 text-xs"
                 >
                     <DownloadIcon size={16} />

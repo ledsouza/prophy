@@ -17,7 +17,7 @@ from django.db.models import (
     When,
     F,
 )
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
@@ -2528,17 +2528,19 @@ class ReportFileDownloadView(APIView):
             )
 
         try:
-            file_handle = report.file.open("rb")
-            response = HttpResponse(
-                file_handle, content_type="application/octet-stream"
-            )
-
             filename = os.path.basename(report.file.name)
-            response["Content-Disposition"] = f'attachment; filename="{filename}"'
-
+            response = FileResponse(
+                report.file.open("rb"),
+                as_attachment=True,
+                filename=filename,
+                content_type="application/octet-stream",
+            )
             return response
-        except Exception as e:
-            logger.error(f"Error serving report file {report_id}: {e}")
+        except Exception:
+            logger.exception(
+                "Error serving report file for report_id=%s",
+                report_id,
+            )
             return Response(
                 {"detail": "Error reading report file."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -2612,17 +2614,19 @@ class ProposalFileDownloadView(APIView):
             )
 
         try:
-            file_handle = file_field.open("rb")
-            response = HttpResponse(
-                file_handle,
+            filename = os.path.basename(file_field.name)
+            response = FileResponse(
+                file_field.open("rb"),
+                as_attachment=True,
+                filename=filename,
                 content_type="application/octet-stream",
             )
-            filename = os.path.basename(file_field.name)
-            response["Content-Disposition"] = f'attachment; filename="{filename}"'
             return response
-        except Exception as e:
-            logger.error(
-                "Error serving proposal file %s (%s): %s", proposal_id, file_type, e
+        except Exception:
+            logger.exception(
+                "Error serving proposal file for proposal_id=%s, file_type=%s",
+                proposal_id,
+                file_type,
             )
             return Response(
                 {"detail": "Error reading proposal file."},

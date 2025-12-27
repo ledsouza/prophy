@@ -1,12 +1,15 @@
-import { apiSlice, PaginatedResponse } from "../services/apiSlice";
-import { createPaginatedQueryFn } from "../services/paginationHelpers";
 import type {
-    ReportDTO,
     ListReportsArgs,
-    ReportTypeCode,
+    ReportDTO,
     ReportSearchDTO,
+    ReportTypeCode,
     SearchReportsArgs,
 } from "@/types/report";
+import { downloadBlobFromContentDisposition } from "@/utils/download";
+import { child } from "@/utils/logger";
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { apiSlice, PaginatedResponse } from "../services/apiSlice";
+import { createPaginatedQueryFn } from "../services/paginationHelpers";
 
 type UpdateReportFileArgs = {
     id: number;
@@ -20,6 +23,12 @@ type CreateReportArgs = {
     unit?: number;
     equipment?: number;
 };
+
+type DownloadReportResult = {
+    success: boolean;
+};
+
+const log = child({ feature: "reportApiSlice" });
 
 const reportApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -60,22 +69,69 @@ const reportApiSlice = apiSlice.injectEndpoints({
             },
             invalidatesTags: [{ type: "Report", id: "LIST" }],
         }),
-        downloadReportFile: builder.query<Blob, number>({
-            query: (id) => ({
-                url: `reports/${id}/download/`,
-                method: "GET",
-                responseHandler: (response) => response.blob(),
-            }),
+        downloadReportFile: builder.query<DownloadReportResult, number>({
+            queryFn: async (
+                id,
+                api,
+                extraOptions,
+                baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>
+            ) => {
+                try {
+                    const result = await baseQuery(
+                        {
+                            url: `reports/${id}/download/`,
+                            method: "GET",
+                            responseHandler: (response) => {
+                                const contentDisposition =
+                                    response.headers.get("content-disposition");
+                                return response.blob().then((blob) => ({
+                                    blob,
+                                    contentDisposition,
+                                }));
+                            },
+                        },
+                        api,
+                        extraOptions
+                    );
+
+                    if (result.error) {
+                        log.error(
+                            { reportId: id, error: result.error },
+                            "Failed to download report file"
+                        );
+                        return { error: result.error };
+                    }
+
+                    const { blob, contentDisposition } = result.data as {
+                        blob: Blob;
+                        contentDisposition: string | null;
+                    };
+
+                    downloadBlobFromContentDisposition({
+                        blob,
+                        contentDisposition,
+                        fallbackFilename: `relatorio_${id}.pdf`,
+                    });
+
+                    log.info({ reportId: id }, "Report downloaded successfully");
+
+                    return { data: { success: true } };
+                } catch (error) {
+                    log.error({ reportId: id, error }, "Unexpected error during report download");
+                    return {
+                        error: {
+                            status: "CUSTOM_ERROR",
+                            error: String(error),
+                        },
+                    };
+                }
+            },
             keepUnusedDataFor: 0,
         }),
         /**
          * Searches reports with filters.
          * Returns paginated results with derived fields (status,
          * responsibles).
-         * Role-based access control is enforced by the backend:
-         * - GP sees all reports
-         * - FMI/FME see only reports where they are assigned via
-         *   client.users
          */
         searchReports: builder.query<PaginatedResponse<ReportSearchDTO>, SearchReportsArgs>({
             query: ({
