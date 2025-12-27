@@ -161,15 +161,30 @@ def random_completion_date(report_type_code: str) -> date:
 
 
 def make_report_file(report_type_code: str, entity_name: str) -> ContentFile:
+    """
+    Creates a report file by copying a placeholder PDF or DOCX file.
+    Alternates between PDF and DOCX formats for variety in testing.
+    """
     uid = uuid.uuid4().hex[:8]
     slug = safe_slug(entity_name)
-    filename = f"report-{report_type_code}-{slug}-{uid}.txt"
-    content = (
-        f"Tipo: {Report.ReportType(report_type_code).label}\n"
-        f"Entidade: {entity_name}\n"
-        f"Arquivo gerado automaticamente para testes.\n"
-    )
-    return ContentFile(content, name=filename)
+
+    # Alternate between PDF and DOCX based on hash of entity_name
+    use_pdf = hash(entity_name) % 2 == 0
+
+    if use_pdf:
+        source_path = BASE_DIR / "static" / "placeholder.pdf"
+        extension = "pdf"
+    else:
+        source_path = BASE_DIR / "static" / "Placeholder.docx"
+        extension = "docx"
+
+    filename = f"report-{report_type_code}-{slug}-{uid}.{extension}"
+
+    # Read the placeholder file and create a ContentFile with it
+    with source_path.open(mode="rb") as f:
+        file_content = f.read()
+
+    return ContentFile(file_content, name=filename)
 
 
 class Command(BaseCommand):

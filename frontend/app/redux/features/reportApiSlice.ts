@@ -110,7 +110,7 @@ const reportApiSlice = apiSlice.injectEndpoints({
                     downloadBlobFromContentDisposition({
                         blob,
                         contentDisposition,
-                        fallbackFilename: `relatorio_${id}.pdf`,
+                        fallbackFilename: `relatorio_${id}`,
                     });
 
                     log.info({ reportId: id }, "Report downloaded successfully");

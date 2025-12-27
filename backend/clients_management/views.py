@@ -44,6 +44,7 @@ from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.query_utils import (
     annotate_latest_annual_accepted_proposal_date,
 )
+from clients_management.file_utils import get_content_type_from_filename
 from clients_management.serializers import (
     AccessorySerializer,
     AppointmentSerializer,
@@ -2529,11 +2530,12 @@ class ReportFileDownloadView(APIView):
 
         try:
             filename = os.path.basename(report.file.name)
+            content_type = get_content_type_from_filename(filename)
             response = FileResponse(
                 report.file.open("rb"),
                 as_attachment=True,
                 filename=filename,
-                content_type="application/octet-stream",
+                content_type=content_type,
             )
             return response
         except Exception:
@@ -2615,11 +2617,12 @@ class ProposalFileDownloadView(APIView):
 
         try:
             filename = os.path.basename(file_field.name)
+            content_type = get_content_type_from_filename(filename)
             response = FileResponse(
                 file_field.open("rb"),
                 as_attachment=True,
                 filename=filename,
-                content_type="application/octet-stream",
+                content_type=content_type,
             )
             return response
         except Exception:
