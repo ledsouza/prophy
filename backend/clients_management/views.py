@@ -2228,9 +2228,15 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         user: UserAccount = request.user
 
+        # GP uses all_objects to see soft-deleted reports
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            manager = Report.all_objects
+        else:
+            manager = Report.objects
+
         try:
             report = (
-                Report.objects.select_related(
+                manager.select_related(
                     "unit__client",
                     "equipment__unit__client",
                 )
@@ -2320,18 +2326,16 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
 
     def _get_base_queryset(self, user: UserAccount):
         """Get base queryset based on user role and report access scope."""
-        if user.role in [
-            UserAccount.Role.PROPHY_MANAGER,
-            UserAccount.Role.COMMERCIAL,
-        ]:
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            return Report.all_objects.all()
+
+        if user.role == UserAccount.Role.COMMERCIAL:
             return Report.objects.all()
 
         if user.role in [
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]:
-            # Medical physicists can only view reports assigned to them via
-            # Client.users association.
             return Report.objects.filter(
                 Q(unit__client__users=user) | Q(equipment__unit__client__users=user)
             )
@@ -2445,7 +2449,6 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 return True
 
             case UserAccount.Role.COMMERCIAL:
-                # Keep existing behavior: commercial has global access
                 return True
 
             case (
@@ -2465,13 +2468,91 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 )
 
             case _:
-                # Default case for CLIENT and other roles
                 return (
                     report.unit and report.unit.client.users.filter(pk=user.pk).exists()
                 ) or (
                     report.equipment
                     and report.equipment.unit.client.users.filter(pk=user.pk).exists()
                 )
+
+    @swagger_auto_schema(
+        operation_summary="Delete a report",
+        operation_description="""
+        Delete a report (soft delete by default, hard delete with ?hard=true).
+        
+        - Default behavior: Soft delete (sets deleted_at timestamp)
+        - With ?hard=true: Permanently delete (PROPHY_MANAGER only)
+        
+        Soft-deleted reports are hidden from all users except PROPHY_MANAGER.
+        """,
+        manual_parameters=[
+            openapi.Parameter(
+                name="hard",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_BOOLEAN,
+                description="If true, permanently delete the report (GP only)",
+            ),
+        ],
+        responses={
+            204: "Report deleted successfully",
+            403: "Permission denied",
+            404: "Report not found",
+        },
+    )
+    def destroy(self, request: Request, pk: int | None = None) -> Response:
+        user: UserAccount = request.user
+        # Check both query params and request body for hard parameter
+        hard_delete = (
+            request.query_params.get("hard", "false").lower() == "true"
+            or str(request.data.get("hard", "false")).lower() == "true"
+        )
+
+        if hard_delete:
+            if user.role != UserAccount.Role.PROPHY_MANAGER:
+                return Response(
+                    {"detail": "Only PROPHY_MANAGER can permanently delete reports."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            try:
+                report = Report.all_objects.get(pk=pk)
+            except Report.DoesNotExist:
+                return Response(
+                    {"detail": "Relatório não encontrado."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            if not self._has_report_access(user, report):
+                return Response(
+                    {"detail": "You do not have permission to delete this report."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            report.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # GP uses all_objects to see and soft-delete already soft-deleted reports
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            manager = Report.all_objects
+        else:
+            manager = Report.objects
+
+        try:
+            report = manager.get(pk=pk)
+        except Report.DoesNotExist:
+            return Response(
+                {"detail": "Relatório não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not self._has_report_access(user, report):
+            return Response(
+                {"detail": "You do not have permission to delete this report."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        report.soft_delete(deleted_by=user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ReportFileDownloadView(APIView):
@@ -2500,8 +2581,15 @@ class ReportFileDownloadView(APIView):
         },
     )
     def get(self, request: Request, report_id: int):
+        user: UserAccount = request.user
+
+        if user.role == UserAccount.Role.PROPHY_MANAGER:
+            manager = Report.all_objects
+        else:
+            manager = Report.objects
+
         try:
-            report: Report = Report.objects.select_related(
+            report: Report = manager.select_related(
                 "unit__client", "equipment__unit__client"
             ).get(pk=report_id)
         except Report.DoesNotExist:
@@ -2510,7 +2598,6 @@ class ReportFileDownloadView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        user: UserAccount = request.user
         viewset = ReportViewSet()
         if not viewset._has_report_access(user, report):
             return Response(
