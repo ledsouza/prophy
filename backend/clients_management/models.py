@@ -1,22 +1,23 @@
 from __future__ import annotations
+
+import calendar
+from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
-from datetime import date, timedelta
-from django.db import models
 from django.contrib import admin
-from django.db.models import TextChoices
-from django.utils.translation import gettext as _
-from django.utils.html import format_html
 from django.core.exceptions import ValidationError
-
+from django.db import models
+from django.db.models import TextChoices
+from django.utils import timezone
+from django.utils.html import format_html
+from django.utils.translation import gettext as _
+from localflavor.br.br_states import STATE_CHOICES
 from users.models import UserAccount
+
 from clients_management.validators import CNPJValidator
 
-from localflavor.br.br_states import STATE_CHOICES
-import calendar
-
 if TYPE_CHECKING:
-    from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
+    from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 
 
 def get_status(
@@ -644,6 +645,46 @@ class Appointment(models.Model):
         return f"Agendamento {self.unit.client.name if self.unit and self.unit.client else 'N/A'} - {self.date.day}"
 
 
+class ReportQuerySet(models.QuerySet):
+    """Custom QuerySet for Report with soft delete support."""
+
+    def active(self):
+        """Return only non-deleted reports."""
+        return self.filter(deleted_at__isnull=True)
+
+    def deleted(self):
+        """Return only soft-deleted reports."""
+        return self.filter(deleted_at__isnull=False)
+
+    def soft_delete(self, deleted_by: UserAccount):
+        """
+        Soft delete all reports in the queryset.
+
+        Args:
+            deleted_by: The user performing the soft delete. Required.
+
+        Raises:
+            ValueError: If deleted_by is None.
+        """
+        if deleted_by is None:
+            raise ValueError("deleted_by is required for soft delete operations")
+
+        return self.update(deleted_at=timezone.now(), deleted_by=deleted_by)
+
+
+class ReportManager(models.Manager.from_queryset(ReportQuerySet)):
+    """Manager that returns only active (non-deleted) reports by default."""
+
+    def get_queryset(self):
+        return super().get_queryset().active()
+
+
+class ReportAllManager(models.Manager.from_queryset(ReportQuerySet)):
+    """Manager that returns all reports including soft-deleted ones."""
+
+    pass
+
+
 class Report(models.Model):
     """
     A Django model representing reports in the system.
@@ -659,6 +700,8 @@ class Report(models.Model):
         unit (ForeignKey): Reference to Unit (optional, depends on report type)
         equipment (ForeignKey): Reference to Equipment (optional, depends on report type)
         report_type (CharField): Type of report, chosen from ReportType choices
+        deleted_at (DateTimeField): Timestamp when report was soft-deleted
+        deleted_by (ForeignKey): User who soft-deleted the report
     """
 
     class ReportType(TextChoices):
@@ -715,6 +758,22 @@ class Report(models.Model):
         max_length=3,
         choices=ReportType.choices,
     )
+    deleted_at = models.DateTimeField(
+        "Deletado em",
+        null=True,
+        blank=True,
+    )
+    deleted_by = models.ForeignKey(
+        UserAccount,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="deleted_reports",
+        verbose_name="Deletado por",
+    )
+
+    objects = ReportManager()
+    all_objects = ReportAllManager()
 
     def clean(self):
         """
@@ -768,14 +827,47 @@ class Report(models.Model):
         """
         if self.completion_date and not self.due_date:
             if self.report_type == self.ReportType.RADIOMETRIC_SURVEY:
-                # 4 years validity for Radiometric Survey
                 self.due_date = self.completion_date + timedelta(days=4 * 365)
             else:
-                # 1 year validity for all other types
                 self.due_date = self.completion_date + timedelta(days=365)
 
-        self.full_clean()
+        # Exclude deleted_by from validation if it's None (not being soft-deleted)
+        exclude = set()
+        if self.deleted_by is None:
+            exclude.add("deleted_by")
+
+        self.full_clean(exclude=exclude)
         super().save(*args, **kwargs)
+
+    def soft_delete(self, deleted_by: UserAccount) -> None:
+        """
+        Soft delete this report by setting deleted_at timestamp.
+
+        Args:
+            deleted_by: The user performing the soft delete. Required.
+
+        Raises:
+            ValueError: If deleted_by is None.
+        """
+        if deleted_by is None:
+            raise ValueError("deleted_by is required for soft delete operations")
+
+        self.deleted_at = timezone.now()
+        self.deleted_by = deleted_by
+        self.save(update_fields=["deleted_at", "deleted_by"])
+
+    def restore(self) -> None:
+        """
+        Restore a soft-deleted report.
+        """
+        self.deleted_at = None
+        self.deleted_by = None
+        self.save(update_fields=["deleted_at", "deleted_by"])
+
+    @property
+    def is_deleted(self) -> bool:
+        """Check if report is soft-deleted."""
+        return self.deleted_at is not None
 
     def __str__(self) -> str:
         entity_name = ""
