@@ -2554,6 +2554,52 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         report.soft_delete(deleted_by=user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=["post"])
+    @swagger_auto_schema(
+        operation_summary="Restore a soft-deleted report",
+        operation_description="""
+        Restore a soft-deleted report by clearing its deleted_at timestamp.
+        Only PROPHY_MANAGER can restore reports.
+        """,
+        responses={
+            200: openapi.Response(
+                description="Report restored successfully",
+                schema=ReportSerializer,
+            ),
+            403: "Permission denied - PROPHY_MANAGER role required",
+            404: "Report not found",
+        },
+    )
+    def restore(self, request: Request, pk: int | None = None) -> Response:
+        """
+        Restore a soft-deleted report.
+        """
+        user: UserAccount = request.user
+
+        if user.role != UserAccount.Role.PROPHY_MANAGER:
+            return Response(
+                {"detail": "Only PROPHY_MANAGER can restore reports."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            report = Report.all_objects.get(pk=pk)
+        except Report.DoesNotExist:
+            return Response(
+                {"detail": "Relatório não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not self._has_report_access(user, report):
+            return Response(
+                {"detail": "You do not have permission to restore this report."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        report.restore()
+        serializer = ReportSerializer(report)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class ReportFileDownloadView(APIView):
     """
