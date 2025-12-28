@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from typing import Any
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from rest_framework import serializers
 from users.models import UserAccount
@@ -228,6 +229,12 @@ class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = "__all__"
+
+    def create(self, validated_data: dict[str, Any]) -> Report:
+        try:
+            return super().create(validated_data)
+        except ValidationError as exc:
+            raise serializers.ValidationError(exc.message_dict) from exc
 
     def to_representation(self, instance: Report):
         representation = super().to_representation(instance)
