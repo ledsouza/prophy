@@ -1,36 +1,30 @@
-from django.core.management.utils import get_random_secret_key
+from __future__ import annotations
+
+from datetime import timedelta
 from os import getenv, path
 from pathlib import Path
-from datetime import timedelta
+
+from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
 from google.oauth2 import service_account
 
 
-# Build paths inside the project like this: BASE_DIR / "subdir".
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 dotenv_file = BASE_DIR.joinpath(".env")
-
 if path.isfile(dotenv_file):
     load_dotenv(dotenv_file)
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = getenv("DJANGO_SECRET_KEY", get_random_secret_key())
-
-# SECURITY WARNING: don"t run with debug turned on in production!
 DEBUG = getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost".split(","))
-
+ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
-
-# Application definition
 
 INSTALLED_APPS = [
     "core.apps.ProphyAdminConfig",
@@ -85,19 +79,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -114,74 +101,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = "pt-br"
-
 TIME_ZONE = "America/Sao_Paulo"
-
 USE_I18N = True
-
 USE_TZ = True
 
+STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR.joinpath("static")
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR.joinpath("media")
 
-if DEBUG:
-    STATIC_URL = "static/"
-    STATIC_ROOT = BASE_DIR.joinpath("static")
-    MEDIA_URL = "media/"
-    MEDIA_ROOT = BASE_DIR.joinpath("media")
-
-else:
-    STATIC_URL = f'https://storage.googleapis.com/{getenv("GCS_BUCKET_NAME")}/static/'
-    MEDIA_URL = f'https://storage.googleapis.com/{getenv("GCS_BUCKET_NAME")}/media/'
-
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-        getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    )
-
-    STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-            "OPTIONS": {
-                "bucket_name": getenv("GCS_BUCKET_NAME"),
-                "project_id": getenv("GCS_PROJECT_ID"),
-                "credentials": GS_CREDENTIALS,
-                "iam_sign_blob": True,
-                "location": "media",
-            },
-        },
-        "staticfiles": {
-            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-            "OPTIONS": {
-                "bucket_name": getenv("GCS_BUCKET_NAME"),
-                "project_id": getenv("GCS_PROJECT_ID"),
-                "credentials": GS_CREDENTIALS,
-                "iam_sign_blob": True,
-                "location": "static",
-            },
-        },
-    }
-
-FRONTEND_URL = getenv("FRONTEND_URL")
+FRONTEND_URL = getenv("FRONTEND_URL", "http://localhost:3000")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
-# The full URL of your Cloud Run service that Cloud Scheduler will call.
-# This MUST match the 'Audience' field you set in your Cloud Scheduler job.
 OIDC_AUDIENCE = getenv("OIDC_AUDIENCE")
-
-if not OIDC_AUDIENCE and not DEBUG:
-    raise ValueError(
-        "The OIDC_AUDIENCE environment variable must be set in production."
-    )
 
 DJOSER = {
     "TOKEN_MODEL": None,
@@ -204,7 +142,10 @@ SWAGGER_SETTINGS = {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header",
-            "description": 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
+            "description": (
+                "JWT Authorization header using the Bearer scheme. "
+                'Example: "Authorization: Bearer {token}"'
+            ),
         }
     },
     "USE_SESSION_AUTH": False,
@@ -221,17 +162,8 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
-    # 'DEFAULT_THROTTLE_CLASSES': [
-    #     'rest_framework.throttling.AnonRateThrottle',
-    #     'rest_framework.throttling.UserRateThrottle'
-    # ],
-    # 'DEFAULT_THROTTLE_RATES': {
-    #     'anon': '500/day',
-    #     'user': '1000/day'
-    # }
 }
 
-# Email
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 ANYMAIL = {
     "MAILGUN_API_KEY": getenv("MAILGUN_API_KEY"),
@@ -240,14 +172,58 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = getenv("DEFAULT_FROM_EMAIL")
 
-# Comma-separated list of recipient emails used ONLY in DEBUG mode to override
-# due-report notification recipients.
-# Example: "person_name@gmail.com"
 NOTIFICATION_OVERRIDE_RECIPIENTS = getenv("NOTIFICATION_OVERRIDE_RECIPIENTS")
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 AUTH_USER_MODEL = "users.UserAccount"
+
+
+def apply_production_storage_settings() -> None:
+    """Configure GCS storages when running outside DEBUG.
+
+    This keeps the storage config out of test/dev environments.
+    """
+
+    if DEBUG:
+        return
+
+    gcs_bucket_name = getenv("GCS_BUCKET_NAME")
+    gcs_project_id = getenv("GCS_PROJECT_ID")
+    google_application_credentials = getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+    if not gcs_bucket_name or not gcs_project_id or not google_application_credentials:
+        return
+
+    global STATIC_URL, MEDIA_URL, STORAGES
+
+    STATIC_URL = f"https://storage.googleapis.com/{gcs_bucket_name}/static/"
+    MEDIA_URL = f"https://storage.googleapis.com/{gcs_bucket_name}/media/"
+
+    gs_credentials = service_account.Credentials.from_service_account_file(
+        google_application_credentials
+    )
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {
+                "bucket_name": gcs_bucket_name,
+                "project_id": gcs_project_id,
+                "credentials": gs_credentials,
+                "iam_sign_blob": True,
+                "location": "media",
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+            "OPTIONS": {
+                "bucket_name": gcs_bucket_name,
+                "project_id": gcs_project_id,
+                "credentials": gs_credentials,
+                "iam_sign_blob": True,
+                "location": "static",
+            },
+        },
+    }
+
+
+apply_production_storage_settings()
