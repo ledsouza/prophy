@@ -1,130 +1,146 @@
-from django.test import TestCase
+import pytest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
+from users.models import UserAccount
+
 User = get_user_model()
 
 
-class UserAccountManagerTests(TestCase):
-    def test_create_user(self):
-        user = User.objects.create_user(
-            cpf='12345678901',
-            email='test@example.com',
-            password='testpass123',
-            name='Test User'
-        )
-        self.assertEqual(user.cpf, '12345678901')
-        self.assertEqual(user.email, 'test@example.com')
-        self.assertTrue(user.is_active)
-        self.assertFalse(user.is_staff)
-        self.assertFalse(user.is_superuser)
+@pytest.mark.django_db
+def test_create_user_default_role():
+    user = User.objects.create_user(
+        cpf="12345678901",
+        email="test@example.com",
+        password="testpass123",
+        name="Test User",
+        phone="11999999991",
+    )
 
-    def test_create_user_with_invalid_role(self):
-        with self.assertRaises(ValueError):
-            User.objects.create_user(
-                cpf='12345678901',
-                email='test@example.com',
-                password='testpass123',
-                role='Invalid role'
-            )
-
-    def test_create_user_without_cpf(self):
-        with self.assertRaises(ValueError):
-            User.objects.create_user(
-                cpf='',
-                email='test@example.com',
-                password='testpass123'
-            )
-
-    def test_create_user_without_email(self):
-        with self.assertRaises(ValueError):
-            User.objects.create_user(
-                cpf='12345678901',
-                email='',
-                password='testpass123'
-            )
-
-    def test_create_superuser(self):
-        admin_user = User.objects.create_superuser(
-            cpf='98765432109',
-            email='admin@example.com',
-            password='admin123',
-            name='Admin User'
-        )
-        self.assertEqual(admin_user.cpf, '98765432109')
-        self.assertEqual(admin_user.email, 'admin@example.com')
-        self.assertTrue(admin_user.is_active)
-        self.assertTrue(admin_user.is_staff)
-        self.assertTrue(admin_user.is_superuser)
+    assert user.cpf == "12345678901"
+    assert user.email == "test@example.com"
+    assert user.is_active is True
+    assert user.is_staff is False
+    assert user.is_superuser is False
+    assert user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER
 
 
-class UserAccountTests(TestCase):
-    def test_user_creation(self):
-        user = User.objects.create_user(
-            cpf='12345678901',
-            email='test@example.com',
-            password='testpass123',
-            name='Test User'
-        )
-        self.assertEqual(user.name, 'Test User')
-        self.assertEqual(user.role, 'Gerente Geral de Cliente')
-
-    def test_cpf_validator(self):
-        with self.assertRaises(ValidationError):
-            user = User(
-                cpf='invalid_cpf',
-                email='test@example.com',
-                name='Test User'
-            )
-            user.full_clean()
-
-    def test_name_validator(self):
-        with self.assertRaises(ValidationError):
-            user = User(
-                cpf='12345678901',
-                email='test@example.com',
-                name='Test User 123'
-            )
-            user.full_clean()
-
-    def test_unique_cpf(self):
+@pytest.mark.django_db
+def test_create_user_with_invalid_role_raises():
+    with pytest.raises(ValueError):
         User.objects.create_user(
-            cpf='12345678901',
-            email='test1@example.com',
-            password='testpass123',
-            name='Test User 1'
+            cpf="12345678901",
+            email="test@example.com",
+            password="testpass123",
+            name="Test User",
+            phone="11999999991",
+            role="Invalid role",
         )
-        with self.assertRaises(IntegrityError):
-            User.objects.create_user(
-                cpf='12345678901',
-                email='test2@example.com',
-                password='testpass123',
-                name='Test User 2'
-            )
 
-    def test_unique_email(self):
+
+@pytest.mark.django_db
+def test_create_user_without_cpf_raises():
+    with pytest.raises(ValueError):
         User.objects.create_user(
-            cpf='12345678901',
-            email='test@example.com',
-            password='testpass123',
-            name='Test User 1'
+            cpf="",
+            email="test@example.com",
+            password="testpass123",
+            name="Test User",
+            phone="11999999991",
         )
-        with self.assertRaises(IntegrityError):
-            User.objects.create_user(
-                cpf='98765432109',
-                email='test@example.com',
-                password='testpass123',
-                name='Test User 2'
-            )
 
-    def test_user_group_assignment(self):
-        user = User.objects.create_user(
-            cpf='12345678901',
-            email='test@example.com',
-            password='testpass123',
-            name='Test User',
-            role='Físico Médico Interno'
+
+@pytest.mark.django_db
+def test_create_user_without_email_raises():
+    with pytest.raises(ValueError):
+        User.objects.create_user(
+            cpf="12345678901",
+            email="",
+            password="testpass123",
+            name="Test User",
+            phone="11999999991",
         )
-        self.assertTrue(user.groups.filter(
-            name='Físico Médico Interno').exists())
+
+
+@pytest.mark.django_db
+def test_create_superuser_sets_staff_and_superuser():
+    admin_user = User.objects.create_superuser(
+        cpf="98765432109",
+        email="admin@example.com",
+        password="admin123",
+        name="Admin User",
+        phone="11999999992",
+    )
+
+    assert admin_user.is_active is True
+    assert admin_user.is_staff is True
+    assert admin_user.is_superuser is True
+    assert admin_user.role == UserAccount.Role.PROPHY_MANAGER
+
+
+@pytest.mark.django_db
+def test_user_full_clean_invalid_cpf_raises():
+    user = User(
+        cpf="invalid_cpf",
+        email="test@example.com",
+        name="Test User",
+        phone="11999999991",
+    )
+
+    with pytest.raises(ValidationError):
+        user.full_clean()
+
+
+@pytest.mark.django_db
+def test_unique_cpf_constraint_raises_integrity_error():
+    User.objects.create_user(
+        cpf="12345678901",
+        email="test1@example.com",
+        password="testpass123",
+        name="Test User 1",
+        phone="11999999991",
+    )
+
+    with pytest.raises(IntegrityError):
+        User.objects.create_user(
+            cpf="12345678901",
+            email="test2@example.com",
+            password="testpass123",
+            name="Test User 2",
+            phone="11999999992",
+        )
+
+
+@pytest.mark.django_db
+def test_unique_email_constraint_raises_integrity_error():
+    User.objects.create_user(
+        cpf="12345678901",
+        email="test@example.com",
+        password="testpass123",
+        name="Test User 1",
+        phone="11999999991",
+    )
+
+    with pytest.raises(IntegrityError):
+        User.objects.create_user(
+            cpf="98765432109",
+            email="test@example.com",
+            password="testpass123",
+            name="Test User 2",
+            phone="11999999992",
+        )
+
+
+@pytest.mark.django_db
+def test_user_added_to_group_matching_role():
+    user = User.objects.create_user(
+        cpf="12345678901",
+        email="test@example.com",
+        password="testpass123",
+        name="Test User",
+        phone="11999999991",
+        role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+    )
+
+    assert user.groups.filter(name=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST).exists()
