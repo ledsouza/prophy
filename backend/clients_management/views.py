@@ -39,6 +39,7 @@ from clients_management.models import (
     Proposal,
     Report,
     ServiceOrder,
+    Unit,
 )
 from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.query_utils import (
@@ -1240,6 +1241,39 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                 {"detail": "You do not have permission to create appointments."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+
+        unit_id = request.data.get("unit")
+        if unit_id is None:
+            return Response(
+                {"unit": "This field is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            unit = Unit.objects.select_related("client").get(pk=unit_id)
+        except Unit.DoesNotExist:
+            return Response(
+                {"unit": "Unit not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        is_global_user = user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]
+
+        if not is_global_user:
+            client = unit.client
+            has_client_access = bool(
+                client and client.users.filter(pk=user.pk).exists()
+            )
+            if not has_client_access:
+                return Response(
+                    {
+                        "detail": "You do not have permission to create this appointment."
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
