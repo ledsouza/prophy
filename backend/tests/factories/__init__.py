@@ -7,6 +7,7 @@ from .clients_management import (
     EquipmentFactory,
     ModalityFactory,
     ProposalFactory,
+    ServiceOrderFactory,
     UnitFactory,
 )
 from .requisitions import (
@@ -23,6 +24,7 @@ __all__ = [
     "EquipmentFactory",
     "ModalityFactory",
     "ProposalFactory",
+    "ServiceOrderFactory",
     "UnitFactory",
     "ClientOperationFactory",
     "EquipmentOperationFactory",

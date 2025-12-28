@@ -10,6 +10,7 @@ from clients_management.models import (
     Equipment,
     Modality,
     Proposal,
+    ServiceOrder,
     Unit,
 )
 
@@ -137,3 +138,21 @@ class AppointmentFactory(factory.django.DjangoModelFactory):
 
     contact_name = factory.Faker("name")
     contact_phone = "11999999999"
+
+
+class ServiceOrderFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ServiceOrder
+
+    subject = factory.Faker("sentence", nb_words=4)
+    description = factory.Faker("paragraph")
+    conclusion = factory.Faker("paragraph")
+    updates = factory.Faker("paragraph")
+
+    @factory.post_generation
+    def equipments(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        if extracted:
+            self.equipments.set(extracted)
