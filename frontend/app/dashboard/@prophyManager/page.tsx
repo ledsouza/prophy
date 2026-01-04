@@ -728,7 +728,7 @@ function SearchPage() {
                             </div>
 
                             {/* Equipment Results Section */}
-                            <div className="bg-gray-50 rounded-xl p-6">
+                            <div className="bg-gray-50 rounded-xl p-6" data-cy="equipments-results">
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
@@ -803,6 +803,9 @@ function SearchPage() {
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
+                                                                    dataCy={`equipment-details-${
+                                                                        equipment.id
+                                                                    }`}
                                                                 >
                                                                     <InfoIcon size={16} />
                                                                     Detalhes
@@ -814,6 +817,9 @@ function SearchPage() {
                                                 keyExtractor={(equipment: EquipmentDTO) =>
                                                     equipment.id
                                                 }
+                                                rowProps={(equipment: EquipmentDTO) => ({
+                                                    "data-cy": `equipment-row-${equipment.id}`,
+                                                })}
                                             />
                                         )}
 

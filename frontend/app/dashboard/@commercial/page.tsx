@@ -1207,7 +1207,10 @@ function SearchPage() {
                             </div>
 
                             {/* Appointment Results Section */}
-                            <div className="bg-gray-50 rounded-xl p-6">
+                            <div
+                                className="bg-gray-50 rounded-xl p-6"
+                                data-cy="commercial-appointments-results"
+                            >
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
@@ -1312,6 +1315,11 @@ function SearchPage() {
                                                 keyExtractor={(appointment: AppointmentDTO) =>
                                                     appointment.id
                                                 }
+                                                rowProps={(appointment: AppointmentDTO) => ({
+                                                    "data-cy": `commercial-appointment-row-${
+                                                        appointment.id
+                                                    }`,
+                                                })}
                                             />
                                         )}
 

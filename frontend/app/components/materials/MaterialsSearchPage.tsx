@@ -412,7 +412,7 @@ const MaterialsSearchPage = () => {
                 </div>
 
                 {/* Results */}
-                <div className="bg-gray-50 rounded-xl p-6">
+                <div className="bg-gray-50 rounded-xl p-6" data-cy="materials-results">
                     <Typography element="h2" size="title3" className="font-bold mb-4">
                         Resultados
                     </Typography>

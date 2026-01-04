@@ -21,6 +21,8 @@ describe("commercial - proposals smoke", () => {
 
             cy.getByCy("proposal-edit-modal").should("exist");
             cy.getByCy("proposal-edit-submit").click();
+
+            cy.getByCy("proposal-edit-modal").should("not.exist");
         });
     });
 });
