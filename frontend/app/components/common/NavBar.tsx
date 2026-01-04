@@ -47,7 +47,12 @@ export default function Navbar() {
             >
                 Painel de Materiais Institucionais
             </NavLink>
-            <NavLink isMobile={isMobile} onClick={handleLogout} dataTestId="logout-btn">
+            <NavLink
+                isMobile={isMobile}
+                onClick={handleLogout}
+                dataTestId="logout-btn"
+                dataCy="logout-btn"
+            >
                 Sair
             </NavLink>
         </>

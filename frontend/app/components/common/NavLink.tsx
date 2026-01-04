@@ -10,6 +10,7 @@ type Props = {
     onClick?: () => void;
     children: React.ReactNode;
     dataTestId?: string;
+    dataCy?: string;
 };
 
 const NavLink = ({
@@ -21,18 +22,15 @@ const NavLink = ({
     onClick,
     children,
     dataTestId,
+    dataCy,
 }: Props) => {
-    const computedClassName = cn(
-        "rounded-md px-3 py-2 font-medium",
-        className,
-        {
-            "text-white bg-secondary": isSelected,
-            "text-white hover:bg-secondary": !isSelected && !isBanner,
-            "block text-base": isMobile,
-            "text-sm": !isMobile,
-            "text-quaternary": isBanner,
-        }
-    );
+    const computedClassName = cn("rounded-md px-3 py-2 font-medium", className, {
+        "text-white bg-secondary": isSelected,
+        "text-white hover:bg-secondary": !isSelected && !isBanner,
+        "block text-base": isMobile,
+        "text-sm": !isMobile,
+        "text-quaternary": isBanner,
+    });
 
     if (!href) {
         return (
@@ -41,6 +39,7 @@ const NavLink = ({
                 role="button"
                 onClick={onClick}
                 data-testid={dataTestId}
+                data-cy={dataCy}
             >
                 {children}
             </span>
@@ -48,11 +47,7 @@ const NavLink = ({
     }
 
     return (
-        <Link
-            className={computedClassName}
-            href={href}
-            data-testid={dataTestId}
-        >
+        <Link className={computedClassName} href={href} data-testid={dataTestId} data-cy={dataCy}>
             {children}
         </Link>
     );

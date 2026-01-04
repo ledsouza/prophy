@@ -231,6 +231,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                         onClick={() => handleDownload(report.id)}
                         className="w-full text-xs"
                         data-testid={`btn-download-${report.id}`}
+                        dataCy={`report-download-${report.id}`}
                     >
                         Baixar
                     </Button>
@@ -243,6 +244,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                             }}
                             className="w-full text-xs"
                             data-testid={`btn-soft-delete-${report.id}`}
+                            dataCy={`report-soft-delete-${report.id}`}
                         >
                             Arquivar
                         </Button>
@@ -257,6 +259,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                 }}
                                 className="w-full text-xs"
                                 data-testid={`btn-restore-${report.id}`}
+                                dataCy={`report-restore-${report.id}`}
                             >
                                 Desarquivar
                             </Button>
@@ -268,6 +271,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                 }}
                                 className="w-full text-xs"
                                 data-testid={`btn-hard-delete-${report.id}`}
+                                dataCy={`report-hard-delete-${report.id}`}
                             >
                                 Excluir
                             </Button>
@@ -279,7 +283,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
     ];
 
     return (
-        <div>
+        <div data-cy="reports-search-tab">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <Select
                     options={REPORT_STATUS_OPTIONS}
@@ -352,7 +356,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                 </Button>
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-6">
+            <div className="bg-gray-50 rounded-xl p-6" data-cy="reports-results">
                 <Typography element="h2" size="title3" className="font-bold mb-4">
                     Resultados
                 </Typography>
@@ -442,6 +446,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                             onClick={handleSoftDelete}
                             disabled={isSoftDeleting}
                             data-testid="btn-confirm-soft-delete-search"
+                            dataCy="report-soft-delete-confirm"
                         >
                             {isSoftDeleting ? "Arquivando..." : "Arquivar"}
                         </Button>
@@ -482,6 +487,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                             onClick={handleHardDelete}
                             disabled={isHardDeleting}
                             data-testid="btn-confirm-hard-delete-search"
+                            dataCy="report-hard-delete-confirm"
                         >
                             {isHardDeleting ? "Excluindo..." : "Excluir Permanentemente"}
                         </Button>
@@ -522,6 +528,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                             onClick={handleRestore}
                             disabled={isRestoring}
                             data-testid="btn-confirm-restore-search"
+                            dataCy="report-restore-confirm"
                         >
                             {isRestoring ? "Desarquivando..." : "Desarquivar"}
                         </Button>
