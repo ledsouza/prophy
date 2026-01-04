@@ -71,12 +71,14 @@ const CNPJForm = ({ onSubmit }: CNPJFormProps) => {
                     type="text"
                     errorMessage={errors.cnpj?.message}
                     placeholder="21835755000186"
+                    data-cy="register-cnpj-input"
                     data-testid="input-cnpj"
                     label="CNPJ"
                 />
                 <Button
                     type="submit"
                     disabled={isSubmitting}
+                    data-cy="register-cnpj-submit"
                     data-testid="button-submit"
                     className="w-full"
                 >

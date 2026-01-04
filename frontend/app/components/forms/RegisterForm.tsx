@@ -48,6 +48,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.cpf?.message}
                 placeholder="Digite o seu CPF (apenas dígitos)"
+                data-cy="register-cpf-input"
                 data-testid="cpf-input"
                 label="CPF"
             />
@@ -56,6 +57,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="password"
                 errorMessage={errors.password?.message}
                 placeholder="Crie uma senha forte"
+                data-cy="register-password-input"
                 data-testid="password-input"
                 label="Senha"
             />
@@ -64,6 +66,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="password"
                 errorMessage={errors.rePassword?.message}
                 placeholder="Digite a senha novamente"
+                data-cy="register-password-confirm-input"
                 data-testid="repassword-input"
                 label="Confirmação de senha"
             />
@@ -76,6 +79,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.institutionName?.message}
                 placeholder="Digite o nome completo da instituição"
+                data-cy="register-institution-name-input"
                 data-testid="institution-name-input"
                 label="Nome"
             />
@@ -84,6 +88,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.institutionEmail?.message}
                 placeholder="nome@email.com"
+                data-cy="register-institution-email-input"
                 data-testid="institution-email-input"
                 label="E-mail"
             />
@@ -92,6 +97,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.institutionPhone?.message}
                 placeholder="DD9XXXXXXXX"
+                data-cy="register-institution-phone-input"
                 data-testid="institution-phone-input"
                 label="Telefone"
             />
@@ -106,6 +112,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     placeholder="Digite o estado e selecione"
                     selectedValue={selectedEstado}
                     onChange={handleEstadoChange}
+                    data-cy="register-institution-state-input"
                     data-testid="institution-state-input"
                 >
                     Estado
@@ -126,6 +133,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     placeholder="Digite a cidade e selecione"
                     selectedValue={selectedMunicipio}
                     onChange={handleMunicipioChange}
+                    data-cy="register-institution-city-input"
                     data-testid="institution-city-input"
                 >
                     Cidade
@@ -135,6 +143,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     disabled
                     errorMessage={errors.city ? "Cidade da instituição é obrigatório." : ""}
                     placeholder="Selecione um estado"
+                    data-cy="register-institution-city-input"
                     data-testid="institution-city-input"
                     label="Cidade"
                 />
@@ -144,6 +153,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.address?.message}
                 placeholder="Rua, número, bairro"
+                data-cy="register-institution-address-input"
                 data-testid="institution-address-input"
                 label="Endereço"
             />
@@ -156,6 +166,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.contactName?.message}
                 placeholder="Digite seu nome completo"
+                data-cy="register-contact-name-input"
                 data-testid="name-input"
                 label="Nome"
             />
@@ -164,6 +175,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.contactEmail?.message}
                 placeholder="nome@email.com"
+                data-cy="register-contact-email-input"
                 data-testid="email-input"
                 label="E-mail"
             />
@@ -172,6 +184,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.contactPhone?.message}
                 placeholder="DD9XXXXXXXX"
+                data-cy="register-contact-phone-input"
                 data-testid="contact-phone-input"
                 label="Celular"
             />
@@ -181,6 +194,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     disabled={isSubmitting}
                     onClick={() => setIsModalOpen(false)}
                     variant="secondary"
+                    data-cy="register-cancel-btn"
                     data-testid="cancel-btn"
                     className="w-full"
                 >
@@ -189,6 +203,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 <Button
                     type="submit"
                     disabled={isSubmitting}
+                    data-cy="register-submit-btn"
                     data-testid="submit-btn"
                     className="w-full"
                 >

@@ -51,6 +51,10 @@ APPROVED_PROPOSAL_CNPJ = "26661570000116"
 
 REGISTERED_CNPJ = "78187773000116"
 
+# E2E registration requires a CNPJ whose latest proposal is ACCEPTED
+# but it is not yet registered as a Client.
+ELIGIBLE_REGISTRATION_CNPJ = APPROVED_PROPOSAL_CNPJ
+
 MODALITIES = [
     "Raio X Convencional",
     "Raio X Móvel",
@@ -1433,6 +1437,10 @@ class Command(BaseCommand):
             ),
             (users, "users.json"),
             ({"registered_cnpj": REGISTERED_CNPJ}, "registered-client.json"),
+            (
+                {"eligible_registration_cnpj": ELIGIBLE_REGISTRATION_CNPJ},
+                "eligible-registration.json",
+            ),
             (default_clients, "default-clients.json"),
             (default_units, "default-units.json"),
             (default_equipments, "default-equipments.json"),

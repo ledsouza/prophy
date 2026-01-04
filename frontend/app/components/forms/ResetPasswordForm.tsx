@@ -78,6 +78,7 @@ const ResetPasswordForm = () => {
                 errorMessage={errors.new_password?.message}
                 placeholder="Crie uma senha forte"
                 label="Senha"
+                data-cy="reset-password-new-input"
                 data-testid="password-input"
             ></Input>
             <Input
@@ -86,6 +87,7 @@ const ResetPasswordForm = () => {
                 errorMessage={errors.re_new_password?.message}
                 placeholder="Digite a senha novamente"
                 label="Confirmação da senha"
+                data-cy="reset-password-confirm-input"
                 data-testid="repassword-input"
             ></Input>
 
@@ -93,6 +95,7 @@ const ResetPasswordForm = () => {
                 <Button
                     type="submit"
                     disabled={isSubmitting}
+                    data-cy="reset-password-submit-btn"
                     data-testid="submit-btn"
                     className="w-full"
                 >

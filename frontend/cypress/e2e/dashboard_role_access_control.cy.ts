@@ -36,6 +36,21 @@ const ROUTE_MATRIX: ProtectedRouteTest[] = [
             "internal_physicist_user",
         ],
     },
+    {
+        name: "GP proposals list",
+        path: "/dashboard/proposals",
+        allow: ["admin_user"],
+    },
+    {
+        name: "GP client details",
+        path: "/dashboard/client/00000000000000",
+        allow: ["admin_user"],
+    },
+    {
+        name: "Commercial client details",
+        path: "/dashboard/client/00000000000000",
+        allow: ["comercial_user"],
+    },
 ];
 
 describe("dashboard - role access control", () => {
