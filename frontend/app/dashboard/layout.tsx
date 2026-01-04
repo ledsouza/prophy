@@ -35,28 +35,52 @@ export default function DashboardLayout({
     }
 
     if (userData?.role === Role.GGC) {
-        return <>{clientManager}</>;
+        return (
+            <div data-cy="dashboard-root" data-cy-role="GGC">
+                {clientManager}
+            </div>
+        );
     }
 
     if (userData?.role === Role.FMI) {
-        return <>{internalMedicalPhysicist}</>;
+        return (
+            <div data-cy="dashboard-root" data-cy-role="FMI">
+                {internalMedicalPhysicist}
+            </div>
+        );
     }
 
     if (userData?.role === Role.GU) {
-        return <>{unitManager}</>;
+        return (
+            <div data-cy="dashboard-root" data-cy-role="GU">
+                {unitManager}
+            </div>
+        );
     }
 
     if (userData?.role === Role.FME) {
-        return <>{externalMedicalPhysicist}</>;
+        return (
+            <div data-cy="dashboard-root" data-cy-role="FME">
+                {externalMedicalPhysicist}
+            </div>
+        );
     }
 
     if (userData?.role === Role.GP) {
-        return <>{prophyManager}</>;
+        return (
+            <div data-cy="dashboard-root" data-cy-role="GP">
+                {prophyManager}
+            </div>
+        );
     }
 
     if (userData?.role === Role.C) {
-        return <>{commercial}</>;
+        return (
+            <div data-cy="dashboard-root" data-cy-role="C">
+                {commercial}
+            </div>
+        );
     }
 
-    return <>{children}</>;
+    return <div data-cy="dashboard-root">{children}</div>;
 }

@@ -1,14 +1,13 @@
 import { Tab as HeadlessTab } from "@headlessui/react";
-import { ReactNode } from "react";
+import type { ComponentPropsWithoutRef } from "react";
 
-type TabProps = {
-    children: ReactNode;
-};
+type TabProps = ComponentPropsWithoutRef<typeof HeadlessTab>;
 
-function Tab({ children }: TabProps) {
+function Tab({ children, ...props }: TabProps) {
     return (
         <HeadlessTab
-            className={({ selected }) =>
+            {...props}
+            className={({ selected }: { selected: boolean }) =>
                 `w-full rounded-lg py-2.5 px-3 text-sm font-medium leading-5 
                 ${
                     selected

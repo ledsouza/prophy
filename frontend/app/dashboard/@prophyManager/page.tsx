@@ -379,9 +379,15 @@ function SearchPage() {
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
-                        <Tab>Clientes</Tab>
-                        <Tab>Equipamentos</Tab>
-                        <Tab>Relatórios</Tab>
+                        <div data-cy="search-tab-clients">
+                            <Tab>Clientes</Tab>
+                        </div>
+                        <div data-cy="search-tab-equipments">
+                            <Tab>Equipamentos</Tab>
+                        </div>
+                        <div data-cy="search-tab-reports">
+                            <Tab>Relatórios</Tab>
+                        </div>
                     </TabList>
 
                     <TabPanels>
@@ -393,6 +399,7 @@ function SearchPage() {
                                     onChange={(e) => setSelectedClientName(e.target.value)}
                                     placeholder="Digite o nome do cliente"
                                     label="Nome"
+                                    dataCy="clients-filter-name"
                                 ></Input>
 
                                 <Input
@@ -400,6 +407,7 @@ function SearchPage() {
                                     onChange={(e) => setSelectedClientCNPJ(e.target.value)}
                                     placeholder="Digite o CNPJ"
                                     label="CNPJ"
+                                    dataCy="clients-filter-cnpj"
                                 ></Input>
 
                                 <Input
@@ -407,6 +415,7 @@ function SearchPage() {
                                     onChange={(e) => setSelectedClientCity(e.target.value)}
                                     placeholder="Digite a cidade"
                                     label="Cidade"
+                                    dataCy="clients-filter-city"
                                 ></Input>
 
                                 <Select
@@ -415,6 +424,7 @@ function SearchPage() {
                                     setSelect={setSelectedUserRole}
                                     label="Perfil de Usuário"
                                     dataTestId="filter-user-role"
+                                    dataCy="clients-filter-user-role"
                                 />
 
                                 <Select
@@ -423,6 +433,7 @@ function SearchPage() {
                                     setSelect={setSelectedContractType}
                                     label="Tipo de Contrato"
                                     dataTestId="filter-contract-type"
+                                    dataCy="clients-filter-contract-type"
                                 />
 
                                 <div className="relative">
@@ -451,6 +462,7 @@ function SearchPage() {
                                                 setSelect={setSelectedOperationStatus}
                                                 label=""
                                                 dataTestId="filter-operation-status"
+                                                dataCy="clients-filter-operation-status"
                                             />
                                         </div>
                                     </div>
@@ -464,6 +476,7 @@ function SearchPage() {
                                     className="flex-1 sm:flex-initial"
                                     disabled={clientsLoading}
                                     data-testid="btn-apply-filters"
+                                    dataCy="clients-apply-filters"
                                 >
                                     {clientsLoading ? "Carregando..." : "Aplicar Filtros"}
                                 </Button>
@@ -473,13 +486,14 @@ function SearchPage() {
                                     className="flex-1 sm:flex-initial"
                                     disabled={clientsLoading}
                                     data-testid="btn-clear-filters"
+                                    dataCy="clients-clear-filters"
                                 >
                                     Limpar Filtros
                                 </Button>
                             </div>
 
                             {/* Client Results Section */}
-                            <div className="bg-gray-50 rounded-xl p-6">
+                            <div className="bg-gray-50 rounded-xl p-6" data-cy="clients-results">
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
@@ -574,6 +588,7 @@ function SearchPage() {
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
+                                                                    dataCy={`client-details-${client.id}`}
                                                                 >
                                                                     <InfoIcon size={16} />
                                                                     Detalhes
@@ -587,6 +602,7 @@ function SearchPage() {
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 px-2 py-1 text-xs"
+                                                                    dataCy={`client-proposals-${client.id}`}
                                                                 >
                                                                     <FileTextIcon size={16} />
                                                                     Propostas
@@ -596,6 +612,9 @@ function SearchPage() {
                                                     },
                                                 ]}
                                                 keyExtractor={(client: ClientDTO) => client.id}
+                                                rowProps={(client: ClientDTO) => ({
+                                                    "data-cy": `client-row-${client.id}`,
+                                                })}
                                             />
                                         )}
 

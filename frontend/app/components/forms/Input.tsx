@@ -66,7 +66,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         );
 
         return (
-            <Field disabled={disabled} data-testid={dataTestId} data-cy={dataCy}>
+            <Field disabled={disabled} data-testid={dataTestId}>
                 {label && (
                     <Typography element="p" size={labelSize}>
                         <Label className={labelStyles}>{label}</Label>

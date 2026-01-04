@@ -16,9 +16,16 @@ type TableProps<T> = {
     columns: ColumnDefinition<T>[];
     keyExtractor: (row: T) => string | number;
     rowClassName?: (row: T) => string | undefined;
+    rowProps?: (row: T) => React.HTMLAttributes<HTMLTableRowElement> & Record<string, unknown>;
 };
 
-const Table = <T extends {}>({ data, columns, keyExtractor, rowClassName }: TableProps<T>) => {
+const Table = <T extends {}>({
+    data,
+    columns,
+    keyExtractor,
+    rowClassName,
+    rowProps,
+}: TableProps<T>) => {
     const hasCustomWidths = columns.some((column) => column.width);
     const [scrollState, setScrollState] = useState({
         isScrollable: false,
@@ -111,29 +118,42 @@ const Table = <T extends {}>({ data, columns, keyExtractor, rowClassName }: Tabl
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {data.map((row) => (
-                            <tr
-                                key={keyExtractor(row)}
-                                className={clsx(
-                                    "hover:bg-light transition-colors duration-150",
-                                    rowClassName && rowClassName(row)
-                                )}
-                            >
-                                {columns.map((column) => (
-                                    <td
-                                        key={column.header}
+                        {data.map((row) =>
+                            (() => {
+                                const extraRowProps = rowProps ? rowProps(row) : undefined;
+
+                                return (
+                                    <tr
+                                        key={keyExtractor(row)}
                                         className={clsx(
-                                            "px-4 py-3 text-sm text-gray-900",
-                                            column.width && !column.multiLine && "truncate",
-                                            column.multiLine && "whitespace-pre-wrap break-words"
+                                            "hover:bg-light transition-colors duration-150",
+                                            rowClassName && rowClassName(row),
+                                            extraRowProps?.className
                                         )}
-                                        style={column.width ? { width: column.width } : undefined}
+                                        {...extraRowProps}
                                     >
-                                        {column.cell(row)}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
+                                        {columns.map((column) => (
+                                            <td
+                                                key={column.header}
+                                                className={clsx(
+                                                    "px-4 py-3 text-sm text-gray-900",
+                                                    column.width && !column.multiLine && "truncate",
+                                                    column.multiLine &&
+                                                        "whitespace-pre-wrap break-words"
+                                                )}
+                                                style={
+                                                    column.width
+                                                        ? { width: column.width }
+                                                        : undefined
+                                                }
+                                            >
+                                                {column.cell(row)}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                );
+                            })()
+                        )}
                     </tbody>
                 </table>
             </div>

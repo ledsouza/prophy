@@ -41,6 +41,7 @@ type SelectProps = {
     labelSize?: "sm" | "md" | "lg";
     disabled?: boolean;
     dataTestId?: string | undefined;
+    dataCy?: string;
     placeholder?: string;
 };
 
@@ -97,6 +98,7 @@ const Select = ({
     labelSize = "sm",
     disabled = false,
     dataTestId,
+    dataCy,
     placeholder,
 }: SelectProps) => {
     const [hasOperation, setHasOperation] = useState(false);
@@ -164,7 +166,7 @@ const Select = ({
     const isPlaceholder = !selectedData;
 
     return (
-        <div data-testid={dataTestId}>
+        <div data-testid={dataTestId} data-cy={dataCy}>
             <Field disabled={disabled}>
                 <Listbox value={selectedData} onChange={setSelect} by="id">
                     <Typography element="p" size={labelSize}>
