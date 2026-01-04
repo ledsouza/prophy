@@ -1,9 +1,24 @@
 from __future__ import annotations
 
-from .base import *  # noqa: F403
+from . import base as base_settings
+
+
+for _name in dir(base_settings):
+    if not _name.isupper():
+        continue
+    globals()[_name] = getattr(base_settings, _name)
 
 
 DEBUG = True
+
+
+INSTALLED_APPS = [
+    *base_settings.INSTALLED_APPS,
+    "django_cypress",
+]
+
+
+BASE_DIR = base_settings.BASE_DIR
 
 
 def _configure_test_database() -> None:
@@ -12,12 +27,12 @@ def _configure_test_database() -> None:
     This prevents accidentally running tests against staging or production.
     """
 
-    global DATABASES  # noqa: PLW0603
+    global DATABASES
 
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db_test.sqlite3",  # noqa: F405
+            "NAME": BASE_DIR / "db_test.sqlite3",
         }
     }
 

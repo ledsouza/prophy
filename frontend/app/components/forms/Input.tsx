@@ -9,6 +9,7 @@ export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
     disabled?: boolean;
     errorMessage?: string;
     dataTestId?: string;
+    dataCy?: string;
     label?: string;
     labelStyles?: string;
     labelSize?: "sm" | "md" | "lg";
@@ -26,6 +27,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             labelStyles = "",
             labelSize = "sm",
             type,
+            dataCy,
             ...props
         }: InputProps,
         ref
@@ -64,7 +66,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         );
 
         return (
-            <Field disabled={disabled} data-testid={dataTestId}>
+            <Field disabled={disabled} data-testid={dataTestId} data-cy={dataCy}>
                 {label && (
                     <Typography element="p" size={labelSize}>
                         <Label className={labelStyles}>{label}</Label>
@@ -101,6 +103,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                             type={type}
                             disabled={disabled}
                             className={inputClassName}
+                            data-cy={dataCy}
                             {...props}
                         />
                     )}

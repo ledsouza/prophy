@@ -59,7 +59,7 @@ const LoginForm = () => {
                         {...register("cpf")}
                         type="text"
                         errorMessage={errors.cpf?.message}
-                        data-testid="cpf-input"
+                        data-cy="login-cpf-input"
                         placeholder="86453108054"
                         label="CPF"
                     />
@@ -67,14 +67,14 @@ const LoginForm = () => {
                         {...register("password")}
                         type="password"
                         errorMessage={errors.password?.message}
-                        data-testid="password-input"
+                        data-cy="login-password-input"
                         placeholder="Digite a sua senha"
                         label="Senha"
                     />
                     <Button
                         type="submit"
                         disabled={isSubmitting}
-                        data-testid="submit-button"
+                        data-cy="login-submit-btn"
                         className="w-full"
                     >
                         Acessar

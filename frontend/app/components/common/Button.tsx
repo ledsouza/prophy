@@ -17,12 +17,14 @@ type ButtonAsButton = ButtonHTMLAttributes<HTMLButtonElement> &
     CommonButtonProps & {
         href?: never;
         dataTestId?: string;
+        dataCy?: string;
     };
 
 type ButtonAsLink = LinkProps &
     CommonButtonProps & {
         href: string;
         dataTestId?: string;
+        dataCy?: string;
     };
 
 export type ButtonProps = ButtonAsButton | ButtonAsLink;
@@ -35,6 +37,7 @@ const Button = ({
     href,
     className,
     dataTestId,
+    dataCy,
     ...props
 }: ButtonProps) => {
     const computedClassName = cn(
@@ -61,6 +64,7 @@ const Button = ({
             <Link
                 className={computedClassName}
                 data-testid={dataTestId}
+                data-cy={dataCy}
                 {...(props as LinkProps)}
                 href={href}
             >
@@ -74,6 +78,7 @@ const Button = ({
             className={computedClassName}
             disabled={disabled || isLoading}
             data-testid={dataTestId}
+            data-cy={dataCy}
             {...(props as ButtonHTMLAttributes<HTMLButtonElement>)}
         >
             {content}
