@@ -560,9 +560,15 @@ function SearchPage() {
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
-                        <Tab>Clientes</Tab>
-                        <Tab>Propostas</Tab>
-                        <Tab>Agendamentos</Tab>
+                        <div data-cy="commercial-tab-clients">
+                            <Tab>Clientes</Tab>
+                        </div>
+                        <div data-cy="commercial-tab-proposals">
+                            <Tab>Propostas</Tab>
+                        </div>
+                        <div data-cy="commercial-tab-appointments">
+                            <Tab>Agendamentos</Tab>
+                        </div>
                     </TabList>
 
                     <TabPanels>
@@ -629,7 +635,10 @@ function SearchPage() {
                             </div>
 
                             {/* Client Results Section */}
-                            <div className="bg-gray-50 rounded-xl p-6">
+                            <div
+                                className="bg-gray-50 rounded-xl p-6"
+                                data-cy="commercial-clients-results"
+                            >
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
@@ -745,6 +754,7 @@ function SearchPage() {
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
                                                                     data-testid={`toggle-client-${client.id}`}
+                                                                    dataCy={`commercial-toggle-client-${client.id}`}
                                                                 >
                                                                     {togglingClientId ===
                                                                     client.id ? (
