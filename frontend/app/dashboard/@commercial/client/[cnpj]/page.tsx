@@ -111,6 +111,7 @@ function ClientDetailPage() {
                     disabled={isLoadingClientData}
                     onClick={handleBack}
                     data-testid="btn-back-to-search"
+                    data-cy="commercial-back-btn"
                 >
                     <div className="flex items-center gap-2">
                         <ArrowFatLineLeftIcon size={24} /> Voltar

@@ -55,6 +55,9 @@ REGISTERED_CNPJ = "78187773000116"
 # but it is not yet registered as a Client.
 ELIGIBLE_REGISTRATION_CNPJ = APPROVED_PROPOSAL_CNPJ
 
+# Deterministic CNPJ that will never have proposals created by this seed.
+NO_PROPOSAL_CNPJ = "21835755000186"
+
 MODALITIES = [
     "Raio X Convencional",
     "Raio X Móvel",
@@ -1441,6 +1444,7 @@ class Command(BaseCommand):
                 {"eligible_registration_cnpj": ELIGIBLE_REGISTRATION_CNPJ},
                 "eligible-registration.json",
             ),
+            ({"no_proposal_cnpj": NO_PROPOSAL_CNPJ}, "no-proposal.json"),
             (default_clients, "default-clients.json"),
             (default_units, "default-units.json"),
             (default_equipments, "default-equipments.json"),

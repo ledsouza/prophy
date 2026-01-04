@@ -41,16 +41,6 @@ const ROUTE_MATRIX: ProtectedRouteTest[] = [
         path: "/dashboard/proposals",
         allow: ["admin_user"],
     },
-    {
-        name: "GP client details",
-        path: "/dashboard/client/00000000000000",
-        allow: ["admin_user"],
-    },
-    {
-        name: "Commercial client details",
-        path: "/dashboard/client/00000000000000",
-        allow: ["comercial_user"],
-    },
 ];
 
 describe("dashboard - role access control", () => {
@@ -72,4 +62,26 @@ describe("dashboard - role access control", () => {
             });
         }
     }
+
+    it("renders GP client detail UI for GP and Commercial client detail UI for commercial", () => {
+        cy.fixture("default-clients.json").then((clients) => {
+            const cnpj: string = clients.client1.cnpj;
+
+            cy.loginAs("admin_user");
+            cy.visit(`/dashboard/client/${cnpj}`, { failOnStatusCode: false });
+
+            cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
+            cy.getByCy("gp-update-data-btn").should("exist");
+            cy.getByCy("gp-add-unit-btn").should("exist");
+            cy.getByCy("commercial-back-btn").should("not.exist");
+
+            cy.loginAs("comercial_user");
+            cy.visit(`/dashboard/client/${cnpj}`, { failOnStatusCode: false });
+
+            cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "C");
+            cy.getByCy("commercial-back-btn").should("exist");
+            cy.getByCy("gp-update-data-btn").should("not.exist");
+            cy.getByCy("gp-add-unit-btn").should("not.exist");
+        });
+    });
 });

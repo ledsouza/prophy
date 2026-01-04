@@ -203,6 +203,7 @@ function ClientDetailPage() {
                     disabled={isLoadingClientData}
                     onClick={handleUpdateData}
                     dataTestId="update-data-btn"
+                    data-cy="gp-update-data-btn"
                 >
                     <div className="flex items-center gap-2">
                         <ArrowClockwise size="24" /> Atualizar
@@ -241,7 +242,11 @@ function ClientDetailPage() {
                     </div>
 
                     {filteredClient && (
-                        <Button onClick={handleModalAddUnit} data-testid="btn-add-unit">
+                        <Button
+                            onClick={handleModalAddUnit}
+                            data-testid="btn-add-unit"
+                            data-cy="gp-add-unit-btn"
+                        >
                             Adicionar unidade
                         </Button>
                     )}
