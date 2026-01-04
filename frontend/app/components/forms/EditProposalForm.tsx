@@ -123,7 +123,10 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
     };
 
     return (
-        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+        <div
+            className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md"
+            data-cy="proposal-edit-modal"
+        >
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <Typography element="h3" size="title3" className="font-semibold">
                     {title || "Editar Proposta"}
@@ -203,6 +206,7 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
                         type="submit"
                         disabled={isSubmitting || isUpdatingProposal}
                         data-testid="submit-btn"
+                        dataCy="proposal-edit-submit"
                         className="w-full"
                     >
                         {isSubmitting || isUpdatingProposal ? "Atualizando..." : "Atualizar"}

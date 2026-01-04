@@ -13,6 +13,7 @@ type TabConfig = {
     render: () => ReactNode;
     badgeCount?: number;
     tabTestId?: string;
+    tabCy?: string;
 };
 
 type ClassNames = {
@@ -110,6 +111,7 @@ const TabbedResourcePanel = ({
                                 <div
                                     className="flex items-center justify-center gap-2"
                                     data-testid={t.tabTestId || `tab-${t.id}`}
+                                    data-cy={t.tabCy || `tab-${t.id}`}
                                 >
                                     <span>{t.label}</span>
                                     {typeof t.badgeCount === "number" && (

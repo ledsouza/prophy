@@ -274,6 +274,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         <div
             className={containerStyle}
             data-testid={dataTestId || `appointment-card-${appointment.id}`}
+            data-cy={`appointment-card-${appointment.id}`}
         >
             <div className="flex justify-between pb-4">
                 {/* date and contact info */}
@@ -379,6 +380,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 setConfirmOpen(true);
                             }}
                             data-testid="btn-appointment-confirm"
+                            dataCy={`appointment-confirm-${appointment.id}`}
                             aria-label="Confirmar agendamento"
                             title="Confirmar agendamento"
                             disabled={isUpdatingAppointment || isDeleting}
@@ -435,6 +437,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 setDeleteOpen(true);
                             }}
                             data-testid="btn-appointment-cancel-schedule"
+                            dataCy={`appointment-cancel-${appointment.id}`}
                             disabled={isDeleting}
                             aria-label="Cancelar agenda"
                             title="Cancelar agenda"
@@ -512,6 +515,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                             onClick={handleConfirmAppointment}
                             disabled={isUpdatingAppointment}
                             data-testid="btn-appointment-confirm-submit"
+                            dataCy="appointment-confirm-submit"
                         >
                             Confirmar
                         </Button>
@@ -545,6 +549,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                             onClick={handleCancelAppointment}
                             disabled={isDeleting}
                             data-testid="btn-appointment-cancel-submit"
+                            dataCy="appointment-cancel-submit"
                         >
                             Confirmar
                         </Button>

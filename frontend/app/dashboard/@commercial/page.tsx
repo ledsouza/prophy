@@ -841,6 +841,7 @@ function SearchPage() {
                                     onChange={(e) => setSelectedProposalCNPJ(e.target.value)}
                                     placeholder="Digite o CNPJ"
                                     label="CNPJ"
+                                    data-cy="proposals-filter-cnpj"
                                 ></Input>
 
                                 <Input
@@ -892,6 +893,7 @@ function SearchPage() {
                                     className="flex-1 sm:flex-initial"
                                     disabled={proposalsLoading}
                                     data-testid="btn-apply-proposal-filters"
+                                    dataCy="proposals-apply-filters"
                                 >
                                     {proposalsLoading ? "Carregando..." : "Aplicar Filtros"}
                                 </Button>
@@ -1063,6 +1065,7 @@ function SearchPage() {
                                                                     }}
                                                                     className="flex items-center gap-2 text-xs"
                                                                     data-testid={`edit-proposal-${proposal.id}`}
+                                                                    dataCy={`proposal-edit-${proposal.id}`}
                                                                 >
                                                                     <PencilSimpleIcon size={16} />
                                                                     Editar

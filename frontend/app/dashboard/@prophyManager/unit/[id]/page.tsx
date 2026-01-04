@@ -192,6 +192,7 @@ function UnitPage() {
                         {
                             id: "equipments",
                             label: "Equipamentos",
+                            tabCy: "tab-equipments",
                             render: () => (
                                 <EquipmentPanel
                                     filteredEquipmentsByUnit={filteredEquipmentsByUnit}
@@ -204,11 +205,13 @@ function UnitPage() {
                         {
                             id: "appointments",
                             label: "Agendamentos",
+                            tabCy: "tab-appointments",
                             render: () => <AppointmentPanel unitId={unitId} />,
                         },
                         {
                             id: "reports",
                             label: "Relatórios",
+                            tabCy: "tab-reports",
                             render: () => <ReportPanel unitId={unitId} />,
                         },
                     ]}
