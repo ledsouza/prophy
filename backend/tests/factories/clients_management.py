@@ -10,9 +10,11 @@ from clients_management.models import (
     Equipment,
     Modality,
     Proposal,
+    Report,
     ServiceOrder,
     Unit,
 )
+from users.models import UserAccount
 
 
 class ClientFactory(factory.django.DjangoModelFactory):
@@ -27,6 +29,20 @@ class ClientFactory(factory.django.DjangoModelFactory):
     state = "SP"
     city = "São Paulo"
     is_active = True
+
+    @factory.post_generation
+    def users(
+        self,
+        create: bool,
+        extracted: list[UserAccount] | None,
+        **kwargs,
+    ) -> None:
+        if not create:
+            return
+        if extracted is None:
+            return
+
+        self.users.set(extracted)
 
 
 class UnitFactory(factory.django.DjangoModelFactory):
@@ -138,6 +154,25 @@ class AppointmentFactory(factory.django.DjangoModelFactory):
 
     contact_name = factory.Faker("name")
     contact_phone = "11999999999"
+
+
+class ReportFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Report
+
+    completion_date = factory.Faker("date_this_year")
+    report_type = Report.ReportType.QUALITY_CONTROL
+
+    file = SimpleUploadedFile(
+        "report.pdf",
+        b"file_content",
+        content_type="application/pdf",
+    )
+
+    # Most tests for notifications will likely use unit-based reports,
+    # but the factory supports passing equipment=... explicitly.
+    unit = factory.SubFactory(UnitFactory)
+    equipment = None
 
 
 class ServiceOrderFactory(factory.django.DjangoModelFactory):
