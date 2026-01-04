@@ -20,6 +20,7 @@ from users.models import UserAccount
 class ClientFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Client
+        skip_postgeneration_save = True
 
     cnpj = factory.LazyFunction(lambda: CNPJ().generate())
     name = factory.Faker("company")
@@ -48,6 +49,7 @@ class ClientFactory(factory.django.DjangoModelFactory):
 class UnitFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Unit
+        skip_postgeneration_save = True
 
     client = factory.SubFactory(ClientFactory)
 
@@ -63,6 +65,7 @@ class UnitFactory(factory.django.DjangoModelFactory):
 class ModalityFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Modality
+        skip_postgeneration_save = True
 
     name = factory.Faker("word")
     accessory_type = Modality.AccessoryType.NONE
@@ -71,6 +74,7 @@ class ModalityFactory(factory.django.DjangoModelFactory):
 class EquipmentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Equipment
+        skip_postgeneration_save = True
 
     unit = factory.SubFactory(UnitFactory)
     modality = factory.SubFactory(ModalityFactory)
@@ -93,6 +97,7 @@ class EquipmentFactory(factory.django.DjangoModelFactory):
 class AccessoryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Accessory
+        skip_postgeneration_save = True
 
     equipment = factory.SubFactory(EquipmentFactory)
     category = Modality.AccessoryType.NONE
@@ -114,6 +119,7 @@ class AccessoryFactory(factory.django.DjangoModelFactory):
 class ProposalFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Proposal
+        skip_postgeneration_save = True
 
     cnpj = factory.LazyFunction(lambda: CNPJ().generate())
     contact_name = factory.Faker("name")
@@ -146,6 +152,7 @@ class ProposalFactory(factory.django.DjangoModelFactory):
 class AppointmentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Appointment
+        skip_postgeneration_save = True
 
     unit = factory.SubFactory(UnitFactory)
     date = factory.Faker("date_time_this_year", tzinfo=timezone.get_current_timezone())
@@ -159,6 +166,7 @@ class AppointmentFactory(factory.django.DjangoModelFactory):
 class ReportFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Report
+        skip_postgeneration_save = True
 
     completion_date = factory.Faker("date_this_year")
     report_type = Report.ReportType.QUALITY_CONTROL
@@ -178,6 +186,7 @@ class ReportFactory(factory.django.DjangoModelFactory):
 class ServiceOrderFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ServiceOrder
+        skip_postgeneration_save = True
 
     subject = factory.Faker("sentence", nb_words=4)
     description = factory.Faker("paragraph")

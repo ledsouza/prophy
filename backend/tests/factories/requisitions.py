@@ -10,6 +10,7 @@ from .users import UserFactory
 class ClientOperationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ClientOperation
+        skip_postgeneration_save = True
 
     operation_type = ClientOperation.OperationType.ADD
     operation_status = ClientOperation.OperationStatus.REVIEW
@@ -36,6 +37,7 @@ class ClientOperationFactory(factory.django.DjangoModelFactory):
 class UnitOperationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = UnitOperation
+        skip_postgeneration_save = True
 
     operation_type = UnitOperation.OperationType.ADD
     operation_status = UnitOperation.OperationStatus.REVIEW
@@ -56,6 +58,7 @@ class UnitOperationFactory(factory.django.DjangoModelFactory):
 class EquipmentOperationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EquipmentOperation
+        skip_postgeneration_save = True
 
     operation_type = EquipmentOperation.OperationType.ADD
     operation_status = EquipmentOperation.OperationStatus.REVIEW

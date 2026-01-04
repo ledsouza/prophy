@@ -8,6 +8,7 @@ from users.models import UserAccount
 class InstitutionalMaterialFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = InstitutionalMaterial
+        skip_postgeneration_save = True
 
     title = factory.Sequence(lambda n: f"Material {n}")
     description = factory.Faker("sentence")
