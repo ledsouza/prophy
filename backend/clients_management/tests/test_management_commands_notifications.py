@@ -51,8 +51,31 @@ def test_send_due_report_notifications__sends_to_eligible_client_users(
         role=UserAccount.Role.PROPHY_MANAGER,
         email="gp@example.com",
     )
+    client_general_manager = UserFactory(
+        role=UserAccount.Role.CLIENT_GENERAL_MANAGER,
+        email="ggc@example.com",
+    )
+    unit_manager = UserFactory(
+        role=UserAccount.Role.UNIT_MANAGER,
+        email="gu@example.com",
+    )
 
-    equipment = EquipmentFactory(unit__client__users=[internal, external, manager])
+    equipment = EquipmentFactory(
+        unit__client__users=[
+            internal,
+            external,
+            manager,
+            client_general_manager,
+            unit_manager,
+        ]
+    )
+
+    ProposalFactory(
+        cnpj=equipment.unit.client.cnpj,
+        contract_type=Proposal.ContractType.ANNUAL,
+        status=Proposal.Status.ACCEPTED,
+        date=timezone.now().date(),
+    )
     report = ReportFactory(
         equipment=equipment,
         unit=None,
@@ -65,6 +88,82 @@ def test_send_due_report_notifications__sends_to_eligible_client_users(
     call_command("send_due_report_notifications")
 
     assert render_spy.call_args.args[0] == "emails/report_due_notification.html"
+    anymail_message.assert_called_once()
+    assert anymail_message.call_args.kwargs["to"] == [
+        "internal@example.com",
+        "external@example.com",
+        "gp@example.com",
+        "ggc@example.com",
+        "gu@example.com",
+    ]
+    message_instance.send.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_send_due_report_notifications__excludes_managers_when_latest_contract_is_not_annual(
+    settings,
+    mocker,
+) -> None:
+    settings.DEBUG = True
+    settings.NOTIFICATION_OVERRIDE_RECIPIENTS = None
+
+    message_instance = mocker.Mock()
+    message_instance.attach_alternative = mocker.Mock()
+    message_instance.send = mocker.Mock()
+    anymail_message = mocker.patch(
+        "clients_management.management.commands.send_due_report_notifications.AnymailMessage",
+        return_value=message_instance,
+    )
+
+    internal = UserFactory(
+        role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+        email="internal@example.com",
+    )
+    external = UserFactory(
+        role=UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        email="external@example.com",
+    )
+    prophy_manager = UserFactory(
+        role=UserAccount.Role.PROPHY_MANAGER,
+        email="gp@example.com",
+    )
+    client_general_manager = UserFactory(
+        role=UserAccount.Role.CLIENT_GENERAL_MANAGER,
+        email="ggc@example.com",
+    )
+    unit_manager = UserFactory(
+        role=UserAccount.Role.UNIT_MANAGER,
+        email="gu@example.com",
+    )
+
+    equipment = EquipmentFactory(
+        unit__client__users=[
+            internal,
+            external,
+            prophy_manager,
+            client_general_manager,
+            unit_manager,
+        ]
+    )
+
+    ProposalFactory(
+        cnpj=equipment.unit.client.cnpj,
+        contract_type=Proposal.ContractType.MONTHLY,
+        status=Proposal.Status.ACCEPTED,
+        date=timezone.now().date(),
+    )
+
+    report = ReportFactory(
+        equipment=equipment,
+        unit=None,
+        report_type=Report.ReportType.QUALITY_CONTROL,
+        completion_date=timezone.now().date(),
+    )
+    report.due_date = timezone.now().date() + timedelta(days=30)
+    report.save(update_fields=["due_date"])
+
+    call_command("send_due_report_notifications")
+
     anymail_message.assert_called_once()
     assert anymail_message.call_args.kwargs["to"] == [
         "internal@example.com",
