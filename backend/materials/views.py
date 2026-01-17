@@ -2,7 +2,7 @@ import os
 
 from core.pagination import PaginationMixin
 from django.db.models import Q, QuerySet
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
@@ -310,12 +310,17 @@ class InstitutionalMaterialDownloadView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        file_handle = material.file.open("rb")
-        response = HttpResponse(file_handle, content_type="application/octet-stream")
-        response["Content-Disposition"] = (
-            f'attachment; filename="{os.path.basename(material.file.name)}"'
+        _, ext = os.path.splitext(material.file.name)
+        extension = ext or ".pdf"
+        download_name = f"material_{material.id}{extension}"
+
+        file_obj = material.file.open("rb")
+        return FileResponse(
+            file_obj,
+            as_attachment=True,
+            filename=download_name,
+            content_type="application/octet-stream",
         )
-        return response
 
     def _has_access(self, user: UserAccount, material: InstitutionalMaterial) -> bool:
         match (material.visibility, user.role):
