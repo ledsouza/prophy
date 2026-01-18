@@ -5,6 +5,8 @@
  * imported directly by pages that need page-specific restoration logic.
  */
 
+import type { Dispatch, SetStateAction } from "react";
+
 /**
  * Restores the selected tab index from a URL parameter.
  *
@@ -14,15 +16,11 @@
  */
 export const restoreTabState = (
     tabParam: string | null,
-    setSelectedTabIndex: (index: number) => void,
-    getTabFromParam?: (param: string | null) => number
+    setSelectedTabIndex: Dispatch<SetStateAction<number>>,
+    getTabFromParam?: (param: string | null) => number,
 ) => {
-    if (getTabFromParam) {
-        setSelectedTabIndex(getTabFromParam(tabParam));
-    } else {
-        // Default to 0 if no conversion function provided
-        setSelectedTabIndex(0);
-    }
+    const tabIndex = getTabFromParam ? getTabFromParam(tabParam) : 0;
+    setSelectedTabIndex((currentIndex) => (currentIndex === tabIndex ? currentIndex : tabIndex));
 };
 
 /**
@@ -35,7 +33,7 @@ export const restoreTabState = (
 export const restorePageState = (
     pageParam: string | null,
     currentPage: number,
-    setCurrentPage: (page: number) => void
+    setCurrentPage: Dispatch<SetStateAction<number>>,
 ) => {
     if (pageParam) {
         const page = parseInt(pageParam, 10);
@@ -51,7 +49,10 @@ export const restorePageState = (
  * @param currentPage - The current page number in state
  * @param setCurrentPage - Function to update the current page
  */
-export const resetPageState = (currentPage: number, setCurrentPage: (page: number) => void) => {
+export const resetPageState = (
+    currentPage: number,
+    setCurrentPage: Dispatch<SetStateAction<number>>,
+) => {
     if (currentPage !== 1) {
         setCurrentPage(1);
     }
@@ -63,9 +64,12 @@ export const resetPageState = (currentPage: number, setCurrentPage: (page: numbe
  * @param state - The filter value from URL
  * @param setState - Function to update the filter state
  */
-export const restoreTextFilterStates = (state: string, setState: (state: string) => void) => {
+export const restoreTextFilterStates = (
+    state: string,
+    setState: Dispatch<SetStateAction<string>>,
+) => {
     if (state) {
-        setState(state);
+        setState((currentState) => (currentState === state ? currentState : state));
     }
 };
 
@@ -79,8 +83,10 @@ export const restoreTextFilterStates = (state: string, setState: (state: string)
 export const restoreSelectFilterStates = <T extends { id: number; value: string }>(
     id: string | null,
     options: T[],
-    setData: (option: T) => void
+    setData: Dispatch<SetStateAction<T>>,
 ) => {
     const selectedID = id ? options.find((option) => option.id === Number(id)) : null;
-    if (selectedID) setData(selectedID);
+    if (selectedID) {
+        setData((current) => (current.id === selectedID.id ? current : selectedID));
+    }
 };

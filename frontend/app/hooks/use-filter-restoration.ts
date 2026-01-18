@@ -1,6 +1,8 @@
-import { restorePageState } from "@/utils/filter-restoration";
+import { restorePageState, restoreTabState } from "@/utils/filter-restoration";
 import { ReadonlyURLSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
+
+type SetState<T> = (value: T | ((prev: T) => T)) => void;
 
 /**
  * Configuration for a single tab's filter restoration.
@@ -19,7 +21,7 @@ type TabFilterConfig = {
     /**
      * Function to update the current page state.
      */
-    setCurrentPage: (page: number) => void;
+    setCurrentPage: SetState<number>;
 
     /**
      * Function to restore all filters for this tab from URL parameters.
@@ -50,7 +52,7 @@ type UseFilterRestorationConfig = {
     /**
      * Function to set the selected tab index.
      */
-    setSelectedTabIndex: (index: number) => void;
+    setSelectedTabIndex: SetState<number>;
 
     /**
      * Function to convert tab parameter string to tab index.
@@ -90,13 +92,30 @@ export function useFilterRestoration({
     tabs,
     dependencies,
 }: UseFilterRestorationConfig) {
+    const dependencyToken = useMemo(() => {
+        if (dependencies === undefined) {
+            return "";
+        }
+
+        try {
+            return JSON.stringify(dependencies);
+        } catch {
+            return String(dependencies);
+        }
+    }, [dependencies]);
+
+    const lastKeyRef = useRef<string | null>(null);
+
     useEffect(() => {
         const params = new URLSearchParams(searchParams);
-        const tabParam = params.get("tab");
-
-        if (tabParam) {
-            setSelectedTabIndex(getTabFromParam(tabParam));
+        const key = `${params.toString()}|${dependencyToken}`;
+        if (lastKeyRef.current === key) {
+            return;
         }
+
+        lastKeyRef.current = key;
+
+        restoreTabState(params.get("tab"), setSelectedTabIndex, getTabFromParam);
 
         Object.entries(tabs).forEach(([, tabConfig]) => {
             const pageParam = params.get(tabConfig.pageParam);
@@ -108,5 +127,5 @@ export function useFilterRestoration({
             const appliedFilters = tabConfig.buildAppliedFilters(params);
             tabConfig.setAppliedFilters(appliedFilters);
         });
-    }, [searchParams, setSelectedTabIndex, getTabFromParam, tabs, dependencies]);
+    }, [dependencyToken, searchParams, setSelectedTabIndex, getTabFromParam, tabs]);
 }
