@@ -4,6 +4,28 @@ describe("prophy manager - search clients", () => {
         cy.loginAs("admin_user");
     });
 
+    it("distributes search tabs equally", () => {
+        cy.visit("/dashboard");
+
+        cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
+
+        cy.getByCy("search-tab-clients").then(($clients) => {
+            const clientsWidth = $clients[0].getBoundingClientRect().width;
+
+            cy.getByCy("search-tab-equipments").then(($equipments) => {
+                const equipmentsWidth = $equipments[0].getBoundingClientRect().width;
+
+                cy.getByCy("search-tab-reports").then(($reports) => {
+                    const reportsWidth = $reports[0].getBoundingClientRect().width;
+                    const tolerance = 2;
+
+                    expect(Math.abs(clientsWidth - equipmentsWidth)).to.be.at.most(tolerance);
+                    expect(Math.abs(clientsWidth - reportsWidth)).to.be.at.most(tolerance);
+                });
+            });
+        });
+    });
+
     it("filters clients by CNPJ and navigates to details and proposals", () => {
         cy.fixture("registered-client.json").then((data) => {
             const cnpj: string = data.registered_cnpj;

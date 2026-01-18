@@ -379,13 +379,13 @@ function SearchPage() {
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
-                        <div data-cy="search-tab-clients">
+                        <div className="flex-1" data-cy="search-tab-clients">
                             <Tab>Clientes</Tab>
                         </div>
-                        <div data-cy="search-tab-equipments">
+                        <div className="flex-1" data-cy="search-tab-equipments">
                             <Tab>Equipamentos</Tab>
                         </div>
-                        <div data-cy="search-tab-reports">
+                        <div className="flex-1" data-cy="search-tab-reports">
                             <Tab>Relatórios</Tab>
                         </div>
                     </TabList>

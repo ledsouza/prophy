@@ -107,7 +107,7 @@ function SearchPage() {
         {
             id: 0,
             value: "Todos",
-        }
+        },
     );
 
     // Proposal state
@@ -182,7 +182,7 @@ function SearchPage() {
 
     const appointments = useMemo(
         () => appointmentsData?.results || [],
-        [appointmentsData?.results]
+        [appointmentsData?.results],
     );
     const totalAppointmentsCount = appointmentsData?.count || 0;
 
@@ -406,7 +406,7 @@ function SearchPage() {
         } catch (error) {
             log.error(
                 { error: (error as Error)?.message ?? String(error) },
-                "Failed to toggle client status"
+                "Failed to toggle client status",
             );
         } finally {
             setTogglingClientId(null);
@@ -440,12 +440,12 @@ function SearchPage() {
                     restoreSelectFilterStates(
                         contractTypeOptionId.toString(),
                         CONTRACT_TYPE_OPTIONS,
-                        setSelectedClientContractType
+                        setSelectedClientContractType,
                     );
                     restoreSelectFilterStates(
                         clientStatusOptionId.toString(),
                         CLIENT_STATUS_OPTIONS,
-                        setSelectedClientStatus
+                        setSelectedClientStatus,
                     );
                 },
                 setAppliedFilters: setClientAppliedFilters,
@@ -479,12 +479,12 @@ function SearchPage() {
                     restoreSelectFilterStates(
                         contractTypeOptionId.toString(),
                         CONTRACT_TYPE_OPTIONS,
-                        setSelectedProposalContractType
+                        setSelectedProposalContractType,
                     );
                     restoreSelectFilterStates(
                         proposalStatusOptionId.toString(),
                         PROPOSAL_STATUS_OPTIONS,
-                        setSelectedProposalStatus
+                        setSelectedProposalStatus,
                     );
 
                     setSelectedProposalExpiringAnnual(proposalExpiringAnnual === "true");
@@ -522,7 +522,7 @@ function SearchPage() {
                     restoreSelectFilterStates(
                         appointmentStatusOptionId.toString(),
                         APPOINTMENT_STATUS_OPTIONS,
-                        setSelectedAppointmentStatus
+                        setSelectedAppointmentStatus,
                     );
                 },
                 setAppliedFilters: setAppointmentsAppliedFilters,
@@ -560,13 +560,13 @@ function SearchPage() {
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
-                        <div data-cy="commercial-tab-clients">
+                        <div className="flex-1" data-cy="commercial-tab-clients">
                             <Tab>Clientes</Tab>
                         </div>
-                        <div data-cy="commercial-tab-proposals">
+                        <div className="flex-1" data-cy="commercial-tab-proposals">
                             <Tab>Propostas</Tab>
                         </div>
-                        <div data-cy="commercial-tab-appointments">
+                        <div className="flex-1" data-cy="commercial-tab-appointments">
                             <Tab>Agendamentos</Tab>
                         </div>
                     </TabList>
@@ -684,7 +684,7 @@ function SearchPage() {
                                                         header: "Situação",
                                                         cell: (client: ClientDTO) => {
                                                             const statusInfo = getStatusDisplay(
-                                                                client.is_active.toString()
+                                                                client.is_active.toString(),
                                                             );
                                                             return (
                                                                 <span
@@ -704,7 +704,7 @@ function SearchPage() {
                                                                         className={clsx(
                                                                             "inline-flex w-full justify-center px-2.5 py-0.5",
                                                                             "rounded-full text-xs font-medium text-center",
-                                                                            "bg-red-100 text-red-800 mb-1"
+                                                                            "bg-red-100 text-red-800 mb-1",
                                                                         )}
                                                                     >
                                                                         Agendamento pendente
@@ -715,7 +715,7 @@ function SearchPage() {
                                                                     variant="primary"
                                                                     onClick={() =>
                                                                         handleViewDetails(
-                                                                            client.cnpj
+                                                                            client.cnpj,
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
@@ -728,7 +728,7 @@ function SearchPage() {
                                                                     variant="primary"
                                                                     onClick={() =>
                                                                         handleViewProposals(
-                                                                            client.cnpj
+                                                                            client.cnpj,
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 px-2 py-1 text-xs"
@@ -745,7 +745,7 @@ function SearchPage() {
                                                                     }
                                                                     onClick={() =>
                                                                         handleToggleClientStatus(
-                                                                            client
+                                                                            client,
                                                                         )
                                                                     }
                                                                     disabled={
@@ -818,7 +818,7 @@ function SearchPage() {
                                                             -
                                                             {Math.min(
                                                                 clientCurrentPage * ITEMS_PER_PAGE,
-                                                                totalClientsCount
+                                                                totalClientsCount,
                                                             )}{" "}
                                                             de {totalClientsCount} cliente(s)
                                                         </>
@@ -991,7 +991,7 @@ function SearchPage() {
                                                                 <span>{proposal.contact_name}</span>
                                                                 <span>
                                                                     {formatPhoneNumber(
-                                                                        proposal.contact_phone
+                                                                        proposal.contact_phone,
                                                                     )}
                                                                 </span>
                                                                 <span>{proposal.email}</span>
@@ -1010,14 +1010,14 @@ function SearchPage() {
                                                         header: "Tipo de Contrato",
                                                         cell: (proposal: ProposalDTO) =>
                                                             getContractTypeDisplay(
-                                                                proposal.contract_type
+                                                                proposal.contract_type,
                                                             ),
                                                     },
                                                     {
                                                         header: "Situação",
                                                         cell: (proposal: ProposalDTO) => {
                                                             const statusInfo = getStatusDisplay(
-                                                                proposal.status
+                                                                proposal.status,
                                                             );
                                                             return (
                                                                 <span
@@ -1055,12 +1055,12 @@ function SearchPage() {
                                                                     variant="primary"
                                                                     onClick={() => {
                                                                         dispatch(
-                                                                            setProposal(proposal)
+                                                                            setProposal(proposal),
                                                                         );
                                                                         dispatch(
                                                                             openModal(
-                                                                                Modals.EDIT_PROPOSAL
-                                                                            )
+                                                                                Modals.EDIT_PROPOSAL,
+                                                                            ),
                                                                         );
                                                                     }}
                                                                     className="flex items-center gap-2 text-xs"
@@ -1112,7 +1112,7 @@ function SearchPage() {
                                                             {Math.min(
                                                                 proposalCurrentPage *
                                                                     ITEMS_PER_PAGE,
-                                                                totalProposalsCount
+                                                                totalProposalsCount,
                                                             )}{" "}
                                                             de {totalProposalsCount} proposta(s)
                                                         </>
@@ -1275,7 +1275,7 @@ function SearchPage() {
                                                         cell: (appointment: AppointmentDTO) => {
                                                             const statusClasses =
                                                                 getAppointmentStatusClasses(
-                                                                    appointment.status
+                                                                    appointment.status,
                                                                 );
                                                             return (
                                                                 <span
@@ -1299,7 +1299,7 @@ function SearchPage() {
                                                                     variant="primary"
                                                                     onClick={() =>
                                                                         handleViewUnitDetails(
-                                                                            appointment.unit
+                                                                            appointment.unit,
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
@@ -1355,7 +1355,7 @@ function SearchPage() {
                                                             {Math.min(
                                                                 appointmentsCurrentPage *
                                                                     ITEMS_PER_PAGE,
-                                                                totalAppointmentsCount
+                                                                totalAppointmentsCount,
                                                             )}{" "}
                                                             de {totalAppointmentsCount}{" "}
                                                             agendamento(s)
