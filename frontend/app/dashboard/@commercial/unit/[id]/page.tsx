@@ -32,6 +32,17 @@ import { Typography } from "@/components/foundation";
 import { OperationType } from "@/enums";
 import { closeModal, Modals } from "@/redux/features/modalSlice";
 
+const UNIT_TABS = ["equipments", "appointments", "reports"] as const;
+type UnitTabId = (typeof UNIT_TABS)[number];
+
+const getInitialTabId = (tab: string | null): UnitTabId => {
+    if (tab && (UNIT_TABS as readonly string[]).includes(tab)) {
+        return tab as UnitTabId;
+    }
+
+    return "equipments";
+};
+
 function CommercialUnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
@@ -73,7 +84,7 @@ function CommercialUnitPage() {
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
                 { type: "Appointment", id: "LIST" },
-            ])
+            ]),
         );
     };
 
@@ -98,7 +109,7 @@ function CommercialUnitPage() {
 
         const addEquipmentsInOperation =
             equipmentsOperations?.filter(
-                (operation) => operation.operation_type === OperationType.ADD
+                (operation) => operation.operation_type === OperationType.ADD,
             ) || [];
 
         setFilteredEquipmentsByUnit([
@@ -185,7 +196,7 @@ function CommercialUnitPage() {
                         render: () => <ReportPanel unitId={unitId} />,
                     },
                 ]}
-                initialTabId={searchParams.get("tab") ?? undefined}
+                initialTabId={getInitialTabId(searchParams.get("tab"))}
             />
 
             <Modal

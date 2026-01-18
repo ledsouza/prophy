@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import {
@@ -51,14 +51,26 @@ import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 import { handleApiError } from "@/redux/services/errorHandling";
 import type { UserDTO } from "@/types/user";
 
+const UNIT_TABS = ["equipments", "appointments", "reports"] as const;
+type UnitTabId = (typeof UNIT_TABS)[number];
+
+const getInitialTabId = (tab: string | null): UnitTabId => {
+    if (tab && (UNIT_TABS as readonly string[]).includes(tab)) {
+        return tab as UnitTabId;
+    }
+
+    return "equipments";
+};
+
 function UnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
+    const searchParams = useSearchParams();
     const router = useRouter();
     const dispatch = useAppDispatch();
 
     const { isModalOpen, currentModal, selectedEquipment, selectedUser } = useAppSelector(
-        (state) => state.modal
+        (state) => state.modal,
     );
 
     const [selectedUnit, setSelectedUnit] = useState<UnitDTO | null>(null);
@@ -103,7 +115,7 @@ function UnitPage() {
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
                 { type: "Appointment", id: "LIST" },
-            ])
+            ]),
         );
     };
 
@@ -123,7 +135,7 @@ function UnitPage() {
                             Por favor, recarregue a página para atualizar a lista de requisições.`,
                         {
                             autoClose: 5000,
-                        }
+                        },
                     );
                 }
             }
@@ -190,7 +202,7 @@ function UnitPage() {
                             Por favor, recarregue a página para atualizar a lista de requisições.`,
                         {
                             autoClose: 5000,
-                        }
+                        },
                     );
                 }
                 return toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -238,7 +250,7 @@ function UnitPage() {
 
         const AddEquipmentsInOperation =
             equipmentsOperations?.filter(
-                (operation) => operation.operation_type === OperationType.ADD
+                (operation) => operation.operation_type === OperationType.ADD,
             ) || [];
         setFilteredEquipmentsByUnit([
             ...equipments.filter((equipment) => equipment.unit === unitId),
@@ -321,6 +333,7 @@ function UnitPage() {
                             render: () => <ReportPanel unitId={unitId} />,
                         },
                     ]}
+                    initialTabId={getInitialTabId(searchParams.get("tab"))}
                 />
 
                 <Modal

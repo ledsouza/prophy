@@ -40,6 +40,17 @@ import { ModalDeleteEquipment, ModalDeleteUnit } from "@/components/modals";
 import { OperationType } from "@/enums";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 
+const UNIT_TABS = ["equipments", "appointments", "reports"] as const;
+type UnitTabId = (typeof UNIT_TABS)[number];
+
+const getInitialTabId = (tab: string | null): UnitTabId => {
+    if (tab && (UNIT_TABS as readonly string[]).includes(tab)) {
+        return tab as UnitTabId;
+    }
+
+    return "equipments";
+};
+
 function UnitPage() {
     const pathname = usePathname();
     const unitId = getIdFromUrl(pathname);
@@ -87,7 +98,7 @@ function UnitPage() {
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
                 { type: "Appointment", id: "LIST" },
-            ])
+            ]),
         );
     };
 
@@ -121,7 +132,7 @@ function UnitPage() {
 
         const AddEquipmentsInOperation =
             equipmentsOperations?.filter(
-                (operation) => operation.operation_type === OperationType.ADD
+                (operation) => operation.operation_type === OperationType.ADD,
             ) || [];
         setFilteredEquipmentsByUnit([
             ...equipments.filter((equipment) => equipment.unit === unitId),
@@ -215,6 +226,7 @@ function UnitPage() {
                             render: () => <ReportPanel unitId={unitId} />,
                         },
                     ]}
+                    initialTabId={getInitialTabId(searchParams.get("tab"))}
                 />
 
                 <Modal
