@@ -1,7 +1,7 @@
 "use client";
 
-import { DownloadIcon, TrashIcon, ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { format } from "date-fns";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Button, ErrorDisplay, Modal, Pagination, Spinner, Table } from "@/components/common";
@@ -11,11 +11,17 @@ import { Typography } from "@/components/foundation";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
 import Role from "@/enums/Role";
 import {
+    useFilterApplication,
+    useFilterClear,
+    useFilterRestoration,
+    usePageNavigation,
+} from "@/hooks";
+import {
+    useHardDeleteReportMutation,
     useLazyDownloadReportFileQuery,
+    useRestoreReportMutation,
     useSearchReportsQuery,
     useSoftDeleteReportMutation,
-    useHardDeleteReportMutation,
-    useRestoreReportMutation,
 } from "@/redux/features/reportApiSlice";
 import type { ReportSearchDTO, ReportStatus } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
@@ -23,7 +29,9 @@ import {
     REPORT_STATUS_OPTIONS,
     getReportStatusDisplay,
     getReportStatusFromOptionId,
+    getReportStatusOptionIdFromValue,
 } from "@/types/reportStatus";
+import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
 import { child } from "@/utils/logger";
 import { toast } from "react-toastify";
 
@@ -35,6 +43,8 @@ type ReportsSearchTabProps = {
 
 export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
     const isGP = currentUserRole === Role.GP;
+    const searchParams = useSearchParams();
+
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
     const [softDeleteConfirmOpen, setSoftDeleteConfirmOpen] = useState(false);
@@ -48,6 +58,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         client_cnpj: "",
         unit_name: "",
         unit_city: "",
+        responsible_cpf: "",
     });
 
     const [selectedStatus, setSelectedStatus] = useState<SelectData | null>({
@@ -60,6 +71,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
     const [clientCNPJ, setClientCNPJ] = useState("");
     const [unitName, setUnitName] = useState("");
     const [unitCity, setUnitCity] = useState("");
+    const [responsibleCpf, setResponsibleCpf] = useState("");
 
     const { data, isLoading, error } = useSearchReportsQuery({
         page: currentPage,
@@ -74,9 +86,13 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
     const reports = data?.results || [];
     const totalCount = data?.count || 0;
 
-    const handleApplyFilters = () => {
-        setCurrentPage(1);
-        setAppliedFilters({
+    const { handleApplyFilters } = useFilterApplication({
+        tabName: "reports",
+        pageKey: "report_page",
+        currentPage,
+        setCurrentPage,
+        setAppliedFilters,
+        buildFilters: () => ({
             status: getReportStatusFromOptionId(selectedStatus?.id ?? 0),
             due_date_start: dueDateStart,
             due_date_end: dueDateEnd,
@@ -84,19 +100,26 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
             client_cnpj: clientCNPJ,
             unit_name: unitName,
             unit_city: unitCity,
-        });
-    };
+            responsible_cpf: responsibleCpf,
+        }),
+    });
 
-    const handleClearFilters = () => {
-        setCurrentPage(1);
-        setSelectedStatus({ id: 0, value: "Todos" });
-        setDueDateStart("");
-        setDueDateEnd("");
-        setClientName("");
-        setClientCNPJ("");
-        setUnitName("");
-        setUnitCity("");
-        setAppliedFilters({
+    const { handleClearFilters } = useFilterClear({
+        tabName: "reports",
+        pageKey: "report_page",
+        setCurrentPage,
+        setAppliedFilters,
+        resetFilters: () => {
+            setSelectedStatus({ id: 0, value: "Todos" });
+            setDueDateStart("");
+            setDueDateEnd("");
+            setClientName("");
+            setClientCNPJ("");
+            setUnitName("");
+            setUnitCity("");
+            setResponsibleCpf("");
+        },
+        emptyFilters: {
             status: undefined,
             due_date_start: "",
             due_date_end: "",
@@ -104,8 +127,74 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
             client_cnpj: "",
             unit_name: "",
             unit_city: "",
-        });
-    };
+            responsible_cpf: "",
+        },
+    });
+
+    const { handlePageChange } = usePageNavigation({
+        tabName: "reports",
+        pageKey: "report_page",
+        buildFilters: () => ({
+            status: String(selectedStatus?.id ?? 0),
+            due_date_start: dueDateStart,
+            due_date_end: dueDateEnd,
+            client_name: clientName,
+            client_cnpj: clientCNPJ,
+            unit_name: unitName,
+            unit_city: unitCity,
+            responsible_cpf: responsibleCpf,
+        }),
+        setCurrentPage,
+    });
+
+    useFilterRestoration({
+        searchParams,
+        setSelectedTabIndex: () => {},
+        getTabFromParam: () => 0,
+        tabs: {
+            0: {
+                pageParam: "report_page",
+                currentPage,
+                setCurrentPage,
+                restoreFilters: (params) => {
+                    const status = params.get("reports_status");
+                    const dueDateStart = params.get("reports_due_date_start") || "";
+                    const dueDateEnd = params.get("reports_due_date_end") || "";
+                    const clientName = params.get("reports_client_name") || "";
+                    const clientCnpj = params.get("reports_client_cnpj") || "";
+                    const unitName = params.get("reports_unit_name") || "";
+                    const unitCity = params.get("reports_unit_city") || "";
+                    const responsibleCpf = params.get("reports_responsible_cpf") || "";
+
+                    restoreTextFilterStates(dueDateStart, setDueDateStart);
+                    restoreTextFilterStates(dueDateEnd, setDueDateEnd);
+                    restoreTextFilterStates(clientName, setClientName);
+                    restoreTextFilterStates(clientCnpj, setClientCNPJ);
+                    restoreTextFilterStates(unitName, setUnitName);
+                    restoreTextFilterStates(unitCity, setUnitCity);
+                    restoreTextFilterStates(responsibleCpf, setResponsibleCpf);
+
+                    const statusOptionId = getReportStatusOptionIdFromValue(status);
+                    restoreSelectFilterStates(
+                        statusOptionId.toString(),
+                        REPORT_STATUS_OPTIONS,
+                        setSelectedStatus,
+                    );
+                },
+                setAppliedFilters,
+                buildAppliedFilters: (params) => ({
+                    status: (params.get("reports_status") as ReportStatus | null) || undefined,
+                    due_date_start: params.get("reports_due_date_start") || "",
+                    due_date_end: params.get("reports_due_date_end") || "",
+                    client_name: params.get("reports_client_name") || "",
+                    client_cnpj: params.get("reports_client_cnpj") || "",
+                    unit_name: params.get("reports_unit_name") || "",
+                    unit_city: params.get("reports_unit_city") || "",
+                    responsible_cpf: params.get("reports_responsible_cpf") || "",
+                }),
+            },
+        },
+    });
 
     const handleDownload = async (reportId: number) => {
         try {
@@ -334,6 +423,16 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                     placeholder="Digite a cidade"
                     label="Cidade da Unidade"
                 />
+
+                <Input
+                    value={responsibleCpf}
+                    onChange={(e) =>
+                        setResponsibleCpf(e.target.value.replace(/\D/g, "").slice(0, 11))
+                    }
+                    placeholder="Digite o CPF"
+                    label="CPF do físico responsável"
+                    dataCy="reports-filter-responsible-cpf"
+                />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -389,7 +488,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                     currentPage={currentPage}
                                     totalCount={totalCount}
                                     itemsPerPage={ITEMS_PER_PAGE}
-                                    onPageChange={setCurrentPage}
+                                    onPageChange={handlePageChange}
                                     isLoading={isLoading}
                                 />
                             </div>

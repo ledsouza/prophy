@@ -107,7 +107,9 @@ export function useFilterRestoration({
 
         lastKeyRef.current = combinedKey;
 
-        setSelectedTabIndex(getTabFromParam(tabParam));
+        if (tabParam) {
+            setSelectedTabIndex(getTabFromParam(tabParam));
+        }
 
         Object.entries(tabs).forEach(([, tabConfig]) => {
             const pageParam = params.get(tabConfig.pageParam);

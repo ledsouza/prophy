@@ -227,3 +227,74 @@ def test_clients_list_needs_appointment_true_when_annual_accepted_proposal_has_n
     assert response_with_appointment.status_code == status.HTTP_200_OK
     assert response_with_appointment.data["count"] == 1
     assert response_with_appointment.data["results"][0]["needs_appointment"] is False
+
+
+@pytest.mark.django_db
+def test_clients_list_filter_responsible_cpf_returns_only_clients_linked_to_physicist():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    physicist = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
+
+    client_a = ClientOperationFactory(
+        operation_status=ClientOperation.OperationStatus.ACCEPTED,
+        operation_type=ClientOperation.OperationType.CLOSED,
+        is_active=True,
+        users=[physicist],
+    )
+    client_b = ClientOperationFactory(
+        operation_status=ClientOperation.OperationStatus.ACCEPTED,
+        operation_type=ClientOperation.OperationType.CLOSED,
+        is_active=True,
+        users=[physicist],
+    )
+    ClientOperationFactory(
+        operation_status=ClientOperation.OperationStatus.ACCEPTED,
+        operation_type=ClientOperation.OperationType.CLOSED,
+        is_active=True,
+    )
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.get(f"/api/clients/?responsible_cpf={physicist.cpf}")
+
+    assert response.status_code == status.HTTP_200_OK
+    cnpjs = {row["cnpj"] for row in response.data["results"]}
+    assert cnpjs == {client_a.cnpj, client_b.cnpj}
+
+
+@pytest.mark.django_db
+def test_clients_list_filter_responsible_cpf_returns_empty_when_user_exists_but_not_linked():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    physicist = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
+
+    ClientOperationFactory(
+        operation_status=ClientOperation.OperationStatus.ACCEPTED,
+        operation_type=ClientOperation.OperationType.CLOSED,
+        is_active=True,
+    )
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.get(f"/api/clients/?responsible_cpf={physicist.cpf}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 0
+
+
+@pytest.mark.django_db
+def test_clients_list_filter_responsible_cpf_returns_empty_when_role_is_not_physicist():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    unit_manager = UserFactory(role=UserAccount.Role.UNIT_MANAGER)
+
+    ClientOperationFactory(
+        operation_status=ClientOperation.OperationStatus.ACCEPTED,
+        operation_type=ClientOperation.OperationType.CLOSED,
+        is_active=True,
+        users=[unit_manager],
+    )
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.get(f"/api/clients/?responsible_cpf={unit_manager.cpf}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 0

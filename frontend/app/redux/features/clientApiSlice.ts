@@ -42,6 +42,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 name,
                 city,
                 user_role,
+                responsible_cpf,
                 contract_type,
                 operation_status,
                 is_active,
@@ -51,6 +52,7 @@ const clientApiSlice = apiSlice.injectEndpoints({
                 if (name) params.name = name;
                 if (city) params.city = city;
                 if (user_role) params.user_role = user_role;
+                if (responsible_cpf) params.responsible_cpf = responsible_cpf;
                 if (contract_type) params.contract_type = contract_type;
                 if (operation_status) params.operation_status = operation_status;
                 if (is_active) params.is_active = is_active;

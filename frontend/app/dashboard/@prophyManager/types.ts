@@ -3,6 +3,7 @@ export type ClientFilters = {
     cnpj: string;
     city: string;
     user_role: string;
+    responsible_cpf: string;
     contract_type: string;
     operation_status: string;
 };

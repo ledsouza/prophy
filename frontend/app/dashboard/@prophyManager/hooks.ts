@@ -36,6 +36,8 @@ export const useSearchQueries = ({
         if (clientAppliedFilters.cnpj) params.cnpj = clientAppliedFilters.cnpj;
         if (clientAppliedFilters.city) params.city = clientAppliedFilters.city;
         if (clientAppliedFilters.user_role) params.user_role = clientAppliedFilters.user_role;
+        if (clientAppliedFilters.responsible_cpf)
+            params.responsible_cpf = clientAppliedFilters.responsible_cpf;
         if (clientAppliedFilters.contract_type)
             params.contract_type = clientAppliedFilters.contract_type;
         if (clientAppliedFilters.operation_status)

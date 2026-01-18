@@ -93,4 +93,5 @@ export type SearchReportsArgs = {
     client_cnpj?: string;
     unit_name?: string;
     unit_city?: string;
+    responsible_cpf?: string;
 };

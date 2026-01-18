@@ -46,6 +46,7 @@ export type ListClientsArgs = ListQueryParams & {
     name?: string;
     city?: string;
     user_role?: string;
+    responsible_cpf?: string;
     contract_type?: string;
     operation_status?: string;
     is_active?: string;

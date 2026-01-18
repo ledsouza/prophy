@@ -568,6 +568,15 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
                 description="Filter clients that have users with specific roles. Options: FMI, FME, GP, GGC, GU, C",
             ),
             openapi.Parameter(
+                name="responsible_cpf",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description=(
+                    "Filter clients by a responsible physicist CPF (digits only). "
+                    "Matches Client.users with role FMI/FME/GP."
+                ),
+            ),
+            openapi.Parameter(
                 name="contract_type",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
@@ -655,6 +664,17 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         user_role = query_params.get("user_role")
         if user_role is not None:
             queryset = queryset.filter(users__role=user_role)
+
+        responsible_cpf = query_params.get("responsible_cpf")
+        if responsible_cpf is not None:
+            queryset = queryset.filter(
+                users__cpf=responsible_cpf,
+                users__role__in=[
+                    UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+                    UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+                    UserAccount.Role.PROPHY_MANAGER,
+                ],
+            ).distinct()
 
         contract_type = query_params.get("contract_type")
         if contract_type is not None:
@@ -2211,6 +2231,15 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 type=openapi.TYPE_BOOLEAN,
                 description="Filter reports due within 30 days.",
             ),
+            openapi.Parameter(
+                name="responsible_cpf",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description=(
+                    "Filter reports by a responsible physicist CPF (digits only). "
+                    "Matches Client.users with role FMI/FME/GP via unit or equipment."
+                ),
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -2413,6 +2442,24 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 Q(unit__client__name__icontains=client_name)
                 | Q(equipment__unit__client__name__icontains=client_name)
             )
+
+        responsible_cpf = query_params.get("responsible_cpf")
+        if responsible_cpf:
+            responsible_roles = [
+                UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+                UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+                UserAccount.Role.PROPHY_MANAGER,
+            ]
+            queryset = queryset.filter(
+                Q(
+                    unit__client__users__cpf=responsible_cpf,
+                    unit__client__users__role__in=responsible_roles,
+                )
+                | Q(
+                    equipment__unit__client__users__cpf=responsible_cpf,
+                    equipment__unit__client__users__role__in=responsible_roles,
+                )
+            ).distinct()
 
         client_cnpj = query_params.get("client_cnpj")
         if client_cnpj:

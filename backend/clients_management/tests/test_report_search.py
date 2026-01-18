@@ -1,14 +1,13 @@
-"""Report search tests.
+"""Report search tests."""
 
-Focuses on role-based access control and filtering behavior.
-"""
+from datetime import date, timedelta
 
 import pytest
-from datetime import date, timedelta
 from django.urls import reverse
 from rest_framework import status
 from users.models import UserAccount
-from clients_management.models import Client, Unit, Report
+
+from clients_management.models import Client, Report, Unit
 
 
 @pytest.fixture
@@ -378,6 +377,56 @@ class TestReportFiltering:
         result = response.data["results"][0]
         assert result["status"] == "due_soon"
         assert "hospital" in result["client_name"].lower()
+
+
+@pytest.mark.django_db
+class TestReportResponsibleCpfFiltering:
+    def test_filter_by_responsible_cpf_returns_only_linked_reports(
+        self,
+        api_client,
+        prophy_manager,
+        internal_physicist,
+        client_with_reports,
+        another_client_with_reports,
+    ):
+        api_client.force_authenticate(user=prophy_manager)
+        url = reverse("reports-list")
+
+        response = api_client.get(url, {"responsible_cpf": internal_physicist.cpf})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 3
+        for report in response.data["results"]:
+            assert report["client_name"] == "Hospital Test"
+
+    def test_filter_by_responsible_cpf_returns_empty_when_not_found(
+        self,
+        api_client,
+        prophy_manager,
+        client_with_reports,
+    ):
+        api_client.force_authenticate(user=prophy_manager)
+        url = reverse("reports-list")
+
+        response = api_client.get(url, {"responsible_cpf": "00000000000"})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 0
+
+    def test_filter_by_responsible_cpf_returns_empty_when_user_exists_but_not_linked(
+        self,
+        api_client,
+        prophy_manager,
+        another_physicist,
+        client_with_reports,
+    ):
+        api_client.force_authenticate(user=prophy_manager)
+        url = reverse("reports-list")
+
+        response = api_client.get(url, {"responsible_cpf": another_physicist.cpf})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 0
 
 
 @pytest.mark.django_db

@@ -74,7 +74,7 @@ const reportApiSlice = apiSlice.injectEndpoints({
                 id,
                 api,
                 extraOptions,
-                baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>
+                baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>,
             ) => {
                 try {
                     const result = await baseQuery(
@@ -91,13 +91,13 @@ const reportApiSlice = apiSlice.injectEndpoints({
                             },
                         },
                         api,
-                        extraOptions
+                        extraOptions,
                     );
 
                     if (result.error) {
                         log.error(
                             { reportId: id, error: result.error },
-                            "Failed to download report file"
+                            "Failed to download report file",
                         );
                         return { error: result.error };
                     }
@@ -143,6 +143,7 @@ const reportApiSlice = apiSlice.injectEndpoints({
                 client_cnpj,
                 unit_name,
                 unit_city,
+                responsible_cpf,
             }) => {
                 const params: Record<string, any> = { page };
                 if (status) params.status = status;
@@ -152,6 +153,7 @@ const reportApiSlice = apiSlice.injectEndpoints({
                 if (client_cnpj) params.client_cnpj = client_cnpj;
                 if (unit_name) params.unit_name = unit_name;
                 if (unit_city) params.unit_city = unit_city;
+                if (responsible_cpf) params.responsible_cpf = responsible_cpf;
 
                 return {
                     url: "reports/",

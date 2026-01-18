@@ -31,6 +31,25 @@ export const getReportStatusFromOptionId = (id: number): ReportStatus | undefine
 };
 
 /**
+ * Maps a ReportStatus value back to a select option ID.
+ *
+ * @param value - ReportStatus value as stored in URL params
+ * @returns Select option ID. Defaults to 0 (Todos).
+ */
+export const getReportStatusOptionIdFromValue = (value: string | null | undefined): number => {
+    switch (value) {
+        case "overdue":
+            return 1;
+        case "due_soon":
+            return 2;
+        case "ok":
+            return 3;
+        default:
+            return 0;
+    }
+};
+
+/**
  * Returns the display information for a report status including text and styling.
  * Uses design tokens from globals.css and tailwind.config.ts.
  * Follows the same pattern as getStatusDisplay() in utils/format.ts.

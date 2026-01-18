@@ -65,6 +65,7 @@ function SearchPage() {
         cnpj: "",
         city: "",
         user_role: "",
+        responsible_cpf: "",
         contract_type: "",
         operation_status: "",
     });
@@ -72,6 +73,7 @@ function SearchPage() {
     const [selectedClientName, setSelectedClientName] = useState("");
     const [selectedClientCNPJ, setSelectedClientCNPJ] = useState("");
     const [selectedClientCity, setSelectedClientCity] = useState("");
+    const [selectedResponsibleCpf, setSelectedResponsibleCpf] = useState("");
     const [selectedUserRole, setSelectedUserRole] = useState<SelectData | null>({
         id: 0,
         value: "Todos",
@@ -142,6 +144,7 @@ function SearchPage() {
                 cnpj: selectedClientCNPJ,
                 city: selectedClientCity,
                 user_role: getUserRoleFromOptionId(selectedUserRole?.id ?? 0),
+                responsible_cpf: selectedResponsibleCpf,
                 contract_type: getContractTypeFromOptionId(selectedContractType?.id ?? 0),
                 operation_status: getOperationStatusFromOptionId(selectedOperationStatus?.id ?? 0),
             }),
@@ -166,6 +169,7 @@ function SearchPage() {
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
             user_role: getUserRoleFromOptionId(selectedUserRole?.id ?? 0),
+            responsible_cpf: selectedResponsibleCpf,
             contract_type: getContractTypeFromOptionId(selectedContractType?.id ?? 0),
             operation_status: getOperationStatusFromOptionId(selectedOperationStatus?.id ?? 0),
         }),
@@ -183,6 +187,7 @@ function SearchPage() {
             cnpj: selectedClientCNPJ,
             city: selectedClientCity,
             user_role: getUserRoleFromOptionId(selectedUserRole?.id ?? 0),
+            responsible_cpf: selectedResponsibleCpf,
             contract_type: getContractTypeFromOptionId(selectedContractType?.id ?? 0),
             operation_status: getOperationStatusFromOptionId(selectedOperationStatus?.id ?? 0),
         }),
@@ -197,6 +202,7 @@ function SearchPage() {
             setSelectedClientName("");
             setSelectedClientCNPJ("");
             setSelectedClientCity("");
+            setSelectedResponsibleCpf("");
             setSelectedUserRole({ id: 0, value: "Todos" });
             setSelectedContractType({ id: 0, value: "Todos" });
             setSelectedOperationStatus({ id: 0, value: "Todos" });
@@ -206,6 +212,7 @@ function SearchPage() {
             cnpj: "",
             city: "",
             user_role: "",
+            responsible_cpf: "",
             contract_type: "",
             operation_status: "",
         },
@@ -285,6 +292,7 @@ function SearchPage() {
                     const clientName = params.get("clients_name") || "";
                     const clientCNPJ = params.get("clients_cnpj") || "";
                     const clientCity = params.get("clients_city") || "";
+                    const responsibleCpf = params.get("clients_responsible_cpf") || "";
                     const role = params.get("clients_user_role");
                     const clientContractType = params.get("clients_contract_type");
                     const operationStatus = params.get("clients_operation_status");
@@ -292,6 +300,7 @@ function SearchPage() {
                     restoreTextFilterStates(clientName, setSelectedClientName);
                     restoreTextFilterStates(clientCNPJ, setSelectedClientCNPJ);
                     restoreTextFilterStates(clientCity, setSelectedClientCity);
+                    restoreTextFilterStates(responsibleCpf, setSelectedResponsibleCpf);
 
                     const roleOptionId = getUserRoleOptionIdFromValue(role);
                     const contractTypeOptionId =
@@ -321,6 +330,7 @@ function SearchPage() {
                     cnpj: params.get("clients_cnpj") || "",
                     city: params.get("clients_city") || "",
                     user_role: params.get("clients_user_role") || "",
+                    responsible_cpf: params.get("clients_responsible_cpf") || "",
                     contract_type: params.get("clients_contract_type") || "",
                     operation_status: params.get("clients_operation_status") || "",
                 }),
@@ -416,6 +426,18 @@ function SearchPage() {
                                     placeholder="Digite a cidade"
                                     label="Cidade"
                                     dataCy="clients-filter-city"
+                                ></Input>
+
+                                <Input
+                                    value={selectedResponsibleCpf}
+                                    onChange={(e) =>
+                                        setSelectedResponsibleCpf(
+                                            e.target.value.replace(/\D/g, "").slice(0, 11),
+                                        )
+                                    }
+                                    placeholder="Digite o CPF"
+                                    label="CPF do físico responsável"
+                                    dataCy="clients-filter-responsible-cpf"
                                 ></Input>
 
                                 <Select
