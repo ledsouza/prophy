@@ -2,6 +2,7 @@
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { FileTextIcon, InfoIcon, WarningIcon } from "@phosphor-icons/react";
+import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -32,7 +33,6 @@ import {
 } from "@/components/common";
 import { Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import Role from "@/enums/Role";
 
 import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
@@ -129,7 +129,7 @@ function SearchPage() {
     const modalities = useMemo(() => modalitiesData || [], [modalitiesData]);
     const manufacturers = useMemo(
         () => manufacturersData?.manufacturers || [],
-        [manufacturersData?.manufacturers]
+        [manufacturersData?.manufacturers],
     );
 
     const { handleTabChange } = useTabNavigation(setSelectedTabIndex, {
@@ -302,17 +302,17 @@ function SearchPage() {
                     restoreSelectFilterStates(
                         roleOptionId.toString(),
                         USER_ROLE_OPTIONS,
-                        setSelectedUserRole
+                        setSelectedUserRole,
                     );
                     restoreSelectFilterStates(
                         contractTypeOptionId.toString(),
                         CONTRACT_TYPE_OPTIONS,
-                        setSelectedContractType
+                        setSelectedContractType,
                     );
                     restoreSelectFilterStates(
                         operationStatusOptionId.toString(),
                         OPERATION_STATUS_OPTIONS,
-                        setSelectedOperationStatus
+                        setSelectedOperationStatus,
                     );
                 },
                 setAppliedFilters: setClientAppliedFilters,
@@ -338,12 +338,12 @@ function SearchPage() {
                     restoreManufacturerFilterState(
                         equipmentManufacturer,
                         manufacturers,
-                        setSelectedEquipmentManufacturer
+                        setSelectedEquipmentManufacturer,
                     );
                     restoreModalityFilterState(
                         equipmentModalityId,
                         modalities,
-                        setSelectedEquipmentModality
+                        setSelectedEquipmentModality,
                     );
                 },
                 setAppliedFilters: setEquipmentAppliedFilters,
@@ -567,7 +567,7 @@ function SearchPage() {
                                                                                 </span>
                                                                                 : {user.name}
                                                                             </div>
-                                                                        )
+                                                                        ),
                                                                     )}
                                                                 </div>
                                                             ) : (
@@ -580,11 +580,26 @@ function SearchPage() {
                                                         header: "Ações",
                                                         cell: (client: ClientDTO) => (
                                                             <div className="flex flex-col gap-2">
+                                                                {client.needs_appointment && (
+                                                                    <span
+                                                                        data-cy={
+                                                                            "pending-appointment-badge"
+                                                                        }
+                                                                        className={clsx(
+                                                                            "inline-flex w-full justify-center px-2.5 py-0.5",
+                                                                            "rounded-full text-xs font-medium text-center",
+                                                                            "bg-red-100 text-red-800 mb-1",
+                                                                        )}
+                                                                    >
+                                                                        Agendamento pendente
+                                                                    </span>
+                                                                )}
+
                                                                 <Button
                                                                     variant="primary"
                                                                     onClick={() =>
                                                                         handleViewDetails(
-                                                                            client.cnpj
+                                                                            client.cnpj,
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
@@ -598,7 +613,7 @@ function SearchPage() {
                                                                     variant="primary"
                                                                     onClick={() =>
                                                                         handleViewProposals(
-                                                                            client.cnpj
+                                                                            client.cnpj,
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 px-2 py-1 text-xs"
@@ -612,6 +627,11 @@ function SearchPage() {
                                                     },
                                                 ]}
                                                 keyExtractor={(client: ClientDTO) => client.id}
+                                                rowClassName={(client: ClientDTO) =>
+                                                    client.needs_appointment
+                                                        ? "bg-red-50 animate-danger"
+                                                        : undefined
+                                                }
                                                 rowProps={(client: ClientDTO) => ({
                                                     "data-cy": `client-row-${client.id}`,
                                                 })}
@@ -648,7 +668,7 @@ function SearchPage() {
                                                             -
                                                             {Math.min(
                                                                 clientCurrentPage * ITEMS_PER_PAGE,
-                                                                totalClientsCount
+                                                                totalClientsCount,
                                                             )}{" "}
                                                             de {totalClientsCount} cliente(s)
                                                         </>
@@ -688,7 +708,7 @@ function SearchPage() {
                                             (manufacturer: string, index: number) => ({
                                                 id: index + 1,
                                                 value: manufacturer,
-                                            })
+                                            }),
                                         ),
                                     ]}
                                     selectedData={selectedEquipmentManufacturer}
@@ -798,8 +818,8 @@ function SearchPage() {
                                                                             `/dashboard/unit/${
                                                                                 equipment.unit
                                                                             }?model=${encodeURIComponent(
-                                                                                equipment.model
-                                                                            )}`
+                                                                                equipment.model,
+                                                                            )}`,
                                                                         )
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
@@ -855,7 +875,7 @@ function SearchPage() {
                                                             {Math.min(
                                                                 equipmentCurrentPage *
                                                                     ITEMS_PER_PAGE,
-                                                                totalEquipmentsCount
+                                                                totalEquipmentsCount,
                                                             )}{" "}
                                                             de {totalEquipmentsCount} equipamento(s)
                                                         </>

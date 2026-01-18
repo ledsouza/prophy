@@ -51,6 +51,12 @@ APPROVED_PROPOSAL_CNPJ = "26661570000116"
 
 REGISTERED_CNPJ = "78187773000116"
 
+# Deterministic CNPJs used by Cypress E2E tests for the
+# "Pending Appointment" feature.
+PENDING_APPOINTMENT_CNPJ = "43388625948375"
+COMPLIANT_APPOINTMENT_CNPJ = "15615131549217"
+
+
 # E2E registration requires a CNPJ whose latest proposal is ACCEPTED
 # but it is not yet registered as a Client.
 ELIGIBLE_REGISTRATION_CNPJ = APPROVED_PROPOSAL_CNPJ
@@ -213,6 +219,9 @@ class Command(BaseCommand):
         self.populate_reports()
         self.populate_materials()
         approved_cnpjs = self.populate_proposals()
+
+        self.populate_pending_appointment_scenarios()
+
         self.create_json_fixture(
             approved_cnpjs, users, default_clients, default_units, default_equipments
         )
@@ -1426,6 +1435,148 @@ class Command(BaseCommand):
 
         return approved_cnpjs
 
+    def populate_pending_appointment_scenarios(self) -> None:
+        """Create deterministic clients for Cypress E2E tests.
+
+        The frontend highlights clients with `needs_appointment=true`.
+        This value is computed from:
+        - latest accepted annual proposal date
+        - absence/presence of an appointment strictly after that date
+
+        To keep Cypress tests stable, we seed two deterministic clients:
+        - one pending (no appointment after annual proposal)
+        - one compliant (has appointment after annual proposal)
+        """
+
+        admin_user = UserAccount.objects.get(cpf=CPF_ADMIN)
+        proposal_date = date.today() - timedelta(days=30)
+
+        def ensure_client_operation(
+            *,
+            cnpj: str,
+            name: str,
+            email: str,
+            phone: str,
+            address: str,
+            state: str,
+            city: str,
+        ) -> ClientOperation:
+            existing = ClientOperation.objects.filter(cnpj=cnpj).first()
+            if existing:
+                return existing
+
+            return ClientOperation.objects.create(
+                operation_type=ClientOperation.OperationType.CLOSED,
+                operation_status=ClientOperation.OperationStatus.ACCEPTED,
+                created_by=admin_user,
+                cnpj=cnpj,
+                name=name,
+                email=email,
+                phone=phone,
+                address=address,
+                state=state,
+                city=city,
+                is_active=True,
+            )
+
+        pending_client = ensure_client_operation(
+            cnpj=PENDING_APPOINTMENT_CNPJ,
+            name="Cliente E2E - Agendamento pendente",
+            email="e2e-pending@example.com",
+            phone=fake_phone_number(),
+            address="Rua E2E, 100",
+            state="RS",
+            city="Porto Alegre",
+        )
+
+        compliant_client = ensure_client_operation(
+            cnpj=COMPLIANT_APPOINTMENT_CNPJ,
+            name="Cliente E2E - Agendamento em dia",
+            email="e2e-compliant@example.com",
+            phone=fake_phone_number(),
+            address="Rua E2E, 200",
+            state="RS",
+            city="Porto Alegre",
+        )
+
+        pending_unit, _ = UnitOperation.objects.get_or_create(
+            operation_type=UnitOperation.OperationType.CLOSED,
+            operation_status=UnitOperation.OperationStatus.ACCEPTED,
+            created_by=admin_user,
+            client=pending_client.client_ptr,
+            defaults={
+                "name": "Unidade E2E - pendente",
+                "cnpj": fake_cnpj(),
+                "email": fake.email(),
+                "phone": fake_phone_number(),
+                "address": "Rua Unidade E2E, 10",
+                "state": pending_client.state,
+                "city": pending_client.city,
+            },
+        )
+
+        compliant_unit, _ = UnitOperation.objects.get_or_create(
+            operation_type=UnitOperation.OperationType.CLOSED,
+            operation_status=UnitOperation.OperationStatus.ACCEPTED,
+            created_by=admin_user,
+            client=compliant_client.client_ptr,
+            defaults={
+                "name": "Unidade E2E - em dia",
+                "cnpj": fake_cnpj(),
+                "email": fake.email(),
+                "phone": fake_phone_number(),
+                "address": "Rua Unidade E2E, 20",
+                "state": compliant_client.state,
+                "city": compliant_client.city,
+            },
+        )
+
+        Proposal.objects.update_or_create(
+            cnpj=pending_client.cnpj,
+            date=proposal_date,
+            defaults={
+                "city": pending_client.city,
+                "state": pending_client.state,
+                "contact_name": "Contato E2E",
+                "contact_phone": fake_phone_number(),
+                "email": fake.email(),
+                "value": 10000.00,
+                "contract_type": Proposal.ContractType.ANNUAL,
+                "status": Proposal.Status.ACCEPTED,
+            },
+        )
+
+        Proposal.objects.update_or_create(
+            cnpj=compliant_client.cnpj,
+            date=proposal_date,
+            defaults={
+                "city": compliant_client.city,
+                "state": compliant_client.state,
+                "contact_name": "Contato E2E",
+                "contact_phone": fake_phone_number(),
+                "email": fake.email(),
+                "value": 10000.00,
+                "contract_type": Proposal.ContractType.ANNUAL,
+                "status": Proposal.Status.ACCEPTED,
+            },
+        )
+
+        # Ensure compliant has at least one appointment strictly after the
+        # accepted annual proposal date.
+        compliant_appointment_date = timezone.now() + timedelta(days=7)
+        Appointment.objects.get_or_create(
+            unit=compliant_unit.unit_ptr,
+            date=compliant_appointment_date,
+            defaults={
+                "status": Appointment.Status.CONFIRMED,
+                "type": Appointment.Type.IN_PERSON,
+                "justification": None,
+                "contact_phone": fake_phone_number(),
+                "contact_name": "Contato E2E",
+                "service_order": None,
+            },
+        )
+
     def create_json_fixture(
         self, approved_cnpjs, users, default_clients, default_units, default_equipments
     ):
@@ -1448,6 +1599,13 @@ class Command(BaseCommand):
             (default_clients, "default-clients.json"),
             (default_units, "default-units.json"),
             (default_equipments, "default-equipments.json"),
+            (
+                {
+                    "pending_cnpj": PENDING_APPOINTMENT_CNPJ,
+                    "compliant_cnpj": COMPLIANT_APPOINTMENT_CNPJ,
+                },
+                "pending-appointment.json",
+            ),
         ]
 
         # Ensure the main fixture directory exists
