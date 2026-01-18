@@ -1,38 +1,40 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import { apiSlice } from "@/redux/services/apiSlice";
-import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 import { useListAllClientsOperationsQuery } from "@/redux/features/clientApiSlice";
-import type { ClientOperationDTO } from "@/types/client";
 import {
     UnitDTO,
     useDeleteUnitOperationMutation,
     useListAllUnitsOperationsQuery,
 } from "@/redux/features/unitApiSlice";
+import { apiSlice } from "@/redux/services/apiSlice";
+import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
+import type { ClientOperationDTO } from "@/types/client";
 
-import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { OperationType } from "@/enums";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
-import { ArrowClockwise } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 
-import { Typography } from "@/components/foundation";
+import AppointmentSearchTab from "@/components/appointments/AppointmentSearchTab";
+import { ClientDetails, UnitList } from "@/components/client";
+import { Button, Modal, ReportsSearchTab, Spinner, Tab } from "@/components/common";
 import {
     AddUnitForm,
+    CreateAppointmentForm,
     EditClientForm,
     EditUnitForm,
     Input,
     ReviewDeleteUnitForm,
 } from "@/components/forms";
+import { Typography } from "@/components/foundation";
 import { ModalDeleteUnit } from "@/components/modals";
-import { Button, Modal, ReportsSearchTab, Spinner, Tab } from "@/components/common";
-import { ClientDetails, UnitList } from "@/components/client";
 import Role from "@/enums/Role";
 
 function ClientPage() {
@@ -60,7 +62,7 @@ function ClientPage() {
         useState<ClientOperationDTO | null>(null);
 
     const { isModalOpen, currentModal, selectedUnit, selectedUnitOperation } = useAppSelector(
-        (state) => state.modal
+        (state) => state.modal,
     );
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -90,7 +92,7 @@ function ClientPage() {
                         Por favor, recarregue a página para atualizar a lista de requisições.`,
                         {
                             autoClose: 5000,
-                        }
+                        },
                     );
                 }
                 return toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -111,7 +113,7 @@ function ClientPage() {
                 { type: "UnitOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
-            ])
+            ]),
         );
     };
 
@@ -120,7 +122,7 @@ function ClientPage() {
         if (filteredUnits.length > 0) {
             const addUnitsInOperation =
                 unitsOperations?.filter(
-                    (operation) => operation.operation_type === OperationType.ADD
+                    (operation) => operation.operation_type === OperationType.ADD,
                 ) ?? [];
 
             const selectedClientID = filteredUnits[0].client;
@@ -131,7 +133,7 @@ function ClientPage() {
 
             if (searchTerm.length > 0) {
                 const searchedUnits = units.filter((unit) =>
-                    unit.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    unit.name.toLowerCase().includes(searchTerm.toLowerCase()),
                 );
                 setSearchedUnits(searchedUnits);
             } else {
@@ -149,7 +151,7 @@ function ClientPage() {
         }
 
         const operation = clientsOperations?.find(
-            (operation) => operation.original_client === selectedClient?.id
+            (operation) => operation.original_client === selectedClient?.id,
         );
         operation ? setSelectedClientInOperation(operation) : setSelectedClientInOperation(null);
     }, [isLoadingClientsOperations, clientsOperations, selectedClient]);
@@ -190,7 +192,7 @@ function ClientPage() {
                 dataTestId="update-data-btn"
             >
                 <div className="flex items-center gap-2">
-                    <ArrowClockwise size="24" /> Atualizar
+                    <ArrowClockwiseIcon size="24" /> Atualizar
                 </div>
             </Button>
 
@@ -198,6 +200,7 @@ function ClientPage() {
                 <TabGroup>
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
                         <Tab>Clientes</Tab>
+                        <Tab>Agendamentos</Tab>
                         <Tab>Relatórios</Tab>
                     </TabList>
 
@@ -246,6 +249,16 @@ function ClientPage() {
                                     </Button>
                                 </div>
                             </div>
+                        </TabPanel>
+
+                        <TabPanel>
+                            <AppointmentSearchTab
+                                canCreate
+                                dataCyPrefix="fmi-appointments"
+                                onOpenCreateAppointment={() =>
+                                    dispatch(openModal(Modals.CREATE_APPOINTMENT))
+                                }
+                            />
                         </TabPanel>
 
                         <TabPanel>
@@ -354,6 +367,13 @@ function ClientPage() {
                             Confirmar
                         </Button>
                     </div>
+                )}
+
+                {currentModal === Modals.CREATE_APPOINTMENT && (
+                    <CreateAppointmentForm
+                        title="Novo Agendamento"
+                        description="Selecione o cliente e a unidade para criar um novo agendamento."
+                    />
                 )}
             </Modal>
         </main>

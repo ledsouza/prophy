@@ -22,21 +22,23 @@ import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityAp
 import type { ClientDTO } from "@/types/client";
 import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
 
+import { AppointmentSearchTab } from "@/components/appointments";
 import {
     Button,
     ErrorDisplay,
+    Modal,
     Pagination,
     ReportsSearchTab,
     Spinner,
     Tab,
     Table,
 } from "@/components/common";
-import { Input, Select } from "@/components/forms";
+import { CreateAppointmentForm, Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import Role from "@/enums/Role";
 
 import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
-import { SearchTab, getTabFromParam } from "./enums";
+import { getTabFromParam, SearchTab } from "./enums";
 import { useSearchQueries } from "./hooks";
 import {
     getContractTypeFromOptionId,
@@ -50,9 +52,15 @@ import {
 } from "./state";
 import { ClientFilters, EquipmentFilters } from "./types";
 
+import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+
 function SearchPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    const dispatch = useAppDispatch();
+    const { isModalOpen, currentModal } = useAppSelector((state) => state.modal);
 
     const { hasPendingOperations, isLoading: isPendingLoading } = usePendingOperations();
 
@@ -119,6 +127,7 @@ function SearchPage() {
         equipmentCurrentPage,
         equipmentAppliedFilters,
     });
+
     const { data: modalitiesData, isLoading: modalitiesLoading } = useListModalitiesQuery();
     const { data: manufacturersData, isLoading: manufacturersLoading } = useGetManufacturersQuery();
 
@@ -158,6 +167,12 @@ function SearchPage() {
                 manufacturer: selectedEquipmentManufacturer?.value ?? "",
                 client_name: selectedEquipmentClient,
             }),
+        },
+        [SearchTab.APPOINTMENTS]: {
+            tabName: "appointments",
+            pageKey: "appointments_page",
+            currentPage: 1,
+            buildFilters: () => ({}),
         },
     });
 
@@ -363,6 +378,14 @@ function SearchPage() {
                     client_name: params.get("equipments_client_name") || "",
                 }),
             },
+            [SearchTab.APPOINTMENTS]: {
+                pageParam: "appointments_page",
+                currentPage: 1,
+                setCurrentPage: () => {},
+                restoreFilters: () => {},
+                setAppliedFilters: () => {},
+                buildAppliedFilters: () => ({}),
+            },
         },
         dependencies: [modalities, manufacturers],
     });
@@ -394,6 +417,9 @@ function SearchPage() {
                         </div>
                         <div className="flex-1" data-cy="search-tab-equipments">
                             <Tab>Equipamentos</Tab>
+                        </div>
+                        <div className="flex-1" data-cy="search-tab-appointments">
+                            <Tab>Agendamentos</Tab>
                         </div>
                         <div className="flex-1" data-cy="search-tab-reports">
                             <Tab>Relatórios</Tab>
@@ -907,11 +933,30 @@ function SearchPage() {
                         </TabPanel>
 
                         <TabPanel>
+                            <AppointmentSearchTab
+                                canCreate
+                                dataCyPrefix="gp-appointments"
+                                onOpenCreateAppointment={() =>
+                                    dispatch(openModal(Modals.CREATE_APPOINTMENT))
+                                }
+                            />
+                        </TabPanel>
+
+                        <TabPanel>
                             <ReportsSearchTab currentUserRole={Role.GP} />
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>
             </div>
+
+            <Modal isOpen={isModalOpen} onClose={() => dispatch(closeModal())} className="max-w-lg">
+                {currentModal === Modals.CREATE_APPOINTMENT && (
+                    <CreateAppointmentForm
+                        title="Novo Agendamento"
+                        description="Selecione o cliente e a unidade para criar um novo agendamento."
+                    />
+                )}
+            </Modal>
         </main>
     );
 }

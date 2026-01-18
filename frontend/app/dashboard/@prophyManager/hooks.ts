@@ -5,7 +5,7 @@ import { EquipmentDTO, useListEquipmentsQuery } from "@/redux/features/equipment
 import { PaginatedResponse } from "@/redux/services/apiSlice";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
-import { ClientFilters, EquipmentFilters } from "./types";
+import { AppointmentFilters, ClientFilters, EquipmentFilters } from "./types";
 
 type UseSearchQueriesParams = {
     clientCurrentPage: number;
@@ -30,7 +30,7 @@ export const useSearchQueries = ({
     equipmentAppliedFilters,
 }: UseSearchQueriesParams): UseSearchQueriesReturn => {
     const clientQueryParams = useMemo(() => {
-        const params: any = { page: clientCurrentPage };
+        const params: Record<string, unknown> = { page: clientCurrentPage };
 
         if (clientAppliedFilters.name) params.name = clientAppliedFilters.name;
         if (clientAppliedFilters.cnpj) params.cnpj = clientAppliedFilters.cnpj;
@@ -47,7 +47,7 @@ export const useSearchQueries = ({
     }, [clientCurrentPage, clientAppliedFilters]);
 
     const equipmentQueryParams = useMemo(() => {
-        const params: any = { page: equipmentCurrentPage };
+        const params: Record<string, unknown> = { page: equipmentCurrentPage };
 
         if (equipmentAppliedFilters.modality) params.modality = equipmentAppliedFilters.modality;
         if (equipmentAppliedFilters.manufacturer)

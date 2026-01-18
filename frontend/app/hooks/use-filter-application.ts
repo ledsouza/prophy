@@ -2,7 +2,6 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import { buildStandardUrlParams } from "@/utils/url-params";
-import { resetPageState } from "@/dashboard/@prophyManager/state";
 
 /**
  * Configuration for the filter application hook
@@ -31,12 +30,14 @@ type UseFilterApplicationConfig<TFilters extends Record<string, unknown>> = {
  * @returns Object containing handleApplyFilters function
  */
 export function useFilterApplication<TFilters extends Record<string, unknown>>(
-    config: UseFilterApplicationConfig<TFilters>
+    config: UseFilterApplicationConfig<TFilters>,
 ) {
     const router = useRouter();
 
     const handleApplyFilters = useCallback(() => {
-        resetPageState(config.currentPage, config.setCurrentPage);
+        if (config.currentPage !== 1) {
+            config.setCurrentPage(1);
+        }
 
         const filters = config.buildFilters();
         config.setAppliedFilters(filters);
