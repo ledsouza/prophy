@@ -30,6 +30,7 @@ type SelectProps = {
     selectedData: SelectData | null;
     setSelect: (value: SelectData | null) => void;
     label?: string;
+    labelAddon?: React.ReactNode;
     operationsIDs?: Set<number>;
     rejectedOperationIDs?: Set<number>;
     listBoxStyles?: string;
@@ -87,6 +88,7 @@ const Select = ({
     selectedData,
     setSelect,
     label = "",
+    labelAddon,
     operationsIDs,
     rejectedOperationIDs,
     listBoxStyles = "",
@@ -160,7 +162,7 @@ const Select = ({
             "animate-warning": hasOperation,
             "animate-danger": isRejected && !isStaff,
         },
-        listBoxButtonStyles
+        listBoxButtonStyles,
     );
 
     const isPlaceholder = !selectedData;
@@ -169,9 +171,14 @@ const Select = ({
         <div data-testid={dataTestId} data-cy={dataCy}>
             <Field disabled={disabled}>
                 <Listbox value={selectedData} onChange={setSelect} by="id">
-                    <Typography element="p" size={labelSize}>
-                        <Label className={labelStyles}>{label}</Label>
-                    </Typography>
+                    {label && (
+                        <div className="flex items-center gap-2">
+                            <Typography element="p" size={labelSize}>
+                                <Label className={labelStyles}>{label}</Label>
+                            </Typography>
+                            {labelAddon}
+                        </div>
+                    )}
                     <div className={`relative mt-2 ${listBoxStyles}`}>
                         <ListboxButton
                             ref={buttonRef}
@@ -185,7 +192,7 @@ const Select = ({
                                     "ml-3 block truncate",
                                     isPlaceholder
                                         ? "text-placeholder font-normal"
-                                        : "text-gray-primary font-normal"
+                                        : "text-gray-primary font-normal",
                                 )}
                             >
                                 {isPlaceholder
@@ -220,7 +227,7 @@ const Select = ({
                                             "animate-danger":
                                                 rejectedOperationIDs?.has(option.id) && !isStaff,
                                         },
-                                        listOptionStyles
+                                        listOptionStyles,
                                     );
 
                                     const isSelected = selectedData?.id === option.id;
@@ -237,7 +244,7 @@ const Select = ({
                                         "group-data-[focus]:text-white",
                                         {
                                             hidden: !isSelected,
-                                        }
+                                        },
                                     );
 
                                     return (

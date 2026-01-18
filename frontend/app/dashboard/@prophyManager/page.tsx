@@ -436,37 +436,31 @@ function SearchPage() {
                                     dataCy="clients-filter-contract-type"
                                 />
 
-                                <div className="relative">
-                                    <div className="flex items-start gap-2">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <label className="block">Status de Operações</label>
-                                                {hasPendingOperations && !isPendingLoading && (
-                                                    <div className="group relative">
-                                                        <WarningIcon
-                                                            size={16}
-                                                            className="text-WarningIcon cursor-help"
-                                                            weight="fill"
-                                                        />
-                                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                                                            Existem operações pendentes de revisão
-                                                            no sistema
-                                                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                <Select
+                                    options={OPERATION_STATUS_OPTIONS}
+                                    selectedData={selectedOperationStatus}
+                                    setSelect={setSelectedOperationStatus}
+                                    label="Status de Operações"
+                                    labelAddon={
+                                        hasPendingOperations &&
+                                        !isPendingLoading && (
+                                            <div className="group relative">
+                                                <WarningIcon
+                                                    size={16}
+                                                    className="text-WarningIcon cursor-help"
+                                                    weight="fill"
+                                                />
+                                                <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-sm text-white opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100 z-10">
+                                                    Existem operações pendentes de revisão no
+                                                    sistema
+                                                    <div className="absolute left-1/2 top-full h-0 w-0 -translate-x-1/2 transform border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                                                </div>
                                             </div>
-                                            <Select
-                                                options={OPERATION_STATUS_OPTIONS}
-                                                selectedData={selectedOperationStatus}
-                                                setSelect={setSelectedOperationStatus}
-                                                label=""
-                                                dataTestId="filter-operation-status"
-                                                dataCy="clients-filter-operation-status"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
+                                        )
+                                    }
+                                    dataTestId="filter-operation-status"
+                                    dataCy="clients-filter-operation-status"
+                                />
                             </div>
 
                             {/* Action Buttons */}
