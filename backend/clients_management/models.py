@@ -682,7 +682,8 @@ class ReportManager(models.Manager.from_queryset(ReportQuerySet)):
 class ReportAllManager(models.Manager.from_queryset(ReportQuerySet)):
     """Manager that returns all reports including soft-deleted ones."""
 
-    pass
+    def get_queryset(self):
+        return super().get_queryset()
 
 
 class Report(models.Model):

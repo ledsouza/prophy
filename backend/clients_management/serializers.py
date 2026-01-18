@@ -231,10 +231,29 @@ class ReportSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data: dict[str, Any]) -> Report:
-        try:
-            return super().create(validated_data)
-        except ValidationError as exc:
-            raise serializers.ValidationError(exc.message_dict) from exc
+        request = self.context.get("request")
+        deleted_by: UserAccount | None = getattr(request, "user", None)
+
+        with transaction.atomic():
+            try:
+                report_type = validated_data.get("report_type")
+                unit = validated_data.get("unit")
+                equipment = validated_data.get("equipment")
+
+                existing_reports = Report.all_objects.active().filter(
+                    report_type=report_type,
+                )
+                if unit is not None:
+                    existing_reports = existing_reports.filter(unit=unit)
+                if equipment is not None:
+                    existing_reports = existing_reports.filter(equipment=equipment)
+
+                if deleted_by is not None:
+                    existing_reports.soft_delete(deleted_by=deleted_by)
+
+                return super().create(validated_data)
+            except ValidationError as exc:
+                raise serializers.ValidationError(exc.message_dict) from exc
 
     def to_representation(self, instance: Report):
         representation = super().to_representation(instance)
@@ -253,6 +272,9 @@ class ReportSerializer(serializers.ModelSerializer):
 
     def get_status(self, obj: Report) -> str:
         """Derive report status from due_date."""
+        if obj.is_deleted:
+            return "archived"
+
         if not obj.due_date:
             return "unknown"
 

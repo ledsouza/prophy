@@ -22,6 +22,7 @@ import {
 } from "@/redux/features/reportApiSlice";
 import type { ReportDTO } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
+import { getReportStatusDisplay } from "@/types/reportStatus";
 import { reportFileSchema } from "@/schemas";
 
 import { child } from "@/utils/logger";
@@ -102,7 +103,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
     const containerStyle = clsx(
         "bg-light rounded-xl shadow-sm",
         "p-6 divide-y-2",
-        "hover:ring-1 hover:ring-inset hover:ring-primary"
+        "hover:ring-1 hover:ring-inset hover:ring-primary",
     );
 
     async function handleDownload() {
@@ -130,7 +131,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
         } catch (err) {
             log.error(
                 { reportId: report.id, error: (err as any)?.message },
-                "Update report file failed"
+                "Update report file failed",
             );
             toast.error("Não foi possível atualizar o arquivo do relatório.");
         }
@@ -187,19 +188,15 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                     <Typography element="h3" size="title3">
                         {reportTypeLabel?.[report.report_type] ?? "Relatório"}
                     </Typography>
-                    {isGP && (
-                        <span
-                            className={clsx(
-                                "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                                report.is_deleted
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-green-100 text-green-800"
-                            )}
-                            data-testid="report-status-badge"
-                        >
-                            {report.is_deleted ? "Arquivado" : "Ativo"}
-                        </span>
-                    )}
+                    <span
+                        className={clsx(
+                            "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap",
+                            getReportStatusDisplay(report.status).color,
+                        )}
+                        data-testid="report-status-badge"
+                    >
+                        {getReportStatusDisplay(report.status).text}
+                    </span>
                 </div>
             </div>
 

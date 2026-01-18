@@ -2170,12 +2170,12 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = ReportSerializer(data=request.data)
+        serializer = ReportSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             report = serializer.save()
 
             return Response(
-                ReportSerializer(report).data,
+                ReportSerializer(report, context={"request": request}).data,
                 status=status.HTTP_201_CREATED,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -2240,6 +2240,14 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                     "Matches Client.users with role FMI/FME/GP via unit or equipment."
                 ),
             ),
+            openapi.Parameter(
+                name="status",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description=(
+                    "Filter by derived status. Options: overdue, due_soon, ok, archived."
+                ),
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -2291,11 +2299,13 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         user: UserAccount = request.user
 
-        # GP uses all_objects to see soft-deleted reports
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        manager = Report.objects
+        if user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        ]:
             manager = Report.all_objects
-        else:
-            manager = Report.objects
 
         try:
             report = (
@@ -2321,7 +2331,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = ReportSerializer(report)
+        serializer = ReportSerializer(report, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
@@ -2381,7 +2391,12 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = ReportSerializer(report, data=request.data, partial=True)
+        serializer = ReportSerializer(
+            report,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -2399,7 +2414,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]:
-            return Report.objects.filter(
+            return Report.all_objects.filter(
                 Q(unit__client__users=user) | Q(equipment__unit__client__users=user)
             )
 
@@ -2485,15 +2500,24 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         # Derived status filters (computed from due_date)
         status_param = query_params.get("status")
         today = date.today()
-        if status_param == "overdue":
-            queryset = queryset.filter(due_date__lt=today)
+        if status_param == "archived":
+            queryset = queryset.filter(deleted_at__isnull=False)
+        elif status_param == "overdue":
+            queryset = queryset.filter(
+                deleted_at__isnull=True,
+                due_date__lt=today,
+            )
         elif status_param == "due_soon":
             queryset = queryset.filter(
+                deleted_at__isnull=True,
                 due_date__gte=today,
                 due_date__lte=today + timedelta(days=30),
             )
         elif status_param == "ok":
-            queryset = queryset.filter(due_date__gt=today + timedelta(days=30))
+            queryset = queryset.filter(
+                deleted_at__isnull=True,
+                due_date__gt=today + timedelta(days=30),
+            )
 
         # Backwards-compatible filter
         due_soon = query_params.get("due_soon")
@@ -2564,7 +2588,9 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         - Default behavior: Soft delete (sets deleted_at timestamp)
         - With ?hard=true: Permanently delete (PROPHY_MANAGER only)
         
-        Soft-deleted reports are hidden from all users except PROPHY_MANAGER.
+        Only PROPHY_MANAGER can delete reports.
+
+        Hard delete must only be used on archived reports.
         """,
         manual_parameters=[
             openapi.Parameter(
@@ -2582,6 +2608,13 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
     )
     def destroy(self, request: Request, pk: int | None = None) -> Response:
         user: UserAccount = request.user
+
+        if user.role != UserAccount.Role.PROPHY_MANAGER:
+            return Response(
+                {"detail": "Only PROPHY_MANAGER can delete reports."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         # Check both query params and request body for hard parameter
         hard_delete = (
             request.query_params.get("hard", "false").lower() == "true"
@@ -2589,12 +2622,6 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         )
 
         if hard_delete:
-            if user.role != UserAccount.Role.PROPHY_MANAGER:
-                return Response(
-                    {"detail": "Only PROPHY_MANAGER can permanently delete reports."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
-
             try:
                 report = Report.all_objects.get(pk=pk)
             except Report.DoesNotExist:
@@ -2609,17 +2636,17 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
+            if not report.is_deleted:
+                return Response(
+                    {"detail": "Report must be archived first."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             report.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        # GP uses all_objects to see and soft-delete already soft-deleted reports
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
-            manager = Report.all_objects
-        else:
-            manager = Report.objects
-
         try:
-            report = manager.get(pk=pk)
+            report = Report.all_objects.get(pk=pk)
         except Report.DoesNotExist:
             return Response(
                 {"detail": "Relatório não encontrado."},
@@ -2678,7 +2705,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             )
 
         report.restore()
-        serializer = ReportSerializer(report)
+        serializer = ReportSerializer(report, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -2710,10 +2737,13 @@ class ReportFileDownloadView(APIView):
     def get(self, request: Request, report_id: int):
         user: UserAccount = request.user
 
-        if user.role == UserAccount.Role.PROPHY_MANAGER:
+        manager = Report.objects
+        if user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+        ]:
             manager = Report.all_objects
-        else:
-            manager = Report.objects
 
         try:
             report: Report = manager.select_related(

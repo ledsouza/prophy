@@ -261,11 +261,6 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
             cell: (report: ReportSearchDTO) => (
                 <div className="flex items-center gap-2">
                     <span>{reportTypeLabel[report.report_type] || report.report_type}</span>
-                    {isGP && report.is_deleted && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            Arquivado
-                        </span>
-                    )}
                 </div>
             ),
         },

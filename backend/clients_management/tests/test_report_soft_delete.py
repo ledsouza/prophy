@@ -256,23 +256,22 @@ class TestReportSoftDeleteModel:
 class TestReportSoftDeleteAPI:
     """Test soft delete via API endpoints."""
 
-    def test_non_gp_user_can_soft_delete(
+    def test_non_gp_user_cannot_soft_delete(
         self,
         api_client,
         internal_physicist,
         report_for_unit,
     ):
-        """Non-GP users with permissions can soft delete reports."""
+        """Non-GP users cannot delete (archive) reports."""
         api_client.force_authenticate(user=internal_physicist)
         url = reverse("reports-detail", kwargs={"pk": report_for_unit.id})
 
         response = api_client.delete(url)
 
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
         report_for_unit.refresh_from_db()
-        assert report_for_unit.is_deleted
-        assert report_for_unit.deleted_by == internal_physicist
+        assert report_for_unit.is_deleted is False
 
     def test_gp_can_soft_delete(
         self,
@@ -305,6 +304,11 @@ class TestReportSoftDeleteAPI:
 
         response = api_client.delete(url, {"hard": "true"})
 
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert Report.all_objects.filter(id=report_id).exists()
+
+        api_client.delete(url)
+        response = api_client.delete(url, {"hard": "true"})
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Report.all_objects.filter(id=report_id).exists()
 
@@ -369,24 +373,6 @@ class TestReportSoftDeleteVisibility:
         report_data = response.data["results"][0]
         assert report_data["is_deleted"] is True
 
-    def test_non_gp_does_not_see_soft_deleted_reports(
-        self,
-        api_client,
-        internal_physicist,
-        report_for_unit,
-        prophy_manager,
-    ):
-        """Non-GP users should not see soft-deleted reports."""
-        report_for_unit.soft_delete(deleted_by=prophy_manager)
-
-        api_client.force_authenticate(user=internal_physicist)
-        url = reverse("reports-list")
-
-        response = api_client.get(url)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 0
-
     def test_gp_can_retrieve_soft_deleted_report(
         self,
         api_client,
@@ -403,22 +389,6 @@ class TestReportSoftDeleteVisibility:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["is_deleted"] is True
-
-    def test_non_gp_cannot_retrieve_soft_deleted_report(
-        self,
-        api_client,
-        internal_physicist,
-        report_for_unit,
-        prophy_manager,
-    ):
-        """Non-GP users cannot retrieve soft-deleted reports."""
-        report_for_unit.soft_delete(deleted_by=prophy_manager)
-
-        api_client.force_authenticate(user=internal_physicist)
-        url = reverse("reports-detail", kwargs={"pk": report_for_unit.id})
-
-        response = api_client.get(url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_gp_sees_is_deleted_false_for_active_reports(
         self,
@@ -458,21 +428,84 @@ class TestReportSoftDeleteDownload:
             status.HTTP_302_FOUND,
         ]
 
-    def test_non_gp_cannot_download_soft_deleted_report(
+    def test_unit_manager_cannot_download_soft_deleted_report(
+        self,
+        api_client,
+        report_for_unit,
+        prophy_manager,
+    ):
+        """Unit Manager cannot download soft-deleted reports."""
+        unit_manager = UserAccount.objects.create_user(
+            email="unit_manager@prophy.com",
+            password="testpass123",
+            name="Gerente de Unidade",
+            cpf="12345678920",
+            phone="11999999920",
+            role=UserAccount.Role.UNIT_MANAGER,
+        )
+
+        report_for_unit.soft_delete(deleted_by=prophy_manager)
+
+        api_client.force_authenticate(user=unit_manager)
+        url = reverse("report-file-download", kwargs={"report_id": report_for_unit.id})
+
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+class TestReportSoftDeleteVisibilityPhysicists:
+    def test_physicist_sees_soft_deleted_reports_in_list(
         self,
         api_client,
         internal_physicist,
         report_for_unit,
         prophy_manager,
     ):
-        """Non-GP users cannot download soft-deleted reports."""
+        report_for_unit.soft_delete(deleted_by=prophy_manager)
+
+        api_client.force_authenticate(user=internal_physicist)
+        url = reverse("reports-list")
+
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+        assert response.data["results"][0]["is_deleted"] is True
+
+    def test_physicist_can_retrieve_soft_deleted_report(
+        self,
+        api_client,
+        internal_physicist,
+        report_for_unit,
+        prophy_manager,
+    ):
+        report_for_unit.soft_delete(deleted_by=prophy_manager)
+
+        api_client.force_authenticate(user=internal_physicist)
+        url = reverse("reports-detail", kwargs={"pk": report_for_unit.id})
+
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["is_deleted"] is True
+
+    def test_physicist_can_download_soft_deleted_report(
+        self,
+        api_client,
+        internal_physicist,
+        report_for_unit,
+        prophy_manager,
+    ):
         report_for_unit.soft_delete(deleted_by=prophy_manager)
 
         api_client.force_authenticate(user=internal_physicist)
         url = reverse("report-file-download", kwargs={"report_id": report_for_unit.id})
 
         response = api_client.get(url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code in [
+            status.HTTP_200_OK,
+            status.HTTP_302_FOUND,
+        ]
 
 
 @pytest.mark.django_db
@@ -482,17 +515,25 @@ class TestReportSoftDeleteAuditTrail:
     def test_deleted_by_field_is_set(
         self,
         api_client,
-        internal_physicist,
         report_for_unit,
     ):
         """deleted_by field should be set when soft deleting via API."""
-        api_client.force_authenticate(user=internal_physicist)
+        prophy_manager = UserAccount.objects.create_user(
+            email="gp2@prophy.com",
+            password="testpass123",
+            name="Gerente Prophy 2",
+            cpf="12345678921",
+            phone="11999999921",
+            role=UserAccount.Role.PROPHY_MANAGER,
+        )
+
+        api_client.force_authenticate(user=prophy_manager)
         url = reverse("reports-detail", kwargs={"pk": report_for_unit.id})
 
         api_client.delete(url)
 
         report_for_unit.refresh_from_db()
-        assert report_for_unit.deleted_by == internal_physicist
+        assert report_for_unit.deleted_by == prophy_manager
 
     def test_deleted_by_preserved_on_hard_delete_attempt_by_non_gp(
         self,
@@ -504,14 +545,25 @@ class TestReportSoftDeleteAuditTrail:
         When non-GP tries hard delete and fails.
         the report should remain soft-deleted with original deleted_by.
         """
-        api_client.force_authenticate(user=internal_physicist)
+        prophy_manager = UserAccount.objects.create_user(
+            email="gp3@prophy.com",
+            password="testpass123",
+            name="Gerente Prophy 3",
+            cpf="12345678922",
+            phone="11999999922",
+            role=UserAccount.Role.PROPHY_MANAGER,
+        )
+
         url = reverse("reports-detail", kwargs={"pk": report_for_unit.id})
+
+        api_client.force_authenticate(user=prophy_manager)
         api_client.delete(url)
 
         report_for_unit.refresh_from_db()
         original_deleted_by = report_for_unit.deleted_by
         original_deleted_at = report_for_unit.deleted_at
 
+        api_client.force_authenticate(user=internal_physicist)
         response = api_client.delete(url, {"hard": "true"})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -556,9 +608,9 @@ class TestReportSoftDeleteEdgeCases:
         api_client,
         internal_physicist,
     ):
-        """Soft deleting a non-existent report should return 404."""
+        """Soft deleting a non-existent report should return 403 for non-GP."""
         api_client.force_authenticate(user=internal_physicist)
         url = reverse("reports-detail", kwargs={"pk": 99999})
 
         response = api_client.delete(url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_403_FORBIDDEN

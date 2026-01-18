@@ -15,7 +15,7 @@ export type ReportTypeCode =
  * Derived status for a report based on its due_date.
  * Computed by the backend serializer.
  */
-export type ReportStatus = "overdue" | "due_soon" | "ok" | "unknown";
+export type ReportStatus = "overdue" | "due_soon" | "ok" | "unknown" | "archived";
 
 /**
  * Responsible user information for a report.
@@ -35,6 +35,7 @@ export type ReportDTO = {
     report_type: ReportTypeCode;
     completion_date: string;
     due_date: string | null;
+    status: ReportStatus;
     unit: number | null;
     equipment: number | null;
     file: string;

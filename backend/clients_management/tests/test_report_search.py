@@ -256,6 +256,24 @@ class TestReportStatusDerivation:
 
 
 @pytest.mark.django_db
+def test_status_archived_overrides_due_date_logic(
+    api_client,
+    prophy_manager,
+    client_with_reports,
+):
+    api_client.force_authenticate(user=prophy_manager)
+
+    report = Report.all_objects.first()
+    report.soft_delete(deleted_by=prophy_manager)
+
+    url = reverse("reports-detail", kwargs={"pk": report.id})
+    response = api_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["status"] == "archived"
+
+
+@pytest.mark.django_db
 class TestReportFiltering:
     """Test various filtering options for report search."""
 
@@ -377,6 +395,25 @@ class TestReportFiltering:
         result = response.data["results"][0]
         assert result["status"] == "due_soon"
         assert "hospital" in result["client_name"].lower()
+
+
+@pytest.mark.django_db
+def test_filter_by_archived_status_returns_only_archived_reports(
+    api_client,
+    prophy_manager,
+    client_with_reports,
+):
+    api_client.force_authenticate(user=prophy_manager)
+
+    report = Report.all_objects.first()
+    report.soft_delete(deleted_by=prophy_manager)
+
+    url = reverse("reports-list")
+    response = api_client.get(url, {"status": "archived"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 1
+    assert response.data["results"][0]["status"] == "archived"
 
 
 @pytest.mark.django_db
