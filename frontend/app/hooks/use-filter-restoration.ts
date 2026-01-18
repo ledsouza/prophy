@@ -1,6 +1,6 @@
 import { restorePageState } from "@/utils/filter-restoration";
 import { ReadonlyURLSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 /**
  * Configuration for a single tab's filter restoration.
@@ -90,22 +90,9 @@ export function useFilterRestoration({
     tabs,
     dependencies,
 }: UseFilterRestorationConfig) {
-    const lastKeyRef = useRef<string | null>(null);
-
     useEffect(() => {
         const params = new URLSearchParams(searchParams);
         const tabParam = params.get("tab");
-
-        const searchKey = params.toString();
-        const dependencyKey =
-            dependencies === undefined || dependencies === null ? "" : String(dependencies);
-        const combinedKey = `${searchKey}|${dependencyKey}`;
-
-        if (lastKeyRef.current === combinedKey) {
-            return;
-        }
-
-        lastKeyRef.current = combinedKey;
 
         if (tabParam) {
             setSelectedTabIndex(getTabFromParam(tabParam));

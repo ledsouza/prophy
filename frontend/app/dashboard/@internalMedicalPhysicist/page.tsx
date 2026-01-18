@@ -1,7 +1,7 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -37,9 +37,26 @@ import { Typography } from "@/components/foundation";
 import { ModalDeleteUnit } from "@/components/modals";
 import Role from "@/enums/Role";
 
+const TAB_PARAM_TO_INDEX: Record<string, number> = {
+    clients: 0,
+    appointments: 1,
+    reports: 2,
+};
+
+const getSelectedIndexFromTabParam = (tabParam: string | null): number => {
+    if (!tabParam) {
+        return 0;
+    }
+
+    return TAB_PARAM_TO_INDEX[tabParam] ?? 0;
+};
+
 function ClientPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
+
+    const [selectedTabIndex, setSelectedTabIndex] = useState(0);
 
     const {
         isLoading: isLoadingClientData,
@@ -156,6 +173,10 @@ function ClientPage() {
         operation ? setSelectedClientInOperation(operation) : setSelectedClientInOperation(null);
     }, [isLoadingClientsOperations, clientsOperations, selectedClient]);
 
+    useEffect(() => {
+        setSelectedTabIndex(getSelectedIndexFromTabParam(searchParams.get("tab")));
+    }, [searchParams]);
+
     if (isLoadingClientData || isLoadingUnitsOperations) {
         return <Spinner fullscreen />;
     }
@@ -197,7 +218,7 @@ function ClientPage() {
             </Button>
 
             <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
-                <TabGroup>
+                <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
                     <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
                         <Tab>Clientes</Tab>
                         <Tab>Agendamentos</Tab>
