@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
 import { buildStandardUrlParams } from "@/utils/url-params";
@@ -14,6 +14,7 @@ type UseFilterApplicationConfig<TFilters extends Record<string, unknown>> = {
     setAppliedFilters: (filters: TFilters) => void;
     buildFilters: () => TFilters;
     paramPrefix?: string;
+    preserveParams?: string[];
 };
 
 /**
@@ -33,6 +34,7 @@ export function useFilterApplication<TFilters extends Record<string, unknown>>(
     config: UseFilterApplicationConfig<TFilters>,
 ) {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const handleApplyFilters = useCallback(() => {
         if (config.currentPage !== 1) {
@@ -50,8 +52,15 @@ export function useFilterApplication<TFilters extends Record<string, unknown>>(
             paramPrefix: config.paramPrefix,
         });
 
-        router.push(`?${params.toString()}`);
-    }, [config, router]);
+        (config.preserveParams ?? []).forEach((key) => {
+            const value = searchParams.get(key);
+            if (value) {
+                params.set(key, value);
+            }
+        });
+
+        router.push(`?${params.toString()}`, { scroll: false });
+    }, [config, router, searchParams]);
 
     return { handleApplyFilters };
 }

@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { buildStandardUrlParams } from "@/utils/url-params";
 
 type UsePageNavigationConfig = {
@@ -11,6 +11,7 @@ type UsePageNavigationConfig = {
      * If omitted, buildStandardUrlParams will fall back to tabName.
      */
     paramPrefix?: string;
+    preserveParams?: string[];
 };
 
 /**
@@ -22,6 +23,7 @@ type UsePageNavigationConfig = {
  */
 export function usePageNavigation(config: UsePageNavigationConfig) {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const handlePageChange = (page: number) => {
         config.setCurrentPage(page);
@@ -36,7 +38,14 @@ export function usePageNavigation(config: UsePageNavigationConfig) {
             paramPrefix: config.paramPrefix,
         });
 
-        router.push(`?${params.toString()}`);
+        (config.preserveParams ?? []).forEach((key) => {
+            const value = searchParams.get(key);
+            if (value) {
+                params.set(key, value);
+            }
+        });
+
+        router.push(`?${params.toString()}`, { scroll: false });
     };
 
     return { handlePageChange };

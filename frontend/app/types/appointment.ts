@@ -34,6 +34,12 @@ export type AppointmentDTO = {
  */
 export type ListAppointmentsArgs = ListQueryParams & {
     unit?: number;
+    date_start?: string;
+    date_end?: string;
+    status?: string;
+    client_name?: string;
+    unit_city?: string;
+    unit_name?: string;
 };
 
 /**

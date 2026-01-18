@@ -1,8 +1,8 @@
 "use client";
 
 import { InfoIcon } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
 import { appointmentStatusLabel } from "@/enums/AppointmentStatus";
@@ -22,6 +22,8 @@ import {
 } from "@/constants/appointmentStatus";
 import { formatDateTime } from "@/utils/format";
 
+import AppointmentsCalendar from "./AppointmentsCalendar";
+
 type AppointmentFilters = {
     date_start: string;
     date_end: string;
@@ -36,6 +38,8 @@ type AppointmentSearchTabProps = {
     dataCyPrefix?: string;
     onOpenCreateAppointment?: () => void;
 };
+
+type ViewMode = "list" | "calendar";
 
 const EMPTY_FILTERS: AppointmentFilters = {
     date_start: "",
@@ -52,6 +56,18 @@ export default function AppointmentSearchTab({
     onOpenCreateAppointment,
 }: AppointmentSearchTabProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const viewModeFromUrl = useMemo<ViewMode>(() => {
+        const view = searchParams.get("view");
+        return view === "calendar" ? "calendar" : "list";
+    }, [searchParams]);
+
+    const [viewMode, setViewMode] = useState<ViewMode>(viewModeFromUrl);
+
+    useEffect(() => {
+        setViewMode(viewModeFromUrl);
+    }, [viewModeFromUrl]);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [appliedFilters, setAppliedFilters] = useState<AppointmentFilters>(EMPTY_FILTERS);
@@ -100,6 +116,7 @@ export default function AppointmentSearchTab({
         currentPage,
         setCurrentPage,
         setAppliedFilters,
+        preserveParams: ["view"],
         buildFilters: () => ({
             date_start: selectedDateStart,
             date_end: selectedDateEnd,
@@ -115,6 +132,7 @@ export default function AppointmentSearchTab({
         pageKey,
         setCurrentPage,
         setAppliedFilters,
+        preserveParams: ["view"],
         resetFilters: () => {
             setSelectedDateStart("");
             setSelectedDateEnd("");
@@ -129,6 +147,7 @@ export default function AppointmentSearchTab({
     const { handlePageChange } = usePageNavigation({
         tabName,
         pageKey,
+        preserveParams: ["view"],
         buildFilters: () => ({
             date_start: selectedDateStart,
             date_end: selectedDateEnd,
@@ -142,6 +161,23 @@ export default function AppointmentSearchTab({
 
     const handleViewUnitDetails = (unitId: number) => {
         router.push(`/dashboard/unit/${unitId}?tab=appointments`);
+    };
+
+    const handleSetViewMode = (nextViewMode: ViewMode) => {
+        setViewMode(nextViewMode);
+
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("tab", "appointments");
+
+        if (!params.get(pageKey)) {
+            params.set(pageKey, String(currentPage));
+        }
+        if (nextViewMode === "calendar") {
+            params.set("view", "calendar");
+        } else {
+            params.delete("view");
+        }
+        router.push(`?${params.toString()}`, { scroll: false });
     };
 
     return (
@@ -227,9 +263,38 @@ export default function AppointmentSearchTab({
             </div>
 
             <div className="bg-gray-50 rounded-xl p-6" data-cy={`${dataCyPrefix}-results`}>
-                <Typography element="h2" size="title3" className="font-bold mb-4">
-                    Resultados
-                </Typography>
+                <div className="flex items-center justify-between gap-3 mb-4">
+                    <Typography element="h2" size="title3" className="font-bold">
+                        Resultados
+                    </Typography>
+
+                    <div className="flex items-center rounded-lg bg-white p-1 shadow-sm">
+                        <button
+                            type="button"
+                            onClick={() => handleSetViewMode("list")}
+                            className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
+                                viewMode === "list"
+                                    ? "bg-primary text-white"
+                                    : "text-gray-primary hover:bg-gray-100"
+                            }`}
+                            data-cy={`${dataCyPrefix}-view-toggle-list`}
+                        >
+                            Lista
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleSetViewMode("calendar")}
+                            className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
+                                viewMode === "calendar"
+                                    ? "bg-primary text-white"
+                                    : "text-gray-primary hover:bg-gray-100"
+                            }`}
+                            data-cy={`${dataCyPrefix}-view-toggle-calendar`}
+                        >
+                            Calendário
+                        </button>
+                    </div>
+                </div>
 
                 {appointmentsError && (
                     <ErrorDisplay
@@ -238,7 +303,17 @@ export default function AppointmentSearchTab({
                     />
                 )}
 
-                {appointments.length === 0 && !appointmentsLoading ? (
+                {viewMode === "calendar" ? (
+                    <AppointmentsCalendar
+                        dataCyPrefix={dataCyPrefix}
+                        filters={{
+                            status: appliedFilters.status,
+                            client_name: appliedFilters.client_name,
+                            unit_city: appliedFilters.unit_city,
+                            unit_name: appliedFilters.unit_name,
+                        }}
+                    />
+                ) : appointments.length === 0 && !appointmentsLoading ? (
                     <div className="text-center py-8">
                         <Typography element="p" size="lg" className="text-gray-secondary">
                             Nenhum agendamento encontrado com os filtros aplicados
@@ -324,17 +399,19 @@ export default function AppointmentSearchTab({
                             />
                         )}
 
-                        {!appointmentsLoading && totalAppointmentsCount > ITEMS_PER_PAGE && (
-                            <div className="mt-6">
-                                <Pagination
-                                    currentPage={currentPage}
-                                    totalCount={totalAppointmentsCount}
-                                    itemsPerPage={ITEMS_PER_PAGE}
-                                    onPageChange={handlePageChange}
-                                    isLoading={appointmentsLoading}
-                                />
-                            </div>
-                        )}
+                        {!appointmentsLoading &&
+                            viewMode === "list" &&
+                            totalAppointmentsCount > ITEMS_PER_PAGE && (
+                                <div className="mt-6">
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalCount={totalAppointmentsCount}
+                                        itemsPerPage={ITEMS_PER_PAGE}
+                                        onPageChange={handlePageChange}
+                                        isLoading={appointmentsLoading}
+                                    />
+                                </div>
+                            )}
                     </div>
                 )}
             </div>

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useRef, CSSProperties } from "react";
 import cn from "classnames";
+import React, { CSSProperties, useEffect, useRef, useState } from "react";
 
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import Role from "@/enums/Role";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
 import {
     Field,
@@ -13,7 +13,6 @@ import {
     ListboxButton,
     ListboxOption,
     ListboxOptions,
-    ListboxProps,
     Portal,
 } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
@@ -25,7 +24,7 @@ export type SelectData = {
     value: string;
 };
 
-type SelectProps = {
+export type SelectProps = {
     options: SelectData[];
     selectedData: SelectData | null;
     setSelect: (value: SelectData | null) => void;

@@ -83,10 +83,12 @@ export const restoreTextFilterStates = (
 export const restoreSelectFilterStates = <T extends { id: number; value: string }>(
     id: string | null,
     options: T[],
-    setData: Dispatch<SetStateAction<T>>,
+    setData: Dispatch<SetStateAction<T | null>>,
 ) => {
     const selectedID = id ? options.find((option) => option.id === Number(id)) : null;
-    if (selectedID) {
-        setData((current) => (current.id === selectedID.id ? current : selectedID));
-    }
+    setData((current) => {
+        if (!selectedID) return current;
+        if (!current) return selectedID;
+        return current.id === selectedID.id ? current : selectedID;
+    });
 };

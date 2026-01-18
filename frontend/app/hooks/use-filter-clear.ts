@@ -1,4 +1,4 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
 import { buildStandardUrlParams } from "@/utils/url-params";
@@ -14,6 +14,7 @@ type UseFilterClearConfig<TFilters extends Record<string, unknown>> = {
     resetFilters: () => void;
     emptyFilters: TFilters;
     paramPrefix?: string;
+    preserveParams?: string[];
 };
 
 /**
@@ -30,9 +31,10 @@ type UseFilterClearConfig<TFilters extends Record<string, unknown>> = {
  * @returns Object containing handleClearFilters function
  */
 export function useFilterClear<TFilters extends Record<string, unknown>>(
-    config: UseFilterClearConfig<TFilters>
+    config: UseFilterClearConfig<TFilters>,
 ) {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const handleClearFilters = useCallback(() => {
         config.resetFilters();
@@ -47,8 +49,15 @@ export function useFilterClear<TFilters extends Record<string, unknown>>(
             paramPrefix: config.paramPrefix,
         });
 
-        router.push(`?${params.toString()}`);
-    }, [config, router]);
+        (config.preserveParams ?? []).forEach((key) => {
+            const value = searchParams.get(key);
+            if (value) {
+                params.set(key, value);
+            }
+        });
+
+        router.push(`?${params.toString()}`, { scroll: false });
+    }, [config, router, searchParams]);
 
     return { handleClearFilters };
 }

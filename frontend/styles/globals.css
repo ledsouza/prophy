@@ -21,5 +21,85 @@
         --danger: 220, 38, 38;
         --success: 22, 163, 74;
         --warning: 161, 98, 7;
+
+        /* FullCalendar theme overrides (fc uses CSS variables) */
+        --fc-border-color: rgba(var(--text-tertiary), 1);
+        --fc-page-bg-color: rgba(var(--bg-light), 1);
+
+        --fc-button-text-color: rgba(var(--bg-light), 1);
+        --fc-button-bg-color: rgba(var(--primary), 1);
+        --fc-button-border-color: rgba(var(--primary), 1);
+        --fc-button-hover-bg-color: rgba(var(--secondary), 1);
+        --fc-button-hover-border-color: rgba(var(--secondary), 1);
+        --fc-button-active-bg-color: rgba(var(--secondary), 1);
+        --fc-button-active-border-color: rgba(var(--secondary), 1);
+
+        --fc-today-bg-color: rgba(var(--tertiary), 0.12);
+    }
+}
+
+@layer components {
+    .prophy-calendar .fc {
+        color: rgba(var(--text-primary), 1);
+    }
+
+    .prophy-calendar .fc .fc-scrollgrid-section-header,
+    .prophy-calendar .fc .fc-col-header-cell {
+        background-color: rgb(249 250 251);
+    }
+
+    .prophy-calendar .fc .fc-toolbar-title {
+        font-weight: 700;
+        color: rgba(var(--text-primary), 1);
+    }
+
+    .prophy-calendar .fc .fc-button {
+        border-radius: 0.5rem;
+        box-shadow: none;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .prophy-calendar .fc .fc-button:focus {
+        box-shadow: 0 0 0 2px rgba(var(--tertiary), 0.5);
+    }
+
+    .prophy-calendar .fc .fc-daygrid-day-number {
+        color: rgba(var(--text-secondary), 1);
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.35rem;
+    }
+
+    .prophy-calendar .fc .fc-daygrid-day.fc-day-today {
+        border-radius: 0.5rem;
+    }
+
+    .prophy-calendar .fc .fc-event {
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        padding: 0.1rem 0.25rem;
+    }
+
+    .prophy-calendar .fc .fc-event:hover {
+        filter: brightness(0.98);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+
+    .prophy-calendar .fc .fc-daygrid-event {
+        align-items: flex-start;
+        white-space: normal;
+    }
+
+    .prophy-calendar .fc .fc-event-title,
+    .prophy-calendar .fc .fc-event-title-container {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+    }
+
+    .prophy-calendar .fc .fc-event .fc-event-main {
+        color: inherit;
     }
 }

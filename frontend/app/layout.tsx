@@ -4,7 +4,7 @@ import "@/../styles/globals.css";
 
 import Provider from "@/redux/Provider";
 
-import { NavBar, Footer } from "@/components/common";
+import { NavBar } from "@/components/common";
 import { Setup } from "./components/utils";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -30,7 +30,6 @@ export default function RootLayout({
                     <Setup />
                     <NavBar />
                     <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8 my-4">{children}</div>
-                    {/* <Footer /> */}
                 </Provider>
             </body>
         </html>

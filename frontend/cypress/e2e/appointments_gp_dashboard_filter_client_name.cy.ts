@@ -10,7 +10,7 @@ describe("appointments - GP dashboard filter client name", () => {
 
         cy.getByCy("search-tab-appointments").click();
 
-        cy.getByCy("gp-appointments-filter-client-name").find("input").type("Clinica");
+        cy.getByCy("gp-appointments-filter-client-name").should("be.visible").type("Clinica");
 
         cy.getByCy("gp-appointments-apply-filters").click();
 
