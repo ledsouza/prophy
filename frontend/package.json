@@ -33,7 +33,7 @@
         "clsx": "^2.1.1",
         "date-fns": "^4.1.0",
         "gerador-validador-cpf": "^5.0.2",
-        "lodash": "^4.17.21",
+        "lodash": "^4.17.23",
         "next": "15.5.9",
         "npm": "^11.6.4",
         "pino": "^9.11.0",
