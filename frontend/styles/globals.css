@@ -1,6 +1,61 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+    --color-primary: rgb(var(--primary));
+    --color-secondary: rgb(var(--secondary));
+    --color-tertiary: rgb(var(--tertiary));
+    --color-quaternary: rgb(var(--quaternary));
+    --color-danger: rgb(var(--danger));
+    --color-success: rgb(var(--success));
+    --color-warning: rgb(var(--warning));
+
+    --color-bg-light: rgb(var(--bg-light));
+    --color-light: rgb(var(--bg-light));
+    --color-placeholder: rgb(var(--text-placeholder));
+    --color-disabled: rgb(var(--text-disabled));
+
+    --color-text-primary: rgb(var(--text-primary));
+    --color-text-secondary: rgb(var(--text-secondary));
+    --color-text-tertiary: rgb(var(--text-tertiary));
+    --color-text-disabled: rgb(var(--text-disabled));
+    --color-text-placeholder: rgb(var(--text-placeholder));
+
+    --color-text-gray-secondary: rgb(var(--text-secondary));
+    --color-gray-primary: rgb(var(--text-primary));
+    --color-gray-secondary: rgb(var(--text-secondary));
+    --color-gray-tertiary: rgb(var(--text-tertiary));
+
+    --animate-danger: danger-border-flash 2s ease-out infinite;
+    --animate-warning: warning-border-flash 2s ease-out infinite;
+}
+
+@keyframes danger-border-flash {
+    0% {
+        box-shadow: inset 0 0 0 0 rgba(var(--danger), 0);
+    }
+
+    20% {
+        box-shadow: inset 0 0 0 2px rgba(var(--danger), 0.65);
+    }
+
+    100% {
+        box-shadow: inset 0 0 0 2px rgba(var(--danger), 0);
+    }
+}
+
+@keyframes warning-border-flash {
+    0% {
+        box-shadow: inset 0 0 0 0 rgba(var(--warning), 0);
+    }
+
+    20% {
+        box-shadow: inset 0 0 0 2px rgba(var(--warning), 0.65);
+    }
+
+    100% {
+        box-shadow: inset 0 0 0 2px rgba(var(--warning), 0);
+    }
+}
 
 @layer base {
     :root {
@@ -21,8 +76,32 @@
         --danger: 220, 38, 38;
         --success: 22, 163, 74;
         --warning: 161, 98, 7;
+    }
 
-        /* FullCalendar theme overrides (fc uses CSS variables) */
+    button:not(:disabled),
+    a[href],
+    [role="button"]:not([aria-disabled="true"]),
+    input[type="button"]:not(:disabled),
+    input[type="submit"]:not(:disabled) {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    [aria-disabled="true"] {
+        cursor: not-allowed;
+    }
+}
+
+@layer components {
+    .prophy-calendar {
+        /*
+            FullCalendar v6 is styled mostly via CSS variables.
+
+            Scoping these variables to the calendar root ensures our
+            theme wins even though FullCalendar injects its own CSS at
+            runtime.
+        */
+
         --fc-border-color: rgba(var(--text-tertiary), 1);
         --fc-page-bg-color: rgba(var(--bg-light), 1);
 
@@ -36,11 +115,30 @@
 
         --fc-today-bg-color: rgba(var(--tertiary), 0.12);
     }
-}
 
-@layer components {
     .prophy-calendar .fc {
         color: rgba(var(--text-primary), 1);
+    }
+
+    .prophy-calendar .fc .fc-button,
+    .prophy-calendar .fc .fc-button-primary {
+        background-color: var(--fc-button-bg-color);
+        border-color: var(--fc-button-border-color);
+        color: var(--fc-button-text-color);
+    }
+
+    .prophy-calendar .fc .fc-button:hover,
+    .prophy-calendar .fc .fc-button-primary:hover {
+        background-color: var(--fc-button-hover-bg-color);
+        border-color: var(--fc-button-hover-border-color);
+    }
+
+    .prophy-calendar .fc .fc-button:active,
+    .prophy-calendar .fc .fc-button.fc-button-active,
+    .prophy-calendar .fc .fc-button-primary:active,
+    .prophy-calendar .fc .fc-button-primary.fc-button-active {
+        background-color: var(--fc-button-active-bg-color);
+        border-color: var(--fc-button-active-border-color);
     }
 
     .prophy-calendar .fc .fc-scrollgrid-section-header,
@@ -88,15 +186,20 @@
     }
 
     .prophy-calendar .fc .fc-daygrid-event {
-        align-items: flex-start;
-        white-space: normal;
+        align-items: center;
+        overflow: hidden;
     }
 
     .prophy-calendar .fc .fc-event-title,
     .prophy-calendar .fc .fc-event-title-container {
-        white-space: normal;
-        overflow: visible;
-        text-overflow: unset;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .prophy-calendar .fc .fc-event-main {
+        min-width: 0;
+        overflow: hidden;
     }
 
     .prophy-calendar .fc .fc-event .fc-event-main {
