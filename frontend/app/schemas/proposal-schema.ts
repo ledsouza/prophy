@@ -31,7 +31,7 @@ const proposalSchema = z.object({
         .refine((val) => !isNaN(Number(val)), { message: "Valor deve ser um número válido." })
         .refine((val) => Number(val) > 0, { message: "Valor deve ser maior que zero." }),
     contract_type: z.nativeEnum(ContractType, {
-        errorMap: () => ({ message: "Tipo de contrato é obrigatório." }),
+        message: "Tipo de contrato é obrigatório.",
     }),
 });
 

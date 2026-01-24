@@ -12,10 +12,12 @@ const materialUpdateSchema = z.object({
         .trim()
         .transform((s) => (s === "" ? undefined : s))
         .optional(),
-    file: z.preprocess(
-        (v) => (v instanceof FileList && v.length === 0 ? undefined : v),
-        reportFileSchema.optional()
-    ),
+    file: z
+        .preprocess(
+            (v) => (v instanceof FileList && v.length === 0 ? undefined : v),
+            reportFileSchema.optional(),
+        )
+        .optional(),
 });
 
 export default materialUpdateSchema;

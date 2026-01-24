@@ -6,14 +6,10 @@ import { makeAppointmentScheduleSchema } from "./appointment-schedule-schema";
  * Extends the base appointment schedule schema with client and unit selection.
  */
 const appointmentGlobalCreateSchema = makeAppointmentScheduleSchema().extend({
-    client: z.number({
-        required_error: "Cliente é obrigatório.",
-        invalid_type_error: "Cliente inválido.",
-    }),
-    unit: z.number({
-        required_error: "Unidade é obrigatória.",
-        invalid_type_error: "Unidade inválida.",
-    }),
+    client: z
+        .number({ message: "Cliente inválido." })
+        .min(1, { message: "Cliente é obrigatório." }),
+    unit: z.number({ message: "Unidade inválida." }).min(1, { message: "Unidade é obrigatória." }),
 });
 
 export default appointmentGlobalCreateSchema;

@@ -21,7 +21,7 @@ const base = z.object({
             message: "Telefone inválido.",
         }),
     type: z.nativeEnum(AppointmentType, {
-        errorMap: () => ({ message: "Tipo de agendamento é obrigatório." }),
+        message: "Tipo de agendamento é obrigatório.",
     }),
     justification: z
         .string()
