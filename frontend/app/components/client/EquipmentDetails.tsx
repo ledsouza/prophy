@@ -60,7 +60,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
             </button>
 
             {/* Equipment photo */}
-            <div className="relative w-full h-[400px]">
+            <div className="relative w-full h-100">
                 <Image
                     src={
                         equipment.equipment_photo
@@ -210,7 +210,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                         >
                                             <div className="flex gap-4">
                                                 {accessory.equipment_photo && (
-                                                    <div className="relative w-20 h-20 flex-shrink-0">
+                                                    <div className="relative w-20 h-20 shrink-0">
                                                         <Image
                                                             src={
                                                                 buildImageSrc(
@@ -281,7 +281,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                         </TabPanel>
 
                         {/* Reports Panel */}
-                        <TabPanel className="rounded-xl bg-white p-3 h-[500px]">
+                        <TabPanel className="rounded-xl bg-white p-3 h-125">
                             <EquipmentReportsTab equipmentId={equipment.id} />
                         </TabPanel>
                     </TabPanels>
