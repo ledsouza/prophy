@@ -41,20 +41,20 @@ const Button = ({
     ...props
 }: ButtonProps) => {
     const computedClassName = cn(
-        "flex justify-center align-middle items-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 active:transform active:scale-95 transition-transform",
+        "flex justify-center align-middle items-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 shadow-sm focus-visible:outline focus-visible:outline-offset-2 active:transform active:scale-95 transition-transform",
         className,
         {
             "bg-primary text-white hover:bg-secondary focus-visible:outline-primary":
                 variant === "primary",
-            "bg-quaternary text-gray-primary hover:bg-opacity-50 focus-visible:outline-quaternary":
+            "bg-quaternary text-gray-primary hover:bg-quaternary/50 focus-visible:outline-quaternary":
                 variant === "secondary",
-            "bg-danger text-white hover:bg-danger hover:bg-opacity-80 focus-visible:outline-danger":
+            "bg-danger text-white hover:bg-danger/80 focus-visible:outline-danger":
                 variant === "danger",
             "bg-success text-white hover:bg-success/90 focus-visible:outline-success":
                 variant === "success",
-            "bg-opacity-70 text-white hover:bg-opacity-80 focus-visible:outline-secondary":
+            "bg-secondary/70 text-white hover:bg-secondary/80 focus-visible:outline-secondary":
                 disabled,
-        }
+        },
     );
 
     const content = isLoading ? <Spinner md /> : <>{children}</>;
