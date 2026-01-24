@@ -43,6 +43,8 @@ const materialFormSchema = z.object({
 
 type MaterialFormFields = z.infer<typeof materialFormSchema>;
 
+type MaterialFormInputFields = z.input<typeof materialFormSchema>;
+
 const MaterialForm = ({
     onSuccess,
     onCancel,
@@ -65,7 +67,7 @@ const MaterialForm = ({
                     code?: MaterialVisibility;
                 }>
             ).find((v) => v.code === "PUB"),
-        []
+        [],
     );
     const [createMaterial, { isLoading: isCreating }] = useCreateMaterialMutation();
 
@@ -75,7 +77,7 @@ const MaterialForm = ({
         formState: { errors, isSubmitting },
         setValue,
         watch,
-    } = useForm<MaterialFormFields>({
+    } = useForm<MaterialFormInputFields>({
         resolver: zodResolver(materialFormSchema),
         defaultValues: {
             title: "",
@@ -139,7 +141,7 @@ const MaterialForm = ({
         return null;
     }
 
-    const onSubmit: SubmitHandler<MaterialFormFields> = async (data) => {
+    const onSubmit: SubmitHandler<MaterialFormInputFields> = async (data) => {
         try {
             const file = data.file[0];
 

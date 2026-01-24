@@ -26,6 +26,10 @@ const updateSchema = materialUpdateSchema;
 
 type UpdateFields = z.infer<typeof updateSchema>;
 
+type UpdateFormFields = z.input<typeof updateSchema>;
+
+type UpdateSubmitFields = z.output<typeof updateSchema>;
+
 const MaterialUpdateForm = ({
     initial,
     onSuccess,
@@ -39,16 +43,17 @@ const MaterialUpdateForm = ({
         handleSubmit,
         watch,
         formState: { errors, isSubmitting, isDirty },
-    } = useForm<UpdateFields>({
-        resolver: zodResolver(updateSchema),
+    } = useForm<UpdateFormFields>({
+        resolver: zodResolver(updateSchema, undefined, { raw: true }),
         defaultValues: {
             title: initial.title,
             description: initial.description || "",
         },
     });
 
-    const onSubmit: SubmitHandler<UpdateFields> = async (data) => {
-        const firstFile = data.file?.[0];
+    const onSubmit: SubmitHandler<UpdateFormFields> = async (data) => {
+        const parsed = updateSchema.parse(data) as UpdateSubmitFields;
+        const firstFile = parsed.file?.[0];
 
         const initialContent = {
             title: initial.title,
@@ -68,8 +73,8 @@ const MaterialUpdateForm = ({
         try {
             const payload = {
                 id: initial.id,
-                title: data.title,
-                description: data.description,
+                title: parsed.title,
+                description: parsed.description,
                 ...(firstFile ? { file: firstFile } : {}),
             };
 
