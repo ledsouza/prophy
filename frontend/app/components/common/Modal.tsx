@@ -41,11 +41,11 @@ const Modal = ({ children, isOpen, onClose, className }: Props) => {
                 transition
                 className={clsx(
                     "fixed inset-0",
-                    "bg-gray-500 bg-opacity-75",
+                    "bg-black/40",
                     "transition-opacity",
-                    "data-[closed]:opacity-0",
-                    "data-[enter]:duration-300 data-[leave]:duration-200",
-                    "data-[enter]:ease-out data-[leave]:ease-in"
+                    "data-closed:opacity-0",
+                    "data-enter:duration-300 data-leave:duration-200",
+                    "data-enter:ease-out data-leave:ease-in",
                 )}
             />
 
@@ -54,7 +54,7 @@ const Modal = ({ children, isOpen, onClose, className }: Props) => {
                     className={clsx(
                         "flex min-h-full items-end justify-center",
                         "p-2 text-center",
-                        "sm:items-center sm:p-0"
+                        "sm:items-center sm:p-0",
                     )}
                 >
                     <DialogPanel
@@ -63,12 +63,12 @@ const Modal = ({ children, isOpen, onClose, className }: Props) => {
                             "relative transform overflow-visible rounded-lg",
                             "bg-white text-left shadow-xl",
                             "transition-all",
-                            "data-[closed]:translate-y-4 data-[closed]:opacity-0",
-                            "data-[enter]:duration-300 data-[leave]:duration-200",
-                            "data-[enter]:ease-out data-[leave]:ease-in",
+                            "data-closed:translate-y-4 data-closed:opacity-0",
+                            "data-enter:duration-300 data-leave:duration-200",
+                            "data-enter:ease-out data-leave:ease-in",
                             "sm:my-8 sm:w-full",
-                            "data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95",
-                            className
+                            "data-closed:sm:translate-y-0 data-closed:sm:scale-95",
+                            className,
                         )}
                     >
                         {children}
