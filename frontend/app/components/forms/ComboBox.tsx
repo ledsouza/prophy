@@ -43,7 +43,7 @@ const ComboBox = ({
 }: ComboBoxProps) => {
     const [filteredOptions, setFilteredOptions] = useState(data);
 
-    const debouncedFilterRef = useRef<DebouncedFunc<(query: string) => void>>();
+    const debouncedFilterRef = useRef<DebouncedFunc<(query: string) => void> | null>(null);
 
     useEffect(() => {
         debouncedFilterRef.current = debounce((query: string) => {
@@ -67,18 +67,21 @@ const ComboBox = ({
     };
 
     const inputClassName = cn(
-        "block w-full rounded-md border-0 text-text-primary shadow-md ring-1 ring-inset placeholder:text-text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6",
+        "block w-full rounded-md border-0 h-9 bg-white px-3 appearance-none",
+        "text-gray-primary shadow-md ring-1 ring-inset",
+        "placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary",
+        "sm:text-sm sm:leading-6",
         {
             "ring-tertiary": disabled,
-            "bg-danger bg-opacity-5 ring-danger": errorMessage,
+            "bg-danger/5 ring-danger": errorMessage,
             "ring-primary": !disabled && !errorMessage,
-        }
+        },
     );
 
     return (
         <>
             <Field data-testid={dataTestId} disabled={disabled}>
-                <Label className="block mb-2 text-sm font-medium leading-6 text-text-primary">
+                <Label className="block mb-2 text-sm font-medium leading-6 text-gray-primary">
                     {children}
                 </Label>
                 <Combobox
@@ -105,13 +108,13 @@ const ComboBox = ({
                     <ComboboxOptions
                         anchor="bottom"
                         data-testid="combobox-options"
-                        className="z-50 empty:invisible block max-w-60 w-60 h-56 rounded-md border-0 mt-2 p-2 bg-white text-text-primary shadow-lg ring-1 ring-inset ring-primary focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                        className="z-50 empty:invisible block max-w-60 w-60 h-56 rounded-md border-0 mt-2 p-2 bg-white text-gray-primary shadow-lg ring-1 ring-inset ring-primary focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                     >
                         {({ option: value }) => (
                             <ComboboxOption
                                 key={value.id}
                                 value={value}
-                                className="rounded-md p-1 data-[focus]:bg-quaternary"
+                                className="rounded-md p-1 data-focus:bg-quaternary"
                             >
                                 {value.name}
                             </ComboboxOption>

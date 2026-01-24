@@ -28,7 +28,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             labelSize = "sm",
             ...props
         }: TextareaProps,
-        ref
+        ref,
     ) => {
         const inputClassName = clsx(
             "block w-full rounded-md border-0",
@@ -37,9 +37,9 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             "sm:text-sm sm:leading-6",
             {
                 "py-1.5 ring-tertiary": disabled,
-                "bg-danger bg-opacity-5 ring-danger": errorMessage,
+                "bg-danger/5 ring-danger": errorMessage,
                 "py-1.5 ring-primary": !errorMessage && !disabled,
-            }
+            },
         );
 
         return (
@@ -65,7 +65,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 )}
             </Field>
         );
-    }
+    },
 );
 
 Textarea.displayName = "Textarea";

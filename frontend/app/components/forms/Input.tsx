@@ -30,7 +30,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             dataCy,
             ...props
         }: InputProps,
-        ref
+        ref,
     ) => {
         const [fileName, setFileName] = useState<string>("");
         const autoId = useId();
@@ -48,8 +48,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             "sm:text-sm sm:leading-6",
             {
                 "ring-tertiary": disabled,
-                "bg-danger bg-opacity-5 ring-danger": errorMessage,
-            }
+                "bg-danger/5 ring-danger": errorMessage,
+            },
         );
 
         const inputClassName = clsx(
@@ -59,10 +59,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             "sm:text-sm sm:leading-6",
             {
                 "ring-tertiary": disabled,
-                "bg-danger bg-opacity-5 ring-danger": errorMessage,
+                "bg-danger/5 ring-danger": errorMessage,
             },
             type === "file" &&
-                "ring-primary file:py-1.5 file:border-0 file:bg-secondary file:rounded-md file:text-white hover:file:cursor-pointer hover:file:bg-opacity-80"
+                "ring-primary file:py-1.5 file:border-0 file:bg-secondary file:rounded-md file:text-white hover:file:cursor-pointer hover:file:bg-secondary/80",
         );
 
         return (
@@ -115,7 +115,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 )}
             </Field>
         );
-    }
+    },
 );
 
 Input.displayName = "Input";

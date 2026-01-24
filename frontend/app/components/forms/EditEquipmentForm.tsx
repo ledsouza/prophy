@@ -39,7 +39,7 @@ import { Form, FormButtons, Input, Select, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { OperationStatus } from "@/enums";
 import Role from "@/enums/Role";
-import { XCircle } from "@phosphor-icons/react";
+import { XCircleIcon } from "@phosphor-icons/react";
 
 const editAccessorySchema = accessorySchema
     .extend({
@@ -77,6 +77,8 @@ const editEquipmentSchema = equipmentSchema.extend({
 });
 
 export type EditEquipmentFields = z.infer<typeof editEquipmentSchema>;
+
+type EditEquipmentFormFields = z.input<typeof editEquipmentSchema>;
 
 type ViewImageButtonProps = {
     imageEndpoint: string;
@@ -129,7 +131,7 @@ const EditEquipmentForm = ({
         getValues,
         control,
         formState: { errors, isSubmitting },
-    } = useForm<EditEquipmentFields>({
+    } = useForm<EditEquipmentFormFields>({
         resolver: zodResolver(editEquipmentSchema),
         defaultValues: {
             manufacturer: equipment.manufacturer,
@@ -263,7 +265,7 @@ const EditEquipmentForm = ({
         return sameEquipment && sameAccessories;
     };
 
-    const createEquipmentForm = (data: EditEquipmentFields) => {
+    const createEquipmentForm = (data: EditEquipmentFormFields) => {
         const equipmentFormData = new FormData();
 
         // Handle text fields
@@ -291,19 +293,19 @@ const EditEquipmentForm = ({
             if (data.purchase_installation_date)
                 equipmentFormData.append(
                     "purchase_installation_date",
-                    data.purchase_installation_date
+                    data.purchase_installation_date,
                 );
             if (data.maintenance_responsable)
                 equipmentFormData.append("maintenance_responsable", data.maintenance_responsable);
             if (data.email_maintenance_responsable)
                 equipmentFormData.append(
                     "email_maintenance_responsable",
-                    data.email_maintenance_responsable
+                    data.email_maintenance_responsable,
                 );
             if (data.phone_maintenance_responsable)
                 equipmentFormData.append(
                     "phone_maintenance_responsable",
-                    data.phone_maintenance_responsable
+                    data.phone_maintenance_responsable,
                 );
         }
 
@@ -346,7 +348,7 @@ const EditEquipmentForm = ({
                 accessoryFormData.append("equipment_photo", accessory.equipment_photo[0]);
             } else if (filteredAccessories[index]?.equipment_photo) {
                 const equipmentPhotoFile = await handleAccessoryPhoto(
-                    filteredAccessories[index].equipment_photo
+                    filteredAccessories[index].equipment_photo,
                 );
                 accessoryFormData.append("equipment_photo", equipmentPhotoFile);
             }
@@ -355,7 +357,7 @@ const EditEquipmentForm = ({
                 accessoryFormData.append("label_photo", accessory.label_photo[0]);
             } else if (filteredAccessories[index]?.label_photo) {
                 const equipmentLabelPhotoFile = await handleAccessoryPhoto(
-                    filteredAccessories[index].label_photo
+                    filteredAccessories[index].label_photo,
                 );
                 accessoryFormData.append("label_photo", equipmentLabelPhotoFile);
             }
@@ -369,7 +371,7 @@ const EditEquipmentForm = ({
 
     const handleAccessories = async (
         accessoriesForm: FormData[],
-        equipment: EquipmentDTO | EquipmentOperationDTO
+        equipment: EquipmentDTO | EquipmentOperationDTO,
     ) => {
         const accessoriesFields = getValues("accessories");
 
@@ -860,11 +862,11 @@ const EditEquipmentForm = ({
             <div className="relative">
                 <button
                     onClick={() => setImageModalOpen(false)}
-                    className="absolute right-2 top-2 p-2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full transition-colors z-10 shadow-lg"
+                    className="absolute right-2 top-2 p-2 bg-white/80 hover:bg-white rounded-full transition-colors z-10 shadow-lg"
                     data-testid="btn-close-modal"
                     aria-label="Fechar modal"
                 >
-                    <XCircle size={24} className="text-primary" />
+                    <XCircleIcon size={24} className="text-primary" />
                 </button>
 
                 <Image
@@ -878,7 +880,7 @@ const EditEquipmentForm = ({
         </Modal>
     );
 
-    const onSubmit: SubmitHandler<EditEquipmentFields> = async (data) => {
+    const onSubmit: SubmitHandler<EditEquipmentFormFields> = async (data) => {
         if (isLoadingModalities) {
             toast.warning("Aguarde o carregamento das modalidades.");
             return;
@@ -916,7 +918,7 @@ const EditEquipmentForm = ({
 
             if (equipmentResponse.error) {
                 throw new Error(
-                    `Error creating equipment: ${JSON.stringify(equipmentResponse.error)}`
+                    `Error creating equipment: ${JSON.stringify(equipmentResponse.error)}`,
                 );
             }
 
@@ -967,7 +969,7 @@ const EditEquipmentForm = ({
                 label_photo: null,
                 original_equipment_photo: accessory.equipment_photo || undefined,
                 original_label_photo: accessory.label_photo || undefined,
-            }))
+            })),
         );
     }, [filteredAccessories, isLoadingAccessories, setValue]);
 
@@ -977,7 +979,7 @@ const EditEquipmentForm = ({
             return;
         }
         setFilteredAccessories(
-            accessories.filter((accessory) => accessory.equipment === equipment.id)
+            accessories.filter((accessory) => accessory.equipment === equipment.id),
         );
     }, [accessories, isLoadingAccessories, equipment.id]);
 
