@@ -21,6 +21,8 @@ import { OperationStatus } from "@/enums";
 
 export type AddUnitFields = z.infer<typeof unitSchema>;
 
+type AddUnitFormFields = z.input<typeof unitSchema>;
+
 type AddUnitFormProps = {
     clientId: number;
 };
@@ -33,7 +35,7 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
         handleSubmit,
         formState: { errors, isSubmitting },
         setValue,
-    } = useForm<AddUnitFields>({
+    } = useForm<AddUnitFormFields>({
         resolver: zodResolver(unitSchema),
     });
 
@@ -51,7 +53,7 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
     const { needReview } = useNeedReview();
     const [createAddUnitOperation] = useCreateAddUnitOperationMutation();
 
-    const onSubmit: SubmitHandler<AddUnitFields> = async (data) => {
+    const onSubmit: SubmitHandler<AddUnitFormFields> = async (data) => {
         try {
             const response = needReview
                 ? await createAddUnitOperation({

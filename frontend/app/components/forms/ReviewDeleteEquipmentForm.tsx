@@ -23,6 +23,8 @@ const noteSchema = equipmentSchema.pick({ note: true });
 
 type ReviewDeleteEquipmentField = z.infer<typeof noteSchema>;
 
+type ReviewDeleteEquipmentFormField = z.input<typeof noteSchema>;
+
 type ReviewDeleteEquipmentFormProps = {
     title: string;
     equipmentOperationID: number;
@@ -43,11 +45,11 @@ const ReviewDeleteEquipmentForm = ({
         handleSubmit,
         setValue,
         formState: { errors, isSubmitting },
-    } = useForm<ReviewDeleteEquipmentField>({
+    } = useForm<ReviewDeleteEquipmentFormField>({
         resolver: zodResolver(noteSchema),
     });
 
-    const onSubmit: SubmitHandler<ReviewDeleteEquipmentField> = async ({ note }) => {
+    const onSubmit: SubmitHandler<ReviewDeleteEquipmentFormField> = async ({ note }) => {
         try {
             // Create a FormData object to match the expected input for editEquipment mutation
             const equipmentData = new FormData();
@@ -56,7 +58,7 @@ const ReviewDeleteEquipmentForm = ({
             }
             equipmentData.append(
                 "operation_status",
-                isRejected ? OperationStatus.REJECTED : OperationStatus.ACCEPTED
+                isRejected ? OperationStatus.REJECTED : OperationStatus.ACCEPTED,
             );
 
             const response = await updateEquipmentOperation({
@@ -80,7 +82,7 @@ const ReviewDeleteEquipmentForm = ({
             toast.error(
                 error instanceof Error
                     ? error.message
-                    : "Algo deu errado. Tente novamente mais tarde."
+                    : "Algo deu errado. Tente novamente mais tarde.",
             );
         }
     };

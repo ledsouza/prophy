@@ -27,19 +27,27 @@ const editProposalSchema = proposalSchema
     })
     .extend({
         status: z.nativeEnum(ProposalStatus, {
-            errorMap: () => ({ message: "Status é obrigatório." }),
+            message: "Status é obrigatório.",
         }),
         pdf_version: z.preprocess(
             (v) => (v instanceof FileList && v.length === 0 ? undefined : v),
-            proposalPdfFileSchema.optional()
+            proposalPdfFileSchema.optional(),
         ),
         word_version: z.preprocess(
             (v) => (v instanceof FileList && v.length === 0 ? undefined : v),
-            proposalWordFileSchema.optional()
+            proposalWordFileSchema.optional(),
         ),
+    })
+    .partial({
+        pdf_version: true,
+        word_version: true,
     });
 
 export type EditProposalFields = z.infer<typeof editProposalSchema>;
+
+type EditProposalFormFields = z.input<typeof editProposalSchema>;
+
+type EditProposalSubmitFields = z.output<typeof editProposalSchema>;
 
 type EditProposalFormProps = {
     title?: string;
@@ -62,7 +70,7 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
         formState: { errors, isSubmitting },
         setValue,
         watch,
-    } = useForm<EditProposalFields>({
+    } = useForm<EditProposalFormFields>({
         resolver: zodResolver(editProposalSchema),
         defaultValues: {
             contact_name: proposal.contact_name,
@@ -76,11 +84,13 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
 
     const selectedStatus = watch("status");
 
-    const onSubmit: SubmitHandler<EditProposalFields> = async (editData) => {
+    const onSubmit: SubmitHandler<EditProposalFormFields> = async (editData) => {
         try {
+            const parsed = editProposalSchema.parse(editData);
+
             await updateProposal({
                 id: proposal.id,
-                data: editData,
+                data: parsed as EditProposalSubmitFields,
             }).unwrap();
 
             toast.success("Proposta atualizada com sucesso!");

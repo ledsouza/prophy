@@ -23,6 +23,8 @@ const noteSchema = unitSchema.pick({ note: true });
 
 type ReviewDeleteUnitField = z.infer<typeof noteSchema>;
 
+type ReviewDeleteUnitFormField = z.input<typeof noteSchema>;
+
 type ReviewDeleteUnitFormProps = {
     title: string;
     unitOperationID: number;
@@ -40,11 +42,11 @@ const ReviewDeleteUnitForm = ({ title, unitOperationID }: ReviewDeleteUnitFormPr
         handleSubmit,
         setValue,
         formState: { errors, isSubmitting },
-    } = useForm<ReviewDeleteUnitField>({
+    } = useForm<ReviewDeleteUnitFormField>({
         resolver: zodResolver(noteSchema),
     });
 
-    const onSubmit: SubmitHandler<ReviewDeleteUnitField> = async ({ note }) => {
+    const onSubmit: SubmitHandler<ReviewDeleteUnitFormField> = async ({ note }) => {
         try {
             const response = await updateUnitOperation({
                 unitID: unitOperationID,
@@ -72,7 +74,7 @@ const ReviewDeleteUnitForm = ({ title, unitOperationID }: ReviewDeleteUnitFormPr
             toast.error(
                 error instanceof Error
                     ? error.message
-                    : "Algo deu errado. Tente novamente mais tarde."
+                    : "Algo deu errado. Tente novamente mais tarde.",
             );
         }
     };

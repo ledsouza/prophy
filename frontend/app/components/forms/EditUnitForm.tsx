@@ -26,6 +26,8 @@ import { unitSchema } from "@/schemas";
 
 export type EditUnitFields = z.infer<typeof unitSchema>;
 
+type EditUnitFormFields = z.input<typeof unitSchema>;
+
 type EditUnitFormProps = {
     title?: string;
     description?: string;
@@ -42,7 +44,7 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
         handleSubmit,
         formState: { errors, isSubmitting },
         setValue,
-    } = useForm<EditUnitFields>({
+    } = useForm<EditUnitFormFields>({
         resolver: zodResolver(unitSchema),
         defaultValues: {
             name: unit.name,
@@ -72,14 +74,22 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
     const [createEditUnitOperation] = useCreateEditUnitOperationMutation();
     const [editUnit] = useUpdateUnitMutation();
 
-    function isDataUnchanged(submittedData: EditUnitFields, originalData: UnitDTO) {
-        return Object.entries(submittedData).every(
-            ([key, value]) =>
-                value.toLowerCase() === originalData[key as keyof UnitDTO]?.toString().toLowerCase()
-        );
+    function isDataUnchanged(submittedData: EditUnitFormFields, originalData: UnitDTO) {
+        return Object.entries(submittedData).every(([key, value]) => {
+            if (typeof value !== "string") {
+                return false;
+            }
+
+            const originalValue = originalData[key as keyof UnitDTO]?.toString();
+            if (typeof originalValue !== "string") {
+                return false;
+            }
+
+            return value.toLowerCase() === originalValue.toLowerCase();
+        });
     }
 
-    const onSubmit: SubmitHandler<EditUnitFields> = async (data) => {
+    const onSubmit: SubmitHandler<EditUnitFormFields> = async (data) => {
         if (!reviewMode && isDataUnchanged(data, unit)) {
             toast.warning("Nenhuma alteração foi detectada nos dados.");
             return;
@@ -124,7 +134,7 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
             toast.error(
                 error instanceof Error
                     ? error.message
-                    : "Algo deu errado. Tente novamente mais tarde."
+                    : "Algo deu errado. Tente novamente mais tarde.",
             );
         }
     };
@@ -245,11 +255,11 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
         }
 
         const estado = estados?.find(
-            (estado) => estado.sigla?.toLowerCase() === unit.state.toLowerCase()
+            (estado) => estado.sigla?.toLowerCase() === unit.state.toLowerCase(),
         );
 
         const municipio = municipios?.find(
-            (municipio) => municipio.nome.toLowerCase() === unit.city.toLowerCase()
+            (municipio) => municipio.nome.toLowerCase() === unit.city.toLowerCase(),
         );
 
         if (estado && selectedEstado?.id !== estado.id) {

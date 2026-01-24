@@ -15,6 +15,8 @@ import clsx from "clsx";
 
 type ServiceOrderFields = z.infer<typeof serviceOrderSchema>;
 
+type ServiceOrderFormFields = z.input<typeof serviceOrderSchema>;
+
 type ServiceOrderFormProps = {
     serviceOrder: ServiceOrderDTO;
     unitId: number;
@@ -92,7 +94,7 @@ const ServiceOrderForm = ({
         watch,
         setValue,
         formState: { errors, isSubmitting },
-    } = useForm<ServiceOrderFields>({
+    } = useForm<ServiceOrderFormFields>({
         resolver: zodResolver(serviceOrderSchema),
         defaultValues: {
             subject: serviceOrder.subject,
@@ -115,8 +117,8 @@ const ServiceOrderForm = ({
         return { id: e.id, value: `${label}` };
     });
 
-    const onSubmit: SubmitHandler<ServiceOrderFields> = async (data) => {
-        await onSubmitProp(data);
+    const onSubmit: SubmitHandler<ServiceOrderFormFields> = async (data) => {
+        await onSubmitProp(data as ServiceOrderFields);
         return;
     };
 
@@ -195,7 +197,7 @@ const ServiceOrderForm = ({
                                                     equipment: e ?? null,
                                                     missingModel: !model,
                                                     missingManufacturer: !manufacturer,
-                                                }
+                                                },
                                             );
                                         }
 
@@ -210,7 +212,7 @@ const ServiceOrderForm = ({
                                                     "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
                                                     hasBoth
                                                         ? "bg-quaternary/20 text-gray-primary ring-quaternary/40"
-                                                        : "bg-danger/10 text-danger ring-danger/30"
+                                                        : "bg-danger/10 text-danger ring-danger/30",
                                                 )}
                                             >
                                                 {label}
@@ -219,7 +221,7 @@ const ServiceOrderForm = ({
                                     })}
                                 </div>
                             ) : (
-                                <Typography element="p" size="md" className="text-text-placeholder">
+                                <Typography element="p" size="md" className="text-placeholder">
                                     Nenhum equipamento vinculado.
                                 </Typography>
                             )}

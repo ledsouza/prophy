@@ -38,6 +38,8 @@ const addEquipmentSchema = equipmentSchema.extend({
 
 export type AddEquipmentFields = z.infer<typeof addEquipmentSchema>;
 
+type AddEquipmentFormFields = z.input<typeof addEquipmentSchema>;
+
 type AddEquipmentFormProps = {
     unitId: number;
 };
@@ -54,7 +56,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         setValue,
         getValues,
         formState: { errors, isSubmitting },
-    } = useForm<AddEquipmentFields>({
+    } = useForm<AddEquipmentFormFields>({
         resolver: zodResolver(addEquipmentSchema),
         defaultValues: {
             accessories: [],
@@ -100,7 +102,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             const accessoryResponse = await createAccessory(accessoryFormData);
             if (accessoryResponse.error) {
                 throw new AccessoryCreationError(
-                    `Error creating accessory: ${accessoryResponse.error}`
+                    `Error creating accessory: ${accessoryResponse.error}`,
                 );
             }
         } catch (error) {
@@ -116,11 +118,11 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         await Promise.all(
             accessories.map(async (accessory) => {
                 await handleCreateAccessory(accessory, equipmentID);
-            })
+            }),
         );
     };
 
-    const onSubmit: SubmitHandler<AddEquipmentFields> = async (data) => {
+    const onSubmit: SubmitHandler<AddEquipmentFormFields> = async (data) => {
         if (isLoadingModalities) {
             toast.warning("Aguarde o carregamento das modalidades.");
             return;
@@ -268,7 +270,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     const renderAccessoryInputs = (
         accessoryIndex: number,
         remove: (index: number) => void,
-        fieldId: string
+        fieldId: string,
     ) => {
         return (
             <div key={fieldId} className="flex flex-col gap-4">

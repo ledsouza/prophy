@@ -29,6 +29,8 @@ const editClientSchema = clientSchema;
 
 export type EditClientFields = z.infer<typeof editClientSchema>;
 
+type EditClientFormFields = z.input<typeof editClientSchema>;
+
 type EditClientProps = {
     title?: string;
     description?: string;
@@ -51,7 +53,7 @@ const EditClientForm = ({
         handleSubmit,
         formState: { errors, isSubmitting },
         setValue,
-    } = useForm<EditClientFields>({
+    } = useForm<EditClientFormFields>({
         resolver: zodResolver(editClientSchema),
         defaultValues: {
             name: client.name,
@@ -83,7 +85,7 @@ const EditClientForm = ({
 
     const isDataUnchanged = (
         editData: Omit<EditClientFields, "note">,
-        client: Omit<ClientDTO, "users" | "id" | "active">
+        client: Omit<ClientDTO, "users" | "id" | "active">,
     ): boolean => {
         return Object.keys(editData).every((key) => {
             const editValue = editData[key as keyof Omit<EditClientFields, "note">];
@@ -103,7 +105,7 @@ const EditClientForm = ({
         });
     };
 
-    const onSubmit: SubmitHandler<EditClientFields> = async (editData) => {
+    const onSubmit: SubmitHandler<EditClientFormFields> = async (editData) => {
         if (!reviewMode && isDataUnchanged(editData, client)) {
             toast.warning("Nenhuma alteração foi detectada nos dados.");
             return;
@@ -342,11 +344,11 @@ const EditClientForm = ({
         }
 
         const estado = estados?.find(
-            (estado) => estado.sigla?.toLowerCase() === client.state.toLowerCase()
+            (estado) => estado.sigla?.toLowerCase() === client.state.toLowerCase(),
         );
 
         const municipio = municipios?.find(
-            (municipio) => municipio.nome.toLowerCase() === client.city.toLowerCase()
+            (municipio) => municipio.nome.toLowerCase() === client.city.toLowerCase(),
         );
 
         if (estado && selectedEstado?.id !== estado.id) {
