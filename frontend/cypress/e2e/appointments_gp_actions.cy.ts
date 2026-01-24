@@ -20,13 +20,13 @@ describe("appointments - GP actions", () => {
                 .find('[data-cy^="appointment-confirm-"]')
                 .first()
                 .click();
-            cy.getByCy("appointment-confirm-submit").click();
+            cy.getByCy("appointment-confirm-submit").scrollIntoView().should("be.visible").click();
 
             cy.get("@confirmableAppointment")
                 .find('[data-cy^="appointment-cancel-"]')
                 .first()
                 .click();
-            cy.getByCy("appointment-cancel-submit").click();
+            cy.getByCy("appointment-cancel-submit").scrollIntoView().should("be.visible").click();
         });
     });
 });

@@ -3,6 +3,10 @@ describe("auth", () => {
         cy.setupDB();
     });
 
+    beforeEach(() => {
+        cy.viewport(1280, 720);
+    });
+
     it("redirects unauthenticated users from /dashboard to /auth/login", () => {
         cy.clearCookies();
         cy.visit("/dashboard");
@@ -23,7 +27,7 @@ describe("auth", () => {
     it("logs out via navbar", () => {
         cy.loginAs("admin_user");
         cy.visit("/dashboard");
-        cy.getByCy("logout-btn").click();
+        cy.getByCy("logout-btn").should("be.visible").click();
         cy.url().should("include", "/auth/login");
     });
 });

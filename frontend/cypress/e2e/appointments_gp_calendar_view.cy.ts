@@ -2,6 +2,7 @@ describe("appointments - GP calendar view", () => {
     beforeEach(() => {
         cy.setupDB();
         cy.loginAs("admin_user");
+        cy.viewport(1280, 720);
     });
 
     it("toggles to calendar view and persists in URL", () => {
@@ -26,7 +27,10 @@ describe("appointments - GP calendar view", () => {
 
         cy.getByCy("gp-appointments-calendar-event").first().click();
 
-        cy.getByCy("gp-appointments-calendar-modal").should("be.visible");
+        cy.getByCy("gp-appointments-calendar-modal")
+            .should("exist")
+            .scrollIntoView()
+            .should("be.visible");
     });
 
     it("keeps calendar view when applying filters", () => {
