@@ -19,10 +19,27 @@ type EquipmentDetailsProps = {
     onClose: () => void;
 };
 
+function buildImageSrc(pathOrUrl: string | null | undefined): string {
+    if (!pathOrUrl) {
+        return "";
+    }
+
+    if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
+        return pathOrUrl;
+    }
+
+    const host = process.env.NEXT_PUBLIC_HOST ?? "";
+    if (!host) {
+        return pathOrUrl;
+    }
+
+    return `${host.replace(/\/$/, "")}/${pathOrUrl.replace(/^\//, "")}`;
+}
+
 function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
     const { data: accessories = [] } = useGetAccessoriesQuery();
     const equipmentAccessories = accessories.filter(
-        (accessory) => accessory.equipment === equipment.id
+        (accessory) => accessory.equipment === equipment.id,
     );
 
     const { data: reports = [] } = useListReportsQuery({ equipment: equipment.id });
@@ -47,7 +64,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                 <Image
                     src={
                         equipment.equipment_photo
-                            ? process.env.NEXT_PUBLIC_HOST + equipment.equipment_photo
+                            ? buildImageSrc(equipment.equipment_photo)
                             : notFound
                     }
                     alt="Imagem do equipamento"
@@ -118,9 +135,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                             Rótulo
                                         </Typography>
                                         <Image
-                                            src={
-                                                process.env.NEXT_PUBLIC_HOST + equipment.label_photo
-                                            }
+                                            src={buildImageSrc(equipment.label_photo) || notFound}
                                             alt="Rótulo do equipamento"
                                             width={200}
                                             height={200}
@@ -198,8 +213,9 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                     <div className="relative w-20 h-20 flex-shrink-0">
                                                         <Image
                                                             src={
-                                                                process.env.NEXT_PUBLIC_HOST +
-                                                                accessory.equipment_photo
+                                                                buildImageSrc(
+                                                                    accessory.equipment_photo,
+                                                                ) || notFound
                                                             }
                                                             alt={`Acessório ${accessory.model}`}
                                                             fill={true}
@@ -243,8 +259,8 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                     </Typography>
                                                     <Image
                                                         src={
-                                                            process.env.NEXT_PUBLIC_HOST +
-                                                            accessory.label_photo
+                                                            buildImageSrc(accessory.label_photo) ||
+                                                            notFound
                                                         }
                                                         alt={`Rótulo do acessório ${accessory.model}`}
                                                         width={100}
