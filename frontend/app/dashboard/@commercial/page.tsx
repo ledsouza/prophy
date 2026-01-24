@@ -782,7 +782,7 @@ function SearchPage() {
                                                 keyExtractor={(client: ClientDTO) => client.id}
                                                 rowClassName={(client: ClientDTO) =>
                                                     client.needs_appointment
-                                                        ? "bg-red-50 animate-danger"
+                                                        ? "bg-red-50 border border-transparent animate-danger"
                                                         : undefined
                                                 }
                                             />
