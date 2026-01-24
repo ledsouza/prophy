@@ -102,7 +102,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
 
     const containerStyle = clsx(
         "bg-light rounded-xl shadow-sm",
-        "p-6 divide-y-2",
+        "p-6 divide-y divide-gray-200",
         "hover:ring-1 hover:ring-inset hover:ring-primary",
     );
 

@@ -44,11 +44,11 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
     const [isRejected, setIsRejected] = useState(false);
 
     const containerStyle = cn(
-        "bg-light rounded-xl shadow-sm p-6 divide-y-2 hover:ring-1 hover:ring-inset focus:ring-inset hover:ring-primary",
+        "bg-light rounded-xl shadow-sm p-6 divide-y divide-gray-200 hover:ring-1 hover:ring-inset focus:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
             "animate-danger": isRejected && !isStaff,
-        }
+        },
     );
 
     function handleEdit() {
@@ -75,7 +75,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
                         Por favor, recarregue a página para atualizar a lista de requisições.`,
                         {
                             autoClose: 5000,
-                        }
+                        },
                     );
                 }
                 return toast.error("Algo deu errado. Tente novamente mais tarde.");

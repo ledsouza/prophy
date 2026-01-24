@@ -146,13 +146,13 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             downloadBlob(blob, filename);
             log.info(
                 { appointmentId: appointment.id, serviceOrderId, filename },
-                "SO PDF exported successfully"
+                "SO PDF exported successfully",
             );
             toast.success("Ordem de Serviço exportada com sucesso.");
         } catch (err) {
             log.error(
                 { appointmentId: appointment.id, serviceOrderId, error: (err as any)?.message },
-                "Export service order failed"
+                "Export service order failed",
             );
             toast.error("Falha ao exportar o PDF da Ordem de Serviço.");
         }
@@ -169,7 +169,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         } catch (err) {
             log.error(
                 { appointmentId: appointment.id, error: (err as any)?.message },
-                "Cancel appointment failed"
+                "Cancel appointment failed",
             );
             toast.error("Não foi possível cancelar o agendamento. Tente novamente.");
         }
@@ -186,14 +186,14 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         } catch (err) {
             log.error(
                 { appointmentId: appointment.id, error: (err as any)?.message },
-                "Confirm appointment failed"
+                "Confirm appointment failed",
             );
             toast.error("Não foi possível confirmar o agendamento. Tente novamente.");
         }
     }
 
     async function handleCreateServiceOrder(
-        data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments">
+        data: Pick<ServiceOrderDTO, "subject" | "description" | "conclusion" | "equipments">,
     ) {
         try {
             await createServiceOrder({
@@ -208,7 +208,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         } catch (err) {
             log.error(
                 { appointmentId: appointment.id, error: (err as any)?.message },
-                "Create service order failed"
+                "Create service order failed",
             );
             toast.error("Não foi possível criar a OS ou atualizar o agendamento.");
         }
@@ -218,12 +218,12 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         data: Pick<
             ServiceOrderDTO,
             "subject" | "description" | "conclusion" | "equipments" | "updates"
-        >
+        >,
     ) {
         if (!serviceOrderId) {
             log.warn(
                 { appointmentId: appointment.id },
-                "Update service order blocked: no Service Order linked"
+                "Update service order blocked: no Service Order linked",
             );
             toast.info("Sem ordem de serviço vinculada.");
             return;
@@ -251,7 +251,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         } catch (err) {
             log.error(
                 { appointmentId: appointment.id, serviceOrderId, error: (err as any)?.message },
-                "Update service order failed"
+                "Update service order failed",
             );
             toast.error("Não foi possível atualizar a Ordem de Serviço.");
         }
@@ -265,9 +265,9 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         );
 
     const containerStyle = clsx(
-        "bg-light rounded-xl shadow-sm",
+        "p-6 divide-y divide-gray-200",
         "p-6 divide-y-2",
-        "hover:ring-1 hover:ring-inset hover:ring-primary"
+        "hover:ring-1 hover:ring-inset hover:ring-primary",
     );
 
     return (
