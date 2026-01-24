@@ -36,6 +36,15 @@ function buildImageSrc(pathOrUrl: string | null | undefined): string {
     return `${host.replace(/\/$/, "")}/${pathOrUrl.replace(/^\//, "")}`;
 }
 
+function shouldDisableOptimization(src: string): boolean {
+    const host = process.env.NEXT_PUBLIC_HOST;
+    if (!host) {
+        return false;
+    }
+
+    return src.startsWith(host);
+}
+
 function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
     const { data: accessories = [] } = useGetAccessoriesQuery();
     const equipmentAccessories = accessories.filter(
@@ -47,6 +56,10 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
     const formattedDate = equipment.purchase_installation_date
         ? format(new Date(equipment.purchase_installation_date), "dd/MM/yyyy", { locale: ptBR })
         : "Não informado";
+
+    const equipmentPhotoSrc = equipment.equipment_photo
+        ? buildImageSrc(equipment.equipment_photo)
+        : notFound;
 
     return (
         <div className="flex flex-col" data-testid="equipment-details">
@@ -62,17 +75,15 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
             {/* Equipment photo */}
             <div className="relative w-full h-100">
                 <Image
-                    src={
-                        equipment.equipment_photo
-                            ? buildImageSrc(equipment.equipment_photo)
-                            : notFound
-                    }
+                    src={equipmentPhotoSrc}
                     alt="Imagem do equipamento"
-                    fill={true}
+                    fill
                     className="shadow-lg ring-2"
-                    style={{
-                        objectFit: "contain",
-                    }}
+                    unoptimized={
+                        typeof equipmentPhotoSrc === "string" &&
+                        shouldDisableOptimization(equipmentPhotoSrc)
+                    }
+                    style={{ objectFit: "contain" }}
                 />
             </div>
 
@@ -140,6 +151,9 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                             width={200}
                                             height={200}
                                             className="ring-1 shadow-md rounded-md"
+                                            unoptimized={shouldDisableOptimization(
+                                                buildImageSrc(equipment.label_photo),
+                                            )}
                                             style={{
                                                 objectFit: "contain",
                                             }}
@@ -220,6 +234,11 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                             alt={`Acessório ${accessory.model}`}
                                                             fill={true}
                                                             className="rounded-md"
+                                                            unoptimized={shouldDisableOptimization(
+                                                                buildImageSrc(
+                                                                    accessory.equipment_photo,
+                                                                ),
+                                                            )}
                                                             style={{ objectFit: "cover" }}
                                                         />
                                                     </div>
@@ -266,6 +285,9 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                         width={100}
                                                         height={100}
                                                         className="ring-1 shadow-sm rounded-md"
+                                                        unoptimized={shouldDisableOptimization(
+                                                            buildImageSrc(accessory.label_photo),
+                                                        )}
                                                         style={{ objectFit: "contain" }}
                                                     />
                                                 </div>
