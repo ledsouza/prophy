@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 const textStyles = cva("", {
@@ -27,9 +27,9 @@ const textStyles = cva("", {
 
 export type TypographyProps = VariantProps<typeof textStyles> & {
     children: ReactNode;
-    element?: keyof JSX.IntrinsicElements;
+    element?: keyof React.JSX.IntrinsicElements;
     dataTestId?: string | undefined;
-} & JSX.IntrinsicElements["p"];
+} & React.JSX.IntrinsicElements["p"];
 
 const Typography = ({
     children,

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button, ErrorDisplay, Modal, Spinner } from "@/components/common";
 import { getAppointmentStatusClasses } from "@/constants/appointmentStatus";
+import AppointmentStatus from "@/enums/AppointmentStatus";
 import { appointmentStatusLabel } from "@/enums/AppointmentStatus";
 import { useListAppointmentsQuery } from "@/redux/features/appointmentApiSlice";
 import type { AppointmentDTO } from "@/types/appointment";
@@ -60,6 +61,43 @@ function startOfNextMonth(date: Date): Date {
 
 function addMinutes(date: Date, minutes: number): Date {
     return new Date(date.getTime() + minutes * 60_000);
+}
+
+type CalendarEventColors = {
+    backgroundColor: string;
+    borderColor: string;
+    textColor: string;
+};
+
+function getCalendarEventColors(appointment: AppointmentDTO): CalendarEventColors {
+    switch (appointment.status) {
+        case AppointmentStatus.PENDING:
+        case AppointmentStatus.RESCHEDULED:
+            return {
+                backgroundColor: "rgb(var(--warning) / 0.10)",
+                borderColor: "rgb(var(--warning) / 0.20)",
+                textColor: "rgb(var(--warning))",
+            };
+        case AppointmentStatus.CONFIRMED:
+            return {
+                backgroundColor: "rgb(var(--secondary) / 0.10)",
+                borderColor: "rgb(var(--secondary) / 0.20)",
+                textColor: "rgb(var(--secondary))",
+            };
+        case AppointmentStatus.FULFILLED:
+            return {
+                backgroundColor: "rgb(var(--success) / 0.10)",
+                borderColor: "rgb(var(--success) / 0.20)",
+                textColor: "rgb(var(--success))",
+            };
+        case AppointmentStatus.UNFULFILLED:
+        default:
+            return {
+                backgroundColor: "rgb(var(--danger) / 0.10)",
+                borderColor: "rgb(var(--danger) / 0.20)",
+                textColor: "rgb(var(--danger))",
+            };
+    }
 }
 
 function getCalendarEventClasses(appointment: AppointmentDTO): string[] {
@@ -126,6 +164,7 @@ export default function AppointmentsCalendar({ dataCyPrefix, filters }: Appointm
                 const title = `${appointment.client_name ?? "N/A"} - ${
                     appointment.unit_name ?? "N/A"
                 }`;
+                const colors = getCalendarEventColors(appointment);
 
                 return {
                     id: String(appointment.id),
@@ -133,6 +172,9 @@ export default function AppointmentsCalendar({ dataCyPrefix, filters }: Appointm
                     start: appointment.date,
                     end: end.toISOString(),
                     classNames: getCalendarEventClasses(appointment),
+                    backgroundColor: colors.backgroundColor,
+                    borderColor: colors.borderColor,
+                    textColor: colors.textColor,
                     display: "block",
                     extendedProps: {
                         appointment,
@@ -205,15 +247,17 @@ export default function AppointmentsCalendar({ dataCyPrefix, filters }: Appointm
                     ).appointment;
                     const timeLabel = appointment ? formatCalendarTimeLabel(appointment.date) : "";
 
+                    const fullLabel = timeLabel
+                        ? `${timeLabel} ${arg.event.title}`
+                        : arg.event.title;
+
                     return (
                         <div
-                            className="flex flex-col gap-0.5"
+                            className="min-w-0 truncate text-xs leading-snug"
                             data-cy={`${dataCyPrefix}-calendar-event`}
+                            title={fullLabel}
                         >
-                            {timeLabel && (
-                                <span className="text-xs font-semibold">{timeLabel}</span>
-                            )}
-                            <span className="text-xs leading-snug">{arg.event.title}</span>
+                            {fullLabel}
                         </div>
                     );
                 }}
