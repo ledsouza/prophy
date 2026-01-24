@@ -15,9 +15,8 @@ import { Typography } from "@/components/foundation";
 
 import AppointmentStatus, { appointmentStatusLabel } from "@/enums/AppointmentStatus";
 import AppointmentType, { appointmentTypeLabel } from "@/enums/AppointmentType";
-import Role from "@/enums/Role";
+
 import { useAppointmentPermissions } from "@/hooks/use-appointment-permissions";
-import { buildUpdateSOPayloadByRole } from "@/utils/permissions/appointment";
 import {
     useDeleteAppointmentMutation,
     useUpdateAppointmentMutation,
@@ -29,7 +28,8 @@ import {
     useUpdateServiceOrderMutation,
 } from "@/redux/features/serviceOrderApiSlice";
 import type { AppointmentDTO } from "@/types/appointment";
-import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
+import type { ServiceOrderDTO } from "@/types/service-order";
+import { buildUpdateSOPayloadByRole } from "@/utils/permissions/appointment";
 
 import { downloadBlob } from "@/utils/download";
 import { formatPhoneNumber } from "@/utils/format";
@@ -266,7 +266,6 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
 
     const containerStyle = clsx(
         "p-6 divide-y divide-gray-200",
-        "p-6 divide-y-2",
         "hover:ring-1 hover:ring-inset hover:ring-primary",
     );
 
