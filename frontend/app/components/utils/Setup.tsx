@@ -30,7 +30,6 @@ const Setup = () => {
                     contextClass[context?.type || "default"] +
                     " relative flex p-2 min-h-10 rounded-md justify-between overflow-hidden cursor-pointer"
                 }
-                bodyClassName={() => "text-base text-gray-primary font-med block p-3"}
                 position="top-right"
                 autoClose={3000}
             />
