@@ -4,8 +4,49 @@ interface ErrorWithMessages {
         messages?: string[];
         message?: string;
         detail?: string;
+        [key: string]: unknown;
     };
     status?: number;
+}
+
+type ErrorWithFieldErrors = {
+    data: Record<string, unknown>;
+    status?: number;
+};
+
+function hasFieldErrors(error: unknown): error is ErrorWithFieldErrors {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "data" in error &&
+        typeof (error as any).data === "object" &&
+        (error as any).data !== null
+    );
+}
+
+function getFieldErrorMessage(error: unknown): string | null {
+    if (!hasFieldErrors(error)) {
+        return null;
+    }
+
+    const data = (error as ErrorWithFieldErrors).data;
+
+    const ignoreKeys = new Set(["message", "messages", "detail"]);
+    for (const [field, value] of Object.entries(data)) {
+        if (ignoreKeys.has(field)) {
+            continue;
+        }
+
+        if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") {
+            return value[0];
+        }
+
+        if (typeof value === "string") {
+            return value;
+        }
+    }
+
+    return null;
 }
 
 // Check if error has messages array
@@ -114,9 +155,27 @@ import { toast } from "react-toastify";
  * @param contextMessage An optional message to provide context for the console log.
  */
 export function handleApiError(error: unknown, contextMessage: string = "API Error"): void {
-    console.error(contextMessage + ":", error); // Log first to capture raw error
-
     const status = getErrorStatus(error);
+
+    if (status === 400 || status === 409 || status === 422) {
+        console.warn(contextMessage + ":", error);
+    } else {
+        console.error(contextMessage + ":", error);
+    }
+
+    if (status === 400 || status === 409 || status === 422) {
+        const fieldMessage = getFieldErrorMessage(error);
+        if (fieldMessage) {
+            toast.error(fieldMessage);
+            return;
+        }
+
+        const extracted = getErrorMessage(error);
+        if (extracted) {
+            toast.error(extracted);
+            return;
+        }
+    }
 
     if (status) {
         toast.error(getStatusErrorMessage(status));
