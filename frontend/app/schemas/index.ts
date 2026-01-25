@@ -16,3 +16,4 @@ export { default as proposalSchema } from "./proposal-schema";
 export { default as materialUpdateSchema } from "./material-update-schema";
 export { default as proposalPdfFileSchema } from "./proposal-pdf-schema";
 export { default as proposalWordFileSchema } from "./proposal-word-schema";
+export { default as managedUserSchema, type ManagedUserFormFields } from "./managed-user-schema";
