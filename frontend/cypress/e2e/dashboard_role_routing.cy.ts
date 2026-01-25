@@ -15,6 +15,12 @@ describe("dashboard routing", () => {
             cy.getByCy("dashboard-root")
                 .should("have.attr", "data-cy-role")
                 .and("match", /^(GP|GGC|GU|C|FMI|FME)$/);
+
+            if (user === "admin_user") {
+                cy.getByCy("gp-users-nav").should("exist");
+            } else {
+                cy.getByCy("gp-users-nav").should("not.exist");
+            }
         });
     }
 });
