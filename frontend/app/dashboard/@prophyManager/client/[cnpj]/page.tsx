@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
+import { UnitDTO, useDeleteUnitOperationMutation } from "@/redux/features/unitApiSlice";
 import { apiSlice } from "@/redux/services/apiSlice";
 import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 import type { ClientOperationDTO } from "@/types/client";
-import { UnitDTO, useDeleteUnitOperationMutation } from "@/redux/features/unitApiSlice";
 
-import { useSingleClientLoading } from "@/hooks";
 import { OperationType } from "@/enums";
-import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useSingleClientLoading } from "@/hooks";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
-import { ArrowClockwise } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 
-import { Typography } from "@/components/foundation";
+import { ClientDetails, UnitList } from "@/components/client";
+import { Button, Modal, Spinner } from "@/components/common";
 import {
     AddUnitForm,
     EditClientForm,
@@ -24,9 +25,8 @@ import {
     Input,
     ReviewDeleteUnitForm,
 } from "@/components/forms";
+import { Typography } from "@/components/foundation";
 import { ModalDeleteUnit } from "@/components/modals";
-import { Button, Modal, Spinner } from "@/components/common";
-import { ClientDetails, UnitList } from "@/components/client";
 
 function ClientDetailPage() {
     const params = useParams();
@@ -53,7 +53,7 @@ function ClientDetailPage() {
         useState<ClientOperationDTO | null>(null);
 
     const { isModalOpen, currentModal, selectedUnit, selectedUnitOperation } = useAppSelector(
-        (state) => state.modal
+        (state) => state.modal,
     );
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -83,7 +83,7 @@ function ClientDetailPage() {
                         Por favor, recarregue a página para atualizar a lista de requisições.`,
                         {
                             autoClose: 5000,
-                        }
+                        },
                     );
                 }
                 return toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -104,7 +104,7 @@ function ClientDetailPage() {
                 { type: "UnitOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
-            ])
+            ]),
         );
     };
 
@@ -113,7 +113,7 @@ function ClientDetailPage() {
         if (filteredUnits.length > 0) {
             const addUnitsInOperation =
                 unitsOperations?.filter(
-                    (operation) => operation.operation_type === OperationType.ADD
+                    (operation) => operation.operation_type === OperationType.ADD,
                 ) ?? [];
 
             const selectedClientID = filteredUnits[0].client;
@@ -124,7 +124,7 @@ function ClientDetailPage() {
 
             if (searchTerm.length > 0) {
                 const searchedUnits = units.filter((unit) =>
-                    unit.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    unit.name.toLowerCase().includes(searchTerm.toLowerCase()),
                 );
                 setSearchedUnits(searchedUnits);
             } else {
@@ -142,7 +142,7 @@ function ClientDetailPage() {
         }
 
         const operation = clientsOperations?.find(
-            (operation) => operation.original_client === filteredClient?.id
+            (operation) => operation.original_client === filteredClient?.id,
         );
         operation ? setSelectedClientInOperation(operation) : setSelectedClientInOperation(null);
     }, [isLoadingClientsOperations, clientsOperations, filteredClient]);
@@ -206,7 +206,7 @@ function ClientDetailPage() {
                     data-cy="gp-update-data-btn"
                 >
                     <div className="flex items-center gap-2">
-                        <ArrowClockwise size="24" /> Atualizar
+                        <ArrowClockwiseIcon size="24" /> Atualizar
                     </div>
                 </Button>
 

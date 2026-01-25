@@ -647,7 +647,6 @@ function SearchPage() {
                                                                     className="flex items-center gap-2 text-xs"
                                                                     dataCy={`client-details-${client.id}`}
                                                                 >
-                                                                    <InfoIcon size={16} />
                                                                     Detalhes
                                                                 </Button>
 
@@ -661,7 +660,6 @@ function SearchPage() {
                                                                     className="flex items-center gap-2 px-2 py-1 text-xs"
                                                                     dataCy={`client-proposals-${client.id}`}
                                                                 >
-                                                                    <FileTextIcon size={16} />
                                                                     Propostas
                                                                 </Button>
                                                             </div>
@@ -869,7 +867,6 @@ function SearchPage() {
                                                                         equipment.id
                                                                     }`}
                                                                 >
-                                                                    <InfoIcon size={16} />
                                                                     Detalhes
                                                                 </Button>
                                                             </div>

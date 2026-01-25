@@ -385,7 +385,6 @@ export default function AppointmentSearchTab({
                                                     className="flex items-center gap-2 text-xs"
                                                     dataCy={`${dataCyPrefix}-appointment-details-${appointment.id}`}
                                                 >
-                                                    <InfoIcon size={16} />
                                                     Detalhes
                                                 </Button>
                                             </div>
