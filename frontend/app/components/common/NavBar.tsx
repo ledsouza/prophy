@@ -3,8 +3,9 @@
 import { usePathname } from "next/navigation";
 
 import { useAppSelector, useAppDispatch } from "@/redux/hooks";
-import { useLogoutMutation } from "@/redux/features/authApiSlice";
+import { useLogoutMutation, useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { logout as setLogout } from "@/redux/features/authSlice";
+import Role from "@/enums/Role";
 
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
@@ -16,6 +17,7 @@ export default function Navbar() {
     const dispatch = useAppDispatch();
 
     const [logout] = useLogoutMutation();
+    const { data: userData } = useRetrieveUserQuery();
 
     const { isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -47,6 +49,17 @@ export default function Navbar() {
             >
                 Painel de Materiais Institucionais
             </NavLink>
+
+            {userData?.role === Role.GP && (
+                <NavLink
+                    isSelected={isSelected("/dashboard/users")}
+                    isMobile={isMobile}
+                    href="/dashboard/users"
+                    dataCy="gp-users-nav"
+                >
+                    Usuários
+                </NavLink>
+            )}
             <NavLink
                 isMobile={isMobile}
                 onClick={handleLogout}
@@ -90,7 +103,7 @@ export default function Navbar() {
                                 </DisclosureButton>
                             </div>
                             <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-                                <div className="flex flex-shrink-0 items-center">
+                                <div className="flex shrink-0 items-center">
                                     <NavLink href="/" isBanner>
                                         Prophy
                                     </NavLink>
