@@ -5,6 +5,7 @@ type Props = {
     isSelected?: boolean;
     isMobile?: boolean;
     isBanner?: boolean;
+    variant?: "dark" | "light";
     href?: string;
     className?: string;
     onClick?: () => void;
@@ -17,6 +18,7 @@ const NavLink = ({
     isSelected,
     isMobile,
     isBanner,
+    variant = "dark",
     href,
     className,
     onClick,
@@ -24,9 +26,13 @@ const NavLink = ({
     dataTestId,
     dataCy,
 }: Props) => {
+    const isLight = variant === "light";
+
     const computedClassName = cn("rounded-md px-3 py-2 font-medium", className, {
-        "text-white bg-secondary": isSelected,
-        "text-white hover:bg-secondary": !isSelected && !isBanner,
+        "text-white bg-secondary": !isLight && isSelected,
+        "text-white hover:bg-secondary": !isLight && !isSelected && !isBanner,
+        "text-primary bg-quaternary": isLight && isSelected,
+        "text-primary hover:bg-quaternary/70": isLight && !isSelected && !isBanner,
         "block text-base": isMobile,
         "text-sm": !isMobile,
         "text-quaternary": isBanner,
