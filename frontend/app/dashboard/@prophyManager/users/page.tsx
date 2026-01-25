@@ -224,11 +224,11 @@ export default function ProphyManagerUsersPage() {
                                 {
                                     header: "Ações",
                                     cell: (u: UserDTO) => (
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-col gap-2 items-stretch">
                                             <Button
                                                 variant="primary"
                                                 onClick={() => openEdit(u)}
-                                                className="text-xs"
+                                                className="w-full text-xs"
                                                 dataCy={`gp-users-edit-${u.id}`}
                                             >
                                                 Editar
@@ -238,7 +238,7 @@ export default function ProphyManagerUsersPage() {
                                                 <Button
                                                     variant="danger"
                                                     onClick={() => openToggleActive(u, false)}
-                                                    className="text-xs"
+                                                    className="w-full text-xs"
                                                     dataCy={`gp-users-deactivate-${u.id}`}
                                                 >
                                                     Inativar
@@ -247,7 +247,7 @@ export default function ProphyManagerUsersPage() {
                                                 <Button
                                                     variant="secondary"
                                                     onClick={() => openToggleActive(u, true)}
-                                                    className="text-xs"
+                                                    className="w-full text-xs"
                                                     dataCy={`gp-users-activate-${u.id}`}
                                                 >
                                                     Ativar
