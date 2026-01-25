@@ -7,4 +7,6 @@ export type UserDTO = {
     phone: string;
     name: string;
     role: Role;
+    is_active?: boolean;
+    is_staff?: boolean;
 };

@@ -27,6 +27,31 @@ type ResetPasswordRequest = {
     re_new_password: string;
 };
 
+type ListManagedUsersQuery = {
+    page?: number;
+    cpf?: string;
+    name?: string;
+};
+
+type CreateManagedUserRequest = {
+    cpf: string;
+    email: string;
+    name: string;
+    phone: string;
+    role: UserDTO["role"];
+    is_active?: boolean;
+};
+
+type UpdateManagedUserRequest = {
+    id: number;
+    cpf?: string;
+    email?: string;
+    name?: string;
+    phone?: string;
+    role?: UserDTO["role"];
+    is_active?: boolean;
+};
+
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         login: builder.mutation<void, Omit<UserAuth, "email" | "name" | "phone">>({
@@ -101,6 +126,37 @@ const authApiSlice = apiSlice.injectEndpoints({
                 { type: "Unit", id: "LIST" },
             ],
         }),
+
+        listManagedUsers: builder.query<PaginatedResponse<UserDTO>, ListManagedUsersQuery>({
+            query: ({ page, cpf, name }) => {
+                const params = new URLSearchParams();
+                if (page) params.set("page", String(page));
+                if (cpf) params.set("cpf", cpf);
+                if (name) params.set("name", name);
+
+                const queryString = params.toString();
+                return `users/manage/${queryString ? `?${queryString}` : ""}`;
+            },
+            providesTags: [{ type: "User", id: "LIST" }],
+        }),
+
+        createManagedUser: builder.mutation<UserDTO, CreateManagedUserRequest>({
+            query: (requestBody) => ({
+                url: "users/manage/",
+                method: "POST",
+                body: requestBody,
+            }),
+            invalidatesTags: [{ type: "User", id: "LIST" }],
+        }),
+
+        updateManagedUser: builder.mutation<UserDTO, UpdateManagedUserRequest>({
+            query: ({ id, ...requestBody }) => ({
+                url: `users/manage/${id}/`,
+                method: "PATCH",
+                body: requestBody,
+            }),
+            invalidatesTags: [{ type: "User", id: "LIST" }],
+        }),
     }),
 });
 
@@ -116,4 +172,7 @@ export const {
     useRegisterUnitManagerMutation,
     useResetPasswordMutation,
     useDeleterUserMutation,
+    useListManagedUsersQuery,
+    useCreateManagedUserMutation,
+    useUpdateManagedUserMutation,
 } = authApiSlice;

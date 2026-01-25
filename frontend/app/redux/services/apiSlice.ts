@@ -42,7 +42,7 @@ const baseQuery = fetchBaseQuery({
 const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
     args,
     api,
-    extraOptions
+    extraOptions,
 ) => {
     await mutex.waitForUnlock();
     let result = await baseQuery(args, api, extraOptions);
@@ -63,7 +63,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
                         method: "POST",
                     },
                     api,
-                    extraOptions
+                    extraOptions,
                 );
                 if (refreshResult.data) {
                     log.info("Token refreshed; retrying original request");
@@ -121,6 +121,7 @@ export const apiSlice = createApi({
     reducerPath: "api",
     baseQuery: baseQueryWithReauth,
     tagTypes: [
+        "User",
         "Client",
         "ClientOperation",
         "Unit",
