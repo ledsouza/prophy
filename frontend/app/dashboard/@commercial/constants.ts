@@ -1,5 +1,7 @@
 import { SelectData } from "@/components/forms/Select";
 import { APPOINTMENT_STATUS_MAP, APPOINTMENT_STATUS_OPTIONS } from "@/constants/appointmentStatus";
+import { CONTRACT_TYPE_MAP, CONTRACT_TYPE_OPTIONS } from "@/constants/contract";
+import { PROPOSAL_STATUS_MAP, PROPOSAL_STATUS_OPTIONS } from "@/constants/proposalFilters";
 
 export const CLIENT_STATUS_OPTIONS: SelectData[] = [
     { id: 0, value: "Todos" },
@@ -7,35 +9,16 @@ export const CLIENT_STATUS_OPTIONS: SelectData[] = [
     { id: 2, value: "Inativo" },
 ];
 
-export const CONTRACT_TYPE_OPTIONS: SelectData[] = [
-    { id: 0, value: "Todos" },
-    { id: 1, value: "Anual" },
-    { id: 2, value: "Mensal" },
-    { id: 3, value: "Semanal" },
-];
-
-export const PROPOSAL_STATUS_OPTIONS: SelectData[] = [
-    { id: 0, value: "Todos" },
-    { id: 1, value: "Aceito" },
-    { id: 2, value: "Rejeitado" },
-    { id: 3, value: "Pendente" },
-];
-
 export const CLIENT_STATUS_MAP: { [key: number]: string } = {
     1: "true",
     2: "false",
 };
 
-export const CONTRACT_TYPE_MAP: { [key: number]: string } = {
-    1: "A",
-    2: "M",
-    3: "W",
+export {
+    APPOINTMENT_STATUS_MAP,
+    APPOINTMENT_STATUS_OPTIONS,
+    CONTRACT_TYPE_MAP,
+    CONTRACT_TYPE_OPTIONS,
+    PROPOSAL_STATUS_MAP,
+    PROPOSAL_STATUS_OPTIONS,
 };
-
-export const PROPOSAL_STATUS_MAP: { [key: number]: string } = {
-    1: "A",
-    2: "R",
-    3: "P",
-};
-
-export { APPOINTMENT_STATUS_OPTIONS, APPOINTMENT_STATUS_MAP };
