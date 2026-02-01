@@ -1,7 +1,7 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { FileTextIcon, InfoIcon, WarningIcon } from "@phosphor-icons/react";
+import { WarningIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -21,6 +21,7 @@ import { EquipmentDTO, useGetManufacturersQuery } from "@/redux/features/equipme
 import { ModalityDTO, useListModalitiesQuery } from "@/redux/features/modalityApiSlice";
 import type { ClientDTO } from "@/types/client";
 import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
+import { buildStandardUrlParams } from "@/utils/url-params";
 
 import { AppointmentSearchTab } from "@/components/appointments";
 import {
@@ -33,8 +34,15 @@ import {
     Tab,
     Table,
 } from "@/components/common";
-import { CreateAppointmentForm, Input, Select } from "@/components/forms";
+import {
+    CreateAppointmentForm,
+    CreateProposalForm,
+    EditProposalForm,
+    Input,
+    Select,
+} from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import { ProposalsSearchSection } from "@/components/proposals/ProposalsSearchSection";
 import Role from "@/enums/Role";
 
 import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
@@ -60,7 +68,7 @@ function SearchPage() {
     const searchParams = useSearchParams();
 
     const dispatch = useAppDispatch();
-    const { isModalOpen, currentModal } = useAppSelector((state) => state.modal);
+    const { isModalOpen, currentModal, selectedProposal } = useAppSelector((state) => state.modal);
 
     const { hasPendingOperations, isLoading: isPendingLoading } = usePendingOperations();
 
@@ -171,6 +179,18 @@ function SearchPage() {
         [SearchTab.APPOINTMENTS]: {
             tabName: "appointments",
             pageKey: "appointments_page",
+            currentPage: 1,
+            buildFilters: () => ({}),
+        },
+        [SearchTab.PROPOSALS]: {
+            tabName: "proposals",
+            pageKey: "proposal_page",
+            currentPage: 1,
+            buildFilters: () => ({}),
+        },
+        [SearchTab.REPORTS]: {
+            tabName: "reports",
+            pageKey: "reports_page",
             currentPage: 1,
             buildFilters: () => ({}),
         },
@@ -287,7 +307,13 @@ function SearchPage() {
     });
 
     const handleViewProposals = (cnpj: string) => {
-        router.push(`/dashboard/proposals?cnpj=${cnpj}`);
+        const params = buildStandardUrlParams({
+            tabName: "proposals",
+            pageKey: "proposal_page",
+            page: 1,
+            filters: { cnpj },
+        });
+        router.push(`/dashboard/?${params.toString()}`);
     };
 
     const handleViewDetails = (cnpj: string) => {
@@ -420,6 +446,9 @@ function SearchPage() {
                         </div>
                         <div className="flex-1" data-cy="search-tab-appointments">
                             <Tab>Agendamentos</Tab>
+                        </div>
+                        <div className="flex-1" data-cy="search-tab-proposals">
+                            <Tab>Propostas</Tab>
                         </div>
                         <div className="flex-1" data-cy="search-tab-reports">
                             <Tab>Relatórios</Tab>
@@ -940,6 +969,10 @@ function SearchPage() {
                         </TabPanel>
 
                         <TabPanel>
+                            <ProposalsSearchSection />
+                        </TabPanel>
+
+                        <TabPanel>
                             <ReportsSearchTab currentUserRole={Role.GP} />
                         </TabPanel>
                     </TabPanels>
@@ -947,6 +980,19 @@ function SearchPage() {
             </div>
 
             <Modal isOpen={isModalOpen} onClose={() => dispatch(closeModal())} className="max-w-lg">
+                {currentModal === Modals.CREATE_PROPOSAL && (
+                    <CreateProposalForm
+                        title="Criar Nova Proposta"
+                        description="Preencha os dados abaixo para criar uma nova proposta comercial. Todos os campos são obrigatórios."
+                    />
+                )}
+                {currentModal === Modals.EDIT_PROPOSAL && selectedProposal && (
+                    <EditProposalForm
+                        title="Editar Proposta"
+                        description="Atualize os dados da proposta comercial abaixo."
+                        proposal={selectedProposal}
+                    />
+                )}
                 {currentModal === Modals.CREATE_APPOINTMENT && (
                     <CreateAppointmentForm
                         title="Novo Agendamento"
