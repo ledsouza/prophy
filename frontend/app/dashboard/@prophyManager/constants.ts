@@ -10,12 +10,7 @@ export const USER_ROLE_OPTIONS: SelectData[] = [
     { id: 6, value: "Comercial" },
 ];
 
-export const CONTRACT_TYPE_OPTIONS: SelectData[] = [
-    { id: 0, value: "Todos" },
-    { id: 1, value: "Anual" },
-    { id: 2, value: "Mensal" },
-    { id: 3, value: "Semanal" },
-];
+import { CONTRACT_TYPE_MAP, CONTRACT_TYPE_OPTIONS } from "@/constants/contract";
 
 export const OPERATION_STATUS_OPTIONS: SelectData[] = [
     { id: 0, value: "Todos" },
@@ -32,11 +27,7 @@ export const USER_ROLE_MAP: { [key: number]: string } = {
     6: "C",
 };
 
-export const CONTRACT_TYPE_MAP: { [key: number]: string } = {
-    1: "A",
-    2: "M",
-    3: "W",
-};
+export { CONTRACT_TYPE_MAP, CONTRACT_TYPE_OPTIONS };
 
 export const OPERATION_STATUS_MAP: { [key: number]: string } = {
     1: "pending",
