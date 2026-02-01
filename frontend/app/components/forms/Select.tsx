@@ -212,7 +212,7 @@ const Select = ({
                             <ListboxOptions
                                 transition
                                 style={optionsStyle}
-                                className="fixed z-[9999] mt-1 max-h-56 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
+                                className="fixed z-9999 mt-1 max-h-56 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-closed:data-leave:opacity-0 data-leave:transition data-leave:duration-100 data-leave:ease-in sm:text-sm"
                             >
                                 {options.map((option) => {
                                     const listBoxOptionStyle = cn(
@@ -220,7 +220,7 @@ const Select = ({
                                         "cursor-default select-none",
                                         "py-2 pl-3 pr-9",
                                         "text-primary",
-                                        "data-[focus]:bg-primary data-[focus]:text-white",
+                                        "data-focus:bg-primary data-focus:text-white",
                                         {
                                             "animate-warning": operationsIDs?.has(option.id),
                                             "animate-danger":
@@ -240,7 +240,7 @@ const Select = ({
                                         "inset-y-0 right-0 pr-4",
                                         "flex items-center",
                                         "text-primary",
-                                        "group-data-[focus]:text-white",
+                                        "group-data-focus:text-white",
                                         {
                                             hidden: !isSelected,
                                         },
