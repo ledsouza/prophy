@@ -1,13 +1,7 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import {
-    CheckCircleIcon,
-    FileTextIcon,
-    InfoIcon,
-    PencilSimpleIcon,
-    XCircleIcon,
-} from "@phosphor-icons/react";
+import { CheckCircleIcon, FileTextIcon, InfoIcon, XCircleIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -23,7 +17,6 @@ import {
     usePageNavigation,
     useTabNavigation,
 } from "@/hooks";
-import { ProposalDTO } from "@/redux/features/proposalApiSlice";
 import type { AppointmentDTO } from "@/types/appointment";
 import type { ClientDTO } from "@/types/client";
 import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
@@ -39,18 +32,12 @@ import {
     Select,
 } from "@/components/forms";
 import { Typography } from "@/components/foundation";
-import { Modals, closeModal, openModal, setProposal } from "@/redux/features/modalSlice";
+import { ProposalsSearchSection } from "@/components/proposals/ProposalsSearchSection";
+import { Modals, closeModal, openModal } from "@/redux/features/modalSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 import { useUpdateClientMutation } from "@/redux/features/clientApiSlice";
-import {
-    formatCurrency,
-    formatDate,
-    formatDateTime,
-    formatPhoneNumber,
-    getContractTypeDisplay,
-    getStatusDisplay,
-} from "@/utils/format";
+import { formatDateTime, getStatusDisplay } from "@/utils/format";
 import {
     APPOINTMENT_STATUS_OPTIONS,
     CLIENT_STATUS_OPTIONS,
@@ -834,297 +821,7 @@ function SearchPage() {
                         </TabPanel>
 
                         <TabPanel>
-                            {/* Proposal Search Filters */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                                <Input
-                                    value={selectedProposalCNPJ}
-                                    onChange={(e) => setSelectedProposalCNPJ(e.target.value)}
-                                    placeholder="Digite o CNPJ"
-                                    label="CNPJ"
-                                    data-cy="proposals-filter-cnpj"
-                                ></Input>
-
-                                <Input
-                                    value={selectedProposalContactName}
-                                    onChange={(e) => setSelectedProposalContactName(e.target.value)}
-                                    placeholder="Digite o nome do contato"
-                                    label="Nome do Contato"
-                                ></Input>
-
-                                <Select
-                                    options={CONTRACT_TYPE_OPTIONS}
-                                    selectedData={selectedProposalContractType}
-                                    setSelect={setSelectedProposalContractType}
-                                    label="Tipo de Contrato"
-                                    dataTestId="filter-proposal-contract-type"
-                                />
-
-                                <Select
-                                    options={PROPOSAL_STATUS_OPTIONS}
-                                    selectedData={selectedProposalStatus}
-                                    setSelect={setSelectedProposalStatus}
-                                    label="Situação"
-                                    dataTestId="filter-proposal-status"
-                                />
-
-                                <div className="flex items-center gap-2 md:col-span-2 lg:col-span-3">
-                                    <input
-                                        id="expiring-annual-filter"
-                                        type="checkbox"
-                                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
-                                        checked={selectedProposalExpiringAnnual}
-                                        onChange={(e) =>
-                                            setSelectedProposalExpiringAnnual(e.target.checked)
-                                        }
-                                    />
-                                    <label
-                                        htmlFor="expiring-annual-filter"
-                                        className="text-sm text-gray-primary cursor-pointer"
-                                    >
-                                        Somente propostas anuais próximas da renovação (11+ meses)
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Proposal Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                                <Button
-                                    onClick={handleApplyProposalFilters}
-                                    className="flex-1 sm:flex-initial"
-                                    disabled={proposalsLoading}
-                                    data-testid="btn-apply-proposal-filters"
-                                    dataCy="proposals-apply-filters"
-                                >
-                                    {proposalsLoading ? "Carregando..." : "Aplicar Filtros"}
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    onClick={handleClearProposalFilters}
-                                    className="flex-1 sm:flex-initial"
-                                    disabled={proposalsLoading}
-                                    data-testid="btn-clear-proposal-filters"
-                                >
-                                    Limpar Filtros
-                                </Button>
-                                <Button
-                                    onClick={() => dispatch(openModal(Modals.CREATE_PROPOSAL))}
-                                    className="flex-1 sm:flex-initial ml-auto"
-                                    data-testid="btn-create-proposal"
-                                >
-                                    Criar Proposta
-                                </Button>
-                            </div>
-
-                            {/* Proposal Results Section */}
-                            <div className="bg-gray-50 rounded-xl p-6">
-                                <Typography element="h2" size="title3" className="font-bold mb-4">
-                                    Resultados
-                                </Typography>
-
-                                {proposalAppliedFilters.expiring_annual === "true" && (
-                                    <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3">
-                                        <Typography
-                                            element="p"
-                                            size="sm"
-                                            className="text-yellow-900"
-                                        >
-                                            Exibindo a proposta anual mais recente por cliente para
-                                            todos os que têm 11 ou mais meses de vigência. A
-                                            listagem é apresentada em ordem crescente de data (da
-                                            mais antiga para a mais recente), priorizando os casos
-                                            mais urgentes que requerem ação de renovação imediata.
-                                        </Typography>
-                                    </div>
-                                )}
-
-                                {proposalsError && (
-                                    <ErrorDisplay
-                                        title="Erro ao carregar propostas"
-                                        message="Ocorreu um erro ao carregar os dados das propostas. Tente novamente mais tarde."
-                                    />
-                                )}
-
-                                {proposals.length === 0 && !proposalsLoading ? (
-                                    <div className="text-center py-8">
-                                        <Typography
-                                            element="p"
-                                            size="lg"
-                                            className="text-gray-secondary"
-                                        >
-                                            Nenhuma proposta encontrada com os filtros aplicados
-                                        </Typography>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        {proposalsLoading && (
-                                            <div className="flex justify-center py-8">
-                                                <Spinner />
-                                            </div>
-                                        )}
-
-                                        {!proposalsLoading && (
-                                            <Table
-                                                data={proposals}
-                                                columns={[
-                                                    {
-                                                        header: "Data",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            formatDate(proposal.date),
-                                                        width: "120px",
-                                                    },
-                                                    {
-                                                        header: "CNPJ",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            cnpjMask(proposal.cnpj),
-                                                        width: "140px",
-                                                    },
-                                                    {
-                                                        header: "Endereço",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            `${proposal.city}, ${proposal.state}`,
-                                                        width: "140px",
-                                                    },
-                                                    {
-                                                        header: "Contato",
-                                                        cell: (proposal: ProposalDTO) => (
-                                                            <div className="flex flex-col">
-                                                                <span>{proposal.contact_name}</span>
-                                                                <span>
-                                                                    {formatPhoneNumber(
-                                                                        proposal.contact_phone,
-                                                                    )}
-                                                                </span>
-                                                                <span>{proposal.email}</span>
-                                                            </div>
-                                                        ),
-                                                        width: "200px",
-                                                        multiLine: true,
-                                                    },
-                                                    {
-                                                        header: "Valor",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            formatCurrency(proposal.value),
-                                                        width: "120px",
-                                                    },
-                                                    {
-                                                        header: "Tipo de Contrato",
-                                                        cell: (proposal: ProposalDTO) =>
-                                                            getContractTypeDisplay(
-                                                                proposal.contract_type,
-                                                            ),
-                                                    },
-                                                    {
-                                                        header: "Situação",
-                                                        cell: (proposal: ProposalDTO) => {
-                                                            const statusInfo = getStatusDisplay(
-                                                                proposal.status,
-                                                            );
-                                                            return (
-                                                                <span
-                                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
-                                                                >
-                                                                    {statusInfo.text}
-                                                                </span>
-                                                            );
-                                                        },
-                                                    },
-                                                    {
-                                                        header: "Arquivos",
-                                                        cell: (proposal: ProposalDTO) => (
-                                                            <div className="flex flex-col gap-1">
-                                                                <a
-                                                                    href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/pdf/`}
-                                                                    className="text-primary hover:underline text-xs"
-                                                                >
-                                                                    PDF
-                                                                </a>
-                                                                <a
-                                                                    href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/word/`}
-                                                                    className="text-primary hover:underline text-xs"
-                                                                >
-                                                                    Word
-                                                                </a>
-                                                            </div>
-                                                        ),
-                                                    },
-                                                    {
-                                                        header: "Ações",
-                                                        cell: (proposal: ProposalDTO) => (
-                                                            <div className="flex flex-col gap-2">
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() => {
-                                                                        dispatch(
-                                                                            setProposal(proposal),
-                                                                        );
-                                                                        dispatch(
-                                                                            openModal(
-                                                                                Modals.EDIT_PROPOSAL,
-                                                                            ),
-                                                                        );
-                                                                    }}
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                    data-testid={`edit-proposal-${proposal.id}`}
-                                                                    dataCy={`proposal-edit-${proposal.id}`}
-                                                                >
-                                                                    <PencilSimpleIcon size={16} />
-                                                                    Editar
-                                                                </Button>
-                                                            </div>
-                                                        ),
-                                                    },
-                                                ]}
-                                                keyExtractor={(proposal: ProposalDTO) =>
-                                                    proposal.id
-                                                }
-                                            />
-                                        )}
-
-                                        {/* Proposal Pagination */}
-                                        {!proposalsLoading &&
-                                            totalProposalsCount > ITEMS_PER_PAGE && (
-                                                <div className="mt-6">
-                                                    <Pagination
-                                                        currentPage={proposalCurrentPage}
-                                                        totalCount={totalProposalsCount}
-                                                        itemsPerPage={ITEMS_PER_PAGE}
-                                                        onPageChange={handleProposalPageChange}
-                                                        isLoading={proposalsLoading}
-                                                    />
-                                                </div>
-                                            )}
-
-                                        {/* Proposal Results Summary */}
-                                        {!proposalsLoading && (
-                                            <div className="mt-4 text-center">
-                                                <Typography
-                                                    element="p"
-                                                    size="sm"
-                                                    className="text-gray-secondary"
-                                                >
-                                                    {totalProposalsCount > 0 && (
-                                                        <>
-                                                            Mostrando{" "}
-                                                            {(proposalCurrentPage - 1) *
-                                                                ITEMS_PER_PAGE +
-                                                                1}
-                                                            -
-                                                            {Math.min(
-                                                                proposalCurrentPage *
-                                                                    ITEMS_PER_PAGE,
-                                                                totalProposalsCount,
-                                                            )}{" "}
-                                                            de {totalProposalsCount} proposta(s)
-                                                        </>
-                                                    )}
-                                                    {totalProposalsCount === 0 &&
-                                                        "Nenhuma proposta encontrada"}
-                                                </Typography>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                            <ProposalsSearchSection />
                         </TabPanel>
 
                         <TabPanel>
