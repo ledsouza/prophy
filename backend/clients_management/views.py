@@ -10,12 +10,12 @@ from django.db.models import (
     BooleanField,
     Case,
     Exists,
+    F,
     OuterRef,
     Q,
     Subquery,
     Value,
     When,
-    F,
 )
 from django.http import FileResponse, HttpResponse
 from drf_yasg import openapi
@@ -30,6 +30,7 @@ from rest_framework.views import APIView
 from users.authentication import GoogleOIDCAuthentication
 from users.models import UserAccount
 
+from clients_management.file_utils import get_content_type_from_filename
 from clients_management.models import (
     Accessory,
     Appointment,
@@ -45,7 +46,6 @@ from clients_management.pdf.service_order_pdf import build_service_order_pdf
 from clients_management.query_utils import (
     annotate_latest_annual_accepted_proposal_date,
 )
-from clients_management.file_utils import get_content_type_from_filename
 from clients_management.serializers import (
     AccessorySerializer,
     AppointmentSerializer,
@@ -771,6 +771,36 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
             )
         return queryset
 
+    def _delete_pending_operations(self, client: Client) -> None:
+        client_operation_filter = Q(cnpj=client.cnpj) | Q(
+            original_client__cnpj=client.cnpj
+        )
+        pending_statuses = [
+            ClientOperation.OperationStatus.REVIEW,
+            ClientOperation.OperationStatus.REJECTED,
+        ]
+
+        ClientOperation.objects.filter(
+            client_operation_filter,
+            operation_status__in=pending_statuses,
+        ).delete()
+
+        unit_operation_filter = Q(client__cnpj=client.cnpj) | Q(
+            original_unit__client__cnpj=client.cnpj
+        )
+        UnitOperation.objects.filter(
+            unit_operation_filter,
+            operation_status__in=pending_statuses,
+        ).delete()
+
+        equipment_operation_filter = Q(unit__client__cnpj=client.cnpj) | Q(
+            original_equipment__unit__client__cnpj=client.cnpj
+        )
+        EquipmentOperation.objects.filter(
+            equipment_operation_filter,
+            operation_status__in=pending_statuses,
+        ).delete()
+
     @swagger_auto_schema(
         operation_summary="Update a client",
         operation_description="""
@@ -831,7 +861,10 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
 
         serializer = ClientSerializer(client, data=request.data, partial=False)
         if serializer.is_valid():
-            serializer.save()
+            was_active = client.is_active
+            updated_client = serializer.save()
+            if was_active and not updated_client.is_active:
+                self._delete_pending_operations(updated_client)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -895,7 +928,10 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
 
         serializer = ClientSerializer(client, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            was_active = client.is_active
+            updated_client = serializer.save()
+            if was_active and not updated_client.is_active:
+                self._delete_pending_operations(updated_client)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
