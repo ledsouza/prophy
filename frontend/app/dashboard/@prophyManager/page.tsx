@@ -1,7 +1,7 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { WarningIcon } from "@phosphor-icons/react";
+import { CheckCircleIcon, WarningIcon, XCircleIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -45,7 +45,10 @@ import {
 import { Typography } from "@/components/foundation";
 import { ProposalsSearchSection } from "@/components/proposals/ProposalsSearchSection";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import { useUpdateClientMutation } from "@/redux/features/clientApiSlice";
 import Role from "@/enums/Role";
+import { child } from "@/utils/logger";
+import { getStatusDisplay } from "@/utils/format";
 
 import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
 import { getTabFromParam, SearchTab } from "./enums";
@@ -65,6 +68,8 @@ import { ClientFilters, EquipmentFilters } from "./types";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
+const log = child({ component: "ProphyManagerSearchPage" });
+
 function SearchPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -79,6 +84,9 @@ function SearchPage() {
     const { hasPendingOperations, isLoading: isPendingLoading } = usePendingOperations();
 
     const [selectedTabIndex, setSelectedTabIndex] = useState(SearchTab.CLIENTS);
+    const [togglingClientId, setTogglingClientId] = useState<number | null>(null);
+
+    const [updateClient, { isLoading: isUpdatingClient }] = useUpdateClientMutation();
 
     // Client state
     const [clientCurrentPage, setClientCurrentPage] = useState(1);
@@ -324,6 +332,23 @@ function SearchPage() {
 
     const handleViewDetails = (cnpj: string) => {
         router.push(`/dashboard/client/${cnpj}`);
+    };
+
+    const handleToggleClientStatus = async (client: ClientDTO) => {
+        setTogglingClientId(client.id);
+        try {
+            await updateClient({
+                id: client.id,
+                is_active: !client.is_active,
+            }).unwrap();
+        } catch (error) {
+            log.error(
+                { error: (error as Error)?.message ?? String(error) },
+                "Failed to toggle client status",
+            );
+        } finally {
+            setTogglingClientId(null);
+        }
     };
 
     useFilterRestoration({
@@ -624,6 +649,21 @@ function SearchPage() {
                                                             `${client.address} - ${client.state}, ${client.city}`,
                                                     },
                                                     {
+                                                        header: "Situação",
+                                                        cell: (client: ClientDTO) => {
+                                                            const statusInfo = getStatusDisplay(
+                                                                client.is_active.toString(),
+                                                            );
+                                                            return (
+                                                                <span
+                                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
+                                                                >
+                                                                    {statusInfo.text}
+                                                                </span>
+                                                            );
+                                                        },
+                                                    },
+                                                    {
                                                         header: "Usuários",
                                                         cell: (client: ClientDTO) =>
                                                             client.users.length > 0 ? (
@@ -708,6 +748,45 @@ function SearchPage() {
                                                                     dataCy={`client-proposals-${client.id}`}
                                                                 >
                                                                     Propostas
+                                                                </Button>
+
+                                                                <Button
+                                                                    variant={
+                                                                        client.is_active
+                                                                            ? "danger"
+                                                                            : "success"
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleToggleClientStatus(
+                                                                            client,
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        togglingClientId ===
+                                                                            client.id ||
+                                                                        isUpdatingClient
+                                                                    }
+                                                                    className="flex items-center gap-2 text-xs"
+                                                                    dataCy={`client-toggle-${client.id}`}
+                                                                >
+                                                                    {togglingClientId ===
+                                                                    client.id ? (
+                                                                        <Spinner />
+                                                                    ) : client.is_active ? (
+                                                                        <>
+                                                                            <XCircleIcon
+                                                                                size={16}
+                                                                            />
+                                                                            Desativar
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <CheckCircleIcon
+                                                                                size={16}
+                                                                            />
+                                                                            Ativar
+                                                                        </>
+                                                                    )}
                                                                 </Button>
                                                             </div>
                                                         ),
