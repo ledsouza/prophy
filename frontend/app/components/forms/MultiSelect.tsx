@@ -29,6 +29,7 @@ type MultiSelectProps = {
     labelStyles?: string;
     labelSize?: "sm" | "md" | "lg";
     dataTestId?: string | undefined;
+    dataCy?: string;
 };
 
 /**
@@ -50,11 +51,12 @@ const MultiSelect = ({
     labelStyles = "",
     labelSize = "md",
     dataTestId,
+    dataCy,
 }: MultiSelectProps) => {
     // Map value (ids) to option objects
     const selectedOptions = useMemo(
         () => options.filter((o) => value.includes(o.id)),
-        [options, value]
+        [options, value],
     );
 
     const handleChange = (selected: SelectData[]) => {
@@ -68,14 +70,14 @@ const MultiSelect = ({
         "bg-white shadow-md ring-1 ring-inset ring-primary",
         "text-left sm:text-sm",
         "focus:ring-2 focus:ring-inset focus:ring-primary",
-        listBoxButtonStyles
+        listBoxButtonStyles,
     );
 
     const buttonText =
         selectedOptions.length > 0 ? selectedOptions.map((o) => o.value).join(", ") : placeholder;
 
     return (
-        <div data-testid={dataTestId}>
+        <div data-testid={dataTestId} data-cy={dataCy}>
             <Field disabled={disabled}>
                 <Typography element="p" size={labelSize}>
                     <Label className={labelStyles}>{label}</Label>
@@ -87,7 +89,10 @@ const MultiSelect = ({
                         multiple
                         disabled={disabled}
                     >
-                        <ListboxButton className={listBoxButtonStyle}>
+                        <ListboxButton
+                            className={listBoxButtonStyle}
+                            data-cy={dataCy ? `${dataCy}-button` : undefined}
+                        >
                             <Typography
                                 element="span"
                                 size={listBoxButtonSize}
@@ -107,7 +112,7 @@ const MultiSelect = ({
 
                         <ListboxOptions
                             transition
-                            className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
+                            className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-closed:data-leave:opacity-0 data-leave:transition data-leave:duration-100 data-leave:ease-in sm:text-sm"
                         >
                             {options.map((option) => {
                                 const listBoxOptionStyle = cn(
@@ -115,8 +120,8 @@ const MultiSelect = ({
                                     "cursor-default select-none",
                                     "py-2 pl-3 pr-9",
                                     "text-primary",
-                                    "data-[focus]:bg-primary data-[focus]:text-white",
-                                    listOptionStyles
+                                    "data-focus:bg-primary data-focus:text-white",
+                                    listOptionStyles,
                                 );
 
                                 return (
@@ -124,6 +129,9 @@ const MultiSelect = ({
                                         key={option.id}
                                         value={option}
                                         className={listBoxOptionStyle}
+                                        data-cy={
+                                            dataCy ? `${dataCy}-option-${option.id}` : undefined
+                                        }
                                     >
                                         {({ selected }) => (
                                             <>
@@ -139,7 +147,7 @@ const MultiSelect = ({
                                                     </Typography>
                                                 </div>
                                                 {selected && (
-                                                    <span className="absolute inset-y-0 right-0 pr-4 flex items-center text-primary group-data-[focus]:text-white">
+                                                    <span className="absolute inset-y-0 right-0 pr-4 flex items-center text-primary group-data-focus:text-white">
                                                         <CheckIcon
                                                             aria-hidden="true"
                                                             className="h-5 w-5"

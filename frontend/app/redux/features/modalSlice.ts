@@ -8,6 +8,7 @@ export enum Modals {
     EDIT_CLIENT = "EDIT_CLIENT",
     REJECT_CLIENT = "REJECT_CLIENT",
     REVIEW_CLIENT = "REVIEW_CLIENT",
+    CREATE_CLIENT = "CREATE_CLIENT",
     ADD_UNIT = "ADD_UNIT",
     EDIT_UNIT = "EDIT_UNIT",
     DELETE_UNIT = "DELETE_UNIT",
@@ -34,6 +35,7 @@ export enum Modals {
 type ModalState = {
     isModalOpen: boolean;
     currentModal: Modals | null;
+    isCloseDisabled: boolean;
     selectedUnit: UnitDTO | null;
     selectedUnitOperation: UnitOperationDTO | null;
     selectedEquipment: EquipmentDTO | null;
@@ -45,6 +47,7 @@ type ModalState = {
 const initialState: ModalState = {
     isModalOpen: false,
     currentModal: null,
+    isCloseDisabled: false,
     selectedUnit: null,
     selectedUnitOperation: null,
     selectedEquipment: null,
@@ -79,12 +82,17 @@ const modalSlice = createSlice({
         // Open a modal by setting it as the current modal and marking it open
         openModal(state, action: PayloadAction<Modals>) {
             state.isModalOpen = true;
+            state.isCloseDisabled = false;
             state.currentModal = action.payload;
         },
         // Close the modal by resetting the state
         closeModal(state) {
             state.isModalOpen = false;
+            state.isCloseDisabled = false;
             state.currentModal = null;
+        },
+        setModalCloseDisabled(state, action: PayloadAction<boolean>) {
+            state.isCloseDisabled = action.payload;
         },
         setUnit(state, action: PayloadAction<UnitDTO>) {
             state.selectedUnit = action.payload;
@@ -110,6 +118,7 @@ const modalSlice = createSlice({
 export const {
     openModal,
     closeModal,
+    setModalCloseDisabled,
     setUnit,
     setUnitOperation,
     setEquipment,

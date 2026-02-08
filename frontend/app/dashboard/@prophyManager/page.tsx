@@ -36,6 +36,7 @@ import {
 } from "@/components/common";
 import {
     CreateAppointmentForm,
+    CreateClientForm,
     CreateProposalForm,
     EditProposalForm,
     Input,
@@ -43,6 +44,7 @@ import {
 } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { ProposalsSearchSection } from "@/components/proposals/ProposalsSearchSection";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import Role from "@/enums/Role";
 
 import { CONTRACT_TYPE_OPTIONS, OPERATION_STATUS_OPTIONS, USER_ROLE_OPTIONS } from "./constants";
@@ -68,7 +70,11 @@ function SearchPage() {
     const searchParams = useSearchParams();
 
     const dispatch = useAppDispatch();
-    const { isModalOpen, currentModal, selectedProposal } = useAppSelector((state) => state.modal);
+    const { isModalOpen, currentModal, selectedProposal, isCloseDisabled } = useAppSelector(
+        (state) => state.modal,
+    );
+    const { data: currentUser } = useRetrieveUserQuery();
+    const isProphyManager = currentUser?.role === Role.GP;
 
     const { hasPendingOperations, isLoading: isPendingLoading } = usePendingOperations();
 
@@ -541,26 +547,38 @@ function SearchPage() {
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                                <Button
-                                    onClick={handleApplyClientFilters}
-                                    className="flex-1 sm:flex-initial"
-                                    disabled={clientsLoading}
-                                    data-testid="btn-apply-filters"
-                                    dataCy="clients-apply-filters"
-                                >
-                                    {clientsLoading ? "Carregando..." : "Aplicar Filtros"}
-                                </Button>
-                                <Button
-                                    variant="secondary"
-                                    onClick={handleClearClientFilters}
-                                    className="flex-1 sm:flex-initial"
-                                    disabled={clientsLoading}
-                                    data-testid="btn-clear-filters"
-                                    dataCy="clients-clear-filters"
-                                >
-                                    Limpar Filtros
-                                </Button>
+                            <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex flex-col gap-3 sm:flex-row">
+                                    <Button
+                                        onClick={handleApplyClientFilters}
+                                        className="flex-1 sm:flex-initial"
+                                        disabled={clientsLoading}
+                                        data-testid="btn-apply-filters"
+                                        dataCy="clients-apply-filters"
+                                    >
+                                        {clientsLoading ? "Carregando..." : "Aplicar Filtros"}
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={handleClearClientFilters}
+                                        className="flex-1 sm:flex-initial"
+                                        disabled={clientsLoading}
+                                        data-testid="btn-clear-filters"
+                                        dataCy="clients-clear-filters"
+                                    >
+                                        Limpar Filtros
+                                    </Button>
+                                </div>
+                                {isProphyManager && (
+                                    <Button
+                                        variant="primary"
+                                        onClick={() => dispatch(openModal(Modals.CREATE_CLIENT))}
+                                        className="flex-1 sm:flex-initial"
+                                        dataCy="btn-create-client"
+                                    >
+                                        Criar cliente
+                                    </Button>
+                                )}
                             </div>
 
                             {/* Client Results Section */}
@@ -979,7 +997,21 @@ function SearchPage() {
                 </TabGroup>
             </div>
 
-            <Modal isOpen={isModalOpen} onClose={() => dispatch(closeModal())} className="max-w-lg">
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    if (!isCloseDisabled) {
+                        dispatch(closeModal());
+                    }
+                }}
+                className="max-w-lg"
+            >
+                {currentModal === Modals.CREATE_CLIENT && (
+                    <CreateClientForm
+                        title="Criar Cliente"
+                        description="Preencha os dados abaixo para criar um novo cliente ativo."
+                    />
+                )}
                 {currentModal === Modals.CREATE_PROPOSAL && (
                     <CreateProposalForm
                         title="Criar Nova Proposta"

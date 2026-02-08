@@ -27,3 +27,4 @@ export { default as ReportForm } from "./ReportForm";
 export { default as CreateProposalForm } from "./CreateProposalForm";
 export { default as EditProposalForm } from "./EditProposalForm";
 export { default as CreateAppointmentForm } from "./CreateAppointmentForm";
+export { default as CreateClientForm } from "./CreateClientForm";
