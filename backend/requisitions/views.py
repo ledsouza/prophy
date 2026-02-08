@@ -146,6 +146,30 @@ class ClientOperationViewSet(viewsets.ViewSet):
         data = request.data
         data["created_by"] = request.user.id
 
+        user: UserAccount = request.user
+        operation_status = data.get("operation_status")
+        operation_type = data.get("operation_type")
+        if (
+            operation_status == ClientOperation.OperationStatus.ACCEPTED
+            and user.role != UserAccount.Role.PROPHY_MANAGER
+        ):
+            return Response(
+                {
+                    "detail": (
+                        "Only PROPHY_MANAGER can create accepted client operations."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if operation_type == ClientOperation.OperationType.EDIT and not data.get(
+            "original_client"
+        ):
+            return Response(
+                {"original_client": "Este campo é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         serializer = ClientOperationSerializer(data=data)
         if serializer.is_valid():
             try:
@@ -155,17 +179,20 @@ class ClientOperationViewSet(viewsets.ViewSet):
                     {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
                 )
 
-            try:
-                original_users = (
-                    ClientOperation.objects.get(id=request.data["original_client"])
-                    .users.all()
-                    .values_list("id", flat=True)
-                )
-                new_client.users.set(original_users)
-            except ClientOperation.DoesNotExist:
-                # If original_client does not exist, this is an ADD operation
-                new_client.users.add(self.request.user)
-
+            original_client_id = data.get("original_client")
+            if original_client_id:
+                try:
+                    original_users = (
+                        ClientOperation.objects.get(id=original_client_id)
+                        .users.all()
+                        .values_list("id", flat=True)
+                    )
+                    new_client.users.set(original_users)
+                except ClientOperation.DoesNotExist:
+                    return Response(
+                        {"original_client": "Cliente original não encontrado."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

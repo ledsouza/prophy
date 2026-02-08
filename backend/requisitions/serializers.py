@@ -1,12 +1,29 @@
 from rest_framework import serializers
 from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
-from clients_management.models import Unit, Equipment
+from clients_management.models import Client, Unit, Equipment
 
 
 class ClientOperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientOperation
         exclude = ["is_active"]
+
+    def validate_cnpj(self, value: str) -> str:
+        operation_type = self.initial_data.get("operation_type")
+
+        if operation_type != ClientOperation.OperationType.ADD:
+            return value
+
+        existing_client = Client.objects.filter(cnpj=value, is_active=True).exists()
+        existing_operation = ClientOperation.objects.filter(
+            cnpj=value,
+            operation_status=ClientOperation.OperationStatus.REVIEW,
+        ).exists()
+
+        if existing_client or existing_operation:
+            raise serializers.ValidationError("Este CNPJ já está cadastrado.")
+
+        return value
 
 
 class ClientOperationUpdateStatusSerializer(serializers.ModelSerializer):
