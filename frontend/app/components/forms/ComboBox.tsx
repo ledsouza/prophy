@@ -29,6 +29,7 @@ export type ComboBoxProps = {
     disabled?: boolean;
     errorMessage?: string;
     "data-testid"?: string;
+    dataCy?: string;
 };
 
 const ComboBox = ({
@@ -40,6 +41,7 @@ const ComboBox = ({
     disabled = false,
     errorMessage,
     "data-testid": dataTestId,
+    dataCy,
 }: ComboBoxProps) => {
     const [filteredOptions, setFilteredOptions] = useState(data);
 
@@ -80,14 +82,13 @@ const ComboBox = ({
 
     return (
         <>
-            <Field data-testid={dataTestId} disabled={disabled}>
+            <Field data-testid={dataTestId} data-cy={dataCy} disabled={disabled}>
                 <Label className="block mb-2 text-sm font-medium leading-6 text-gray-primary">
                     {children}
                 </Label>
                 <Combobox
                     by="id"
                     value={selectedValue}
-                    virtual={{ options: filteredOptions }}
                     onChange={onChange}
                     onClose={() => {
                         setFilteredOptions(data);
@@ -99,6 +100,7 @@ const ComboBox = ({
                         placeholder={placeholder}
                         onChange={handleInputChange}
                         className={inputClassName}
+                        data-cy={dataCy ? `${dataCy}-input` : undefined}
                     />
                     {errorMessage && (
                         <div data-testid="validation-error" className="text-danger mt-1">
@@ -108,17 +110,19 @@ const ComboBox = ({
                     <ComboboxOptions
                         anchor="bottom"
                         data-testid="combobox-options"
+                        data-cy={dataCy ? `${dataCy}-options` : undefined}
                         className="z-50 empty:invisible block max-w-60 w-60 h-56 rounded-md border-0 mt-2 p-2 bg-white text-gray-primary shadow-lg ring-1 ring-inset ring-primary focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                     >
-                        {({ option: value }) => (
+                        {filteredOptions.map((value) => (
                             <ComboboxOption
                                 key={value.id}
                                 value={value}
                                 className="rounded-md p-1 data-focus:bg-quaternary"
+                                data-cy={dataCy ? `${dataCy}-option-${value.id}` : undefined}
                             >
                                 {value.name}
                             </ComboboxOption>
-                        )}
+                        ))}
                     </ComboboxOptions>
                 </Combobox>
             </Field>

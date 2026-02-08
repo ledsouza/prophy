@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { Button, ErrorDisplay, Modal, Pagination, Spinner, Table } from "@/components/common";
 import { CreateManagedUserForm, EditManagedUserForm, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import { ManageUserAssociationsModal } from "@/components/users";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
 import {
     useCreateManagedUserMutation,
@@ -29,6 +30,8 @@ export default function ProphyManagerUsersPage() {
     const [toggleActiveOpen, setToggleActiveOpen] = useState(false);
     const [toggleActiveUser, setToggleActiveUser] = useState<UserDTO | null>(null);
     const [toggleActiveTarget, setToggleActiveTarget] = useState<boolean>(false);
+    const [associationsOpen, setAssociationsOpen] = useState(false);
+    const [associationsUser, setAssociationsUser] = useState<UserDTO | null>(null);
 
     const {
         data: managedUsers,
@@ -60,6 +63,11 @@ export default function ProphyManagerUsersPage() {
     function closeToggleActive() {
         setToggleActiveOpen(false);
         setToggleActiveUser(null);
+    }
+
+    function openAssociations(user: UserDTO) {
+        setAssociationsUser(user);
+        setAssociationsOpen(true);
     }
 
     async function confirmToggleActive() {
@@ -234,6 +242,15 @@ export default function ProphyManagerUsersPage() {
                                                 Editar
                                             </Button>
 
+                                            <Button
+                                                variant="secondary"
+                                                onClick={() => openAssociations(u)}
+                                                className="w-full text-xs"
+                                                dataCy={`gp-users-associations-${u.id}`}
+                                            >
+                                                Associações
+                                            </Button>
+
                                             {u.is_active ? (
                                                 <Button
                                                     variant="danger"
@@ -345,6 +362,12 @@ export default function ProphyManagerUsersPage() {
                     </div>
                 </div>
             </Modal>
+
+            <ManageUserAssociationsModal
+                isOpen={associationsOpen}
+                onClose={setAssociationsOpen}
+                user={associationsUser}
+            />
         </main>
     );
 }
