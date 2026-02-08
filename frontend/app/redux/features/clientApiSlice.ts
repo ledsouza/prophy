@@ -1,13 +1,13 @@
 import { OperationStatus, OperationType } from "@/enums";
-import { apiSlice, ListQueryParams, PaginatedResponse } from "../services/apiSlice";
 import type {
     ClientDTO,
     ClientOperationDTO,
     ListClientsArgs,
     Status,
-    CreateClientPayload,
     UpdateClientPayload,
 } from "@/types/client";
+import { apiSlice } from "../services/apiSlice";
+import { ListQueryParams, PaginatedResponse } from "../services/apiTypes";
 
 const clientApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({

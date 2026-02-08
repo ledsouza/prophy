@@ -1,12 +1,12 @@
 import { OperationStatus, OperationType } from "@/enums";
+import type { UserDTO } from "@/types/user";
+import { apiSlice } from "../services/apiSlice";
 import {
     APIDeleteResponse,
-    apiSlice,
     ListQueryParams,
     Operation,
     PaginatedResponse,
-} from "../services/apiSlice";
-import type { UserDTO } from "@/types/user";
+} from "../services/apiTypes";
 
 export type UnitDTO = {
     id: number;

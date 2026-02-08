@@ -1,6 +1,7 @@
 import { ContractType, ProposalStatus } from "@/enums";
-import { apiSlice, ListQueryParams, PaginatedResponse } from "../services/apiSlice";
 import { toFormData } from "@/utils/formData";
+import { apiSlice } from "../services/apiSlice";
+import { ListQueryParams, PaginatedResponse } from "../services/apiTypes";
 
 export type ProposalDTO = {
     id: number;
@@ -111,7 +112,7 @@ const proposalApiSlice = apiSlice.injectEndpoints({
                     },
                     {
                         fileListMode: "first",
-                    }
+                    },
                 ),
             }),
             invalidatesTags: [
@@ -129,7 +130,7 @@ const proposalApiSlice = apiSlice.injectEndpoints({
                     },
                     {
                         fileListMode: "first",
-                    }
+                    },
                 ),
             }),
             invalidatesTags: (result, error, { id }) => [

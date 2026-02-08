@@ -2,31 +2,19 @@ import type {
     ListReportsArgs,
     ReportDTO,
     ReportSearchDTO,
-    ReportTypeCode,
     SearchReportsArgs,
 } from "@/types/report";
 import { downloadBlobFromContentDisposition } from "@/utils/download";
 import { child } from "@/utils/logger";
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import { apiSlice, PaginatedResponse } from "../services/apiSlice";
+import { apiSlice } from "../services/apiSlice";
+import { PaginatedResponse } from "../services/apiTypes";
 import { createPaginatedQueryFn } from "../services/paginationHelpers";
-
-type UpdateReportFileArgs = {
-    id: number;
-    file: File;
-};
-
-type CreateReportArgs = {
-    completion_date: string; // YYYY-MM-DD
-    report_type: ReportTypeCode;
-    file: File;
-    unit?: number;
-    equipment?: number;
-};
-
-type DownloadReportResult = {
-    success: boolean;
-};
+import type {
+    CreateReportArgs,
+    DownloadReportResult,
+    UpdateReportFileArgs,
+} from "../types/reportApi";
 
 const log = child({ feature: "reportApiSlice" });
 

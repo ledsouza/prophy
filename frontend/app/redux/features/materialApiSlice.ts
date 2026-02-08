@@ -1,12 +1,13 @@
-import { apiSlice, PaginatedResponse } from "../services/apiSlice";
 import type {
     CreateMaterialArgs,
     ListMaterialsArgs,
     MaterialDTO,
-    UpdateMaterialArgs,
     SetPermissionsArgs,
+    UpdateMaterialArgs,
 } from "@/types/material";
-import { toFormData, camelToSnake } from "@/utils/formData";
+import { camelToSnake, toFormData } from "@/utils/formData";
+import { apiSlice } from "../services/apiSlice";
+import { PaginatedResponse } from "../services/apiTypes";
 
 const materialApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -56,7 +57,7 @@ const materialApiSlice = apiSlice.injectEndpoints({
                         keyMap: { allowed_external_user_ids: "allowed_external_users" },
                         transformKey: camelToSnake,
                         fileListMode: "first",
-                    }
+                    },
                 );
 
                 return {
@@ -92,7 +93,7 @@ const materialApiSlice = apiSlice.injectEndpoints({
             query: ({ id, title, description, file }) => {
                 const formData = toFormData(
                     { title, description, file },
-                    { transformKey: camelToSnake, fileListMode: "first" }
+                    { transformKey: camelToSnake, fileListMode: "first" },
                 );
                 return {
                     url: `materials/${id}/`,

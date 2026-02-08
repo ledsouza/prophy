@@ -1,56 +1,15 @@
-import { apiSlice, PaginatedResponse } from "../services/apiSlice";
 import type { UserDTO } from "@/types/user";
-
-type UserAuth = {
-    cpf: string;
-    email: string;
-    name: string;
-    phone: string;
-    password: string;
-    re_password?: string;
-};
-
-type RegisterUnitManagerResponse = {
-    detail: string;
-    email: string;
-    userID: number;
-};
-
-type RegisterUnitManagerRequest = Omit<UserAuth, "password" | "re_password"> & {
-    unit_id: number;
-};
-
-type ResetPasswordRequest = {
-    uid: string;
-    token: string;
-    new_password: string;
-    re_new_password: string;
-};
-
-type ListManagedUsersQuery = {
-    page?: number;
-    cpf?: string;
-    name?: string;
-};
-
-type CreateManagedUserRequest = {
-    cpf: string;
-    email: string;
-    name: string;
-    phone: string;
-    role: UserDTO["role"];
-    is_active?: boolean;
-};
-
-type UpdateManagedUserRequest = {
-    id: number;
-    cpf?: string;
-    email?: string;
-    name?: string;
-    phone?: string;
-    role?: UserDTO["role"];
-    is_active?: boolean;
-};
+import { apiSlice } from "../services/apiSlice";
+import { PaginatedResponse } from "../services/apiTypes";
+import type {
+    CreateManagedUserRequest,
+    ListManagedUsersQuery,
+    RegisterUnitManagerRequest,
+    RegisterUnitManagerResponse,
+    ResetPasswordRequest,
+    UpdateManagedUserRequest,
+    UserAuth,
+} from "../types/authApi";
 
 const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({

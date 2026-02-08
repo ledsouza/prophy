@@ -1,13 +1,6 @@
-import { apiSlice } from "../services/apiSlice";
 import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
-
-type CreateServiceOrderArgs = {
-    visit: number;
-    subject: string;
-    description: string;
-    conclusion: string;
-    equipments: number[];
-};
+import { apiSlice } from "../services/apiSlice";
+import type { CreateServiceOrderArgs } from "../types/serviceOrderApi";
 
 export const serviceOrderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({

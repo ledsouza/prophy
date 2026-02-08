@@ -1,12 +1,12 @@
-import { apiSlice } from "../services/apiSlice";
-import type { PaginatedResponse } from "../services/apiSlice";
-import { createPaginatedQueryFn } from "../services/paginationHelpers";
 import type {
     AppointmentDTO,
     CreateAppointmentPayload,
-    UpdateAppointmentPayload,
     ListAppointmentsArgs,
+    UpdateAppointmentPayload,
 } from "@/types/appointment";
+import { apiSlice } from "../services/apiSlice";
+import type { PaginatedResponse } from "../services/apiTypes";
+import { createPaginatedQueryFn } from "../services/paginationHelpers";
 
 const appointmentApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({

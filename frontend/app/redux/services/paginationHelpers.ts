@@ -1,5 +1,5 @@
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import type { PaginatedResponse } from "./apiSlice";
+import type { PaginatedResponse } from "./apiTypes";
 
 /**
  * Creates a generic auto-paginating query function for Django REST Framework endpoints.
@@ -20,13 +20,13 @@ import type { PaginatedResponse } from "./apiSlice";
  * ```
  */
 export function createPaginatedQueryFn<TResult, TFilters extends Record<string, any> = {}>(
-    endpoint: string
+    endpoint: string,
 ) {
     return async (
         args: ({ page: number } & TFilters) | TFilters | void,
         _queryApi: any,
         _extraOptions: any,
-        baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>
+        baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>,
     ): Promise<{ data: TResult[] } | { error: FetchBaseQueryError }> => {
         // Extract page and filters from args
         const hasArgs = args && typeof args === "object";
@@ -57,7 +57,7 @@ export function createPaginatedQueryFn<TResult, TFilters extends Record<string, 
                     params: buildParams(explicitPage),
                 },
                 _queryApi,
-                _extraOptions
+                _extraOptions,
             );
 
             if (response.error) return { error: response.error };
@@ -87,7 +87,7 @@ export function createPaginatedQueryFn<TResult, TFilters extends Record<string, 
                     params: buildParams(currentPage),
                 },
                 _queryApi,
-                _extraOptions
+                _extraOptions,
             );
 
             if (response.error) return { error: response.error };

@@ -1,6 +1,7 @@
 import { OperationType } from "@/enums";
 import { forEach } from "lodash";
-import { apiSlice, ListQueryParams, Operation, PaginatedResponse } from "../services/apiSlice";
+import { apiSlice } from "../services/apiSlice";
+import { ListQueryParams, Operation, PaginatedResponse } from "../services/apiTypes";
 import { createPaginatedQueryFn } from "../services/paginationHelpers";
 import { ModalityDTO } from "./modalityApiSlice";
 

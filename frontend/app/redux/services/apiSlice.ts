@@ -1,32 +1,8 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import { setAuth, logout } from "../features/authSlice";
-import { Mutex } from "async-mutex";
-import { OperationStatus, OperationType } from "@/enums";
 import { child } from "@/utils/logger";
-
-export type PaginatedResponse<T> = {
-    count: number;
-    next: string | null;
-    previous: string | null;
-    results: T[];
-};
-
-export type ListQueryParams = {
-    page?: number;
-};
-
-export type Operation = {
-    operation_type: OperationType;
-    operation_status: OperationStatus;
-    note?: string;
-};
-
-export type APIDeleteResponse = {
-    message: string;
-    id: number;
-    operation_type: string;
-};
+import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { Mutex } from "async-mutex";
+import { logout, setAuth } from "../features/authSlice";
 
 const baseUrl = `${process.env.NEXT_PUBLIC_HOST}/api/`;
 
@@ -122,6 +98,7 @@ export const apiSlice = createApi({
     baseQuery: baseQueryWithReauth,
     tagTypes: [
         "User",
+        "UserAssociations",
         "Client",
         "ClientOperation",
         "Unit",
