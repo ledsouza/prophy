@@ -211,9 +211,27 @@ class AppointmentSerializer(serializers.ModelSerializer):
             if client is not None:
                 representation["client_name"] = client.name
 
+                physicist_roles = [
+                    UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+                    UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+                    UserAccount.Role.PROPHY_MANAGER,
+                ]
+                responsibles = client.users.filter(role__in=physicist_roles).values(
+                    "id",
+                    "name",
+                    "role",
+                    "email",
+                    "phone",
+                )
+                representation["responsibles"] = list(responsibles)
+            else:
+                representation["responsibles"] = []
+
             representation["unit_full_address"] = (
                 f"{unit.address} - {unit.state}, {unit.city}"
             )
+        else:
+            representation["responsibles"] = []
 
         representation["type_display"] = instance.get_type_display()
 

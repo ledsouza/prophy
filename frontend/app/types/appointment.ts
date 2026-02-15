@@ -6,7 +6,7 @@
  writes and allows different create vs update shapes.
 */
 import type { ServiceOrderDTO } from "@/types/service-order";
-import type { ListQueryParams } from "@/redux/services/apiSlice";
+import type { ListQueryParams } from "@/redux/services/apiTypes";
 import AppointmentStatus from "@/enums/AppointmentStatus";
 import AppointmentType from "@/enums/AppointmentType";
 
@@ -27,6 +27,15 @@ export type AppointmentDTO = {
     client_name?: string;
     unit_full_address?: string;
     type_display?: string;
+    responsibles?: AppointmentResponsible[];
+};
+
+export type AppointmentResponsible = {
+    id: number;
+    name: string;
+    role: string;
+    email: string | null;
+    phone: string | null;
 };
 
 /**

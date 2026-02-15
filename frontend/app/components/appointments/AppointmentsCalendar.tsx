@@ -13,7 +13,7 @@ import { getAppointmentStatusClasses } from "@/constants/appointmentStatus";
 import AppointmentStatus from "@/enums/AppointmentStatus";
 import { appointmentStatusLabel } from "@/enums/AppointmentStatus";
 import { useListAppointmentsQuery } from "@/redux/features/appointmentApiSlice";
-import type { AppointmentDTO } from "@/types/appointment";
+import type { AppointmentDTO, AppointmentResponsible } from "@/types/appointment";
 import { formatDateTime, formatPhoneNumber } from "@/utils/format";
 
 type AppointmentsCalendarFilters = {
@@ -116,6 +116,30 @@ function formatCalendarTimeLabel(dateIso: string): string {
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}h`;
+}
+
+function getResponsibleRoleLabel(role: string): string {
+    switch (role) {
+        case "FMI":
+            return "Físico Interno";
+        case "FME":
+            return "Físico Externo";
+        case "GP":
+            return "Prophy Manager";
+        default:
+            return role;
+    }
+}
+
+function formatResponsibleContact(responsible: AppointmentResponsible): string {
+    const email = responsible.email?.trim();
+    const phone = responsible.phone ? formatPhoneNumber(responsible.phone) : null;
+
+    if (email && phone) {
+        return `${email} • ${phone}`;
+    }
+
+    return email ?? phone ?? "";
 }
 
 export default function AppointmentsCalendar({ dataCyPrefix, filters }: AppointmentsCalendarProps) {
@@ -315,9 +339,50 @@ export default function AppointmentsCalendar({ dataCyPrefix, filters }: Appointm
                             </div>
                             <div>
                                 <span className="font-semibold">Contato:</span>{" "}
-                                {selectedAppointment.contact_name} (
-                                {formatPhoneNumber(selectedAppointment.contact_phone)})
+                                {selectedAppointment.contact_name} •{" "}
+                                {formatPhoneNumber(selectedAppointment.contact_phone)}
                             </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <h4 className="text-sm font-semibold text-gray-primary">
+                                Responsáveis
+                            </h4>
+                            {selectedAppointment.responsibles &&
+                            selectedAppointment.responsibles.length > 0 ? (
+                                <div className="space-y-2">
+                                    {selectedAppointment.responsibles.map((responsible) => {
+                                        const contact = formatResponsibleContact(responsible);
+
+                                        return (
+                                            <div
+                                                key={responsible.id}
+                                                className="rounded-lg border border-gray-200 bg-white px-3 py-2"
+                                            >
+                                                <p className="text-xs uppercase text-gray-400">
+                                                    {getResponsibleRoleLabel(responsible.role)}
+                                                </p>
+                                                <p className="text-sm font-semibold text-gray-900">
+                                                    {responsible.name}
+                                                </p>
+                                                {contact ? (
+                                                    <p className="text-xs text-gray-500">
+                                                        {contact}
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-xs text-gray-400">
+                                                        Sem contato informado.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-secondary">
+                                    Nenhum responsável vinculado.
+                                </p>
+                            )}
                         </div>
 
                         <div className="flex justify-end gap-2 pt-2">
