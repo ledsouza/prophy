@@ -1,5 +1,5 @@
 import UsersPage from "@/components/users/UsersPage";
 
-export default function ProphyManagerUsersPage() {
+export default function CommercialUsersPage() {
     return <UsersPage />;
 }

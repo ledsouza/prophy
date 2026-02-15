@@ -58,3 +58,39 @@ def test_gp_can_remove_user_from_client():
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not Client.objects.filter(id=client.id, users=user).exists()
+
+
+@pytest.mark.django_db
+def test_commercial_can_manage_allowed_client_association():
+    api_client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    user = UserFactory(role=UserAccount.Role.CLIENT_GENERAL_MANAGER)
+    client = ClientFactory()
+
+    api_client.force_authenticate(user=commercial)
+    response = api_client.post(
+        f"/api/clients/{client.id}/users/",
+        {"user_id": user.id},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert Client.objects.filter(id=client.id, users=user).exists()
+
+
+@pytest.mark.django_db
+def test_commercial_cannot_manage_disallowed_client_association():
+    api_client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    user = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
+    client = ClientFactory()
+
+    api_client.force_authenticate(user=commercial)
+    response = api_client.post(
+        f"/api/clients/{client.id}/users/",
+        {"user_id": user.id},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert not Client.objects.filter(id=client.id, users=user).exists()

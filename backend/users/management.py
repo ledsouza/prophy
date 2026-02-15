@@ -22,12 +22,16 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class IsProphyManager(permissions.BasePermission):
+class IsProphyManagerOrCommercial(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user
             and request.user.is_authenticated
-            and request.user.role == UserAccount.Role.PROPHY_MANAGER
+            and request.user.role
+            in [
+                UserAccount.Role.PROPHY_MANAGER,
+                UserAccount.Role.COMMERCIAL,
+            ]
         )
 
 
@@ -46,7 +50,10 @@ class UserManagementViewSet(
     mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
-    permission_classes = [IsProphyManager]
+    commercial_edit_error = {
+        "detail": "Commercial users are not allowed to edit managed users."
+    }
+    permission_classes = [IsProphyManagerOrCommercial]
     queryset = UserAccount.objects.all().order_by("id")
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = UserManagementFilter
@@ -58,7 +65,40 @@ class UserManagementViewSet(
             return UserManagementUpdateSerializer
         return UserManagementListSerializer
 
+    def get_queryset(self):
+        user: UserAccount = self.request.user
+        if user.role == UserAccount.Role.COMMERCIAL:
+            return UserAccount.objects.filter(
+                role__in=[
+                    UserAccount.Role.CLIENT_GENERAL_MANAGER,
+                    UserAccount.Role.UNIT_MANAGER,
+                ]
+            ).order_by("id")
+        return super().get_queryset()
+
+    def _ensure_commercial_allowed_role(self, role: str | None) -> Response | None:
+        if self.request.user.role != UserAccount.Role.COMMERCIAL:
+            return None
+        if role not in [
+            UserAccount.Role.CLIENT_GENERAL_MANAGER,
+            UserAccount.Role.UNIT_MANAGER,
+        ]:
+            return Response(
+                {
+                    "detail": (
+                        "Commercial users can only manage client general "
+                        "manager or unit manager roles."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return None
+
     def create(self, request, *args, **kwargs):
+        role = request.data.get("role")
+        permission_response = self._ensure_commercial_allowed_role(role)
+        if permission_response is not None:
+            return permission_response
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -95,6 +135,11 @@ class UserManagementViewSet(
         return Response(output.data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, *args, **kwargs):
+        if request.user.role == UserAccount.Role.COMMERCIAL:
+            return Response(
+                self.commercial_edit_error,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)

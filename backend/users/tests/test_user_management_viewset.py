@@ -9,14 +9,14 @@ from tests.factories import UserFactory
 
 
 @pytest.mark.django_db
-def test_list_manage_forbidden_for_non_gp():
+def test_list_manage_allows_commercial():
     client = APIClient()
     commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
 
     client.force_authenticate(user=commercial)
     response = client.get("/api/users/manage/")
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
@@ -32,6 +32,25 @@ def test_list_manage_allows_gp_and_supports_filters():
     assert response.status_code == status.HTTP_200_OK
     assert response.data["count"] == 1
     assert response.data["results"][0]["name"] == "Alice"
+
+
+@pytest.mark.django_db
+def test_commercial_list_manage_only_returns_allowed_roles():
+    client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    UserFactory(role=UserAccount.Role.CLIENT_GENERAL_MANAGER, name="Client Manager")
+    UserFactory(role=UserAccount.Role.UNIT_MANAGER, name="Unit Manager")
+    UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST, name="FMI")
+
+    client.force_authenticate(user=commercial)
+    response = client.get("/api/users/manage/")
+
+    assert response.status_code == status.HTTP_200_OK
+    roles = {item["role"] for item in response.data["results"]}
+    assert roles <= {
+        UserAccount.Role.CLIENT_GENERAL_MANAGER,
+        UserAccount.Role.UNIT_MANAGER,
+    }
 
 
 @pytest.mark.django_db
@@ -59,6 +78,53 @@ def test_create_managed_user_sends_reset_email_and_sets_unusable_password(mocker
     assert user.has_usable_password() is False
     assert user.role == UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST
     send_mock.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_commercial_can_create_allowed_roles(mocker):
+    client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    send_mock = mocker.patch("users.management.ManagedUserPasswordResetEmail.send")
+
+    client.force_authenticate(user=commercial)
+    response = client.post(
+        "/api/users/manage/",
+        {
+            "cpf": CPF().generate(),
+            "email": "ggc@example.com",
+            "name": "GGC User",
+            "phone": "11999999999",
+            "role": UserAccount.Role.CLIENT_GENERAL_MANAGER,
+        },
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["role"] == UserAccount.Role.CLIENT_GENERAL_MANAGER
+    send_mock.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_commercial_cannot_create_disallowed_roles(mocker):
+    client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    send_mock = mocker.patch("users.management.ManagedUserPasswordResetEmail.send")
+
+    client.force_authenticate(user=commercial)
+    response = client.post(
+        "/api/users/manage/",
+        {
+            "cpf": CPF().generate(),
+            "email": "gp@example.com",
+            "name": "GP User",
+            "phone": "11999999999",
+            "role": UserAccount.Role.PROPHY_MANAGER,
+        },
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    send_mock.assert_not_called()
 
 
 @pytest.mark.django_db
@@ -133,6 +199,22 @@ def test_promote_user_to_gp_sets_is_staff_true_and_updates_groups():
     assert list(target.groups.values_list("name", flat=True)) == [
         UserAccount.Role.PROPHY_MANAGER
     ]
+
+
+@pytest.mark.django_db
+def test_commercial_cannot_update_managed_user():
+    client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    target = UserFactory(role=UserAccount.Role.CLIENT_GENERAL_MANAGER)
+
+    client.force_authenticate(user=commercial)
+    response = client.patch(
+        f"/api/users/manage/{target.id}/",
+        {"name": "New Name"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db

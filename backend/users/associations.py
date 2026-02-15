@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from users.management import IsProphyManager
+from users.management import IsProphyManagerOrCommercial
 from users.models import UserAccount
 from users.serializers_associations import (
     ClientUserAssociationSerializer,
@@ -13,7 +13,15 @@ from users.serializers_associations import (
 
 
 class ClientUserAssociationView(APIView):
-    permission_classes = [IsProphyManager]
+    permission_classes = [IsProphyManagerOrCommercial]
+
+    def _commercial_can_manage_user(self, request, user: UserAccount) -> bool:
+        if request.user.role != UserAccount.Role.COMMERCIAL:
+            return True
+        return user.role in [
+            UserAccount.Role.CLIENT_GENERAL_MANAGER,
+            UserAccount.Role.UNIT_MANAGER,
+        ]
 
     def post(self, request, client_id: int) -> Response:
         client = get_object_or_404(Client, pk=client_id)
@@ -21,6 +29,16 @@ class ClientUserAssociationView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user: UserAccount = serializer.validated_data["user"]
+        if not self._commercial_can_manage_user(request, user):
+            return Response(
+                {
+                    "user_id": (
+                        "Commercial users can only manage client general "
+                        "manager or unit manager roles."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if user.role == UserAccount.Role.UNIT_MANAGER:
             return Response(
                 {"user_id": "Unit manager users cannot be assigned to clients."},
@@ -36,12 +54,22 @@ class ClientUserAssociationView(APIView):
     def delete(self, request, client_id: int, user_id: int) -> Response:
         client = get_object_or_404(Client, pk=client_id)
         user = get_object_or_404(UserAccount, pk=user_id)
+        if not self._commercial_can_manage_user(request, user):
+            return Response(
+                {
+                    "user_id": (
+                        "Commercial users can only manage client general "
+                        "manager or unit manager roles."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         client.users.remove(user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UnitManagerAssociationView(APIView):
-    permission_classes = [IsProphyManager]
+    permission_classes = [IsProphyManagerOrCommercial]
 
     def put(self, request, unit_id: int) -> Response:
         unit = get_object_or_404(Unit, pk=unit_id)
@@ -49,6 +77,15 @@ class UnitManagerAssociationView(APIView):
         serializer.is_valid(raise_exception=True)
 
         user: UserAccount = serializer.validated_data.get("user")
+        if (
+            request.user.role == UserAccount.Role.COMMERCIAL
+            and user
+            and user.role != UserAccount.Role.UNIT_MANAGER
+        ):
+            return Response(
+                {"user_id": ("Commercial users can only manage unit manager roles.")},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if user and user.role != UserAccount.Role.UNIT_MANAGER:
             return Response(
                 {"user_id": "Only unit manager users can be assigned to units."},
@@ -76,10 +113,23 @@ class UnitManagerAssociationView(APIView):
 
 
 class UserAssociationsSummaryView(APIView):
-    permission_classes = [IsProphyManager]
+    permission_classes = [IsProphyManagerOrCommercial]
 
     def get(self, request, user_id: int) -> Response:
         user = get_object_or_404(UserAccount, pk=user_id)
+        if request.user.role == UserAccount.Role.COMMERCIAL and user.role not in [
+            UserAccount.Role.CLIENT_GENERAL_MANAGER,
+            UserAccount.Role.UNIT_MANAGER,
+        ]:
+            return Response(
+                {
+                    "detail": (
+                        "Commercial users can only view client general "
+                        "manager or unit manager roles."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         if user.role == UserAccount.Role.UNIT_MANAGER:
             units = Unit.objects.filter(user=user).values("id", "name")

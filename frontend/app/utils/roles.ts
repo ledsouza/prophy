@@ -15,6 +15,8 @@ export const MANAGEABLE_ROLE_OPTIONS: SelectData[] = MANAGEABLE_ROLES.map((r, id
     value: r.label,
 }));
 
+export const COMMERCIAL_MANAGEABLE_ROLES = new Set<Role>([Role.GGC, Role.GU]);
+
 const OPTION_ID_TO_ROLE = new Map(MANAGEABLE_ROLES.map((r, idx) => [idx + 1, r.role] as const));
 
 /**

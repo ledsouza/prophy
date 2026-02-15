@@ -1,7 +1,13 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 
 import { Input, Select, type SelectData } from "@/components/forms";
-import { MANAGEABLE_ROLE_OPTIONS } from "@/utils/roles";
+import Role from "@/enums/Role";
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
+import {
+    COMMERCIAL_MANAGEABLE_ROLES,
+    MANAGEABLE_ROLE_OPTIONS,
+    MANAGEABLE_ROLES,
+} from "@/utils/roles";
 
 import type { ManagedUserFormFields } from "@/schemas";
 
@@ -21,6 +27,17 @@ const ManagedUserFields = ({
     setRoleOption,
 }: ManagedUserFieldsProps) => {
     const dataCyPrefix = mode === "create" ? "gp-users-create" : "gp-users-edit";
+    const { data: currentUser } = useRetrieveUserQuery();
+    const isCommercial = currentUser?.role === Role.C;
+    const roleOptions = isCommercial
+        ? MANAGEABLE_ROLES.filter((role) => COMMERCIAL_MANAGEABLE_ROLES.has(role.role)).map(
+              (roleOption) =>
+                  MANAGEABLE_ROLE_OPTIONS.find((option) => option.value === roleOption.label),
+          )
+        : MANAGEABLE_ROLE_OPTIONS;
+    const filteredRoleOptions = roleOptions.filter((option): option is SelectData =>
+        Boolean(option),
+    );
 
     return (
         <>
@@ -55,7 +72,7 @@ const ManagedUserFields = ({
             />
 
             <Select
-                options={MANAGEABLE_ROLE_OPTIONS}
+                options={filteredRoleOptions}
                 selectedData={roleOption}
                 setSelect={setRoleOption}
                 label="Perfil"

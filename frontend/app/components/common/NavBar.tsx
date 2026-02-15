@@ -64,7 +64,7 @@ export default function Navbar() {
                 Materiais Institucionais
             </NavLink>
 
-            {userData?.role === Role.GP && (
+            {(userData?.role === Role.GP || userData?.role === Role.C) && (
                 <NavLink
                     isSelected={isSelected("/dashboard/users/")}
                     isMobile={isMobile}
@@ -163,7 +163,8 @@ export default function Navbar() {
                                                     Materiais Institucionais
                                                 </NavLink>
 
-                                                {userData?.role === Role.GP && (
+                                                {(userData?.role === Role.GP ||
+                                                    userData?.role === Role.C) && (
                                                     <NavLink
                                                         isSelected={isSelected("/dashboard/users/")}
                                                         variant="light"

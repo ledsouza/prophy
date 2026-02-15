@@ -39,3 +39,15 @@ def test_summary_returns_units_for_gu_user():
     assert "units" in response.data
     unit_ids = {unit["id"] for unit in response.data["units"]}
     assert unit_ids == {unit_a.id, unit_b.id}
+
+
+@pytest.mark.django_db
+def test_commercial_cannot_view_disallowed_user_associations():
+    api_client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    user = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
+
+    api_client.force_authenticate(user=commercial)
+    response = api_client.get(f"/api/users/manage/{user.id}/associations/")
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
