@@ -10,6 +10,7 @@ export const REPORT_STATUS_OPTIONS: SelectData[] = [
     { id: 2, value: "Vence em breve" },
     { id: 3, value: "Em dia" },
     { id: 4, value: "Arquivado" },
+    { id: 5, value: "Sem vencimento" },
 ];
 
 /**
@@ -28,6 +29,8 @@ export const getReportStatusFromOptionId = (id: number): ReportStatus | undefine
             return "ok";
         case 4:
             return "archived";
+        case 5:
+            return "no_due_date";
         default:
             return undefined;
     }
@@ -49,6 +52,8 @@ export const getReportStatusOptionIdFromValue = (value: string | null | undefine
             return 3;
         case "archived":
             return 4;
+        case "no_due_date":
+            return 5;
         default:
             return 0;
     }
@@ -72,6 +77,8 @@ export const getReportStatusDisplay = (status: ReportStatus): { text: string; co
             return { text: "Em dia", color: "text-success bg-success/10" };
         case "archived":
             return { text: "Arquivado", color: "text-gray-secondary bg-gray-100" };
+        case "no_due_date":
+            return { text: "Sem vencimento", color: "text-gray-secondary bg-gray-100" };
         default:
             return { text: "Desconhecido", color: "text-gray-secondary bg-gray-100" };
     }

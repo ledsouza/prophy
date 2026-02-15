@@ -93,3 +93,34 @@ def test_report_create_auto_archives_only_matching_entity_and_type():
 
     report_other_unit.refresh_from_db()
     assert report_other_unit.is_deleted is False
+
+
+@pytest.mark.django_db
+def test_report_create_does_not_auto_archive_for_no_due_date_types():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    unit = UnitFactory()
+
+    report_a = Report.objects.create(
+        unit=unit,
+        report_type=Report.ReportType.OTHERS,
+        completion_date=date(2020, 1, 1),
+        file=_pdf_file_payload(),
+    )
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.post(
+        "/api/reports/",
+        {
+            "completion_date": date(2021, 1, 1).isoformat(),
+            "report_type": Report.ReportType.OTHERS,
+            "unit": unit.id,
+            "file": _pdf_file_payload(),
+        },
+        format="multipart",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+    report_a.refresh_from_db()
+    assert report_a.is_deleted is False

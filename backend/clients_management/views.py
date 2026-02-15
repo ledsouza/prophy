@@ -2281,7 +2281,8 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 description=(
-                    "Filter by derived status. Options: overdue, due_soon, ok, archived."
+                    "Filter by derived status. Options: overdue, due_soon, ok, "
+                    "archived, no_due_date."
                 ),
             ),
         ],
@@ -2553,6 +2554,12 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             queryset = queryset.filter(
                 deleted_at__isnull=True,
                 due_date__gt=today + timedelta(days=30),
+            )
+        elif status_param == "no_due_date":
+            queryset = queryset.filter(
+                deleted_at__isnull=True,
+                due_date__isnull=True,
+                report_type__in=Report.NO_DUE_DATE_TYPES,
             )
 
         # Backwards-compatible filter

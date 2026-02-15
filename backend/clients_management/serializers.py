@@ -240,16 +240,17 @@ class ReportSerializer(serializers.ModelSerializer):
                 unit = validated_data.get("unit")
                 equipment = validated_data.get("equipment")
 
-                existing_reports = Report.all_objects.active().filter(
-                    report_type=report_type,
-                )
-                if unit is not None:
-                    existing_reports = existing_reports.filter(unit=unit)
-                if equipment is not None:
-                    existing_reports = existing_reports.filter(equipment=equipment)
+                if report_type not in Report.NO_DUE_DATE_TYPES:
+                    existing_reports = Report.all_objects.active().filter(
+                        report_type=report_type,
+                    )
+                    if unit is not None:
+                        existing_reports = existing_reports.filter(unit=unit)
+                    if equipment is not None:
+                        existing_reports = existing_reports.filter(equipment=equipment)
 
-                if deleted_by is not None:
-                    existing_reports.soft_delete(deleted_by=deleted_by)
+                    if deleted_by is not None:
+                        existing_reports.soft_delete(deleted_by=deleted_by)
 
                 return super().create(validated_data)
             except ValidationError as exc:
@@ -274,6 +275,9 @@ class ReportSerializer(serializers.ModelSerializer):
         """Derive report status from due_date."""
         if obj.is_deleted:
             return "archived"
+
+        if obj.report_type in Report.NO_DUE_DATE_TYPES:
+            return "no_due_date"
 
         if not obj.due_date:
             return "unknown"

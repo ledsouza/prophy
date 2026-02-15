@@ -735,6 +735,13 @@ class Report(models.Model):
         ReportType.OTHERS,
     ]
 
+    NO_DUE_DATE_TYPES = [
+        ReportType.DESIGNATION_ACT,
+        ReportType.DOSE_INVESTIGATION,
+        ReportType.POP,
+        ReportType.OTHERS,
+    ]
+
     completion_date = models.DateField("Data realizado")
     due_date = models.DateField("Data de vencimento", blank=True, null=True)
     file = models.FileField("Arquivo", upload_to="reports/")
@@ -826,7 +833,9 @@ class Report(models.Model):
         Calculates the due date automatically before saving based on completion date
         and report type.
         """
-        if self.completion_date and not self.due_date:
+        if self.report_type in self.NO_DUE_DATE_TYPES:
+            self.due_date = None
+        elif self.completion_date and not self.due_date:
             if self.report_type == self.ReportType.RADIOMETRIC_SURVEY:
                 self.due_date = self.completion_date + timedelta(days=4 * 365)
             else:

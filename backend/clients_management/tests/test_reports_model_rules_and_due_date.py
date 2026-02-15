@@ -3,9 +3,9 @@ from datetime import date, timedelta
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from tests.factories import EquipmentFactory, UnitFactory
 
 from clients_management.models import Report
-from tests.factories import EquipmentFactory, UnitFactory
 
 
 def _pdf_file(name: str = "report.pdf") -> SimpleUploadedFile:
@@ -99,3 +99,27 @@ def test_report_save_due_date_is_1_year_for_other_types():
     )
 
     assert report.due_date == completion_date + timedelta(days=365)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "report_type",
+    [
+        Report.ReportType.DESIGNATION_ACT,
+        Report.ReportType.DOSE_INVESTIGATION,
+        Report.ReportType.POP,
+        Report.ReportType.OTHERS,
+    ],
+)
+def test_report_save_no_due_date_for_exception_types(report_type):
+    unit = UnitFactory()
+    completion_date = date(2020, 1, 1)
+
+    report = Report.objects.create(
+        unit=unit,
+        completion_date=completion_date,
+        report_type=report_type,
+        file=_pdf_file(),
+    )
+
+    assert report.due_date is None

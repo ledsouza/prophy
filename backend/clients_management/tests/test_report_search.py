@@ -417,6 +417,32 @@ def test_filter_by_archived_status_returns_only_archived_reports(
 
 
 @pytest.mark.django_db
+def test_filter_by_no_due_date_status_returns_only_no_due_date_reports(
+    api_client,
+    prophy_manager,
+    client_with_reports,
+):
+    api_client.force_authenticate(user=prophy_manager)
+
+    client = Client.objects.get(name="Hospital Test")
+    unit = Unit.objects.get(client=client)
+
+    Report.objects.create(
+        unit=unit,
+        completion_date=date.today(),
+        report_type=Report.ReportType.OTHERS,
+        file="reports/no_due_date.pdf",
+    )
+
+    url = reverse("reports-list")
+    response = api_client.get(url, {"status": "no_due_date"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 1
+    assert response.data["results"][0]["status"] == "no_due_date"
+
+
+@pytest.mark.django_db
 class TestReportResponsibleCpfFiltering:
     def test_filter_by_responsible_cpf_returns_only_linked_reports(
         self,
