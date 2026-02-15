@@ -94,3 +94,25 @@ def test_commercial_cannot_manage_disallowed_client_association():
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert not Client.objects.filter(id=client.id, users=user).exists()
+
+
+@pytest.mark.django_db
+def test_cannot_assign_second_client_general_manager():
+    api_client = APIClient()
+    gp = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    current_manager = UserFactory(role=UserAccount.Role.CLIENT_GENERAL_MANAGER)
+    next_manager = UserFactory(role=UserAccount.Role.CLIENT_GENERAL_MANAGER)
+    client = ClientFactory(users=[current_manager])
+
+    api_client.force_authenticate(user=gp)
+    response = api_client.post(
+        f"/api/clients/{client.id}/users/",
+        {"user_id": next_manager.id},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert response.data["current_client_general_manager"]["id"] == current_manager.id
+    assert (
+        response.data["current_client_general_manager"]["name"] == current_manager.name
+    )

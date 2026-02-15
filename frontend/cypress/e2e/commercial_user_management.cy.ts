@@ -22,9 +22,13 @@ describe("commercial - user management", () => {
         cy.getByCy("gp-users-create-modal").should("exist");
 
         cy.getByCy("gp-users-create-role").click();
-        cy.contains("Gerente Geral de Cliente").should("exist");
-        cy.contains("Gerente de Unidade").should("exist");
-        cy.contains("Gerente Prophy").should("not.exist");
+        cy.getByCy("gp-users-create-role-options")
+            .contains("Gerente Geral de Cliente")
+            .should("exist");
+        cy.getByCy("gp-users-create-role-options").contains("Gerente de Unidade").should("exist");
+        cy.getByCy("gp-users-create-role-options").contains("Gerente Prophy").should("not.exist");
+
+        cy.get("body").type("{esc}");
 
         const cpf = generate();
 
@@ -34,7 +38,8 @@ describe("commercial - user management", () => {
         cy.getByCy("gp-users-create-phone").type("11999999999");
 
         cy.getByCy("gp-users-create-role").click();
-        cy.contains("Gerente Geral de Cliente").click();
+        cy.getByCy("gp-users-create-role-options").contains("Gerente Geral de Cliente").click();
+        cy.get("body").type("{esc}");
         cy.getByCy("gp-users-create-submit").click();
 
         cy.wait("@createManagedUser");

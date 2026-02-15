@@ -45,6 +45,24 @@ class ClientUserAssociationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
+            existing_manager = client.users.filter(
+                role=UserAccount.Role.CLIENT_GENERAL_MANAGER
+            ).first()
+            if existing_manager and existing_manager.id != user.id:
+                return Response(
+                    {
+                        "detail": (
+                            "Client already has a client general manager assigned."
+                        ),
+                        "current_client_general_manager": {
+                            "id": existing_manager.id,
+                            "name": existing_manager.name,
+                        },
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
         if client.users.filter(id=user.id).exists():
             return Response(status=status.HTTP_204_NO_CONTENT)
 

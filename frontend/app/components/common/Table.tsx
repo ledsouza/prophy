@@ -108,7 +108,7 @@ const Table = <T extends {}>({
                                     key={column.header}
                                     className={clsx(
                                         "px-4 py-3 text-left text-sm font-bold text-gray-700",
-                                        column.width && "truncate"
+                                        column.width && "truncate",
                                     )}
                                     style={column.width ? { width: column.width } : undefined}
                                 >
@@ -128,7 +128,7 @@ const Table = <T extends {}>({
                                         className={clsx(
                                             "hover:bg-light transition-colors duration-150",
                                             rowClassName && rowClassName(row),
-                                            extraRowProps?.className
+                                            extraRowProps?.className,
                                         )}
                                         {...extraRowProps}
                                     >
@@ -139,7 +139,7 @@ const Table = <T extends {}>({
                                                     "px-4 py-3 text-sm text-gray-900",
                                                     column.width && !column.multiLine && "truncate",
                                                     column.multiLine &&
-                                                        "whitespace-pre-wrap break-words"
+                                                        "whitespace-pre-wrap wrap-break-word",
                                                 )}
                                                 style={
                                                     column.width
@@ -152,7 +152,7 @@ const Table = <T extends {}>({
                                         ))}
                                     </tr>
                                 );
-                            })()
+                            })(),
                         )}
                     </tbody>
                 </table>
@@ -168,8 +168,8 @@ const Table = <T extends {}>({
                             <div
                                 className={clsx(
                                     "absolute top-0 right-0 bottom-0 w-8",
-                                    "bg-gradient-to-l from-white via-white/80 to-transparent",
-                                    "pointer-events-none z-10"
+                                    "bg-linear-to-l from-white via-white/80 to-transparent",
+                                    "pointer-events-none z-10",
                                 )}
                             />
 
@@ -177,14 +177,14 @@ const Table = <T extends {}>({
                             <div
                                 className={clsx(
                                     "absolute top-1/2 right-2 transform -translate-y-1/2 z-20",
-                                    "cursor-pointer hover:scale-110 active:scale-95 transition-transform"
+                                    "cursor-pointer hover:scale-110 active:scale-95 transition-transform",
                                 )}
                                 onClick={scrollRight}
                             >
                                 <div
                                     className={clsx(
                                         "bg-primary text-white rounded-full p-1 shadow-md",
-                                        "hover:bg-secondary"
+                                        "hover:bg-secondary",
                                     )}
                                 >
                                     <CaretRightIcon size={16} weight="bold" />
@@ -200,8 +200,8 @@ const Table = <T extends {}>({
                             <div
                                 className={clsx(
                                     "absolute top-0 left-0 bottom-0 w-8",
-                                    "bg-gradient-to-r from-white via-white/80 to-transparent",
-                                    "pointer-events-none z-10"
+                                    "bg-linear-to-l from-white via-white/80 to-transparent",
+                                    "pointer-events-none z-10",
                                 )}
                             />
 
@@ -209,14 +209,14 @@ const Table = <T extends {}>({
                             <div
                                 className={clsx(
                                     "absolute top-1/2 left-2 transform -translate-y-1/2 z-20",
-                                    "cursor-pointer hover:scale-110 active:scale-95 transition-transform"
+                                    "cursor-pointer hover:scale-110 active:scale-95 transition-transform",
                                 )}
                                 onClick={scrollLeft}
                             >
                                 <div
                                     className={clsx(
                                         "bg-primary text-white rounded-full p-1 shadow-md",
-                                        "hover:bg-secondary"
+                                        "hover:bg-secondary",
                                     )}
                                 >
                                     <CaretLeftIcon size={16} weight="bold" />

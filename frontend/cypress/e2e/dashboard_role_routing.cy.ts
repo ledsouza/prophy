@@ -16,7 +16,7 @@ describe("dashboard routing", () => {
                 .should("have.attr", "data-cy-role")
                 .and("match", /^(GP|GGC|GU|C|FMI|FME)$/);
 
-            if (user === "admin_user") {
+            if (user === "admin_user" || user === "comercial_user") {
                 cy.getByCy("gp-users-nav").should("exist");
             } else {
                 cy.getByCy("gp-users-nav").should("not.exist");

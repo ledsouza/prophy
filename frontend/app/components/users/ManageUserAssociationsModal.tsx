@@ -133,25 +133,6 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
             toast.success("Unidade atribuída com sucesso.");
             setSelectedUnit(null);
         } catch (error) {
-            const conflictMessage =
-                error &&
-                typeof error === "object" &&
-                "status" in error &&
-                error.status === 409 &&
-                "data" in error &&
-                typeof error.data === "object" &&
-                error.data &&
-                "current_unit_manager" in error.data
-                    ? (error.data as { current_unit_manager?: { name?: string } })
-                          .current_unit_manager?.name
-                    : null;
-
-            if (conflictMessage) {
-                toast.warn(
-                    `Esta unidade já possui gerente: ${conflictMessage}. Remova primeiro para associar outro.`,
-                );
-                return;
-            }
             handleApiError(error, "Assign unit manager");
         }
     };

@@ -147,6 +147,32 @@ export function getStatusErrorMessage(status: number): string {
     }
 }
 
+const conflictToastMessage = (name: string) =>
+    `Este cliente já possui responsável: ${name}. Remova primeiro para associar outro.`;
+
+function getConflictName(error: unknown): string | null {
+    if (!hasFieldErrors(error)) {
+        return null;
+    }
+
+    const data = (error as ErrorWithFieldErrors).data;
+    if (!data || typeof data !== "object") {
+        return null;
+    }
+
+    for (const value of Object.values(data)) {
+        if (typeof value !== "object" || value === null) {
+            continue;
+        }
+
+        if ("name" in value && typeof (value as { name?: unknown }).name === "string") {
+            return (value as { name: string }).name;
+        }
+    }
+
+    return null;
+}
+
 import { toast } from "react-toastify";
 
 /**
@@ -168,6 +194,14 @@ export function handleApiError(error: unknown, contextMessage: string = "API Err
         if (fieldMessage) {
             toast.error(fieldMessage);
             return;
+        }
+
+        if (status === 409) {
+            const conflictName = getConflictName(error);
+            if (conflictName) {
+                toast.warn(conflictToastMessage(conflictName));
+                return;
+            }
         }
 
         const extracted = getErrorMessage(error);
