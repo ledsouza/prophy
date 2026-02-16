@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 
 import { Button, Modal, Spinner } from "@/components/common";
 import ComboBox, { ComboboxDataProps } from "@/components/forms/ComboBox";
+import Select, { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
 import Role from "@/enums/Role";
 import { useListAllClientsQuery } from "@/redux/features/clientApiSlice";
@@ -31,7 +32,7 @@ type Props = {
 
 const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
     const [selectedClient, setSelectedClient] = useState<ComboboxDataProps | null>(null);
-    const [selectedUnit, setSelectedUnit] = useState<ComboboxDataProps | null>(null);
+    const [selectedUnit, setSelectedUnit] = useState<SelectData | null>(null);
 
     const userId = user?.id ?? null;
     const isGuUser = user?.role === Role.GU;
@@ -44,7 +45,7 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
     );
 
     const { data: allClients, isLoading: isClientsLoading } = useListAllClientsQuery(undefined, {
-        skip: !isOpen || !userId || isGuUser,
+        skip: !isOpen || !userId,
     });
 
     const { data: allUnits, isLoading: isUnitsLoading } = useListAllUnitsQuery(undefined, {
@@ -65,14 +66,26 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
         [allClients],
     );
 
-    const unitOptions = useMemo<ComboboxDataProps[]>(
-        () =>
-            (allUnits ?? []).map((unit) => ({
+    const filteredUnitOptions = useMemo<SelectData[]>(() => {
+        if (!selectedClient) {
+            return [];
+        }
+
+        return (allUnits ?? [])
+            .filter((unit) => unit.client === selectedClient.id)
+            .map((unit) => ({
                 id: unit.id,
-                name: unit.name,
-            })),
-        [allUnits],
-    );
+                value: unit.name,
+            }));
+    }, [allUnits, selectedClient]);
+
+    const unitClientMap = useMemo(() => {
+        return new Map((allUnits ?? []).map((unit) => [unit.id, unit.client]));
+    }, [allUnits]);
+
+    const clientNameMap = useMemo(() => {
+        return new Map((allClients ?? []).map((client) => [client.id, client.name]));
+    }, [allClients]);
 
     const hasClients = (
         value: UserAssociationsResponse | undefined,
@@ -91,6 +104,11 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
         setSelectedClient(null);
         setSelectedUnit(null);
         onClose(false);
+    };
+
+    const handleClientChange = (client: ComboboxDataProps | null) => {
+        setSelectedClient(client);
+        setSelectedUnit(null);
     };
 
     const handleAddClient = async () => {
@@ -152,7 +170,7 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
     };
 
     const isLoading =
-        isAssociationsLoading || (isGuUser ? isUnitsLoading : isClientsLoading) || !user;
+        isAssociationsLoading || isClientsLoading || (isGuUser && isUnitsLoading) || !user;
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose} className="max-w-2xl mx-6 p-6">
@@ -172,15 +190,39 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
                     <div className="space-y-6">
                         <div className="space-y-3">
                             {isGuUser ? (
-                                <ComboBox
-                                    data={unitOptions}
-                                    selectedValue={selectedUnit}
-                                    onChange={setSelectedUnit}
-                                    placeholder="Digite o nome da unidade"
-                                    dataCy="gp-users-associations-unit-combobox"
-                                >
-                                    Unidade
-                                </ComboBox>
+                                <>
+                                    <ComboBox
+                                        data={clientOptions}
+                                        selectedValue={selectedClient}
+                                        onChange={handleClientChange}
+                                        placeholder="Digite o nome do cliente"
+                                        dataCy="gp-users-associations-client-combobox"
+                                    >
+                                        Cliente
+                                    </ComboBox>
+
+                                    <Select
+                                        options={filteredUnitOptions}
+                                        selectedData={selectedUnit}
+                                        setSelect={setSelectedUnit}
+                                        label="Unidade"
+                                        placeholder="Selecione a unidade"
+                                        disabled={!selectedClient}
+                                        dataCy="gp-users-associations-unit-select"
+                                        listBoxButtonSize="md"
+                                        listOptionSize="md"
+                                    />
+
+                                    {selectedClient && filteredUnitOptions.length === 0 && (
+                                        <Typography
+                                            element="p"
+                                            size="sm"
+                                            className="text-gray-secondary"
+                                        >
+                                            Nenhuma unidade encontrada para este cliente.
+                                        </Typography>
+                                    )}
+                                </>
                             ) : (
                                 <ComboBox
                                     data={clientOptions}
@@ -198,7 +240,7 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
                                 onClick={isGuUser ? handleAssignUnit : handleAddClient}
                                 disabled={
                                     isGuUser
-                                        ? !selectedUnit || isSubmitting
+                                        ? !selectedClient || !selectedUnit || isSubmitting
                                         : !selectedClient || isSubmitting
                                 }
                                 dataCy={
@@ -228,9 +270,24 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
                                                 key={association.id}
                                                 className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2"
                                             >
-                                                <Typography element="p" size="sm">
-                                                    {association.name}
-                                                </Typography>
+                                                <div className="flex flex-col">
+                                                    <Typography element="p" size="sm">
+                                                        {association.name}
+                                                    </Typography>
+                                                    {isGuUser && (
+                                                        <Typography
+                                                            element="p"
+                                                            size="sm"
+                                                            className="text-gray-secondary"
+                                                        >
+                                                            Cliente:{" "}
+                                                            {clientNameMap.get(
+                                                                unitClientMap.get(association.id) ??
+                                                                    -1,
+                                                            ) ?? "Cliente não identificado"}
+                                                        </Typography>
+                                                    )}
+                                                </div>
                                                 <Button
                                                     type="button"
                                                     variant="danger"
