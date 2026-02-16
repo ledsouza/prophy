@@ -747,7 +747,7 @@ class Report(models.Model):
     file = models.FileField("Arquivo", upload_to="reports/")
     unit = models.ForeignKey(
         Unit,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="reports",
         blank=True,
         null=True,
@@ -755,7 +755,7 @@ class Report(models.Model):
     )
     equipment = models.ForeignKey(
         Equipment,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="reports",
         blank=True,
         null=True,

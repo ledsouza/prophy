@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "anymail",
     "users",
-    "clients_management",
+    "clients_management.apps.GestaoClientesConfig",
     "requisitions",
     "materials",
 ]
