@@ -462,13 +462,13 @@ function SearchPage() {
 
     return (
         <main className="flex flex-col gap-6 px-4 md:px-6 lg:px-8 py-4">
-            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8">
                 <Typography element="h1" size="title2" className="font-bold mb-6">
                     Buscar
                 </Typography>
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
-                    <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
+                    <TabList className="-mx-1 flex flex-col gap-2 rounded-xl bg-gray-100 p-2 sm:mx-0 sm:flex-row sm:gap-0 sm:space-x-1 sm:p-1 mb-6">
                         <div className="flex-1" data-cy="search-tab-clients">
                             <Tab>Clientes</Tab>
                         </div>
@@ -558,7 +558,7 @@ function SearchPage() {
                                                     className="text-WarningIcon cursor-help"
                                                     weight="fill"
                                                 />
-                                                <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded-lg bg-gray-800 px-3 py-2 text-sm text-white opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100 z-10">
+                                                <div className="absolute bottom-full left-1/2 mb-2 w-56 -translate-x-1/2 transform rounded-lg bg-gray-800 px-3 py-2 text-center text-xs text-white opacity-0 transition-opacity duration-200 pointer-events-none group-hover:opacity-100 z-10 sm:w-auto sm:text-sm">
                                                     Existem operações pendentes de revisão no
                                                     sistema
                                                     <div className="absolute left-1/2 top-full h-0 w-0 -translate-x-1/2 transform border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
@@ -607,7 +607,10 @@ function SearchPage() {
                             </div>
 
                             {/* Client Results Section */}
-                            <div className="bg-gray-50 rounded-xl p-6" data-cy="clients-results">
+                            <div
+                                className="bg-gray-50 rounded-xl p-4 sm:p-6"
+                                data-cy="clients-results"
+                            >
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
@@ -914,7 +917,10 @@ function SearchPage() {
                             </div>
 
                             {/* Equipment Results Section */}
-                            <div className="bg-gray-50 rounded-xl p-6" data-cy="equipments-results">
+                            <div
+                                className="bg-gray-50 rounded-xl p-4 sm:p-6"
+                                data-cy="equipments-results"
+                            >
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>

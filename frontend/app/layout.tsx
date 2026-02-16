@@ -4,7 +4,7 @@ import "@/../styles/globals.css";
 
 import Provider from "@/redux/Provider";
 
-import { NavBar } from "@/components/common";
+import { Footer, NavBar } from "@/components/common";
 import { Setup } from "./components/utils";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -27,9 +27,17 @@ export default function RootLayout({
         <html lang="pt-BR">
             <body className={`${inter.className} bg-light`}>
                 <Provider>
-                    <Setup />
-                    <NavBar />
-                    <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8 my-4">{children}</div>
+                    <div className="flex min-h-screen flex-col">
+                        <Setup />
+                        <NavBar />
+                        <main
+                            data-cy="app-shell"
+                            className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8 py-4"
+                        >
+                            {children}
+                        </main>
+                        <Footer />
+                    </div>
                 </Provider>
             </body>
         </html>

@@ -4,7 +4,6 @@ import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { ReactNode, useState } from "react";
 
 import { Tab } from "@/components/common";
-import { Typography } from "@/components/foundation";
 import clsx from "clsx";
 
 type TabConfig = {
@@ -57,7 +56,8 @@ type TabbedResourcePanelProps = {
  *
  * Behavior/Notes
  * - Uses Headless UI tabs for keyboard and ARIA support.
- * - Fixed-height container with flex; applies min-h-0 on the tab region to enable nested scroll areas.
+ * - Mobile-first container sizing with flex; applies min-h-0 on the tab region to enable nested
+ *   scroll areas.
  * - Each TabPanel is non-scrollable (overflow-hidden). Content rendered by tabs must provide its own
  *   scroll area (e.g., wrap lists with flex-1 overflow-y-auto) while keeping action buttons visible.
  * - initialTabId influences only the first render; the component is otherwise uncontrolled.
@@ -72,7 +72,7 @@ const TabbedResourcePanel = ({
     const initialIndex = initialTabId
         ? Math.max(
               0,
-              tabs.findIndex((t) => t.id === initialTabId)
+              tabs.findIndex((t) => t.id === initialTabId),
           )
         : 0;
     const [selectedIndex, setSelectedIndex] = useState(Math.min(initialIndex, tabs.length - 1));
@@ -84,12 +84,14 @@ const TabbedResourcePanel = ({
 
     return (
         <div
+            data-cy="tabbed-resource-panel"
             className={clsx(
                 "flex flex-col overflow-hidden",
-                "w-full md:w-2/3 h-[60vh] md:h-[80vh]",
-                "gap-4 p-6 md:p-8",
+                "w-full md:w-2/3",
+                "min-h-90 sm:min-h-105 md:min-h-140",
+                "gap-4 p-4 sm:p-6 lg:p-8",
                 "bg-white rounded-xl shadow-lg",
-                classNames.container
+                classNames.container,
             )}
         >
             <div className={clsx("flex flex-col min-h-0", "gap-4", classNames.header)}>
@@ -103,7 +105,7 @@ const TabbedResourcePanel = ({
                             "flex space-x-1",
                             "rounded-xl bg-primary/20",
                             "p-1 mb-4",
-                            classNames.tabs
+                            classNames.tabs,
                         )}
                     >
                         {tabs.map((t) => (
@@ -119,7 +121,7 @@ const TabbedResourcePanel = ({
                                             className={clsx(
                                                 "inline-flex items-center justify-center",
                                                 "rounded-full bg-primary px-2 py-0.5",
-                                                "text-xs font-semibold text-white"
+                                                "text-xs font-semibold text-white",
                                             )}
                                         >
                                             {t.badgeCount}
