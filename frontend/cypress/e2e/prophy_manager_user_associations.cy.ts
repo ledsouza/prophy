@@ -1,4 +1,15 @@
 describe("prophy manager - user associations", () => {
+    type ClientFixture = {
+        id: number;
+        name: string;
+    };
+
+    type UnitFixture = {
+        client: number;
+        name: string;
+        user: number | null;
+    };
+
     before(() => {
         cy.setupDB();
     });
@@ -91,6 +102,7 @@ describe("prophy manager - user associations", () => {
         cy.intercept("GET", "**/api/users/manage/**/associations/").as("getAssociations");
         cy.intercept("PUT", "**/api/units/*/unit-manager/").as("assignUnitManager");
         cy.intercept("GET", "**/api/units/**").as("listAllUnits");
+        cy.intercept("GET", "**/api/clients/**").as("listAllClients");
 
         cy.visit("/dashboard/users", { failOnStatusCode: false });
         cy.location("pathname").should("include", "/dashboard/users");
@@ -103,6 +115,7 @@ describe("prophy manager - user associations", () => {
             });
 
         cy.getByCy("gp-users-associations-modal").should("exist");
+        cy.wait("@listAllClients");
         cy.wait("@listAllUnits");
         cy.wait("@getAssociations");
 
@@ -120,31 +133,43 @@ describe("prophy manager - user associations", () => {
                 cy.wrap(associated as string[]).as("associatedUnits");
             });
 
-        cy.getByCy("gp-users-associations-unit-combobox-input").type("a");
-        cy.getByCy("gp-users-associations-unit-combobox-options").should("be.visible");
-        cy.get("@associatedUnits").then((associatedUnits) => {
-            const associated = Array.isArray(associatedUnits)
-                ? (associatedUnits as string[])
-                : ([] as string[]);
-            cy.getByCy("gp-users-associations-unit-combobox-options")
-                .find("[data-cy^='gp-users-associations-unit-combobox-option-']")
-                .filter((_index, option) => {
-                    const name = option.textContent?.trim() ?? "";
-                    return Boolean(name) && !associated.includes(name);
-                })
-                .first()
-                .invoke("text")
-                .then((text) => text.trim())
-                .as("selectedUnitName");
+        cy.fixture("default-clients.json").then((clientsFixture) => {
+            const typedClients = clientsFixture as Record<string, ClientFixture>;
 
-            cy.getByCy("gp-users-associations-unit-combobox-options")
-                .find("[data-cy^='gp-users-associations-unit-combobox-option-']")
-                .filter((_index, option) => {
-                    const name = option.textContent?.trim() ?? "";
-                    return Boolean(name) && !associated.includes(name);
-                })
-                .first()
-                .click();
+            cy.fixture("default-units.json").then((unitsFixture) => {
+                const typedUnits = unitsFixture as Record<string, UnitFixture>;
+                const clientWithUnits = typedClients.client1;
+                const availableUnits = Object.values(typedUnits).filter((unit) => {
+                    return unit.client === clientWithUnits.id && unit.user === null;
+                });
+
+                if (!availableUnits.length) {
+                    throw new Error("No available units without manager in fixtures");
+                }
+
+                const selectedUnit = availableUnits[0];
+                const selectedClientName = String(clientWithUnits.name);
+                const selectedUnitName = String(selectedUnit.name);
+
+                cy.wrap(selectedClientName).as("selectedClientName");
+                cy.wrap(selectedUnitName).as("selectedUnitName");
+
+                cy.getByCy("gp-users-associations-client-combobox-input").type(selectedClientName);
+                cy.getByCy("gp-users-associations-client-combobox-options").should("be.visible");
+                cy.getByCy("gp-users-associations-client-combobox-options")
+                    .contains(
+                        "[data-cy^='gp-users-associations-client-combobox-option-']",
+                        selectedClientName,
+                    )
+                    .click();
+
+                cy.getByCy("gp-users-associations-unit-select").find("button").click();
+                cy.getByCy("gp-users-associations-unit-select-options").should("be.visible");
+                cy.getByCy("gp-users-associations-unit-select-options")
+                    .find("[role='option']")
+                    .contains(selectedUnitName)
+                    .click();
+            });
         });
 
         cy.getByCy("gp-users-associations-assign").should("not.be.disabled");
@@ -156,12 +181,13 @@ describe("prophy manager - user associations", () => {
             "be.visible",
         );
 
-        cy.getByCy("gp-users-associations-unit-combobox-input").clear().type("a");
-        cy.getByCy("gp-users-associations-unit-combobox-options").should("be.visible");
+        cy.getByCy("gp-users-associations-unit-select").find("button").click();
+        cy.getByCy("gp-users-associations-unit-select-options").should("be.visible");
         cy.get("@selectedUnitName").then((unitName) => {
             const name = String(unitName);
-            cy.getByCy("gp-users-associations-unit-combobox-options")
-                .contains("[data-cy^='gp-users-associations-unit-combobox-option-']", name)
+            cy.getByCy("gp-users-associations-unit-select-options")
+                .find("[role='option']")
+                .contains(name)
                 .click();
         });
 
@@ -171,8 +197,8 @@ describe("prophy manager - user associations", () => {
             timeout: TOAST_TIMEOUT_MS,
         }).should("be.visible");
 
-        cy.getByCy("gp-users-associations-unit-combobox-input").clear().type("a");
-        cy.getByCy("gp-users-associations-unit-combobox-options").should("be.visible");
+        cy.getByCy("gp-users-associations-unit-select").find("button").click();
+        cy.getByCy("gp-users-associations-unit-select-options").should("be.visible");
         cy.get("@associatedUnits").then((associatedUnits) => {
             const associated = Array.isArray(associatedUnits)
                 ? (associatedUnits as string[])
@@ -180,11 +206,9 @@ describe("prophy manager - user associations", () => {
             const fallbackUnit = associated[0];
 
             if (fallbackUnit) {
-                cy.getByCy("gp-users-associations-unit-combobox-options")
-                    .contains(
-                        "[data-cy^='gp-users-associations-unit-combobox-option-']",
-                        fallbackUnit,
-                    )
+                cy.getByCy("gp-users-associations-unit-select-options")
+                    .find("[role='option']")
+                    .contains(fallbackUnit)
                     .click();
             }
         });
