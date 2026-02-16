@@ -614,3 +614,30 @@ class TestReportSoftDeleteEdgeCases:
 
         response = api_client.delete(url)
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+class TestReportSoftDeleteOnParentRemoval:
+    """Test soft delete behavior when Unit or Equipment is deleted."""
+
+    def test_unit_delete_soft_deletes_reports(self, report_for_unit):
+        unit = report_for_unit.unit
+        report_id = report_for_unit.id
+
+        unit.delete()
+
+        report = Report.all_objects.get(id=report_id)
+        assert report.is_deleted is True
+        assert report.deleted_by is None
+        assert report.unit is None
+
+    def test_equipment_delete_soft_deletes_reports(self, report_for_equipment):
+        equipment = report_for_equipment.equipment
+        report_id = report_for_equipment.id
+
+        equipment.delete()
+
+        report = Report.all_objects.get(id=report_id)
+        assert report.is_deleted is True
+        assert report.deleted_by is None
+        assert report.equipment is None
