@@ -44,4 +44,16 @@ describe("appointments - GP calendar view", () => {
         cy.location("search").should("include", "view=calendar");
         cy.getByCy("gp-appointments-calendar").should("be.visible");
     });
+
+    it("hides calendar view on mobile", () => {
+        cy.viewport(390, 844);
+        cy.visit("/dashboard?tab=appointments&view=calendar");
+        cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
+
+        cy.getByCy("search-tab-appointments").click();
+
+        cy.getByCy("gp-appointments-view-toggle-calendar").should("not.be.visible");
+        cy.getByCy("gp-appointments-calendar").should("not.be.visible");
+        cy.getByCy("gp-appointments-view-toggle-list").should("not.be.visible");
+    });
 });

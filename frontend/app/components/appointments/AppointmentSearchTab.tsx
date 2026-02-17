@@ -275,7 +275,7 @@ export default function AppointmentSearchTab({
                         Resultados
                     </Typography>
 
-                    <div className="flex items-center rounded-lg bg-white p-1 shadow-sm">
+                    <div className="hidden items-center rounded-lg bg-white p-1 shadow-sm sm:flex">
                         <button
                             type="button"
                             onClick={() => handleSetViewMode("list")}
@@ -311,15 +311,17 @@ export default function AppointmentSearchTab({
                 )}
 
                 {viewMode === "calendar" ? (
-                    <AppointmentsCalendar
-                        dataCyPrefix={dataCyPrefix}
-                        filters={{
-                            status: appliedFilters.status,
-                            client_name: appliedFilters.client_name,
-                            unit_city: appliedFilters.unit_city,
-                            unit_name: appliedFilters.unit_name,
-                        }}
-                    />
+                    <div className="hidden sm:block">
+                        <AppointmentsCalendar
+                            dataCyPrefix={dataCyPrefix}
+                            filters={{
+                                status: appliedFilters.status,
+                                client_name: appliedFilters.client_name,
+                                unit_city: appliedFilters.unit_city,
+                                unit_name: appliedFilters.unit_name,
+                            }}
+                        />
+                    </div>
                 ) : appointments.length === 0 && !appointmentsLoading ? (
                     <div className="text-center py-8">
                         <Typography element="p" size="lg" className="text-gray-secondary">
