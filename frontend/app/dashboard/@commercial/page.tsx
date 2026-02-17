@@ -759,19 +759,9 @@ function SearchPage() {
                                                                     client.id ? (
                                                                         <Spinner />
                                                                     ) : client.is_active ? (
-                                                                        <>
-                                                                            <XCircleIcon
-                                                                                size={16}
-                                                                            />
-                                                                            Desativar
-                                                                        </>
+                                                                        <>Desativar</>
                                                                     ) : (
-                                                                        <>
-                                                                            <CheckCircleIcon
-                                                                                size={16}
-                                                                            />
-                                                                            Ativar
-                                                                        </>
+                                                                        <>Ativar</>
                                                                     )}
                                                                 </Button>
                                                             </div>
