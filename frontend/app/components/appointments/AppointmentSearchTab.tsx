@@ -260,7 +260,7 @@ export default function AppointmentSearchTab({
                 {canCreate && (
                     <Button
                         onClick={onOpenCreateAppointment}
-                        className="flex-1 sm:flex-initial ml-auto"
+                        className="flex-1 sm:flex-initial sm:ml-auto"
                         dataCy={`${dataCyPrefix}-create-appointment`}
                         disabled={!onOpenCreateAppointment}
                     >
