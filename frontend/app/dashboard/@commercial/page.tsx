@@ -622,10 +622,7 @@ function SearchPage() {
                             </div>
 
                             {/* Client Results Section */}
-                            <div
-                                className="bg-gray-50 rounded-xl p-6"
-                                data-cy="commercial-clients-results"
-                            >
+                            <div className="results-panel p-6" data-cy="commercial-clients-results">
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
@@ -905,7 +902,7 @@ function SearchPage() {
 
                             {/* Appointment Results Section */}
                             <div
-                                className="bg-gray-50 rounded-xl p-6"
+                                className="results-panel p-6"
                                 data-cy="commercial-appointments-results"
                             >
                                 <Typography element="h2" size="title3" className="font-bold mb-4">

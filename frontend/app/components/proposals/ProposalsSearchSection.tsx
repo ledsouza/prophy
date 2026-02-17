@@ -267,7 +267,7 @@ export function ProposalsSearchSection() {
             </div>
 
             {/* Proposal Results Section */}
-            <div className="bg-gray-50 rounded-xl p-6">
+            <div className="results-panel p-6">
                 <Typography element="h2" size="title3" className="font-bold mb-4">
                     Resultados
                 </Typography>

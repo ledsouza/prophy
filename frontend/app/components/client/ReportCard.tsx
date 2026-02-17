@@ -1,36 +1,36 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import clsx from "clsx";
 import { format, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button, Modal } from "@/components/common";
-import { Input, Form } from "@/components/forms";
+import { Form, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import Role from "@/enums/Role";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
-    useUpdateReportFileMutation,
-    useLazyDownloadReportFileQuery,
-    useSoftDeleteReportMutation,
     useHardDeleteReportMutation,
+    useLazyDownloadReportFileQuery,
     useRestoreReportMutation,
+    useSoftDeleteReportMutation,
+    useUpdateReportFileMutation,
 } from "@/redux/features/reportApiSlice";
+import { reportFileSchema } from "@/schemas";
 import type { ReportDTO } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
 import { getReportStatusDisplay } from "@/types/reportStatus";
-import { reportFileSchema } from "@/schemas";
 
 import { child } from "@/utils/logger";
 import {
-    FileArrowDownIcon,
-    UploadSimpleIcon,
-    TrashIcon,
     ArrowCounterClockwiseIcon,
+    FileArrowDownIcon,
+    TrashIcon,
+    UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
@@ -102,7 +102,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
 
     const containerStyle = clsx(
         "bg-light rounded-xl shadow-sm",
-        "p-6 divide-y divide-gray-200",
+        "p-4 sm:p-6 divide-y divide-gray-200",
         "hover:ring-1 hover:ring-inset hover:ring-primary",
     );
 
@@ -201,15 +201,15 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             </div>
 
             {/* Body + Actions */}
-            <div className="flex flex-wrap items-center justify-between pt-4 gap-2">
-                <div className="flex flex-col">
-                    <Typography element="p" size="md">
+            <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-1">
+                    <Typography element="p" size="sm" className="sm:text-base">
                         Data de conclusão:{" "}
                         <Typography element="span" className="font-semibold">
                             {completionDateLabel}
                         </Typography>
                     </Typography>
-                    <Typography element="p" size="md">
+                    <Typography element="p" size="sm" className="sm:text-base">
                         Vencimento:{" "}
                         <Typography element="span" className="font-semibold">
                             {dueDateLabel}
@@ -217,11 +217,12 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                     </Typography>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                     <Button
                         variant="secondary"
                         onClick={handleDownload}
                         disabled={isDownloading}
+                        className="w-full sm:w-auto"
                         data-testid="btn-report-download"
                         aria-label="Baixar relatório"
                         title="Baixar relatório"
@@ -233,6 +234,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                         <Button
                             variant="primary"
                             onClick={() => setUpdateOpen(true)}
+                            className="w-full sm:w-auto"
                             data-testid="btn-report-update"
                             aria-label="Atualizar arquivo do relatório"
                             title="Atualizar arquivo do relatório"
@@ -245,6 +247,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                         <Button
                             variant="danger"
                             onClick={() => setSoftDeleteConfirmOpen(true)}
+                            className="w-full sm:w-auto"
                             data-testid="btn-report-soft-delete"
                             aria-label="Arquivar relatório"
                             title="Arquivar relatório"
@@ -258,6 +261,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                             <Button
                                 variant="primary"
                                 onClick={() => setRestoreConfirmOpen(true)}
+                                className="w-full sm:w-auto"
                                 data-testid="btn-report-restore"
                                 aria-label="Desarquivar relatório"
                                 title="Desarquivar relatório"
@@ -267,6 +271,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                             <Button
                                 variant="danger"
                                 onClick={() => setHardDeleteConfirmOpen(true)}
+                                className="w-full sm:w-auto"
                                 data-testid="btn-report-hard-delete"
                                 aria-label="Excluir permanentemente"
                                 title="Excluir permanentemente"

@@ -240,7 +240,7 @@ export default function AppointmentsCalendar({ dataCyPrefix, filters }: Appointm
 
     return (
         <div
-            className="prophy-calendar bg-gray-50 rounded-xl p-4"
+            className="prophy-calendar bg-bg-surface rounded-xl p-4"
             data-cy={`${dataCyPrefix}-calendar`}
         >
             {isLoading && (

@@ -120,7 +120,7 @@ const MaterialsSearchPage = () => {
     }, [currentPage, appliedFilters]);
 
     const { data, isLoading, isFetching, error } = useListMaterialsQuery(
-        Object.keys(queryArgs).length > 0 ? queryArgs : { page: currentPage }
+        Object.keys(queryArgs).length > 0 ? queryArgs : { page: currentPage },
     );
     const [triggerDownload] = useLazyDownloadMaterialFileQuery();
     const [deleteMaterial] = useDeleteMaterialMutation();
@@ -167,7 +167,7 @@ const MaterialsSearchPage = () => {
         if (urlCategory) {
             const foundCat =
                 afterVisibilityOptions.find(
-                    (o) => "code" in o && (o as any).code === urlCategory
+                    (o) => "code" in o && (o as any).code === urlCategory,
                 ) || null;
             if (foundCat) {
                 setSelectedCategory(foundCat as any);
@@ -412,7 +412,7 @@ const MaterialsSearchPage = () => {
                 </div>
 
                 {/* Results */}
-                <div className="bg-gray-50 rounded-xl p-6" data-cy="materials-results">
+                <div className="results-panel p-6" data-cy="materials-results">
                     <Typography element="h2" size="title3" className="font-bold mb-4">
                         Resultados
                     </Typography>
@@ -571,7 +571,7 @@ const MaterialsSearchPage = () => {
                                         {totalCount > 0 &&
                                             `Mostrando ${Math.min(
                                                 (currentPage - 1) * ITEMS_PER_PAGE + 1,
-                                                totalCount
+                                                totalCount,
                                             )}-${Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} de ${totalCount} material(is)`}
                                         {totalCount === 0 && "Nenhum material encontrado"}
                                     </Typography>
@@ -723,7 +723,7 @@ const MaterialsSearchPage = () => {
                                                             variant="secondary"
                                                             onClick={() => addUserId(u.id)}
                                                             disabled={selectedUserIds.includes(
-                                                                u.id
+                                                                u.id,
                                                             )}
                                                             className="text-xs"
                                                         >
@@ -734,7 +734,7 @@ const MaterialsSearchPage = () => {
                                                     </div>
                                                 ))}
                                             {(cpfResults?.results ?? []).filter(
-                                                (u: UserDTO) => u.role === Role.FME
+                                                (u: UserDTO) => u.role === Role.FME,
                                             ).length === 0 && (
                                                 <Typography
                                                     element="p"

@@ -43,7 +43,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
     const [deleteEquipmentOperation] = useDeleteEquipmentOperationMutation();
 
     const containerStyle = cn(
-        "bg-light rounded-xl shadow-sm p-6 divide-y divide-gray-200 hover:ring-1 hover:ring-inset hover:ring-primary",
+        "bg-light rounded-xl shadow-sm p-4 sm:p-6 divide-y divide-gray-200 hover:ring-1 hover:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
             "animate-danger": isRejected && !isStaff,
@@ -154,20 +154,20 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
 
     return (
         <div className={containerStyle} data-testid={dataTestId}>
-            <div className="flex justify-between pb-4">
-                <div className="flex flex-col">
+            <div className="flex flex-col gap-4 pb-4 sm:flex-row sm:justify-between">
+                <div className="flex flex-col gap-2">
                     <Typography element="h3" size="title3">
                         {equipment.model}
                     </Typography>
-                    <Typography element="p" size="lg">
+                    <Typography element="p" size="sm" variant="secondary">
                         {equipment.manufacturer}
                     </Typography>
-                    <Typography dataTestId="equipments-counts">
+                    <Typography element="p" size="sm" variant="secondary">
                         {equipment.modality.name}
                     </Typography>
                 </div>
-                <div className="flex flex-col gap-2">
-                    <Typography element="h3" size="lg" className="text-right">
+                <div className="flex flex-col gap-2 sm:items-end">
+                    <Typography element="h3" size="lg" className="sm:text-right">
                         Situação
                     </Typography>
 
@@ -175,7 +175,7 @@ function EquipmentCard({ equipment, equipmentOperation, dataTestId }: EquipmentC
                 </div>
             </div>
 
-            <div className="flex gap-10 justify-between pt-4">
+            <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <CardButtons
                     entity={equipment}
                     operation={equipmentOperation}

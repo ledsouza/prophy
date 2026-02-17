@@ -40,16 +40,18 @@ import {
     CheckCircleIcon,
     FileArrowDownIcon,
     MonitorPlayIcon,
+    PhoneCallIcon,
+    UserCircleIcon,
     UsersIcon,
 } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
-const statusColorClass: Record<AppointmentStatus, string> = {
-    [AppointmentStatus.PENDING]: "text-warning",
-    [AppointmentStatus.RESCHEDULED]: "text-warning",
-    [AppointmentStatus.CONFIRMED]: "text-success",
-    [AppointmentStatus.FULFILLED]: "text-success",
-    [AppointmentStatus.UNFULFILLED]: "text-danger",
+const statusBadgeClass: Record<AppointmentStatus, string> = {
+    [AppointmentStatus.PENDING]: "bg-warning/20 text-warning",
+    [AppointmentStatus.RESCHEDULED]: "bg-warning/20 text-warning",
+    [AppointmentStatus.CONFIRMED]: "bg-success/20 text-success",
+    [AppointmentStatus.FULFILLED]: "bg-success/20 text-success",
+    [AppointmentStatus.UNFULFILLED]: "bg-danger/20 text-danger",
 };
 
 type AppointmentCardProps = {
@@ -265,7 +267,8 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         );
 
     const containerStyle = clsx(
-        "p-6 divide-y divide-gray-200",
+        "bg-light rounded-xl shadow-sm",
+        "p-4 sm:p-6 divide-y divide-gray-200",
         "hover:ring-1 hover:ring-inset hover:ring-primary",
     );
 
@@ -275,70 +278,52 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             data-testid={dataTestId || `appointment-card-${appointment.id}`}
             data-cy={`appointment-card-${appointment.id}`}
         >
-            <div className="flex justify-between pb-4">
-                {/* date and contact info */}
-                <div className="flex flex-col">
+            <div className="flex flex-col gap-4 pb-4">
+                <div className="flex items-start justify-between gap-3">
                     <Typography element="h3" size="title3">
                         {dateLabel}
                     </Typography>
+                    <span
+                        className={clsx(
+                            "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold",
+                            statusBadgeClass[appointment.status],
+                        )}
+                        data-testid="appointment-status-badge"
+                    >
+                        {appointmentStatusLabel[appointment.status]}
+                    </span>
+                </div>
 
-                    <div className="mt-1 text-left">
-                        <Typography element="p" size="sm">
-                            Contato:
-                        </Typography>
-                        <Typography element="p" size="md">
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                        <UserCircleIcon size={18} weight="duotone" />
+                        <Typography element="p" size="md" className="font-semibold">
                             {appointment.contact_name}
                         </Typography>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <PhoneCallIcon size={18} weight="duotone" />
                         <Typography element="p" size="md">
                             {formatPhoneNumber(appointment.contact_phone)}
                         </Typography>
                     </div>
-
-                    <div className="mt-3 flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                         {appointmentTypeIcon}
                         <Typography element="p" size="md" className="font-medium">
                             {appointmentTypeLabel[appointment.type]}
                         </Typography>
                     </div>
                 </div>
-
-                {/* label and status */}
-                <div className="flex flex-col gap-2 items-end">
-                    <Typography element="h3" size="lg" className="text-right">
-                        Situação
-                    </Typography>
-                    <Typography
-                        element="p"
-                        size="sm"
-                        className={clsx("font-medium", statusColorClass[appointment.status])}
-                        dataTestId="appointment-status"
-                    >
-                        {appointmentStatusLabel[appointment.status]}
-                    </Typography>
-                </div>
             </div>
-
             {/* Actions */}
-            <div className="flex flex-wrap items-center justify-between pt-4 gap-2">
-                <div className="flex flex-wrap gap-2">
-                    {canViewServiceOrder && (
-                        <>
-                            <Button
-                                variant="secondary"
-                                onClick={() =>
-                                    serviceOrderId
-                                        ? setDetailsOpen(true)
-                                        : toast.info("Sem ordem de serviço vinculada.")
-                                }
-                                disabled={!serviceOrderId}
-                                data-testid="btn-so-details"
-                            >
-                                Ordem de Serviço
-                            </Button>
-
+            <div className="flex flex-col gap-4 pt-4">
+                <div className="flex flex-col gap-3 sm:hidden">
+                    <div className="grid grid-cols-3 gap-2">
+                        {canViewServiceOrder && (
                             <Button
                                 variant="secondary"
                                 onClick={handleExportServiceOrder}
+                                className="h-10 w-full sm:min-h-11"
                                 disabled={!serviceOrderId || isDownloadingSO}
                                 data-testid="btn-so-export"
                                 aria-label="Exportar Ordem de Serviço"
@@ -346,38 +331,69 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                             >
                                 <FileArrowDownIcon size={20} />
                             </Button>
-                        </>
-                    )}
-                </div>
+                        )}
 
-                <div className="flex flex-wrap gap-2">
-                    {showCreateServiceOrderButton && (
+                        {showRescheduleButton && (
+                            <Button
+                                variant="primary"
+                                onClick={() => {
+                                    setScheduleOpen(true);
+                                }}
+                                className="h-10 w-full sm:min-h-11"
+                                data-testid="btn-appointment-update-schedule"
+                                aria-label="Reagendar"
+                                title={
+                                    appointment.status === AppointmentStatus.FULFILLED
+                                        ? "Agendamento já realizado; não é possível reagendar"
+                                        : "Reagendar"
+                                }
+                                disabled={isRescheduleDisabled}
+                            >
+                                <CalendarIcon size={20} />
+                            </Button>
+                        )}
+
+                        {canDeleteAppointment && (
+                            <Button
+                                variant="danger"
+                                onClick={() => {
+                                    setDeleteOpen(true);
+                                }}
+                                className="h-10 w-full sm:min-h-11"
+                                data-testid="btn-appointment-cancel-schedule"
+                                dataCy={`appointment-cancel-${appointment.id}`}
+                                disabled={isDeleting}
+                                aria-label="Cancelar agenda"
+                                title="Cancelar agenda"
+                            >
+                                <CalendarXIcon size={20} />
+                            </Button>
+                        )}
+                    </div>
+
+                    {canViewServiceOrder && (
                         <Button
-                            variant="success"
-                            onClick={() => {
-                                setSoCreateOpen(true);
-                            }}
-                            data-testid="btn-done"
-                            aria-label="Marcar como realizada"
-                            title={
-                                appointment.status === AppointmentStatus.FULFILLED
-                                    ? "Agendamento já realizado; não é possível marcar como realizado"
-                                    : appointment.status === AppointmentStatus.UNFULFILLED
-                                      ? "Agendamento não realizado; não é possível marcar como realizado"
-                                      : "Marcar como realizado"
+                            variant="secondary"
+                            onClick={() =>
+                                serviceOrderId
+                                    ? setDetailsOpen(true)
+                                    : toast.info("Sem ordem de serviço vinculada.")
                             }
-                            disabled={isCreating || isDeleting || isMarkDoneDisabled}
+                            className="min-h-10 w-full sm:min-h-11"
+                            disabled={!serviceOrderId}
+                            data-testid="btn-so-details"
                         >
-                            <CheckCircleIcon size={20} />
+                            Ordem de Serviço
                         </Button>
                     )}
 
                     {showConfirmAppointmentButton && (
                         <Button
-                            variant="secondary"
+                            variant="primary"
                             onClick={() => {
                                 setConfirmOpen(true);
                             }}
+                            className="min-h-10 w-full sm:min-h-11"
                             data-testid="btn-appointment-confirm"
                             dataCy={`appointment-confirm-${appointment.id}`}
                             aria-label="Confirmar agendamento"
@@ -387,63 +403,142 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                             Confirmar
                         </Button>
                     )}
-                    {showJustifyButton && (
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                setJustificationOpen(true);
-                            }}
-                            data-testid="btn-appointment-justify"
-                            disabled={isUpdatingAppointment || isDeleting}
-                        >
-                            Justificar
-                        </Button>
-                    )}
-                    {showJustificationViewerButton && (
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                setJustificationViewerOpen(true);
-                            }}
-                            data-testid="btn-appointment-justification-viewer"
-                        >
-                            Justificativa
-                        </Button>
-                    )}
-                    {showRescheduleButton && (
-                        <Button
-                            variant="primary"
-                            onClick={() => {
-                                setScheduleOpen(true);
-                            }}
-                            data-testid="btn-appointment-update-schedule"
-                            aria-label="Reagendar"
-                            title={
-                                appointment.status === AppointmentStatus.FULFILLED
-                                    ? "Agendamento já realizado; não é possível reagendar"
-                                    : "Reagendar"
-                            }
-                            disabled={isRescheduleDisabled}
-                        >
-                            <CalendarIcon size={20} />
-                        </Button>
-                    )}
+                </div>
 
-                    {canDeleteAppointment && (
-                        <Button
-                            variant="danger"
-                            onClick={() => {
-                                setDeleteOpen(true);
-                            }}
-                            data-testid="btn-appointment-cancel-schedule"
-                            dataCy={`appointment-cancel-${appointment.id}`}
-                            disabled={isDeleting}
-                            aria-label="Cancelar agenda"
-                            title="Cancelar agenda"
-                        >
-                            <CalendarXIcon size={20} />
-                        </Button>
-                    )}
+                <div className="hidden flex-col gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                        {canViewServiceOrder && (
+                            <>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() =>
+                                        serviceOrderId
+                                            ? setDetailsOpen(true)
+                                            : toast.info("Sem ordem de serviço vinculada.")
+                                    }
+                                    className="w-full sm:w-auto"
+                                    disabled={!serviceOrderId}
+                                    data-testid="btn-so-details"
+                                >
+                                    Ordem de Serviço
+                                </Button>
+
+                                <Button
+                                    variant="secondary"
+                                    onClick={handleExportServiceOrder}
+                                    className="w-full sm:w-auto"
+                                    disabled={!serviceOrderId || isDownloadingSO}
+                                    data-testid="btn-so-export"
+                                    aria-label="Exportar Ordem de Serviço"
+                                    title="Exportar Ordem de Serviço"
+                                >
+                                    <FileArrowDownIcon size={20} />
+                                </Button>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                        {showCreateServiceOrderButton && (
+                            <Button
+                                variant="success"
+                                onClick={() => {
+                                    setSoCreateOpen(true);
+                                }}
+                                className="w-full sm:w-auto"
+                                data-testid="btn-done"
+                                aria-label="Marcar como realizada"
+                                title={
+                                    appointment.status === AppointmentStatus.FULFILLED
+                                        ? "Agendamento já realizado; não é possível marcar como realizado"
+                                        : appointment.status === AppointmentStatus.UNFULFILLED
+                                          ? "Agendamento não realizado; não é possível marcar como realizado"
+                                          : "Marcar como realizada"
+                                }
+                                disabled={isCreating || isDeleting || isMarkDoneDisabled}
+                            >
+                                <CheckCircleIcon size={20} />
+                            </Button>
+                        )}
+
+                        {showConfirmAppointmentButton && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setConfirmOpen(true);
+                                }}
+                                className="w-full sm:w-auto"
+                                data-testid="btn-appointment-confirm"
+                                dataCy={`appointment-confirm-${appointment.id}`}
+                                aria-label="Confirmar agendamento"
+                                title="Confirmar agendamento"
+                                disabled={isUpdatingAppointment || isDeleting}
+                            >
+                                Confirmar
+                            </Button>
+                        )}
+                        {showJustifyButton && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setJustificationOpen(true);
+                                }}
+                                className="w-full sm:w-auto"
+                                data-testid="btn-appointment-justify"
+                                disabled={isUpdatingAppointment || isDeleting}
+                            >
+                                Justificar
+                            </Button>
+                        )}
+                        {showJustificationViewerButton && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setJustificationViewerOpen(true);
+                                }}
+                                className="w-full sm:w-auto"
+                                data-testid="btn-appointment-justification-viewer"
+                            >
+                                Justificativa
+                            </Button>
+                        )}
+                        {showRescheduleButton && (
+                            <Button
+                                variant="primary"
+                                onClick={() => {
+                                    setScheduleOpen(true);
+                                }}
+                                className="w-full sm:w-auto"
+                                data-testid="btn-appointment-update-schedule"
+                                aria-label="Reagendar"
+                                title={
+                                    appointment.status === AppointmentStatus.FULFILLED
+                                        ? "Agendamento já realizado; não é possível reagendar"
+                                        : "Reagendar"
+                                }
+                                disabled={isRescheduleDisabled}
+                            >
+                                <CalendarIcon size={20} />
+                            </Button>
+                        )}
+
+                        {canDeleteAppointment && (
+                            <Button
+                                variant="danger"
+                                onClick={() => {
+                                    setDeleteOpen(true);
+                                }}
+                                className="w-full sm:w-auto"
+                                data-testid="btn-appointment-cancel-schedule"
+                                dataCy={`appointment-cancel-${appointment.id}`}
+                                disabled={isDeleting}
+                                aria-label="Cancelar agenda"
+                                title="Cancelar agenda"
+                            >
+                                <CalendarXIcon size={20} />
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
 

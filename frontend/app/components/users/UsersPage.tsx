@@ -208,7 +208,7 @@ const UsersPage = () => {
                     </Button>
                 </div>
 
-                <div className="bg-gray-50 rounded-xl p-6" data-cy="gp-users-results">
+                <div className="results-panel p-6" data-cy="gp-users-results">
                     <Typography element="h2" size="title3" className="font-bold mb-4">
                         Resultados
                     </Typography>

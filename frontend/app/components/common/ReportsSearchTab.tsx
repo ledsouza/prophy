@@ -450,7 +450,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                 </Button>
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-6" data-cy="reports-results">
+            <div className="results-panel p-6" data-cy="reports-results">
                 <Typography element="h2" size="title3" className="font-bold mb-4">
                     Resultados
                 </Typography>
@@ -474,6 +474,106 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                 data={reports}
                                 columns={columns}
                                 keyExtractor={(report: ReportSearchDTO) => report.id}
+                                mobileRowRenderer={(report: ReportSearchDTO) => [
+                                    {
+                                        label: "Tipo",
+                                        value:
+                                            reportTypeLabel[report.report_type] ||
+                                            report.report_type,
+                                    },
+                                    {
+                                        label: "Cliente",
+                                        value: report.client_name || "—",
+                                    },
+                                    {
+                                        label: "Unidade",
+                                        value: report.unit_name || "—",
+                                    },
+                                    {
+                                        label: "Conclusão",
+                                        value: report.completion_date
+                                            ? format(new Date(report.completion_date), "dd/MM/yyyy")
+                                            : "—",
+                                    },
+                                    {
+                                        label: "Vencimento",
+                                        value: report.due_date
+                                            ? format(new Date(report.due_date), "dd/MM/yyyy")
+                                            : "—",
+                                    },
+                                    {
+                                        label: "Situação",
+                                        value: (
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getReportStatusDisplay(report.status).color}`}
+                                            >
+                                                {getReportStatusDisplay(report.status).text}
+                                            </span>
+                                        ),
+                                    },
+                                    ...(isGP
+                                        ? [
+                                              {
+                                                  label: "Responsável",
+                                                  value: report.responsibles_display || "—",
+                                              },
+                                          ]
+                                        : []),
+                                    {
+                                        label: "Ações",
+                                        value: (
+                                            <div className="flex flex-col gap-2">
+                                                <Button
+                                                    variant="primary"
+                                                    onClick={() => handleDownload(report.id)}
+                                                    className="w-full text-xs"
+                                                    dataCy={`report-download-${report.id}`}
+                                                >
+                                                    Baixar
+                                                </Button>
+                                                {isGP && !report.is_deleted && (
+                                                    <Button
+                                                        variant="danger"
+                                                        onClick={() => {
+                                                            setSelectedReportId(report.id);
+                                                            setSoftDeleteConfirmOpen(true);
+                                                        }}
+                                                        className="w-full text-xs"
+                                                        dataCy={`report-soft-delete-${report.id}`}
+                                                    >
+                                                        Arquivar
+                                                    </Button>
+                                                )}
+                                                {isGP && report.is_deleted && (
+                                                    <>
+                                                        <Button
+                                                            variant="secondary"
+                                                            onClick={() => {
+                                                                setSelectedReportId(report.id);
+                                                                setRestoreConfirmOpen(true);
+                                                            }}
+                                                            className="w-full text-xs"
+                                                            dataCy={`report-restore-${report.id}`}
+                                                        >
+                                                            Desarquivar
+                                                        </Button>
+                                                        <Button
+                                                            variant="danger"
+                                                            onClick={() => {
+                                                                setSelectedReportId(report.id);
+                                                                setHardDeleteConfirmOpen(true);
+                                                            }}
+                                                            className="w-full text-xs"
+                                                            dataCy={`report-hard-delete-${report.id}`}
+                                                        >
+                                                            Excluir
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        ),
+                                    },
+                                ]}
                             />
                         )}
 

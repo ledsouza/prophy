@@ -8,11 +8,11 @@ function Tab({ children, ...props }: TabProps) {
         <HeadlessTab
             {...props}
             className={({ selected }: { selected: boolean }) =>
-                `w-full rounded-lg py-2.5 px-3 text-sm font-medium leading-5 
+                `min-w-max rounded-lg px-3 py-2 text-xs font-medium leading-5 sm:min-w-0 sm:w-full sm:py-2.5 sm:text-sm 
                 ${
                     selected
                         ? "bg-white text-primary shadow"
-                        : "text-gray-700 hover:bg-white/[0.4] hover:text-primary"
+                        : "text-gray-700 hover:bg-white/40 hover:text-primary"
                 }`
             }
         >

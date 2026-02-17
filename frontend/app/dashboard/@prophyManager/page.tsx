@@ -607,10 +607,7 @@ function SearchPage() {
                             </div>
 
                             {/* Client Results Section */}
-                            <div
-                                className="bg-gray-50 rounded-xl p-4 sm:p-6"
-                                data-cy="clients-results"
-                            >
+                            <div className="results-panel p-4 sm:p-6" data-cy="clients-results">
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>
@@ -917,10 +914,7 @@ function SearchPage() {
                             </div>
 
                             {/* Equipment Results Section */}
-                            <div
-                                className="bg-gray-50 rounded-xl p-4 sm:p-6"
-                                data-cy="equipments-results"
-                            >
+                            <div className="results-panel p-4 sm:p-6" data-cy="equipments-results">
                                 <Typography element="h2" size="title3" className="font-bold mb-4">
                                     Resultados
                                 </Typography>

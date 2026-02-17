@@ -10,6 +10,7 @@
     --color-warning: rgb(var(--warning));
 
     --color-bg-light: rgb(var(--bg-light));
+    --color-bg-surface: rgb(var(--bg-surface));
     --color-light: rgb(var(--bg-light));
     --color-placeholder: rgb(var(--text-placeholder));
     --color-disabled: rgb(var(--text-disabled));
@@ -66,6 +67,7 @@
         --quaternary: 182, 197, 242;
 
         --bg-light: 255, 255, 255;
+        --bg-surface: 238, 241, 245;
 
         --text-primary: 17, 24, 39;
         --text-secondary: 92, 92, 92;
@@ -93,6 +95,10 @@
 }
 
 @layer components {
+    .results-panel {
+        @apply bg-white rounded-xl;
+    }
+
     .prophy-calendar {
         /*
             FullCalendar v6 is styled mostly via CSS variables.

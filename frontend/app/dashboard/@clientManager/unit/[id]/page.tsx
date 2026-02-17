@@ -294,7 +294,7 @@ function UnitPage() {
 
     if (selectedUnit) {
         return (
-            <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4">
+            <main className="flex flex-col md:flex-row gap-6 px-4 md:px-6 lg:px-8 py-4 min-h-0 flex-1">
                 <Button
                     variant="secondary"
                     className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"

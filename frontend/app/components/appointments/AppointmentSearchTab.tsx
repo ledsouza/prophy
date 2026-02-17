@@ -262,7 +262,7 @@ export default function AppointmentSearchTab({
                 )}
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-6" data-cy={`${dataCyPrefix}-results`}>
+            <div className="results-panel p-6" data-cy={`${dataCyPrefix}-results`}>
                 <div className="flex items-center justify-between gap-3 mb-4">
                     <Typography element="h2" size="title3" className="font-bold">
                         Resultados

@@ -1,11 +1,11 @@
 import { OperationStatus, OperationType } from "@/enums";
 import Role from "@/enums/Role";
 
+import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { EquipmentDTO, EquipmentOperationDTO } from "@/redux/features/equipmentApiSlice";
 import { UnitDTO, UnitOperationDTO } from "@/redux/features/unitApiSlice";
-import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 
-import { PencilLine, Trash } from "@phosphor-icons/react";
+import { PencilLineIcon, TrashIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
 import { isUnit } from "@/utils/type-checks";
@@ -60,7 +60,7 @@ function CardButtons({
                 </Button>
             )}
 
-            <div className="flex flex-grow justify-end gap-2">
+            <div className="flex grow flex-col gap-2 sm:flex-row sm:justify-end">
                 {status === OperationStatus.ACCEPTED && (
                     <>
                         <Button
@@ -68,7 +68,7 @@ function CardButtons({
                             onClick={onEdit}
                             data-testid="btn-edit-operation"
                         >
-                            <PencilLine size={20} />
+                            <PencilLineIcon size={20} />
                         </Button>
                         {(!isUnit(entity) || userData?.role !== Role.GU) && (
                             <Button
@@ -76,7 +76,7 @@ function CardButtons({
                                 onClick={onDelete}
                                 data-testid="btn-delete-operation"
                             >
-                                <Trash size={20} />
+                                <TrashIcon size={20} />
                             </Button>
                         )}
                     </>
@@ -88,7 +88,7 @@ function CardButtons({
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}
-                            className="w-40"
+                            className="w-full sm:w-auto"
                             data-testid="btn-cancel-operation"
                         >
                             Cancelar adição
@@ -101,7 +101,7 @@ function CardButtons({
                         <Button
                             variant="primary"
                             onClick={onReviewAdd}
-                            className="w-40"
+                            className="w-full sm:w-auto"
                             data-testid="btn-review-operation"
                         >
                             Revisar requisição
@@ -114,7 +114,7 @@ function CardButtons({
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}
-                            className="w-40"
+                            className="w-full sm:w-auto"
                             data-testid="btn-cancel-operation"
                         >
                             Cancelar alteração
@@ -127,7 +127,7 @@ function CardButtons({
                         <Button
                             variant="primary"
                             onClick={onReviewEdit}
-                            className="w-40"
+                            className="w-full sm:w-auto"
                             data-testid="btn-review-operation"
                         >
                             Revisar requisição
@@ -141,7 +141,7 @@ function CardButtons({
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}
-                            className="w-40"
+                            className="w-full sm:w-auto"
                             data-testid="btn-cancel-operation"
                         >
                             Cancelar remoção
@@ -154,7 +154,7 @@ function CardButtons({
                         <Button
                             variant="primary"
                             onClick={onReviewDelete}
-                            className="w-40"
+                            className="w-full sm:w-auto"
                             data-testid="btn-review-operation"
                         >
                             Revisar requisição
@@ -165,7 +165,7 @@ function CardButtons({
                     <Button
                         variant="danger"
                         onClick={onReject}
-                        className="w-40"
+                        className="w-full sm:w-auto"
                         data-testid="btn-reject-operation"
                     >
                         Verificar motivo
@@ -179,14 +179,14 @@ function CardButtons({
                             onClick={onEdit}
                             data-testid="btn-edit-operation"
                         >
-                            <PencilLine size={20} />
+                            <PencilLineIcon size={20} />
                         </Button>
                         <Button
                             variant="danger"
                             onClick={onDelete}
                             data-testid="btn-delete-operation"
                         >
-                            <Trash size={20} />
+                            <TrashIcon size={20} />
                         </Button>
                     </>
                 )}

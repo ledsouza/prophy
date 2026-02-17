@@ -11,10 +11,16 @@ type ColumnDefinition<T> = {
     multiLine?: boolean;
 };
 
+type TableRowField = {
+    label: string;
+    value: React.ReactNode;
+};
+
 type TableProps<T> = {
     data: T[];
     columns: ColumnDefinition<T>[];
     keyExtractor: (row: T) => string | number;
+    mobileRowRenderer?: (row: T) => TableRowField[];
     rowClassName?: (row: T) => string | undefined;
     rowProps?: (row: T) => React.HTMLAttributes<HTMLTableRowElement> & Record<string, unknown>;
 };
@@ -23,6 +29,7 @@ const Table = <T extends {}>({
     data,
     columns,
     keyExtractor,
+    mobileRowRenderer,
     rowClassName,
     rowProps,
 }: TableProps<T>) => {
@@ -96,8 +103,40 @@ const Table = <T extends {}>({
     };
 
     return (
-        <div className="relative">
-            <div ref={scrollContainerRef} className="overflow-x-auto">
+        <div className="relative max-w-full">
+            {mobileRowRenderer && (
+                <div className="flex flex-col gap-3 sm:hidden">
+                    {data.map((row) => (
+                        <div
+                            key={keyExtractor(row)}
+                            data-cy="table-mobile-card"
+                            className={clsx(
+                                "rounded-xl border border-gray-200 bg-white p-4 shadow-sm",
+                                rowClassName && rowClassName(row),
+                            )}
+                        >
+                            <div className="flex flex-col gap-3">
+                                {mobileRowRenderer(row).map((field) => (
+                                    <div key={field.label} className="flex flex-col gap-1">
+                                        <span className="text-xs font-semibold uppercase text-gray-secondary">
+                                            {field.label}
+                                        </span>
+                                        <div className="text-sm text-gray-900">{field.value}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <div
+                ref={scrollContainerRef}
+                className={clsx(
+                    "overflow-x-auto max-w-full",
+                    mobileRowRenderer && "hidden sm:block",
+                )}
+            >
                 <table
                     className={clsx("min-w-full", hasCustomWidths ? "table-fixed" : "table-auto")}
                 >
@@ -107,7 +146,7 @@ const Table = <T extends {}>({
                                 <th
                                     key={column.header}
                                     className={clsx(
-                                        "px-4 py-3 text-left text-sm font-bold text-gray-700",
+                                        "px-4 py-3 text-left text-xs sm:text-sm font-bold text-gray-700",
                                         column.width && "truncate",
                                     )}
                                     style={column.width ? { width: column.width } : undefined}
@@ -126,7 +165,7 @@ const Table = <T extends {}>({
                                     <tr
                                         key={keyExtractor(row)}
                                         className={clsx(
-                                            "hover:bg-light transition-colors duration-150",
+                                            "bg-white hover:bg-bg-surface transition-colors duration-150",
                                             rowClassName && rowClassName(row),
                                             extraRowProps?.className,
                                         )}
@@ -136,7 +175,7 @@ const Table = <T extends {}>({
                                             <td
                                                 key={column.header}
                                                 className={clsx(
-                                                    "px-4 py-3 text-sm text-gray-900",
+                                                    "px-4 py-3 text-xs sm:text-sm text-gray-900",
                                                     column.width && !column.multiLine && "truncate",
                                                     column.multiLine &&
                                                         "whitespace-pre-wrap wrap-break-word",
@@ -158,13 +197,10 @@ const Table = <T extends {}>({
                 </table>
             </div>
 
-            {/* Scroll Indicators */}
             {scrollState.isScrollable && (
                 <>
-                    {/* Right side indicators - show when can scroll right */}
                     {scrollState.canScrollRight && (
                         <>
-                            {/* Right gradient fade effect */}
                             <div
                                 className={clsx(
                                     "absolute top-0 right-0 bottom-0 w-8",
@@ -173,7 +209,6 @@ const Table = <T extends {}>({
                                 )}
                             />
 
-                            {/* Right arrow indicator */}
                             <div
                                 className={clsx(
                                     "absolute top-1/2 right-2 transform -translate-y-1/2 z-20",
@@ -193,19 +228,16 @@ const Table = <T extends {}>({
                         </>
                     )}
 
-                    {/* Left side indicators - show when can scroll left */}
                     {scrollState.canScrollLeft && (
                         <>
-                            {/* Left gradient fade effect */}
                             <div
                                 className={clsx(
                                     "absolute top-0 left-0 bottom-0 w-8",
-                                    "bg-linear-to-l from-white via-white/80 to-transparent",
+                                    "bg-linear-to-r from-white via-white/80 to-transparent",
                                     "pointer-events-none z-10",
                                 )}
                             />
 
-                            {/* Left arrow indicator */}
                             <div
                                 className={clsx(
                                     "absolute top-1/2 left-2 transform -translate-y-1/2 z-20",

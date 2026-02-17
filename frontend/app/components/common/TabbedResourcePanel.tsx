@@ -56,10 +56,10 @@ type TabbedResourcePanelProps = {
  *
  * Behavior/Notes
  * - Uses Headless UI tabs for keyboard and ARIA support.
- * - Mobile-first container sizing with flex; applies min-h-0 on the tab region to enable nested
- *   scroll areas.
- * - Each TabPanel is non-scrollable (overflow-hidden). Content rendered by tabs must provide its own
- *   scroll area (e.g., wrap lists with flex-1 overflow-y-auto) while keeping action buttons visible.
+ * - Mobile-first container sizing with flex; uses a fixed height to enable nested scroll areas.
+ * - Each TabPanel is sized to allow nested scroll areas. Content rendered by tabs must provide its
+ *   own scroll area (e.g., wrap lists with flex-1 overflow-y-auto) while keeping action buttons
+ *   visible.
  * - initialTabId influences only the first render; the component is otherwise uncontrolled.
  * - Use onTabChange to observe and react to selection changes outside this component.
  */
@@ -88,9 +88,9 @@ const TabbedResourcePanel = ({
             className={clsx(
                 "flex flex-col overflow-hidden",
                 "w-full md:w-2/3",
-                "min-h-90 sm:min-h-105 md:min-h-140",
+                "h-[60vh] md:h-[80vh]",
                 "gap-4 p-4 sm:p-6 lg:p-8",
-                "bg-white rounded-xl shadow-lg",
+                "bg-bg-surface rounded-xl shadow-lg",
                 classNames.container,
             )}
         >
@@ -102,9 +102,10 @@ const TabbedResourcePanel = ({
                 >
                     <TabList
                         className={clsx(
-                            "flex space-x-1",
+                            "flex gap-2 overflow-x-auto",
                             "rounded-xl bg-primary/20",
                             "p-1 mb-4",
+                            "sm:gap-1 sm:overflow-visible",
                             classNames.tabs,
                         )}
                     >
@@ -132,12 +133,9 @@ const TabbedResourcePanel = ({
                         ))}
                     </TabList>
 
-                    <TabPanels className={clsx("flex-1 min-h-0 overflow-hidden", classNames.body)}>
+                    <TabPanels className={clsx("flex-1 min-h-0", classNames.body)}>
                         {tabs.map((t) => (
-                            <TabPanel
-                                key={t.id}
-                                className="focus:outline-none h-full px-2 overflow-hidden"
-                            >
+                            <TabPanel key={t.id} className="focus:outline-none h-full min-h-0 px-2">
                                 {t.render()}
                             </TabPanel>
                         ))}

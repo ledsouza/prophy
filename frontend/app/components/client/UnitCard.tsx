@@ -44,7 +44,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
     const [isRejected, setIsRejected] = useState(false);
 
     const containerStyle = cn(
-        "bg-light rounded-xl shadow-sm p-6 divide-y divide-gray-200 hover:ring-1 hover:ring-inset focus:ring-inset hover:ring-primary",
+        "bg-light rounded-xl shadow-sm p-4 sm:p-6 divide-y divide-gray-200 hover:ring-1 hover:ring-inset focus:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
             "animate-danger": isRejected && !isStaff,
@@ -161,26 +161,32 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
 
     return (
         <div className={containerStyle} data-testid={dataTestId}>
-            <div className="flex justify-between gap-24 pb-4">
-                <div className="flex flex-col">
-                    <Typography element="h3" size="title3" dataTestId="unit-name">
-                        {unit.name}
-                    </Typography>
+            <div className="flex flex-col gap-4 pb-4 sm:flex-row sm:justify-between sm:gap-10">
+                <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-1">
+                        <Typography element="h3" size="title3" dataTestId="unit-name">
+                            {unit.name}
+                        </Typography>
+                        <Typography element="p" size="sm" variant="secondary">
+                            {unit.address}
+                        </Typography>
+                        <Typography element="p" size="sm" variant="secondary">
+                            {unit.state} - {unit.city}
+                        </Typography>
+                    </div>
 
-                    <Typography dataTestId="unit-name">{`${unit.address}`}</Typography>
-
-                    <Typography dataTestId="unit-name">{`${unit.state} - ${unit.city}`}</Typography>
-
-                    <Typography dataTestId="equipments-counts">
-                        Quantidade de Equipamentos:{" "}
-                        <Typography element="span" className="font-semibold">
+                    <div className="flex flex-col gap-1">
+                        <Typography element="p" size="sm" variant="secondary">
+                            Quantidade de equipamentos
+                        </Typography>
+                        <Typography element="p" size="lg" className="font-semibold">
                             {String(equipmentsCount)}
                         </Typography>
-                    </Typography>
+                    </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                    <Typography element="h3" size="lg" className="text-right">
+                <div className="flex flex-col gap-2 sm:items-end">
+                    <Typography element="h3" size="lg" className="sm:text-right">
                         Situação
                     </Typography>
 
@@ -188,7 +194,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
                 </div>
             </div>
 
-            <div className="flex gap-10 justify-between pt-4">
+            <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <CardButtons
                     entity={unit}
                     operation={unitOperation}
