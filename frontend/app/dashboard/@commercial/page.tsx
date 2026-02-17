@@ -1,7 +1,7 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { CheckCircleIcon, FileTextIcon, InfoIcon, XCircleIcon } from "@phosphor-icons/react";
+import { FileTextIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -719,7 +719,6 @@ function SearchPage() {
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
                                                                 >
-                                                                    <InfoIcon size={16} />
                                                                     Detalhes
                                                                 </Button>
 
@@ -822,7 +821,6 @@ function SearchPage() {
                                                                     }
                                                                     className="flex items-center gap-2 text-xs"
                                                                 >
-                                                                    <InfoIcon size={16} />
                                                                     Detalhes
                                                                 </Button>
                                                                 <Button
@@ -860,19 +858,9 @@ function SearchPage() {
                                                                     client.id ? (
                                                                         <Spinner />
                                                                     ) : client.is_active ? (
-                                                                        <>
-                                                                            <XCircleIcon
-                                                                                size={16}
-                                                                            />
-                                                                            Desativar
-                                                                        </>
+                                                                        <>Desativar</>
                                                                     ) : (
-                                                                        <>
-                                                                            <CheckCircleIcon
-                                                                                size={16}
-                                                                            />
-                                                                            Ativar
-                                                                        </>
+                                                                        <>Ativar</>
                                                                     )}
                                                                 </Button>
                                                             </div>
@@ -1114,7 +1102,6 @@ function SearchPage() {
                                                                     className="flex items-center gap-2 text-xs"
                                                                     data-testid={`view-unit-${appointment.id}`}
                                                                 >
-                                                                    <InfoIcon size={16} />
                                                                     Detalhes
                                                                 </Button>
                                                             </div>
@@ -1191,7 +1178,6 @@ function SearchPage() {
                                                                     className="flex items-center gap-2 text-xs"
                                                                     data-testid={`view-unit-${appointment.id}`}
                                                                 >
-                                                                    <InfoIcon size={16} />
                                                                     Detalhes
                                                                 </Button>
                                                             }

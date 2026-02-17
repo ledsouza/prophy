@@ -1,6 +1,5 @@
 "use client";
 
-import { InfoIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -447,7 +446,6 @@ export default function AppointmentSearchTab({
                                                     className="flex items-center gap-2 text-xs"
                                                     dataCy={`${dataCyPrefix}-appointment-details-${appointment.id}`}
                                                 >
-                                                    <InfoIcon size={16} />
                                                     Detalhes
                                                 </Button>
                                             }

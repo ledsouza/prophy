@@ -1,7 +1,7 @@
 "use client";
 
 import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { CheckCircleIcon, WarningIcon, XCircleIcon } from "@phosphor-icons/react";
+import { WarningIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -936,19 +936,9 @@ function SearchPage() {
                                                                         client.id ? (
                                                                             <Spinner />
                                                                         ) : client.is_active ? (
-                                                                            <>
-                                                                                <XCircleIcon
-                                                                                    size={16}
-                                                                                />
-                                                                                Desativar
-                                                                            </>
+                                                                            <>Desativar</>
                                                                         ) : (
-                                                                            <>
-                                                                                <CheckCircleIcon
-                                                                                    size={16}
-                                                                                />
-                                                                                Ativar
-                                                                            </>
+                                                                            <>Ativar</>
                                                                         )}
                                                                     </Button>
                                                                 </div>
