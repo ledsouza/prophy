@@ -266,7 +266,7 @@ export function ProposalsSearchSection() {
                 </Button>
                 <Button
                     onClick={() => dispatch(openModal(Modals.CREATE_PROPOSAL))}
-                    className="flex-1 sm:flex-initial ml-auto"
+                    className="flex-1 sm:flex-initial sm:ml-auto"
                     data-testid="btn-create-proposal"
                 >
                     Criar Proposta
