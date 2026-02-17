@@ -10,7 +10,14 @@ import { useFilterApplication, useFilterClear, usePageNavigation } from "@/hooks
 import { useListAppointmentsPageQuery } from "@/redux/features/appointmentApiSlice";
 import type { AppointmentDTO } from "@/types/appointment";
 
-import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/common";
+import {
+    Button,
+    ErrorDisplay,
+    MobileResultCard,
+    Pagination,
+    Spinner,
+    Table,
+} from "@/components/common";
 import { Input, Select } from "@/components/forms";
 import type { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
@@ -263,7 +270,7 @@ export default function AppointmentSearchTab({
             </div>
 
             <div className="results-panel p-6" data-cy={`${dataCyPrefix}-results`}>
-                <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
                     <Typography element="h2" size="title3" className="font-bold">
                         Resultados
                     </Typography>
@@ -392,6 +399,59 @@ export default function AppointmentSearchTab({
                                     },
                                 ]}
                                 keyExtractor={(appointment: AppointmentDTO) => appointment.id}
+                                mobileCardRenderer={(appointment: AppointmentDTO) => {
+                                    const statusClasses = getAppointmentStatusClasses(
+                                        appointment.status,
+                                    );
+                                    return (
+                                        <MobileResultCard
+                                            dataCy={`${dataCyPrefix}-appointment-card-${appointment.id}`}
+                                            title={appointment.client_name || "Cliente"}
+                                            badge={
+                                                <span
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}`}
+                                                >
+                                                    {appointmentStatusLabel[appointment.status]}
+                                                </span>
+                                            }
+                                            fields={[
+                                                {
+                                                    label: "Data/Hora",
+                                                    value: formatDateTime(appointment.date),
+                                                },
+                                                {
+                                                    label: "Cliente",
+                                                    value: appointment.client_name || "N/A",
+                                                },
+                                                {
+                                                    label: "Unidade",
+                                                    value: appointment.unit_name || "N/A",
+                                                },
+                                                {
+                                                    label: "Endereço",
+                                                    value: appointment.unit_full_address || "N/A",
+                                                },
+                                                {
+                                                    label: "Modalidade",
+                                                    value: appointment.type_display || "N/A",
+                                                },
+                                            ]}
+                                            actions={
+                                                <Button
+                                                    variant="primary"
+                                                    onClick={() =>
+                                                        handleViewUnitDetails(appointment.unit)
+                                                    }
+                                                    className="flex items-center gap-2 text-xs"
+                                                    dataCy={`${dataCyPrefix}-appointment-details-${appointment.id}`}
+                                                >
+                                                    <InfoIcon size={16} />
+                                                    Detalhes
+                                                </Button>
+                                            }
+                                        />
+                                    );
+                                }}
                                 rowProps={(appointment: AppointmentDTO) => ({
                                     "data-cy": `${dataCyPrefix}-appointment-row-${appointment.id}`,
                                 })}

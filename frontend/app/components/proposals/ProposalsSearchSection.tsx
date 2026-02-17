@@ -16,7 +16,14 @@ import {
 import { ProposalDTO, useListProposalsQuery } from "@/redux/features/proposalApiSlice";
 import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
 
-import { Button, ErrorDisplay, Pagination, Spinner, Table } from "@/components/common";
+import {
+    Button,
+    ErrorDisplay,
+    MobileResultCard,
+    Pagination,
+    Spinner,
+    Table,
+} from "@/components/common";
 import { Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { Modals, openModal, setProposal } from "@/redux/features/modalSlice";
@@ -403,6 +410,89 @@ export function ProposalsSearchSection() {
                                     },
                                 ]}
                                 keyExtractor={(proposal: ProposalDTO) => proposal.id}
+                                mobileCardRenderer={(proposal: ProposalDTO) => {
+                                    const statusInfo = getStatusDisplay(proposal.status);
+                                    return (
+                                        <MobileResultCard
+                                            dataCy={`proposal-card-${proposal.id}`}
+                                            title={cnpjMask(proposal.cnpj)}
+                                            badge={
+                                                <span
+                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
+                                                >
+                                                    {statusInfo.text}
+                                                </span>
+                                            }
+                                            fields={[
+                                                {
+                                                    label: "Data",
+                                                    value: formatDate(proposal.date),
+                                                },
+                                                {
+                                                    label: "Contato",
+                                                    value: (
+                                                        <div className="flex flex-col">
+                                                            <span>{proposal.contact_name}</span>
+                                                            <span>
+                                                                {formatPhoneNumber(
+                                                                    proposal.contact_phone,
+                                                                )}
+                                                            </span>
+                                                            <span>{proposal.email}</span>
+                                                        </div>
+                                                    ),
+                                                },
+                                                {
+                                                    label: "Endereço",
+                                                    value: `${proposal.city}, ${proposal.state}`,
+                                                },
+                                                {
+                                                    label: "Valor",
+                                                    value: formatCurrency(proposal.value),
+                                                },
+                                                {
+                                                    label: "Tipo de Contrato",
+                                                    value: getContractTypeDisplay(
+                                                        proposal.contract_type,
+                                                    ),
+                                                },
+                                            ]}
+                                            actions={
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex flex-col gap-1">
+                                                        <a
+                                                            href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/pdf/`}
+                                                            className="text-primary hover:underline text-xs"
+                                                        >
+                                                            PDF
+                                                        </a>
+                                                        <a
+                                                            href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/word/`}
+                                                            className="text-primary hover:underline text-xs"
+                                                        >
+                                                            Word
+                                                        </a>
+                                                    </div>
+                                                    <Button
+                                                        variant="primary"
+                                                        onClick={() => {
+                                                            dispatch(setProposal(proposal));
+                                                            dispatch(
+                                                                openModal(Modals.EDIT_PROPOSAL),
+                                                            );
+                                                        }}
+                                                        className="flex items-center gap-2 text-xs"
+                                                        data-testid={`edit-proposal-${proposal.id}`}
+                                                        dataCy={`proposal-edit-${proposal.id}`}
+                                                    >
+                                                        <PencilSimpleIcon size={16} />
+                                                        Editar
+                                                    </Button>
+                                                </div>
+                                            }
+                                        />
+                                    );
+                                }}
                             />
                         )}
 

@@ -219,7 +219,7 @@ function ClientPage() {
 
             <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
                 <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                    <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
+                    <TabList className="flex gap-2 overflow-x-auto rounded-xl bg-gray-100 p-1 mb-6 flex-nowrap sm:gap-1 sm:overflow-visible">
                         <Tab>Clientes</Tab>
                         <Tab>Agendamentos</Tab>
                         <Tab>Relatórios</Tab>
@@ -227,7 +227,7 @@ function ClientPage() {
 
                     <TabPanels>
                         <TabPanel>
-                            <div className="flex flex-col md:flex-row gap-6 h-[80vh] min-h-[560px]">
+                            <div className="flex flex-col md:flex-row gap-6 h-[80vh] min-h-140">
                                 {clientOptions &&
                                     selectedClient &&
                                     filteredClient &&

@@ -23,7 +23,16 @@ import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filt
 import { child } from "@/utils/logger";
 import { buildStandardUrlParams } from "@/utils/url-params";
 
-import { Button, ErrorDisplay, Modal, Pagination, Spinner, Tab, Table } from "@/components/common";
+import {
+    Button,
+    ErrorDisplay,
+    MobileResultCard,
+    Modal,
+    Pagination,
+    Spinner,
+    Tab,
+    Table,
+} from "@/components/common";
 import {
     CreateAppointmentForm,
     CreateProposalForm,
@@ -546,14 +555,20 @@ function SearchPage() {
                 </Typography>
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
-                    <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1 mb-6">
-                        <div className="flex-1" data-cy="commercial-tab-clients">
+                    <TabList
+                        className={clsx(
+                            "flex gap-2 overflow-x-auto rounded-xl bg-gray-100 p-1 mb-6",
+                            "flex-nowrap",
+                            "sm:overflow-visible sm:gap-1 sm:space-x-1",
+                        )}
+                    >
+                        <div className="flex-none sm:flex-1" data-cy="commercial-tab-clients">
                             <Tab>Clientes</Tab>
                         </div>
-                        <div className="flex-1" data-cy="commercial-tab-proposals">
+                        <div className="flex-none sm:flex-1" data-cy="commercial-tab-proposals">
                             <Tab>Propostas</Tab>
                         </div>
-                        <div className="flex-1" data-cy="commercial-tab-appointments">
+                        <div className="flex-none sm:flex-1" data-cy="commercial-tab-appointments">
                             <Tab>Agendamentos</Tab>
                         </div>
                     </TabList>
@@ -764,6 +779,116 @@ function SearchPage() {
                                                     },
                                                 ]}
                                                 keyExtractor={(client: ClientDTO) => client.id}
+                                                mobileCardRenderer={(client: ClientDTO) => (
+                                                    <MobileResultCard
+                                                        dataCy={`commercial-client-card-${client.id}`}
+                                                        title={client.name}
+                                                        badge={(() => {
+                                                            const statusInfo = getStatusDisplay(
+                                                                client.is_active.toString(),
+                                                            );
+                                                            return (
+                                                                <span
+                                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
+                                                                >
+                                                                    {statusInfo.text}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        className={clsx(
+                                                            client.needs_appointment
+                                                                ? "bg-red-50 border-red-100"
+                                                                : undefined,
+                                                        )}
+                                                        fields={[
+                                                            {
+                                                                label: "CNPJ",
+                                                                value: cnpjMask(client.cnpj),
+                                                            },
+                                                            {
+                                                                label: "Endereço",
+                                                                value: `${client.address} - ${client.state}, ${client.city}`,
+                                                            },
+                                                        ]}
+                                                        actions={
+                                                            <div className="flex flex-col gap-2">
+                                                                {client.needs_appointment && (
+                                                                    <span
+                                                                        className={clsx(
+                                                                            "inline-flex w-full justify-center px-2.5 py-0.5",
+                                                                            "rounded-full text-xs font-medium text-center",
+                                                                            "bg-red-100 text-red-800",
+                                                                        )}
+                                                                    >
+                                                                        Agendamento pendente
+                                                                    </span>
+                                                                )}
+                                                                <Button
+                                                                    variant="primary"
+                                                                    onClick={() =>
+                                                                        handleViewDetails(
+                                                                            client.cnpj,
+                                                                        )
+                                                                    }
+                                                                    className="flex items-center gap-2 text-xs"
+                                                                >
+                                                                    <InfoIcon size={16} />
+                                                                    Detalhes
+                                                                </Button>
+                                                                <Button
+                                                                    variant="primary"
+                                                                    onClick={() =>
+                                                                        handleViewProposals(
+                                                                            client.cnpj,
+                                                                        )
+                                                                    }
+                                                                    className="flex items-center gap-2 px-2 py-1 text-xs"
+                                                                >
+                                                                    <FileTextIcon size={16} />
+                                                                    Propostas
+                                                                </Button>
+                                                                <Button
+                                                                    variant={
+                                                                        client.is_active
+                                                                            ? "danger"
+                                                                            : "success"
+                                                                    }
+                                                                    onClick={() =>
+                                                                        handleToggleClientStatus(
+                                                                            client,
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        togglingClientId ===
+                                                                        client.id
+                                                                    }
+                                                                    className="flex items-center gap-2 text-xs"
+                                                                    data-testid={`toggle-client-${client.id}`}
+                                                                    dataCy={`commercial-toggle-client-${client.id}`}
+                                                                >
+                                                                    {togglingClientId ===
+                                                                    client.id ? (
+                                                                        <Spinner />
+                                                                    ) : client.is_active ? (
+                                                                        <>
+                                                                            <XCircleIcon
+                                                                                size={16}
+                                                                            />
+                                                                            Desativar
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <CheckCircleIcon
+                                                                                size={16}
+                                                                            />
+                                                                            Ativar
+                                                                        </>
+                                                                    )}
+                                                                </Button>
+                                                            </div>
+                                                        }
+                                                    />
+                                                )}
                                                 rowClassName={(client: ClientDTO) =>
                                                     client.needs_appointment
                                                         ? "bg-red-50 border border-transparent animate-danger"
@@ -1009,6 +1134,80 @@ function SearchPage() {
                                                 keyExtractor={(appointment: AppointmentDTO) =>
                                                     appointment.id
                                                 }
+                                                mobileCardRenderer={(
+                                                    appointment: AppointmentDTO,
+                                                ) => {
+                                                    const statusClasses =
+                                                        getAppointmentStatusClasses(
+                                                            appointment.status,
+                                                        );
+                                                    return (
+                                                        <MobileResultCard
+                                                            dataCy={`commercial-appointment-card-${appointment.id}`}
+                                                            title={
+                                                                appointment.client_name || "Cliente"
+                                                            }
+                                                            badge={
+                                                                <span
+                                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}`}
+                                                                >
+                                                                    {
+                                                                        appointmentStatusLabel[
+                                                                            appointment.status
+                                                                        ]
+                                                                    }
+                                                                </span>
+                                                            }
+                                                            fields={[
+                                                                {
+                                                                    label: "Data/Hora",
+                                                                    value: formatDateTime(
+                                                                        appointment.date,
+                                                                    ),
+                                                                },
+                                                                {
+                                                                    label: "Cliente",
+                                                                    value:
+                                                                        appointment.client_name ||
+                                                                        "N/A",
+                                                                },
+                                                                {
+                                                                    label: "Unidade",
+                                                                    value:
+                                                                        appointment.unit_name ||
+                                                                        "N/A",
+                                                                },
+                                                                {
+                                                                    label: "Endereço",
+                                                                    value:
+                                                                        appointment.unit_full_address ||
+                                                                        "N/A",
+                                                                },
+                                                                {
+                                                                    label: "Modalidade",
+                                                                    value:
+                                                                        appointment.type_display ||
+                                                                        "N/A",
+                                                                },
+                                                            ]}
+                                                            actions={
+                                                                <Button
+                                                                    variant="primary"
+                                                                    onClick={() =>
+                                                                        handleViewUnitDetails(
+                                                                            appointment.unit,
+                                                                        )
+                                                                    }
+                                                                    className="flex items-center gap-2 text-xs"
+                                                                    data-testid={`view-unit-${appointment.id}`}
+                                                                >
+                                                                    <InfoIcon size={16} />
+                                                                    Detalhes
+                                                                </Button>
+                                                            }
+                                                        />
+                                                    );
+                                                }}
                                                 rowProps={(appointment: AppointmentDTO) => ({
                                                     "data-cy": `commercial-appointment-row-${
                                                         appointment.id

@@ -1,34 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import { apiSlice } from "@/redux/services/apiSlice";
-import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 import {
     useDeleteClientOperationMutation,
     useListAllClientsOperationsQuery,
 } from "@/redux/features/clientApiSlice";
-import type { ClientOperationDTO } from "@/types/client";
 import {
     UnitDTO,
     useCreateDeleteUnitOperationMutation,
     useDeleteUnitOperationMutation,
     useListAllUnitsOperationsQuery,
 } from "@/redux/features/unitApiSlice";
+import { apiSlice } from "@/redux/services/apiSlice";
+import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
+import type { ClientOperationDTO } from "@/types/client";
 
-import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { OperationType } from "@/enums";
+import { useClientDataLoading } from "@/hooks/use-client-data-loading";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 import { ArrowClockwise } from "@phosphor-icons/react";
 
-import { Typography } from "@/components/foundation";
-import { AddUnitForm, EditClientForm, EditUnitForm, Input } from "@/components/forms";
-import { Button, Modal, Spinner } from "@/components/common";
 import { ClientDetails, UnitList } from "@/components/client";
-import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
+import { Button, Modal, Spinner } from "@/components/common";
+import { AddUnitForm, EditClientForm, EditUnitForm, Input } from "@/components/forms";
+import { Typography } from "@/components/foundation";
+import { closeModal, Modals } from "@/redux/features/modalSlice";
 
 function ClientPage() {
     const router = useRouter();
@@ -79,7 +79,7 @@ function ClientPage() {
                         Por favor, recarregue a página para atualizar a lista de requisições.`,
                         {
                             autoClose: 5000,
-                        }
+                        },
                     );
                 }
                 return toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -121,7 +121,7 @@ function ClientPage() {
                         Por favor, recarregue a página para atualizar a lista de requisições.`,
                         {
                             autoClose: 5000,
-                        }
+                        },
                     );
                 }
                 return toast.error("Algo deu errado. Tente novamente mais tarde.");
@@ -142,7 +142,7 @@ function ClientPage() {
                 { type: "UnitOperation", id: "LIST" },
                 { type: "Equipment", id: "LIST" },
                 { type: "EquipmentOperation", id: "LIST" },
-            ])
+            ]),
         );
     };
 
@@ -151,7 +151,7 @@ function ClientPage() {
         if (filteredUnits.length > 0) {
             const addUnitsInOperation =
                 unitsOperations?.filter(
-                    (operation) => operation.operation_type === OperationType.ADD
+                    (operation) => operation.operation_type === OperationType.ADD,
                 ) ?? [];
 
             const selectedClientID = filteredUnits[0].client;
@@ -162,7 +162,7 @@ function ClientPage() {
 
             if (searchTerm.length > 0) {
                 const searchedUnits = units.filter((unit) =>
-                    unit.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    unit.name.toLowerCase().includes(searchTerm.toLowerCase()),
                 );
                 setSearchedUnits(searchedUnits);
             } else {
@@ -180,7 +180,7 @@ function ClientPage() {
         }
 
         const operation = clientsOperations?.find(
-            (operation) => operation.original_client === selectedClient?.id
+            (operation) => operation.original_client === selectedClient?.id,
         );
         operation ? setSelectedClientInOperation(operation) : setSelectedClientInOperation(null);
     }, [isLoadingClientsOperations, clientsOperations, selectedClient]);
@@ -275,13 +275,15 @@ function ClientPage() {
                             Notas do Físico Médico Responsável
                         </Typography>
 
-                        <Typography element="p" size="lg" className="break-words">
-                            {selectedClientInOperation?.note?.split("\n").map((line, index) => (
-                                <span key={index}>
-                                    {line}
-                                    <br />
-                                </span>
-                            ))}
+                        <Typography element="p" size="lg" className="wrap-break-word">
+                            {(selectedClientInOperation?.note ?? "")
+                                .split("\n")
+                                .map((line: string, index: number) => (
+                                    <span key={index}>
+                                        {line}
+                                        <br />
+                                    </span>
+                                ))}
                         </Typography>
 
                         <Button

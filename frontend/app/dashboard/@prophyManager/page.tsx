@@ -27,6 +27,7 @@ import { AppointmentSearchTab } from "@/components/appointments";
 import {
     Button,
     ErrorDisplay,
+    MobileResultCard,
     Modal,
     Pagination,
     ReportsSearchTab,
@@ -468,20 +469,26 @@ function SearchPage() {
                 </Typography>
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
-                    <TabList className="-mx-1 flex flex-col gap-2 rounded-xl bg-gray-100 p-2 sm:mx-0 sm:flex-row sm:gap-0 sm:space-x-1 sm:p-1 mb-6">
-                        <div className="flex-1" data-cy="search-tab-clients">
+                    <TabList
+                        className={clsx(
+                            "flex gap-2 overflow-x-auto rounded-xl bg-gray-100 p-2 mb-6",
+                            "flex-nowrap -mx-1",
+                            "sm:mx-0 sm:overflow-visible sm:gap-0 sm:space-x-1 sm:p-1",
+                        )}
+                    >
+                        <div className="flex-none sm:flex-1" data-cy="search-tab-clients">
                             <Tab>Clientes</Tab>
                         </div>
-                        <div className="flex-1" data-cy="search-tab-equipments">
+                        <div className="flex-none sm:flex-1" data-cy="search-tab-equipments">
                             <Tab>Equipamentos</Tab>
                         </div>
-                        <div className="flex-1" data-cy="search-tab-appointments">
+                        <div className="flex-none sm:flex-1" data-cy="search-tab-appointments">
                             <Tab>Agendamentos</Tab>
                         </div>
-                        <div className="flex-1" data-cy="search-tab-proposals">
+                        <div className="flex-none sm:flex-1" data-cy="search-tab-proposals">
                             <Tab>Propostas</Tab>
                         </div>
-                        <div className="flex-1" data-cy="search-tab-reports">
+                        <div className="flex-none sm:flex-1" data-cy="search-tab-reports">
                             <Tab>Relatórios</Tab>
                         </div>
                     </TabList>
@@ -793,6 +800,172 @@ function SearchPage() {
                                                     },
                                                 ]}
                                                 keyExtractor={(client: ClientDTO) => client.id}
+                                                mobileCardRenderer={(client: ClientDTO) => {
+                                                    const statusInfo = getStatusDisplay(
+                                                        client.is_active.toString(),
+                                                    );
+                                                    return (
+                                                        <MobileResultCard
+                                                            dataCy={`client-card-${client.id}`}
+                                                            title={client.name}
+                                                            badge={
+                                                                <span
+                                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
+                                                                >
+                                                                    {statusInfo.text}
+                                                                </span>
+                                                            }
+                                                            className={clsx(
+                                                                client.needs_appointment
+                                                                    ? "bg-red-50 border-red-100"
+                                                                    : undefined,
+                                                            )}
+                                                            fields={[
+                                                                {
+                                                                    label: "CNPJ",
+                                                                    value: cnpjMask(client.cnpj),
+                                                                },
+                                                                {
+                                                                    label: "Endereço",
+                                                                    value: `${client.address} - ${client.state}, ${client.city}`,
+                                                                },
+                                                                {
+                                                                    label: "Usuários",
+                                                                    value:
+                                                                        client.users.length > 0 ? (
+                                                                            <div className="space-y-1">
+                                                                                {client.users.map(
+                                                                                    (
+                                                                                        user,
+                                                                                        userIndex,
+                                                                                    ) => (
+                                                                                        <div
+                                                                                            key={
+                                                                                                userIndex
+                                                                                            }
+                                                                                            className="text-xs"
+                                                                                        >
+                                                                                            <span className="font-medium">
+                                                                                                {user.role ===
+                                                                                                    "FMI" &&
+                                                                                                    "Físico Médico Interno"}
+                                                                                                {user.role ===
+                                                                                                    "FME" &&
+                                                                                                    "Físico Médico Externo"}
+                                                                                                {user.role ===
+                                                                                                    "GP" &&
+                                                                                                    "Gerente Prophy"}
+                                                                                                {user.role ===
+                                                                                                    "GGC" &&
+                                                                                                    "Gerente Geral de Cliente"}
+                                                                                                {user.role ===
+                                                                                                    "GU" &&
+                                                                                                    "Gerente de Unidade"}
+                                                                                                {user.role ===
+                                                                                                    "C" &&
+                                                                                                    "Comercial"}
+                                                                                            </span>
+                                                                                            :{" "}
+                                                                                            {
+                                                                                                user.name
+                                                                                            }
+                                                                                        </div>
+                                                                                    ),
+                                                                                )}
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-gray-secondary">
+                                                                                Nenhum usuário
+                                                                            </span>
+                                                                        ),
+                                                                },
+                                                            ]}
+                                                            actions={
+                                                                <div className="flex flex-col gap-2">
+                                                                    {client.needs_appointment && (
+                                                                        <span
+                                                                            data-cy={
+                                                                                "pending-appointment-badge"
+                                                                            }
+                                                                            className={clsx(
+                                                                                "inline-flex w-full justify-center px-2.5 py-0.5",
+                                                                                "rounded-full text-xs font-medium text-center",
+                                                                                "bg-red-100 text-red-800",
+                                                                            )}
+                                                                        >
+                                                                            Agendamento pendente
+                                                                        </span>
+                                                                    )}
+
+                                                                    <Button
+                                                                        variant="primary"
+                                                                        onClick={() =>
+                                                                            handleViewDetails(
+                                                                                client.cnpj,
+                                                                            )
+                                                                        }
+                                                                        className="flex items-center gap-2 text-xs"
+                                                                        dataCy={`client-details-${client.id}`}
+                                                                    >
+                                                                        Detalhes
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        variant="primary"
+                                                                        onClick={() =>
+                                                                            handleViewProposals(
+                                                                                client.cnpj,
+                                                                            )
+                                                                        }
+                                                                        className="flex items-center gap-2 px-2 py-1 text-xs"
+                                                                        dataCy={`client-proposals-${client.id}`}
+                                                                    >
+                                                                        Propostas
+                                                                    </Button>
+
+                                                                    <Button
+                                                                        variant={
+                                                                            client.is_active
+                                                                                ? "danger"
+                                                                                : "success"
+                                                                        }
+                                                                        onClick={() =>
+                                                                            handleToggleClientStatus(
+                                                                                client,
+                                                                            )
+                                                                        }
+                                                                        disabled={
+                                                                            togglingClientId ===
+                                                                                client.id ||
+                                                                            isUpdatingClient
+                                                                        }
+                                                                        className="flex items-center gap-2 text-xs"
+                                                                        dataCy={`client-toggle-${client.id}`}
+                                                                    >
+                                                                        {togglingClientId ===
+                                                                        client.id ? (
+                                                                            <Spinner />
+                                                                        ) : client.is_active ? (
+                                                                            <>
+                                                                                <XCircleIcon
+                                                                                    size={16}
+                                                                                />
+                                                                                Desativar
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <CheckCircleIcon
+                                                                                    size={16}
+                                                                                />
+                                                                                Ativar
+                                                                            </>
+                                                                        )}
+                                                                    </Button>
+                                                                </div>
+                                                            }
+                                                        />
+                                                    );
+                                                }}
                                                 rowClassName={(client: ClientDTO) =>
                                                     client.needs_appointment
                                                         ? "bg-red-50 border border-transparent animate-danger"
@@ -1002,6 +1175,46 @@ function SearchPage() {
                                                 keyExtractor={(equipment: EquipmentDTO) =>
                                                     equipment.id
                                                 }
+                                                mobileCardRenderer={(equipment: EquipmentDTO) => (
+                                                    <MobileResultCard
+                                                        dataCy={`equipment-card-${equipment.id}`}
+                                                        title={equipment.model}
+                                                        fields={[
+                                                            {
+                                                                label: "Fabricante",
+                                                                value: equipment.manufacturer,
+                                                            },
+                                                            {
+                                                                label: "Modalidade",
+                                                                value: equipment.modality.name,
+                                                            },
+                                                            {
+                                                                label: "Cliente",
+                                                                value: equipment.client_name,
+                                                            },
+                                                            {
+                                                                label: "Unidade",
+                                                                value: equipment.unit_name,
+                                                            },
+                                                        ]}
+                                                        actions={
+                                                            <Button
+                                                                variant="primary"
+                                                                onClick={() =>
+                                                                    router.push(
+                                                                        `/dashboard/unit/${equipment.unit}?model=${encodeURIComponent(
+                                                                            equipment.model,
+                                                                        )}`,
+                                                                    )
+                                                                }
+                                                                className="flex items-center gap-2 text-xs"
+                                                                dataCy={`equipment-details-${equipment.id}`}
+                                                            >
+                                                                Detalhes
+                                                            </Button>
+                                                        }
+                                                    />
+                                                )}
                                                 rowProps={(equipment: EquipmentDTO) => ({
                                                     "data-cy": `equipment-row-${equipment.id}`,
                                                 })}

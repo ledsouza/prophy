@@ -4,7 +4,15 @@ import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { Button, ErrorDisplay, Modal, Pagination, Spinner, Table } from "@/components/common";
+import {
+    Button,
+    ErrorDisplay,
+    MobileResultCard,
+    Modal,
+    Pagination,
+    Spinner,
+    Table,
+} from "@/components/common";
 import { Input } from "@/components/forms";
 import Select, { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
@@ -474,106 +482,114 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                 data={reports}
                                 columns={columns}
                                 keyExtractor={(report: ReportSearchDTO) => report.id}
-                                mobileRowRenderer={(report: ReportSearchDTO) => [
-                                    {
-                                        label: "Tipo",
-                                        value:
-                                            reportTypeLabel[report.report_type] ||
-                                            report.report_type,
-                                    },
-                                    {
-                                        label: "Cliente",
-                                        value: report.client_name || "—",
-                                    },
-                                    {
-                                        label: "Unidade",
-                                        value: report.unit_name || "—",
-                                    },
-                                    {
-                                        label: "Conclusão",
-                                        value: report.completion_date
-                                            ? format(new Date(report.completion_date), "dd/MM/yyyy")
-                                            : "—",
-                                    },
-                                    {
-                                        label: "Vencimento",
-                                        value: report.due_date
-                                            ? format(new Date(report.due_date), "dd/MM/yyyy")
-                                            : "—",
-                                    },
-                                    {
-                                        label: "Situação",
-                                        value: (
-                                            <span
-                                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getReportStatusDisplay(report.status).color}`}
-                                            >
-                                                {getReportStatusDisplay(report.status).text}
-                                            </span>
-                                        ),
-                                    },
-                                    ...(isGP
-                                        ? [
-                                              {
-                                                  label: "Responsável",
-                                                  value: report.responsibles_display || "—",
-                                              },
-                                          ]
-                                        : []),
-                                    {
-                                        label: "Ações",
-                                        value: (
-                                            <div className="flex flex-col gap-2">
-                                                <Button
-                                                    variant="primary"
-                                                    onClick={() => handleDownload(report.id)}
-                                                    className="w-full text-xs"
-                                                    dataCy={`report-download-${report.id}`}
+                                mobileCardRenderer={(report: ReportSearchDTO) => {
+                                    const statusInfo = getReportStatusDisplay(report.status);
+                                    return (
+                                        <MobileResultCard
+                                            dataCy={`report-card-${report.id}`}
+                                            title={
+                                                reportTypeLabel[report.report_type] ||
+                                                report.report_type
+                                            }
+                                            badge={
+                                                <span
+                                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusInfo.color}`}
                                                 >
-                                                    Baixar
-                                                </Button>
-                                                {isGP && !report.is_deleted && (
+                                                    {statusInfo.text}
+                                                </span>
+                                            }
+                                            fields={[
+                                                {
+                                                    label: "Cliente",
+                                                    value: report.client_name || "—",
+                                                },
+                                                {
+                                                    label: "Unidade",
+                                                    value: report.unit_name || "—",
+                                                },
+                                                {
+                                                    label: "Conclusão",
+                                                    value: report.completion_date
+                                                        ? format(
+                                                              new Date(report.completion_date),
+                                                              "dd/MM/yyyy",
+                                                          )
+                                                        : "—",
+                                                },
+                                                {
+                                                    label: "Vencimento",
+                                                    value: report.due_date
+                                                        ? format(
+                                                              new Date(report.due_date),
+                                                              "dd/MM/yyyy",
+                                                          )
+                                                        : "—",
+                                                },
+                                                ...(isGP
+                                                    ? [
+                                                          {
+                                                              label: "Responsável",
+                                                              value:
+                                                                  report.responsibles_display ||
+                                                                  "—",
+                                                          },
+                                                      ]
+                                                    : []),
+                                            ]}
+                                            actions={
+                                                <div className="flex flex-col gap-2">
                                                     <Button
-                                                        variant="danger"
-                                                        onClick={() => {
-                                                            setSelectedReportId(report.id);
-                                                            setSoftDeleteConfirmOpen(true);
-                                                        }}
+                                                        variant="primary"
+                                                        onClick={() => handleDownload(report.id)}
                                                         className="w-full text-xs"
-                                                        dataCy={`report-soft-delete-${report.id}`}
+                                                        dataCy={`report-download-${report.id}`}
                                                     >
-                                                        Arquivar
+                                                        Baixar
                                                     </Button>
-                                                )}
-                                                {isGP && report.is_deleted && (
-                                                    <>
-                                                        <Button
-                                                            variant="secondary"
-                                                            onClick={() => {
-                                                                setSelectedReportId(report.id);
-                                                                setRestoreConfirmOpen(true);
-                                                            }}
-                                                            className="w-full text-xs"
-                                                            dataCy={`report-restore-${report.id}`}
-                                                        >
-                                                            Desarquivar
-                                                        </Button>
+                                                    {isGP && !report.is_deleted && (
                                                         <Button
                                                             variant="danger"
                                                             onClick={() => {
                                                                 setSelectedReportId(report.id);
-                                                                setHardDeleteConfirmOpen(true);
+                                                                setSoftDeleteConfirmOpen(true);
                                                             }}
                                                             className="w-full text-xs"
-                                                            dataCy={`report-hard-delete-${report.id}`}
+                                                            dataCy={`report-soft-delete-${report.id}`}
                                                         >
-                                                            Excluir
+                                                            Arquivar
                                                         </Button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        ),
-                                    },
-                                ]}
+                                                    )}
+                                                    {isGP && report.is_deleted && (
+                                                        <>
+                                                            <Button
+                                                                variant="secondary"
+                                                                onClick={() => {
+                                                                    setSelectedReportId(report.id);
+                                                                    setRestoreConfirmOpen(true);
+                                                                }}
+                                                                className="w-full text-xs"
+                                                                dataCy={`report-restore-${report.id}`}
+                                                            >
+                                                                Desarquivar
+                                                            </Button>
+                                                            <Button
+                                                                variant="danger"
+                                                                onClick={() => {
+                                                                    setSelectedReportId(report.id);
+                                                                    setHardDeleteConfirmOpen(true);
+                                                                }}
+                                                                className="w-full text-xs"
+                                                                dataCy={`report-hard-delete-${report.id}`}
+                                                            >
+                                                                Excluir
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            }
+                                        />
+                                    );
+                                }}
                             />
                         )}
 

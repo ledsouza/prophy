@@ -21,6 +21,7 @@ type TableProps<T> = {
     columns: ColumnDefinition<T>[];
     keyExtractor: (row: T) => string | number;
     mobileRowRenderer?: (row: T) => TableRowField[];
+    mobileCardRenderer?: (row: T) => React.ReactNode;
     rowClassName?: (row: T) => string | undefined;
     rowProps?: (row: T) => React.HTMLAttributes<HTMLTableRowElement> & Record<string, unknown>;
 };
@@ -30,6 +31,7 @@ const Table = <T extends {}>({
     columns,
     keyExtractor,
     mobileRowRenderer,
+    mobileCardRenderer,
     rowClassName,
     rowProps,
 }: TableProps<T>) => {
@@ -104,27 +106,34 @@ const Table = <T extends {}>({
 
     return (
         <div className="relative max-w-full">
-            {mobileRowRenderer && (
+            {(mobileRowRenderer || mobileCardRenderer) && (
                 <div className="flex flex-col gap-3 sm:hidden">
                     {data.map((row) => (
-                        <div
-                            key={keyExtractor(row)}
-                            data-cy="table-mobile-card"
-                            className={clsx(
-                                "rounded-xl border border-gray-200 bg-white p-4 shadow-sm",
-                                rowClassName && rowClassName(row),
-                            )}
-                        >
-                            <div className="flex flex-col gap-3">
-                                {mobileRowRenderer(row).map((field) => (
-                                    <div key={field.label} className="flex flex-col gap-1">
-                                        <span className="text-xs font-semibold uppercase text-gray-secondary">
-                                            {field.label}
-                                        </span>
-                                        <div className="text-sm text-gray-900">{field.value}</div>
+                        <div key={keyExtractor(row)}>
+                            {mobileCardRenderer ? (
+                                mobileCardRenderer(row)
+                            ) : (
+                                <div
+                                    data-cy="table-mobile-card"
+                                    className={clsx(
+                                        "rounded-xl border border-gray-200 bg-white p-4 shadow-sm",
+                                        rowClassName && rowClassName(row),
+                                    )}
+                                >
+                                    <div className="flex flex-col gap-3">
+                                        {mobileRowRenderer?.(row).map((field) => (
+                                            <div key={field.label} className="flex flex-col gap-1">
+                                                <span className="text-xs font-semibold uppercase text-gray-secondary">
+                                                    {field.label}
+                                                </span>
+                                                <div className="text-sm text-gray-900">
+                                                    {field.value}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -134,7 +143,7 @@ const Table = <T extends {}>({
                 ref={scrollContainerRef}
                 className={clsx(
                     "overflow-x-auto max-w-full",
-                    mobileRowRenderer && "hidden sm:block",
+                    (mobileRowRenderer || mobileCardRenderer) && "hidden sm:block",
                 )}
             >
                 <table

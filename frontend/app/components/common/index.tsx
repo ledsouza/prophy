@@ -8,6 +8,7 @@ export { default as Modal } from "./Modal";
 export { default as Table } from "./Table";
 export { default as ErrorDisplay } from "./ErrorDisplay";
 export { default as Pagination } from "./Pagination";
+export { default as MobileResultCard } from "./MobileResultCard";
 export { default as Tab } from "./Tab";
 export { default as TabbedResourcePanel } from "./TabbedResourcePanel";
 export { ReportsSearchTab } from "./ReportsSearchTab";
