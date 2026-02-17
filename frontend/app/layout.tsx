@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="pt-BR">
-            <body className={`${inter.className} bg-light`}>
+            <body className={`${inter.className} bg-light overflow-x-hidden`}>
                 <Provider>
                     <div className="flex min-h-screen flex-col">
                         <Setup />
