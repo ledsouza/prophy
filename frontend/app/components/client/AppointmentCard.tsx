@@ -272,6 +272,11 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         "hover:ring-1 hover:ring-inset hover:ring-primary",
     );
 
+    const mobileActionGridClass = clsx(
+        "grid gap-2",
+        showCreateServiceOrderButton ? "grid-cols-4" : "grid-cols-3",
+    );
+
     return (
         <div
             className={containerStyle}
@@ -318,7 +323,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             {/* Actions */}
             <div className="flex flex-col gap-4 pt-4">
                 <div className="flex flex-col gap-3 sm:hidden">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className={mobileActionGridClass}>
                         {canViewServiceOrder && (
                             <Button
                                 variant="secondary"
@@ -367,6 +372,28 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 title="Cancelar agenda"
                             >
                                 <CalendarXIcon size={20} />
+                            </Button>
+                        )}
+
+                        {showCreateServiceOrderButton && (
+                            <Button
+                                variant="success"
+                                onClick={() => {
+                                    setSoCreateOpen(true);
+                                }}
+                                className="h-10 w-full sm:min-h-11"
+                                data-testid="btn-done"
+                                aria-label="Marcar como realizada"
+                                title={
+                                    appointment.status === AppointmentStatus.FULFILLED
+                                        ? "Agendamento já realizado; não é possível marcar como realizado"
+                                        : appointment.status === AppointmentStatus.UNFULFILLED
+                                          ? "Agendamento não realizado; não é possível marcar como realizado"
+                                          : "Marcar como realizada"
+                                }
+                                disabled={isCreating || isDeleting || isMarkDoneDisabled}
+                            >
+                                <CheckCircleIcon size={20} />
                             </Button>
                         )}
                     </div>
