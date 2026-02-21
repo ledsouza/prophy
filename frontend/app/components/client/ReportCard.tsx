@@ -184,7 +184,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
         <div className={containerStyle} data-testid={dataTestId || `report-card-${report.id}`}>
             {/* Header */}
             <div className="flex flex-col gap-1 pb-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <Typography element="h3" size="title3">
                         {reportTypeLabel?.[report.report_type] ?? "Relatório"}
                     </Typography>
@@ -217,12 +217,12 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                     </Typography>
                 </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                <div className="flex flex-row flex-wrap gap-2 sm:flex-nowrap">
                     <Button
                         variant="secondary"
                         onClick={handleDownload}
                         disabled={isDownloading}
-                        className="w-full sm:w-auto"
+                        className="flex-1 sm:w-auto"
                         data-testid="btn-report-download"
                         aria-label="Baixar relatório"
                         title="Baixar relatório"
@@ -234,7 +234,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                         <Button
                             variant="primary"
                             onClick={() => setUpdateOpen(true)}
-                            className="w-full sm:w-auto"
+                            className="flex-1 sm:w-auto"
                             data-testid="btn-report-update"
                             aria-label="Atualizar arquivo do relatório"
                             title="Atualizar arquivo do relatório"
@@ -247,7 +247,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                         <Button
                             variant="danger"
                             onClick={() => setSoftDeleteConfirmOpen(true)}
-                            className="w-full sm:w-auto"
+                            className="flex-1 sm:w-auto"
                             data-testid="btn-report-soft-delete"
                             aria-label="Arquivar relatório"
                             title="Arquivar relatório"
@@ -261,7 +261,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                             <Button
                                 variant="primary"
                                 onClick={() => setRestoreConfirmOpen(true)}
-                                className="w-full sm:w-auto"
+                                className="flex-1 sm:w-auto"
                                 data-testid="btn-report-restore"
                                 aria-label="Desarquivar relatório"
                                 title="Desarquivar relatório"
@@ -271,7 +271,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                             <Button
                                 variant="danger"
                                 onClick={() => setHardDeleteConfirmOpen(true)}
-                                className="w-full sm:w-auto"
+                                className="flex-1 sm:w-auto"
                                 data-testid="btn-report-hard-delete"
                                 aria-label="Excluir permanentemente"
                                 title="Excluir permanentemente"
