@@ -107,6 +107,48 @@ def test_service_order_create_rejects_missing_appointment():
 
 
 @pytest.mark.django_db
+def test_service_order_create_rejects_missing_required_appointment_field():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.post(
+        "/api/service-orders/",
+        {
+            "subject": "X",
+            "description": "Y",
+            "conclusion": "Z",
+        },
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "appointment" in response.data
+
+
+@pytest.mark.django_db
+def test_service_order_create_rejects_visit_payload_alias():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    appointment = AppointmentFactory()
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.post(
+        "/api/service-orders/",
+        {
+            "subject": "X",
+            "description": "Y",
+            "conclusion": "Z",
+            "visit": appointment.id,
+        },
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "appointment" in response.data
+
+
+@pytest.mark.django_db
 def test_service_order_create_rejects_duplicate_for_appointment():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
