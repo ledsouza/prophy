@@ -341,7 +341,9 @@ function UnitPage() {
                     isOpen={isModalOpen}
                     onClose={() => dispatch(closeModal())}
                     className={
-                        currentModal === Modals.EQUIPMENT_DETAILS ? "max-w-6xl mx-6" : "max-w-lg"
+                        currentModal === Modals.EQUIPMENT_DETAILS
+                            ? "w-screen h-screen max-h-screen overflow-y-auto rounded-none sm:rounded-lg sm:max-w-6xl sm:mx-6"
+                            : "max-w-lg"
                     }
                 >
                     {currentModal === Modals.EDIT_UNIT && (
