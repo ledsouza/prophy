@@ -62,10 +62,11 @@ function CardButtons({
 
             <div className="flex grow flex-col gap-2 sm:flex-row sm:justify-end">
                 {status === OperationStatus.ACCEPTED && (
-                    <>
+                    <div className="grid w-full grid-cols-2 gap-2 sm:contents">
                         <Button
                             variant="secondary"
                             onClick={onEdit}
+                            className="w-full h-8 px-0 py-0 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5"
                             data-testid="btn-edit-operation"
                         >
                             <PencilLineIcon size={20} />
@@ -74,12 +75,13 @@ function CardButtons({
                             <Button
                                 variant="danger"
                                 onClick={onDelete}
+                                className="w-full h-8 px-0 py-0 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5"
                                 data-testid="btn-delete-operation"
                             >
                                 <TrashIcon size={20} />
                             </Button>
                         )}
-                    </>
+                    </div>
                 )}
 
                 {status === OperationStatus.REVIEW &&
@@ -173,10 +175,11 @@ function CardButtons({
                 )}
 
                 {status === OperationStatus.REJECTED && isStaff && (
-                    <>
+                    <div className="grid w-full grid-cols-2 gap-2 sm:contents">
                         <Button
                             variant="secondary"
                             onClick={onEdit}
+                            className="w-full h-8 px-0 py-0 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5"
                             data-testid="btn-edit-operation"
                         >
                             <PencilLineIcon size={20} />
@@ -184,11 +187,12 @@ function CardButtons({
                         <Button
                             variant="danger"
                             onClick={onDelete}
+                            className="w-full h-8 px-0 py-0 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5"
                             data-testid="btn-delete-operation"
                         >
                             <TrashIcon size={20} />
                         </Button>
-                    </>
+                    </div>
                 )}
             </div>
         </>
