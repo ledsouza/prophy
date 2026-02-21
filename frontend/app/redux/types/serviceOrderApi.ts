@@ -1,5 +1,5 @@
 export type CreateServiceOrderArgs = {
-    visit: number;
+    appointment: number;
     subject: string;
     description: string;
     conclusion: string;

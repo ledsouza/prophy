@@ -199,7 +199,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
     ) {
         try {
             await createServiceOrder({
-                visit: appointment.id,
+                appointment: appointment.id,
                 subject: data.subject,
                 description: data.description,
                 conclusion: data.conclusion,
@@ -208,8 +208,20 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             toast.success("Ordem de Serviço criada e agendamento marcado como realizado.");
             setSoCreateOpen(false);
         } catch (err) {
+            const error = err as {
+                status?: number;
+                data?: unknown;
+                error?: string;
+                message?: string;
+            };
+
             log.error(
-                { appointmentId: appointment.id, error: (err as any)?.message },
+                {
+                    appointmentId: appointment.id,
+                    status: error?.status,
+                    error: error?.error ?? error?.message,
+                    data: error?.data,
+                },
                 "Create service order failed",
             );
             toast.error("Não foi possível criar a OS ou atualizar o agendamento.");

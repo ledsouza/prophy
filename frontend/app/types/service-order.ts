@@ -20,7 +20,7 @@ export type ServiceOrderBase = Pick<
 >;
 
 export type CreateServiceOrderPayload = ServiceOrderBase & {
-    visit: number;
+    appointment: number;
 };
 
 // Allow partial updates of core fields and independent updates to the "updates" field
