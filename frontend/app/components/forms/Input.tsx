@@ -42,7 +42,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         };
 
         const fileWrapperClassName = clsx(
-            "block w-full rounded-md border-0 h-10 bg-white px-3",
+            "block w-full rounded-md border-0 bg-white px-3 py-2 sm:h-10 sm:py-0",
             "text-gray-primary shadow-md",
             "ring-1 ring-inset ring-primary focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary",
             "sm:text-sm sm:leading-6",
@@ -75,15 +75,19 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 <div className="mt-2">
                     {type === "file" ? (
                         <div className={fileWrapperClassName}>
-                            <div className="flex h-full items-center gap-3">
+                            <div className="flex flex-col gap-2 sm:h-full sm:flex-row sm:items-center sm:gap-3">
                                 <label
                                     htmlFor={inputId}
-                                    className="rounded-md bg-secondary px-3 py-1.5 text-white text-sm shadow-sm hover:bg-secondary/80 cursor-pointer select-none"
+                                    className={clsx(
+                                        "rounded-md bg-secondary px-3 py-1.5 text-white text-sm shadow-sm",
+                                        "hover:bg-secondary/80 cursor-pointer select-none",
+                                        "w-full text-center sm:w-auto",
+                                    )}
                                     aria-disabled={disabled}
                                 >
                                     Escolher arquivo
                                 </label>
-                                <span className="truncate text-gray-primary">
+                                <span className="w-full truncate text-gray-primary sm:w-auto">
                                     {fileName || "Nenhum arquivo selecionado"}
                                 </span>
                             </div>
