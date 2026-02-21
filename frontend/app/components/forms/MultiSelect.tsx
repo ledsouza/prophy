@@ -66,7 +66,7 @@ const MultiSelect = ({
 
     const listBoxButtonStyle = cn(
         "relative",
-        "w-full rounded-md py-1.5 pr-10 mb-2 sm:leading-6",
+        "w-full rounded-md py-1.5 pr-10 sm:leading-6",
         "bg-white shadow-md ring-1 ring-inset ring-primary",
         "text-left sm:text-sm",
         "focus:ring-2 focus:ring-inset focus:ring-primary",

@@ -590,7 +590,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             <Modal
                 isOpen={soCreateOpen}
                 onClose={() => setSoCreateOpen(false)}
-                className="sm:max-w-4xl"
+                className="w-[95vw] max-w-none overflow-hidden sm:max-w-4xl"
             >
                 <ServiceOrderForm
                     serviceOrder={
@@ -608,6 +608,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                     onSubmit={handleCreateServiceOrder}
                     showUpdatesField={false}
                     title="Gerar Ordem de Serviço"
+                    containerClassName="w-full px-4 pb-6 pt-4 box-border sm:mx-auto sm:max-w-3xl sm:px-6"
                 />
             </Modal>
 

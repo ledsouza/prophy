@@ -46,7 +46,7 @@ const FormButtons = ({
     // Handle rejection state buttons
     if (isRejected) {
         return (
-            <div className="flex gap-2 py-4">
+            <div className="flex flex-col gap-2 py-4 sm:flex-row">
                 <Button
                     type="button"
                     onClick={() => setIsRejected && setIsRejected(false)}
@@ -71,7 +71,7 @@ const FormButtons = ({
     // Handle review mode buttons
     if (!disabled && reviewMode) {
         return (
-            <div className="flex gap-2 py-4">
+            <div className="flex flex-col gap-2 py-4 sm:flex-row">
                 <Button
                     type="button"
                     disabled={isSubmitting}
@@ -101,7 +101,7 @@ const FormButtons = ({
 
     // Default buttons (if not in review mode)
     return (
-        <div className="flex gap-2 py-4">
+        <div className="flex flex-col gap-2 py-4 sm:flex-row">
             <Button
                 type="button"
                 disabled={isSubmitting}
