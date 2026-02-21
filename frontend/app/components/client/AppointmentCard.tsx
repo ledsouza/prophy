@@ -654,7 +654,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             <Modal
                 isOpen={scheduleOpen}
                 onClose={() => setScheduleOpen(false)}
-                className="max-w-md px-2 sm:px-6"
+                className="w-[95vw] max-w-none sm:max-w-2xl sm:px-6"
             >
                 <AppointmentScheduleForm
                     appointment={appointment}

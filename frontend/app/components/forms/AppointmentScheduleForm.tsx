@@ -51,7 +51,7 @@ function toLocalDatetimeInputValue(iso: string): string {
 
 function hasAppointmentScheduleChanges(
     appointment: AppointmentDTO,
-    data: AppointmentScheduleFields
+    data: AppointmentScheduleFields,
 ): boolean {
     const originalLocalInput = appointment.date ? toLocalDatetimeInputValue(appointment.date) : "";
     const changedDate = data.date !== "" && data.date !== originalLocalInput;
@@ -200,12 +200,12 @@ const AppointmentScheduleForm = ({
                     appointmentId: appointment?.id,
                     unitId,
                 },
-                "Appointment schedule submit failed"
+                "Appointment schedule submit failed",
             );
             toast.error(
                 isUpdate
                     ? "Não foi possível atualizar a agenda. Verifique os dados e tente novamente."
-                    : "Não foi possível criar o agendamento. Verifique os dados e tente novamente."
+                    : "Não foi possível criar o agendamento. Verifique os dados e tente novamente.",
             );
         }
     };
@@ -234,7 +234,7 @@ const AppointmentScheduleForm = ({
     };
 
     return (
-        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+        <div className="p-6 w-full max-w-none">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <Typography element="h3" size="title3" className="font-semibold">
                     {title ?? (isUpdate ? "Atualizar agenda" : "Agendar atendimento")}

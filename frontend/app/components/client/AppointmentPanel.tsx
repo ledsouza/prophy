@@ -61,7 +61,7 @@ function AppointmentPanel({
                 unitId,
                 error: (error as any)?.status ?? (error as any)?.message ?? "unknown",
             },
-            "Failed to load appointments"
+            "Failed to load appointments",
         );
         return (
             <div className={containerClassName}>
@@ -91,7 +91,7 @@ function AppointmentPanel({
             <Modal
                 isOpen={scheduleOpen}
                 onClose={() => setScheduleOpen(false)}
-                className="max-w-md px-2 sm:px-6"
+                className="w-[95vw] max-w-none sm:max-w-2xl sm:px-6"
             >
                 <AppointmentScheduleForm
                     unitId={unitId}
