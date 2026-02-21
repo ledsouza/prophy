@@ -299,7 +299,8 @@ function UnitPage() {
                     onClick={handleUpdateData}
                 >
                     <div className="flex items-center gap-2">
-                        <ArrowClockwise size="24" /> Atualizar
+                        <ArrowClockwise size="24" />
+                        <span className="hidden md:inline">Atualizar</span>
                     </div>
                 </Button>
 

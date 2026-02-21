@@ -206,7 +206,8 @@ function ClientDetailPage() {
                     data-cy="gp-update-data-btn"
                 >
                     <div className="flex items-center gap-2">
-                        <ArrowClockwiseIcon size="24" /> Atualizar
+                        <ArrowClockwiseIcon size="24" />
+                        <span className="hidden md:inline">Atualizar</span>
                     </div>
                 </Button>
 

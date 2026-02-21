@@ -44,7 +44,7 @@ function ClientDetailPage() {
         if (filteredUnits && filteredUnits.length > 0) {
             if (searchTerm.length > 0) {
                 const filtered = filteredUnits.filter((unit) =>
-                    unit.name.toLowerCase().includes(searchTerm.toLowerCase())
+                    unit.name.toLowerCase().includes(searchTerm.toLowerCase()),
                 );
                 setSearchedUnits(filtered);
             } else {
@@ -114,7 +114,8 @@ function ClientDetailPage() {
                     data-cy="commercial-back-btn"
                 >
                     <div className="flex items-center gap-2">
-                        <ArrowFatLineLeftIcon size={24} /> Voltar
+                        <ArrowFatLineLeftIcon size={24} />
+                        <span>Voltar</span>
                     </div>
                 </Button>
 
