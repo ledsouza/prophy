@@ -43,9 +43,7 @@ const SHOW_RULES = {
         (a.status === AppointmentStatus.PENDING || a.status === AppointmentStatus.RESCHEDULED),
 
     rescheduleAppointment: (a: AppointmentDTO, role?: Role) =>
-        can("rescheduleAppointment", role) &&
-        a.status !== AppointmentStatus.UNFULFILLED &&
-        a.status !== AppointmentStatus.FULFILLED,
+        can("rescheduleAppointment", role) && a.status !== AppointmentStatus.FULFILLED,
 
     justifyAppointment: (a: AppointmentDTO, role?: Role) =>
         can("justifyAppointment", role) && a.status === AppointmentStatus.UNFULFILLED,
@@ -58,7 +56,7 @@ const SHOW_RULES = {
 export function shouldShow(
     action: keyof typeof SHOW_RULES,
     appointment: AppointmentDTO,
-    role?: Role
+    role?: Role,
 ): boolean {
     return SHOW_RULES[action](appointment, role);
 }
@@ -146,7 +144,7 @@ export function buildUpdateSOPayloadByRole(
         ServiceOrderDTO,
         "subject" | "description" | "conclusion" | "equipments" | "updates"
     >,
-    currentUpdates: string | null
+    currentUpdates: string | null,
 ): { payload?: UpdateServiceOrderPayload; skip?: boolean; deny?: boolean } {
     if (role === Role.GP) {
         const payload: UpdateServiceOrderPayload = {
