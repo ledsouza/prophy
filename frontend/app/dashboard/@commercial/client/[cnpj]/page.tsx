@@ -9,7 +9,7 @@ import type { UnitDTO } from "@/redux/features/unitApiSlice";
 import { ArrowFatLineLeftIcon } from "@phosphor-icons/react";
 
 import { ClientDetails, UnitList } from "@/components/client";
-import { Button, Spinner } from "@/components/common";
+import { Button, ResourcePanelShell, Spinner } from "@/components/common";
 import { Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
@@ -132,7 +132,7 @@ function ClientDetailPage() {
                     />
                 )}
 
-                <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] flex flex-col min-h-0 gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <ResourcePanelShell className="w-full md:w-2/3 h-[60vh] md:h-[80vh]">
                     <Typography element="h2" size="title2" className="font-bold">
                         Unidades
                     </Typography>
@@ -156,7 +156,7 @@ function ClientDetailPage() {
                             }}
                         />
                     </div>
-                </div>
+                </ResourcePanelShell>
             </div>
         </main>
     );

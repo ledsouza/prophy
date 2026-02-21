@@ -25,7 +25,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { ArrowClockwise } from "@phosphor-icons/react";
 
 import { ClientDetails, UnitList } from "@/components/client";
-import { Button, Modal, Spinner } from "@/components/common";
+import { Button, Modal, ResourcePanelShell, Spinner } from "@/components/common";
 import { AddUnitForm, EditClientForm, EditUnitForm, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { closeModal, Modals } from "@/redux/features/modalSlice";
@@ -238,7 +238,7 @@ function ClientPage() {
                 />
             )}
 
-            <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] flex flex-col min-h-0 gap-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <ResourcePanelShell className="w-full md:w-2/3 h-[60vh] md:h-[80vh]">
                 <Typography element="h2" size="title2" className="font-bold">
                     Unidades
                 </Typography>
@@ -255,7 +255,7 @@ function ClientPage() {
                 <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable] px-3 py-3">
                     <UnitList searchedUnits={searchedUnits} filteredUnits={filteredUnits} />
                 </div>
-            </div>
+            </ResourcePanelShell>
 
             <Modal isOpen={isModalOpen} onClose={() => dispatch(closeModal())} className="max-w-lg">
                 {currentModal === Modals.EDIT_CLIENT && filteredClient && (

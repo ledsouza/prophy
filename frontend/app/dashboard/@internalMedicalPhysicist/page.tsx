@@ -24,7 +24,14 @@ import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 
 import AppointmentSearchTab from "@/components/appointments/AppointmentSearchTab";
 import { ClientDetails, UnitList } from "@/components/client";
-import { Button, Modal, ReportsSearchTab, Spinner, Tab } from "@/components/common";
+import {
+    Button,
+    Modal,
+    ReportsSearchTab,
+    ResourcePanelShell,
+    Spinner,
+    Tab,
+} from "@/components/common";
 import {
     AddUnitForm,
     CreateAppointmentForm,
@@ -218,7 +225,7 @@ function ClientPage() {
                 </div>
             </Button>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <ResourcePanelShell>
                 <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
                     <TabList className="flex gap-2 overflow-x-auto rounded-xl bg-gray-100 p-1 mb-6 flex-nowrap sm:gap-1 sm:overflow-visible">
                         <Tab>Clientes</Tab>
@@ -288,7 +295,7 @@ function ClientPage() {
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>
-            </div>
+            </ResourcePanelShell>
 
             <Modal
                 isOpen={isModalOpen}

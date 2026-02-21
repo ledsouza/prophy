@@ -11,4 +11,5 @@ export { default as Pagination } from "./Pagination";
 export { default as MobileResultCard } from "./MobileResultCard";
 export { default as Tab } from "./Tab";
 export { default as TabbedResourcePanel } from "./TabbedResourcePanel";
+export { default as ResourcePanelShell } from "./ResourcePanelShell";
 export { ReportsSearchTab } from "./ReportsSearchTab";

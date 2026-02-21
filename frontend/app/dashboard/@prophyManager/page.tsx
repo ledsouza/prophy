@@ -30,6 +30,7 @@ import {
     MobileResultCard,
     Modal,
     Pagination,
+    ResourcePanelShell,
     ReportsSearchTab,
     Spinner,
     Tab,
@@ -463,7 +464,7 @@ function SearchPage() {
 
     return (
         <main className="flex flex-col gap-6 px-4 md:px-6 lg:px-8 py-4">
-            <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8">
+            <ResourcePanelShell className="p-4 sm:p-6 md:p-8">
                 <Typography element="h1" size="title2" className="font-bold mb-6">
                     Buscar
                 </Typography>
@@ -1267,7 +1268,7 @@ function SearchPage() {
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>
-            </div>
+            </ResourcePanelShell>
 
             <Modal
                 isOpen={isModalOpen}

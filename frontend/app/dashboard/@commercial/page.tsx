@@ -29,6 +29,7 @@ import {
     MobileResultCard,
     Modal,
     Pagination,
+    ResourcePanelShell,
     Spinner,
     Tab,
     Table,
@@ -549,7 +550,7 @@ function SearchPage() {
 
     return (
         <main className="flex flex-col gap-6 px-4 md:px-6 lg:px-8 py-4">
-            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <ResourcePanelShell>
                 <Typography element="h1" size="title2" className="font-bold mb-6">
                     Buscar
                 </Typography>
@@ -583,7 +584,6 @@ function SearchPage() {
                                     placeholder="Digite o nome do cliente"
                                     label="Nome"
                                 ></Input>
-
                                 <Input
                                     value={selectedClientCNPJ}
                                     onChange={(e) => setSelectedClientCNPJ(e.target.value)}
@@ -1241,7 +1241,7 @@ function SearchPage() {
                         </TabPanel>
                     </TabPanels>
                 </TabGroup>
-            </div>
+            </ResourcePanelShell>
 
             <Modal isOpen={isModalOpen} onClose={() => dispatch(closeModal())} className="max-w-lg">
                 {currentModal === Modals.CREATE_PROPOSAL && (
