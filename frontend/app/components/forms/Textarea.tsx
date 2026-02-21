@@ -11,6 +11,7 @@ import { Typography } from "@/components/foundation";
 export type TextareaProps = Omit<HeadlessTextareaProps, "children"> & {
     errorMessage?: string;
     dataTestId?: string;
+    dataCy?: string;
     label?: string;
     labelStyles?: string;
     labelSize?: "sm" | "md" | "lg";
@@ -23,6 +24,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             errorMessage,
             disabled,
             dataTestId,
+            dataCy,
             label,
             labelStyles = "",
             labelSize = "sm",
@@ -54,6 +56,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                         ref={ref}
                         disabled={disabled}
                         className={inputClassName}
+                        data-cy={dataCy}
                         {...props}
                     />
                 </div>

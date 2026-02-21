@@ -10,6 +10,8 @@ type FormButtonsProps = {
     isSubmitting?: boolean;
     needReview?: boolean;
     submitLabel?: string;
+    submitDataCy?: string;
+    cancelDataCy?: string;
     onCancel?: () => void;
 };
 
@@ -39,6 +41,8 @@ const FormButtons = ({
     isSubmitting = false,
     needReview = false,
     submitLabel,
+    submitDataCy,
+    cancelDataCy,
     onCancel,
 }: FormButtonsProps) => {
     const dispatch = useAppDispatch();
@@ -109,6 +113,7 @@ const FormButtons = ({
                 variant="secondary"
                 className="w-full"
                 data-testid="cancel-btn"
+                dataCy={cancelDataCy}
             >
                 Cancelar
             </Button>
@@ -116,6 +121,7 @@ const FormButtons = ({
                 type="submit"
                 disabled={isSubmitting}
                 data-testid="submit-btn"
+                dataCy={submitDataCy}
                 className="w-full"
             >
                 {submitLabel ?? (needReview ? "Requisitar" : "Atualizar")}

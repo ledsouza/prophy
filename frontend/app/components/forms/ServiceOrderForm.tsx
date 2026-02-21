@@ -140,6 +140,7 @@ const ServiceOrderForm = ({
                     label="Assunto"
                     errorMessage={errors.subject?.message}
                     dataTestId="service-order-subject"
+                    dataCy="service-order-subject"
                 ></Input>
 
                 <Textarea
@@ -149,6 +150,8 @@ const ServiceOrderForm = ({
                     placeholder="Descrição detalhada"
                     errorMessage={errors.description?.message}
                     label="Descrição"
+                    dataTestId="service-order-description"
+                    dataCy="service-order-description"
                 />
 
                 <Textarea
@@ -158,6 +161,8 @@ const ServiceOrderForm = ({
                     placeholder="Conclusão do serviço"
                     errorMessage={errors.conclusion?.message}
                     label="Conclusão"
+                    dataTestId="service-order-conclusion"
+                    dataCy="service-order-conclusion"
                 />
 
                 {shouldShowUpdates && (
@@ -168,6 +173,8 @@ const ServiceOrderForm = ({
                         placeholder="Atualizações"
                         errorMessage={errors.updates?.message as string | undefined}
                         label="Atualizações"
+                        dataTestId="service-order-updates"
+                        dataCy="service-order-updates"
                     />
                 )}
 
@@ -235,6 +242,7 @@ const ServiceOrderForm = ({
                                 setValue("equipments", ids, { shouldValidate: true })
                             }
                             dataTestId="service-order-equipments"
+                            dataCy="service-order-equipments"
                         />
                     )}
                 </div>
@@ -246,6 +254,9 @@ const ServiceOrderForm = ({
                         isSubmitting={isSubmitting}
                         needReview={false}
                         onCancel={handleCancel}
+                        submitLabel="Salvar"
+                        submitDataCy="service-order-submit"
+                        cancelDataCy="service-order-cancel"
                     />
                 </div>
             )}
