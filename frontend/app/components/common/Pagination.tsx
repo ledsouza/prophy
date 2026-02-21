@@ -61,7 +61,7 @@ const usePagination = ({
             const rightItemCount = 3 + 2 * siblingCount;
             const rightRange = Array.from(
                 { length: rightItemCount },
-                (_, i) => totalPages - rightItemCount + i + 1
+                (_, i) => totalPages - rightItemCount + i + 1,
             );
             return [firstPageIndex, "...", ...rightRange];
         }
@@ -70,7 +70,7 @@ const usePagination = ({
         if (shouldShowLeftDots && shouldShowRightDots) {
             const middleRange = Array.from(
                 { length: rightSiblingIndex - leftSiblingIndex + 1 },
-                (_, i) => leftSiblingIndex + i
+                (_, i) => leftSiblingIndex + i,
             );
             return [firstPageIndex, "...", ...middleRange, "...", lastPageIndex];
         }
@@ -92,6 +92,11 @@ const Pagination = ({
 }: PaginationProps) => {
     const totalPages = Math.ceil(totalCount / itemsPerPage);
     const paginationRange = usePagination({ currentPage, totalPages, siblingCount });
+    const mobilePaginationRange = usePagination({
+        currentPage,
+        totalPages,
+        siblingCount: 0,
+    });
 
     // Don't render pagination if there's only one page or no pages
     if (totalPages <= 1) {
@@ -157,9 +162,108 @@ const Pagination = ({
         <nav
             role="navigation"
             aria-label="Pagination Navigation"
-            className={cn("flex items-center justify-center", className)}
+            className={cn("flex flex-col items-center justify-center gap-3 sm:flex-row", className)}
         >
-            <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className="flex items-center justify-center gap-0.5 sm:hidden">
+                <Button
+                    key="mobile-previous"
+                    variant="secondary"
+                    disabled={currentPage <= 1 || isLoading}
+                    onClick={handlePrevious}
+                    className={cn("h-11 w-11 p-2 rounded-full", {
+                        "cursor-not-allowed opacity-50": currentPage <= 1 || isLoading,
+                    })}
+                    aria-label="Go to previous page"
+                >
+                    <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 19l-7-7 7-7"
+                        />
+                    </svg>
+                </Button>
+
+                {mobilePaginationRange.map((pageNumber, index) => {
+                    if (pageNumber === "...") {
+                        return (
+                            <Typography
+                                key={`mobile-ellipsis-${index}`}
+                                element="span"
+                                variant="secondary"
+                                size="sm"
+                                className="px-2 py-1"
+                                aria-hidden="true"
+                            >
+                                ...
+                            </Typography>
+                        );
+                    }
+
+                    if (typeof pageNumber !== "number") {
+                        return null;
+                    }
+
+                    const isActive = pageNumber === currentPage;
+
+                    return (
+                        <Button
+                            key={`mobile-page-${pageNumber}`}
+                            variant={isActive ? "primary" : "secondary"}
+                            disabled={isLoading}
+                            onClick={() => handlePageChange(pageNumber)}
+                            className={cn("min-w-11 h-11 px-2 py-2 text-sm font-medium", {
+                                "cursor-not-allowed opacity-50": isLoading,
+                                "bg-primary text-white border-primary": isActive,
+                                "hover:bg-quaternary": !isActive && !isLoading,
+                            })}
+                            aria-label={
+                                isActive
+                                    ? `Current page, page ${pageNumber}`
+                                    : `Go to page ${pageNumber}`
+                            }
+                            aria-current={isActive ? "page" : undefined}
+                        >
+                            {pageNumber}
+                        </Button>
+                    );
+                })}
+
+                <Button
+                    key="mobile-next"
+                    variant="secondary"
+                    disabled={currentPage >= totalPages || isLoading}
+                    onClick={handleNext}
+                    className={cn("h-11 w-11 p-2 rounded-full", {
+                        "cursor-not-allowed opacity-50": currentPage >= totalPages || isLoading,
+                    })}
+                    aria-label="Go to next page"
+                >
+                    <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                        />
+                    </svg>
+                </Button>
+            </div>
+
+            <div className="hidden sm:flex items-center justify-center gap-2">
                 {items.map((item, index) => {
                     if (item.type === "ellipsis") {
                         return (
@@ -183,7 +287,7 @@ const Pagination = ({
                                 variant="secondary"
                                 disabled={item.isDisabled}
                                 onClick={handlePrevious}
-                                className={cn("hidden sm:flex px-3 py-2 text-sm", {
+                                className={cn("px-3 py-2 text-sm", {
                                     "cursor-not-allowed opacity-50": item.isDisabled,
                                 })}
                                 aria-label="Go to previous page"
@@ -201,7 +305,7 @@ const Pagination = ({
                                 variant="secondary"
                                 disabled={item.isDisabled}
                                 onClick={handleNext}
-                                className={cn("hidden sm:flex px-3 py-2 text-sm", {
+                                className={cn("px-3 py-2 text-sm", {
                                     "cursor-not-allowed opacity-50": item.isDisabled,
                                 })}
                                 aria-label="Go to next page"
@@ -212,14 +316,13 @@ const Pagination = ({
                         );
                     }
 
-                    // Page number button
                     return (
                         <Button
                             key={`page-${item.value}`}
                             variant={item.isActive ? "primary" : "secondary"}
                             disabled={item.isDisabled}
                             onClick={() => item.value && handlePageChange(item.value)}
-                            className={cn("min-w-[2.5rem] h-10 px-2 py-2 text-sm font-medium", {
+                            className={cn("min-w-10 h-10 px-2 py-2 text-sm font-medium", {
                                 "cursor-not-allowed opacity-50": item.isDisabled,
                                 "bg-primary text-white border-primary": item.isActive,
                                 "hover:bg-quaternary": !item.isActive && !item.isDisabled,
@@ -237,68 +340,15 @@ const Pagination = ({
                 })}
             </div>
 
-            {/* Mobile navigation arrows */}
-            <div className="flex sm:hidden items-center space-x-4 ml-4">
-                <Button
-                    variant="secondary"
-                    disabled={currentPage <= 1 || isLoading}
-                    onClick={handlePrevious}
-                    className={cn("p-2 rounded-full", {
-                        "cursor-not-allowed opacity-50": currentPage <= 1 || isLoading,
-                    })}
-                    aria-label="Go to previous page"
-                >
-                    <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 19l-7-7 7-7"
-                        />
-                    </svg>
-                </Button>
-
-                <Typography
-                    element="span"
-                    variant="secondary"
-                    size="sm"
-                    className="text-center min-w-[4rem]"
-                    aria-live="polite"
-                >
-                    {currentPage} of {totalPages}
-                </Typography>
-
-                <Button
-                    variant="secondary"
-                    disabled={currentPage >= totalPages || isLoading}
-                    onClick={handleNext}
-                    className={cn("p-2 rounded-full", {
-                        "cursor-not-allowed opacity-50": currentPage >= totalPages || isLoading,
-                    })}
-                    aria-label="Go to next page"
-                >
-                    <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                        />
-                    </svg>
-                </Button>
-            </div>
+            <Typography
+                element="span"
+                variant="secondary"
+                size="sm"
+                className="sm:hidden"
+                aria-live="polite"
+            >
+                Página {currentPage} de {totalPages}
+            </Typography>
         </nav>
     );
 };
