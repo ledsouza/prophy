@@ -587,7 +587,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             <Modal
                 isOpen={confirmOpen}
                 onClose={() => setConfirmOpen(false)}
-                className="max-w-md px-2 py-6 sm:px-6 sm:py-6"
+                className="w-full max-w-md px-2 py-6 sm:px-6 sm:py-6"
             >
                 <div className="space-y-4">
                     <Typography element="h3" size="lg">
