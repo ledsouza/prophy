@@ -31,7 +31,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref,
     ) => {
         const inputClassName = clsx(
-            "block w-full rounded-md border-0",
+            "block w-full rounded-md border-0 px-3",
             "text-gray-primary shadow-md",
             "ring-1 ring-inset placeholder:text-placeholder focus:ring-2 focus:ring-inset focus:ring-primary",
             "sm:text-sm sm:leading-6",
