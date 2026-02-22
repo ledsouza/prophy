@@ -302,7 +302,7 @@ const UsersPage = () => {
                                                     : "inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700"
                                             }
                                         >
-                                            {u.is_active ? "Sim" : "Não"}
+                                            {u.is_active ? "Ativo" : "Inativo"}
                                         </span>
                                     }
                                     fields={[

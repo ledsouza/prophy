@@ -33,7 +33,7 @@ const MobileResultCard = ({
             )}
         >
             {(title || badge) && (
-                <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-col items-start gap-2">
                     {title && <div className="text-sm font-semibold text-gray-900">{title}</div>}
                     {badge && <div className="shrink-0">{badge}</div>}
                 </div>
