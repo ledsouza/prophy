@@ -3,7 +3,15 @@
 import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
-import { Button, ErrorDisplay, Modal, Pagination, Spinner, Table } from "@/components/common";
+import {
+    Button,
+    ErrorDisplay,
+    MobileResultCard,
+    Modal,
+    Pagination,
+    Spinner,
+    Table,
+} from "@/components/common";
 import { CreateManagedUserForm, EditManagedUserForm, Input } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { ManageUserAssociationsModal } from "@/components/users";
@@ -202,7 +210,7 @@ const UsersPage = () => {
                             setPage(1);
                         }}
                         dataCy="gp-users-filter-clear"
-                        className="w-fit"
+                        className="w-full sm:w-fit"
                     >
                         Limpar filtros
                     </Button>
@@ -282,6 +290,73 @@ const UsersPage = () => {
                                 },
                             ]}
                             keyExtractor={(u: UserDTO) => u.id}
+                            mobileCardRenderer={(u: UserDTO) => (
+                                <MobileResultCard
+                                    dataCy={`gp-users-card-${u.id}`}
+                                    title={u.name}
+                                    badge={
+                                        <span
+                                            className={
+                                                u.is_active
+                                                    ? "inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700"
+                                                    : "inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700"
+                                            }
+                                        >
+                                            {u.is_active ? "Sim" : "Não"}
+                                        </span>
+                                    }
+                                    fields={[
+                                        { label: "CPF", value: u.cpf },
+                                        { label: "E-mail", value: u.email },
+                                        { label: "Celular", value: u.phone },
+                                        { label: "Perfil", value: roleLabel(u.role) },
+                                    ]}
+                                    actions={
+                                        <div className="flex flex-col gap-2">
+                                            {!isCommercial && (
+                                                <Button
+                                                    variant="primary"
+                                                    onClick={() => openEdit(u)}
+                                                    className="w-full text-xs"
+                                                    dataCy={`gp-users-edit-${u.id}`}
+                                                >
+                                                    Editar
+                                                </Button>
+                                            )}
+
+                                            <Button
+                                                variant="secondary"
+                                                onClick={() => openAssociations(u)}
+                                                className="w-full text-xs"
+                                                dataCy={`gp-users-associations-${u.id}`}
+                                            >
+                                                Associações
+                                            </Button>
+
+                                            {!isCommercial &&
+                                                (u.is_active ? (
+                                                    <Button
+                                                        variant="danger"
+                                                        onClick={() => openToggleActive(u, false)}
+                                                        className="w-full text-xs"
+                                                        dataCy={`gp-users-deactivate-${u.id}`}
+                                                    >
+                                                        Inativar
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="secondary"
+                                                        onClick={() => openToggleActive(u, true)}
+                                                        className="w-full text-xs"
+                                                        dataCy={`gp-users-activate-${u.id}`}
+                                                    >
+                                                        Ativar
+                                                    </Button>
+                                                ))}
+                                        </div>
+                                    }
+                                />
+                            )}
                             rowProps={(u: UserDTO) => ({
                                 "data-cy": `gp-users-row-${u.id}`,
                             })}
