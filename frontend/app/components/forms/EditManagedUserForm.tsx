@@ -60,7 +60,7 @@ const EditManagedUserForm = ({
     }, [reset, user]);
 
     return (
-        <Form onSubmit={handleSubmit(onSubmit)}>
+        <Form onSubmit={handleSubmit(onSubmit)} className="w-full">
             <Typography element="h3" size="title3" className="font-semibold">
                 Editar usuário
             </Typography>

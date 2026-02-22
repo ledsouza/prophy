@@ -130,18 +130,34 @@ const Select = ({
         const rect = el.getBoundingClientRect();
         const viewportPadding = 16;
         const viewportWidth = window.visualViewport?.width ?? document.documentElement.clientWidth;
+        const viewportHeight =
+            window.visualViewport?.height ?? document.documentElement.clientHeight;
         const maxWidth = Math.max(viewportWidth - viewportPadding * 2, 0);
         const clampedWidth = Math.min(rect.width, maxWidth);
         const maxLeft = Math.max(viewportWidth - viewportPadding - clampedWidth, 0);
         const clampedLeft = Math.min(Math.max(rect.left, viewportPadding), maxLeft);
-        setOptionsStyle({
+        const spaceBelow = viewportHeight - rect.bottom - viewportPadding;
+        const spaceAbove = rect.top - viewportPadding;
+        const desiredMaxHeight = 224;
+        const shouldFlip = spaceBelow < desiredMaxHeight && spaceAbove > spaceBelow;
+        const availableSpace = shouldFlip ? spaceAbove : spaceBelow;
+        const maxHeight = Math.max(Math.min(availableSpace, desiredMaxHeight), 0);
+        const nextStyle: CSSProperties = {
             position: "fixed",
-            top: rect.bottom + 4,
             left: clampedLeft,
             width: clampedWidth,
+            maxHeight,
             boxSizing: "border-box",
             zIndex: 9999,
-        });
+        };
+
+        if (shouldFlip) {
+            nextStyle.top = rect.top - maxHeight - 4;
+        } else {
+            nextStyle.top = rect.bottom + 4;
+        }
+
+        setOptionsStyle(nextStyle);
     };
 
     useEffect(() => {
@@ -223,7 +239,13 @@ const Select = ({
                                 transition
                                 style={optionsStyle}
                                 data-cy={optionsDataCy}
-                                className="fixed z-9999 mt-1 max-h-56 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-closed:data-leave:opacity-0 data-leave:transition data-leave:duration-100 data-leave:ease-in sm:text-sm box-border"
+                                className={cn(
+                                    "fixed z-9999 overflow-auto rounded-md bg-white py-1",
+                                    "text-base shadow-lg ring-1 ring-black ring-opacity-5",
+                                    "focus:outline-none data-closed:data-leave:opacity-0",
+                                    "data-leave:transition data-leave:duration-100 data-leave:ease-in",
+                                    "sm:text-sm box-border",
+                                )}
                             >
                                 {options.map((option) => {
                                     const listBoxOptionStyle = cn(

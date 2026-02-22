@@ -1,13 +1,15 @@
+import clsx from "clsx";
 import { FormEvent, ReactNode } from "react";
 
 type Props = {
     children: ReactNode;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+    className?: string;
 };
 
-export default function Form({ children, onSubmit }: Props) {
+export default function Form({ children, onSubmit, className }: Props) {
     return (
-        <form className="space-y-6" onSubmit={onSubmit}>
+        <form className={clsx("space-y-6", className)} onSubmit={onSubmit}>
             {children}
         </form>
     );

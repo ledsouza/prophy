@@ -377,7 +377,11 @@ const UsersPage = () => {
                 </div>
             </div>
 
-            <Modal isOpen={createOpen} onClose={setCreateOpen} className="max-w-lg mx-6 p-6">
+            <Modal
+                isOpen={createOpen}
+                onClose={setCreateOpen}
+                className="w-full max-w-lg mx-2 sm:mx-6 p-6"
+            >
                 <div data-cy="gp-users-create-modal">
                     <CreateManagedUserForm
                         onSubmit={handleCreate}
@@ -387,7 +391,11 @@ const UsersPage = () => {
                 </div>
             </Modal>
 
-            <Modal isOpen={editOpen} onClose={setEditOpen} className="max-w-lg mx-6 p-6">
+            <Modal
+                isOpen={editOpen}
+                onClose={setEditOpen}
+                className="w-full max-w-lg mx-2 sm:mx-6 p-6"
+            >
                 <div data-cy="gp-users-edit-modal">
                     {editingUser ? (
                         <EditManagedUserForm
@@ -407,7 +415,7 @@ const UsersPage = () => {
             <Modal
                 isOpen={toggleActiveOpen}
                 onClose={setToggleActiveOpen}
-                className="max-w-lg mx-6 p-6"
+                className="w-full max-w-lg mx-2 sm:mx-6 p-6"
             >
                 <div data-cy="gp-users-toggle-active-modal">
                     <Typography element="h3" size="title3" className="font-semibold">

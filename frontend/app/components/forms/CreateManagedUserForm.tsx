@@ -46,6 +46,7 @@ const CreateManagedUserForm = ({
                 await onSubmit(values);
                 reset();
             })}
+            className="w-full"
         >
             <Typography element="h3" size="title3" className="font-semibold">
                 Criar usuário
