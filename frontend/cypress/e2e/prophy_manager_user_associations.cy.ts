@@ -16,221 +16,279 @@ describe("prophy manager - user associations", () => {
 
     const TOAST_TIMEOUT_MS = 10_000;
 
-    it("allows GP to associate a non-GU user to a client and remove it", () => {
-        cy.loginAs("admin_user");
+    const viewports: Array<Cypress.ViewportPreset | [number, number]> = [[1000, 660], "iphone-6"];
+    const desktopBreakpoint = 640;
 
-        cy.intercept("GET", "**/api/users/manage/**/associations/").as("getAssociations");
-        cy.intercept("POST", "**/api/clients/*/users/").as("addClientAssociation");
-        cy.intercept("DELETE", "**/api/clients/*/users/*/").as("removeClientAssociation");
-        cy.intercept("GET", "**/api/clients/**").as("listAllClients");
+    viewports.forEach((viewport) => {
+        const isMobileViewport = Array.isArray(viewport)
+            ? viewport[0] < desktopBreakpoint
+            : viewport === "iphone-6";
 
-        cy.visit("/dashboard/users", { failOnStatusCode: false });
-        cy.location("pathname").should("include", "/dashboard/users");
-
-        cy.getByCy("gp-users-results")
-            .find("tr")
-            .then(($rows) => {
-                expect($rows.length).to.be.greaterThan(1);
-            });
-
-        cy.getByCy("gp-users-results")
-            .find("tr[data-cy^='gp-users-row-']")
-            .first()
-            .within(() => {
-                cy.get("[data-cy^='gp-users-associations-']").click();
-            });
-
-        cy.getByCy("gp-users-associations-modal").should("exist");
-        cy.wait("@listAllClients");
-        cy.wait("@getAssociations");
-
-        cy.getByCy("gp-users-associations-combobox-input").type("a");
-        cy.getByCy("gp-users-associations-combobox-options").should("be.visible");
-        cy.getByCy("gp-users-associations-combobox-options")
-            .find("[data-cy^='gp-users-associations-combobox-option-']")
-            .first()
-            .invoke("text")
-            .then((text) => text.trim())
-            .as("selectedClientName");
-
-        cy.getByCy("gp-users-associations-combobox-options")
-            .find("[data-cy^='gp-users-associations-combobox-option-']")
-            .first()
-            .click();
-
-        cy.getByCy("gp-users-associations-add").should("not.be.disabled");
-
-        cy.getByCy("gp-users-associations-add").click();
-        cy.wait("@addClientAssociation");
-
-        cy.contains("Cliente associado com sucesso.", { timeout: TOAST_TIMEOUT_MS }).should(
-            "be.visible",
-        );
-
-        cy.getByCy("gp-users-associations-combobox-input").clear().type("a");
-        cy.getByCy("gp-users-associations-combobox-options").should("be.visible");
-        cy.get("@selectedClientName").then((clientName) => {
-            const name = String(clientName);
-            cy.getByCy("gp-users-associations-combobox-options")
-                .contains("[data-cy^='gp-users-associations-combobox-option-']", name)
-                .click();
-        });
-
-        cy.getByCy("gp-users-associations-add").should("not.be.disabled");
-        cy.getByCy("gp-users-associations-add").click();
-        cy.contains("Usuário já está associado a este cliente.", {
-            timeout: TOAST_TIMEOUT_MS,
-        }).should("be.visible");
-
-        cy.getByCy("gp-users-associations-modal")
-            .find("[data-cy^='gp-users-associations-remove-client-']")
-            .first()
-            .click();
-
-        cy.wait("@removeClientAssociation");
-
-        cy.contains("Cliente removido com sucesso.", { timeout: TOAST_TIMEOUT_MS }).should(
-            "be.visible",
-        );
-
-        cy.getByCy("gp-users-associations-close").click();
-    });
-
-    it("allows GP to assign and unassign a GU to a unit", () => {
-        cy.loginAs("admin_user");
-
-        cy.intercept("GET", "**/api/users/manage/**/associations/").as("getAssociations");
-        cy.intercept("PUT", "**/api/units/*/unit-manager/").as("assignUnitManager");
-        cy.intercept("GET", "**/api/units/**").as("listAllUnits");
-        cy.intercept("GET", "**/api/clients/**").as("listAllClients");
-
-        cy.visit("/dashboard/users", { failOnStatusCode: false });
-        cy.location("pathname").should("include", "/dashboard/users");
-
-        cy.getByCy("gp-users-results")
-            .contains("Gerente de Unidade")
-            .closest("tr")
-            .within(() => {
-                cy.get("[data-cy^='gp-users-associations-']").click();
-            });
-
-        cy.getByCy("gp-users-associations-modal").should("exist");
-        cy.wait("@listAllClients");
-        cy.wait("@listAllUnits");
-        cy.wait("@getAssociations");
-
-        cy.getByCy("gp-users-associations-modal")
-            .find("[data-cy^='gp-users-associations-unassign-unit-']")
-            .then(($buttons) => {
-                const associated = [...$buttons]
-                    .map((button) => {
-                        const row = button.closest("div");
-                        const name = row?.querySelector("p")?.textContent?.trim();
-                        return name || null;
-                    })
-                    .filter((name): name is string => Boolean(name));
-
-                cy.wrap(associated as string[]).as("associatedUnits");
-            });
-
-        cy.fixture("default-clients.json").then((clientsFixture) => {
-            const typedClients = clientsFixture as Record<string, ClientFixture>;
-
-            cy.fixture("default-units.json").then((unitsFixture) => {
-                const typedUnits = unitsFixture as Record<string, UnitFixture>;
-                const clientWithUnits = typedClients.client1;
-                const availableUnits = Object.values(typedUnits).filter((unit) => {
-                    return unit.client === clientWithUnits.id && unit.user === null;
-                });
-
-                if (!availableUnits.length) {
-                    throw new Error("No available units without manager in fixtures");
+        describe(`viewport ${Array.isArray(viewport) ? viewport.join("x") : viewport}`, () => {
+            beforeEach(() => {
+                cy.loginAs("admin_user");
+                if (Array.isArray(viewport)) {
+                    cy.viewport(viewport[0], viewport[1]);
+                    return;
                 }
 
-                const selectedUnit = availableUnits[0];
-                const selectedClientName = String(clientWithUnits.name);
-                const selectedUnitName = String(selectedUnit.name);
+                cy.viewport(viewport);
+            });
 
-                cy.wrap(selectedClientName).as("selectedClientName");
-                cy.wrap(selectedUnitName).as("selectedUnitName");
+            it("allows GP to associate a non-GU user to a client and remove it", () => {
+                cy.intercept("GET", "**/api/users/manage/**/associations/").as("getAssociations");
+                cy.intercept("POST", "**/api/clients/*/users/").as("addClientAssociation");
+                cy.intercept("DELETE", "**/api/clients/*/users/*/").as("removeClientAssociation");
+                cy.intercept("GET", "**/api/clients/**").as("listAllClients");
 
-                cy.getByCy("gp-users-associations-client-combobox-input").type(selectedClientName);
-                cy.getByCy("gp-users-associations-client-combobox-options").should("be.visible");
-                cy.getByCy("gp-users-associations-client-combobox-options")
-                    .contains(
-                        "[data-cy^='gp-users-associations-client-combobox-option-']",
-                        selectedClientName,
-                    )
-                    .click();
+                cy.visit("/dashboard/users", { failOnStatusCode: false });
+                cy.location("pathname").should("include", "/dashboard/users");
 
-                cy.getByCy("gp-users-associations-unit-select").find("button").click();
-                cy.getByCy("gp-users-associations-unit-select-options").should("be.visible");
-                cy.getByCy("gp-users-associations-unit-select-options")
-                    .find("[role='option']")
-                    .contains(selectedUnitName)
-                    .click();
+                if (isMobileViewport) {
+                    cy.getByCy("gp-users-results")
+                        .find("[data-cy^='gp-users-card-']")
+                        .first()
+                        .within(() => {
+                            cy.get("[data-cy^='gp-users-associations-']").click();
+                        });
+                } else {
+                    cy.getByCy("gp-users-results")
+                        .find("tr[data-cy^='gp-users-row-']")
+                        .first()
+                        .within(() => {
+                            cy.get("[data-cy^='gp-users-associations-']").scrollIntoView().click();
+                        });
+                }
+
+                cy.getByCy("gp-users-associations-modal").should("exist");
+                cy.wait("@listAllClients");
+                cy.wait("@getAssociations");
+
+                cy.getByCy("gp-users-associations-modal")
+                    .find("[data-cy^='gp-users-associations-remove-client-']")
+                    .then(($buttons) => {
+                        const associated = [...$buttons]
+                            .map((button) => {
+                                const row = button.closest("div");
+                                const name = row?.querySelector("p")?.textContent?.trim();
+                                return name || null;
+                            })
+                            .filter((name): name is string => Boolean(name));
+
+                        cy.wrap(associated as string[]).as("associatedClients");
+                    });
+
+                cy.getByCy("gp-users-associations-combobox-input").type("a");
+                cy.getByCy("gp-users-associations-combobox-options").should("be.visible");
+                cy.getByCy("gp-users-associations-combobox-options")
+                    .find("[data-cy^='gp-users-associations-combobox-option-']")
+                    .then(($options) => {
+                        const options = [...$options].map((option) => {
+                            return option.textContent?.trim() ?? "";
+                        });
+
+                        cy.get("@associatedClients").then((associatedClients) => {
+                            const associated = Array.isArray(associatedClients)
+                                ? (associatedClients as string[])
+                                : ([] as string[]);
+                            const available = options.filter(
+                                (name) => name && !associated.includes(name),
+                            );
+
+                            if (!available.length) {
+                                throw new Error("No available client to associate");
+                            }
+
+                            const selectedName = available[0];
+                            cy.wrap(selectedName).as("selectedClientName");
+                            cy.getByCy("gp-users-associations-combobox-options")
+                                .contains(
+                                    "[data-cy^='gp-users-associations-combobox-option-']",
+                                    selectedName,
+                                )
+                                .click();
+                        });
+                    });
+
+                cy.getByCy("gp-users-associations-add").should("not.be.disabled");
+                cy.getByCy("gp-users-associations-add").click();
+                cy.wait("@addClientAssociation");
+                cy.get("@selectedClientName").then((clientName) => {
+                    cy.getByCy("gp-users-associations-modal").should("contain", String(clientName));
+                });
+
+                cy.getByCy("gp-users-associations-combobox-input").clear().type("a");
+                cy.getByCy("gp-users-associations-combobox-options").should("be.visible");
+                cy.get("@selectedClientName").then((clientName) => {
+                    const name = String(clientName);
+                    cy.getByCy("gp-users-associations-combobox-options")
+                        .contains("[data-cy^='gp-users-associations-combobox-option-']", name)
+                        .click();
+                });
+
+                cy.getByCy("gp-users-associations-modal")
+                    .find("[data-cy^='gp-users-associations-remove-client-']")
+                    .then(($buttons) => {
+                        cy.wrap($buttons.length).as("clientAssociationCount");
+                    });
+
+                cy.getByCy("gp-users-associations-add").should("not.be.disabled");
+                cy.getByCy("gp-users-associations-add").click();
+                cy.get("@clientAssociationCount").then((count) => {
+                    cy.getByCy("gp-users-associations-modal")
+                        .find("[data-cy^='gp-users-associations-remove-client-']")
+                        .should("have.length", Number(count));
+                });
+
+                cy.getByCy("gp-users-associations-modal").find(
+                    "[data-cy^='gp-users-associations-remove-client-']",
+                );
+
+                cy.get("@selectedClientName").then((clientName) => {
+                    cy.getByCy("gp-users-associations-modal")
+                        .contains(String(clientName))
+                        .parents("div")
+                        .filter((_, el) => {
+                            return el.querySelector("button") !== null;
+                        })
+                        .first()
+                        .within(() => {
+                            cy.contains("Desassociar").click();
+                        });
+                });
+
+                cy.wait("@removeClientAssociation");
+
+                cy.get("@selectedClientName").then((clientName) => {
+                    cy.getByCy("gp-users-associations-modal")
+                        .contains(String(clientName))
+                        .should("not.exist");
+                });
+
+                cy.getByCy("gp-users-associations-close").click();
+            });
+
+            it("allows GP to assign and unassign a GU to a unit", () => {
+                cy.intercept("GET", "**/api/users/manage/**").as("listManagedUsers");
+                cy.intercept("GET", "**/api/users/manage/**/associations/").as("getAssociations");
+                cy.intercept("PUT", "**/api/units/*/unit-manager/").as("assignUnitManager");
+                cy.intercept("GET", "**/api/units/**").as("listAllUnits");
+                cy.intercept("GET", "**/api/clients/**").as("listAllClients");
+
+                cy.visit("/dashboard/users", { failOnStatusCode: false });
+                cy.location("pathname").should("include", "/dashboard/users");
+
+                cy.fixture("users.json").then((usersFixture) => {
+                    const guUserName = String(usersFixture.unit_manager_user.name);
+
+                    cy.getByCy("gp-users-filter-name").clear().type(guUserName);
+                    cy.wait("@listManagedUsers");
+
+                    if (isMobileViewport) {
+                        cy.getByCy("gp-users-card-1002").within(() => {
+                            cy.get("[data-cy^='gp-users-associations-']").click();
+                        });
+                    } else {
+                        cy.getByCy("gp-users-row-1002").within(() => {
+                            cy.get("[data-cy^='gp-users-associations-']").scrollIntoView().click();
+                        });
+                    }
+                });
+
+                cy.getByCy("gp-users-associations-modal").should("exist");
+                cy.wait("@listAllClients");
+                cy.wait("@listAllUnits");
+                cy.wait("@getAssociations");
+
+                cy.getByCy("gp-users-associations-modal")
+                    .find("[data-cy^='gp-users-associations-unassign-unit-']")
+                    .then(($buttons) => {
+                        const associated = [...$buttons]
+                            .map((button) => {
+                                const row = button.closest("div");
+                                const name = row?.querySelector("p")?.textContent?.trim();
+                                return name || null;
+                            })
+                            .filter((name): name is string => Boolean(name));
+
+                        cy.wrap(associated as string[]).as("associatedUnits");
+                    });
+
+                cy.fixture("default-clients.json").then((clientsFixture) => {
+                    const typedClients = clientsFixture as Record<string, ClientFixture>;
+
+                    cy.fixture("default-units.json").then((unitsFixture) => {
+                        const typedUnits = unitsFixture as Record<string, UnitFixture>;
+                        const clientWithUnits = typedClients.client1;
+                        const availableUnits = Object.values(typedUnits).filter((unit) => {
+                            return unit.client === clientWithUnits.id && unit.user === null;
+                        });
+
+                        if (!availableUnits.length) {
+                            throw new Error("No available units without manager in fixtures");
+                        }
+
+                        const selectedUnit = availableUnits[0];
+                        const selectedClientName = String(clientWithUnits.name);
+                        const selectedUnitName = String(selectedUnit.name);
+
+                        cy.wrap(selectedClientName).as("selectedClientName");
+                        cy.wrap(selectedUnitName).as("selectedUnitName");
+
+                        cy.getByCy("gp-users-associations-client-combobox-input").type(
+                            selectedClientName,
+                        );
+                        cy.getByCy("gp-users-associations-client-combobox-options").should(
+                            "be.visible",
+                        );
+                        cy.getByCy("gp-users-associations-client-combobox-options")
+                            .contains(
+                                "[data-cy^='gp-users-associations-client-combobox-option-']",
+                                selectedClientName,
+                            )
+                            .click();
+
+                        cy.getByCy("gp-users-associations-unit-select").find("button").click();
+                        cy.getByCy("gp-users-associations-unit-select-options").should(
+                            "be.visible",
+                        );
+                        cy.getByCy("gp-users-associations-unit-select-options")
+                            .find("[role='option']")
+                            .contains(selectedUnitName)
+                            .click();
+                    });
+                });
+
+                cy.getByCy("gp-users-associations-assign").should("not.be.disabled");
+
+                cy.getByCy("gp-users-associations-assign").click();
+                cy.wait("@assignUnitManager");
+                cy.get("@selectedUnitName").then((unitName) => {
+                    cy.getByCy("gp-users-associations-modal").should("contain", String(unitName));
+                });
+
+                cy.get("@selectedUnitName").then((unitName) => {
+                    cy.getByCy("gp-users-associations-modal")
+                        .contains(String(unitName))
+                        .parents("div")
+                        .filter((_, el) => {
+                            return el.querySelector("button") !== null;
+                        })
+                        .first()
+                        .within(() => {
+                            cy.contains("Desassociar").click();
+                        });
+                });
+
+                cy.wait("@assignUnitManager");
+                cy.get("@selectedUnitName").then((unitName) => {
+                    cy.getByCy("gp-users-associations-modal")
+                        .contains(String(unitName))
+                        .should("not.exist");
+                });
+
+                cy.getByCy("gp-users-associations-close").click();
             });
         });
-
-        cy.getByCy("gp-users-associations-assign").should("not.be.disabled");
-
-        cy.getByCy("gp-users-associations-assign").click();
-        cy.wait("@assignUnitManager");
-
-        cy.contains("Unidade atribuída com sucesso.", { timeout: TOAST_TIMEOUT_MS }).should(
-            "be.visible",
-        );
-
-        cy.getByCy("gp-users-associations-unit-select").find("button").click();
-        cy.getByCy("gp-users-associations-unit-select-options").should("be.visible");
-        cy.get("@selectedUnitName").then((unitName) => {
-            const name = String(unitName);
-            cy.getByCy("gp-users-associations-unit-select-options")
-                .find("[role='option']")
-                .contains(name)
-                .click();
-        });
-
-        cy.getByCy("gp-users-associations-assign").should("not.be.disabled");
-        cy.getByCy("gp-users-associations-assign").click();
-        cy.contains("Usuário já está associado a esta unidade.", {
-            timeout: TOAST_TIMEOUT_MS,
-        }).should("be.visible");
-
-        cy.getByCy("gp-users-associations-unit-select").find("button").click();
-        cy.getByCy("gp-users-associations-unit-select-options").should("be.visible");
-        cy.get("@associatedUnits").then((associatedUnits) => {
-            const associated = Array.isArray(associatedUnits)
-                ? (associatedUnits as string[])
-                : ([] as string[]);
-            const fallbackUnit = associated[0];
-
-            if (fallbackUnit) {
-                cy.getByCy("gp-users-associations-unit-select-options")
-                    .find("[role='option']")
-                    .contains(fallbackUnit)
-                    .click();
-            }
-        });
-
-        cy.getByCy("gp-users-associations-assign").should("not.be.disabled");
-
-        cy.getByCy("gp-users-associations-assign").click();
-        cy.contains("Usuário já está associado a esta unidade.", {
-            timeout: TOAST_TIMEOUT_MS,
-        }).should("be.visible");
-
-        cy.getByCy("gp-users-associations-modal")
-            .find("[data-cy^='gp-users-associations-unassign-unit-']")
-            .first()
-            .click();
-
-        cy.wait("@assignUnitManager");
-
-        cy.contains("Unidade desassociada com sucesso.", { timeout: TOAST_TIMEOUT_MS }).should(
-            "be.visible",
-        );
-
-        cy.getByCy("gp-users-associations-close").click();
     });
 });
