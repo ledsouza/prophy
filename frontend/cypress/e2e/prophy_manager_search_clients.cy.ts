@@ -1,4 +1,7 @@
 describe("prophy manager - search clients", () => {
+    const viewports: Array<Cypress.ViewportPreset | [number, number]> = [[1280, 720], "iphone-6"];
+    const desktopBreakpoint = 640;
+
     beforeEach(() => {
         cy.setupDB();
         cy.loginAs("admin_user");
@@ -26,42 +29,86 @@ describe("prophy manager - search clients", () => {
         });
     });
 
-    it("filters clients by CNPJ and navigates to details and proposals", () => {
-        cy.fixture("registered-client.json").then((data) => {
-            const cnpj: string = data.registered_cnpj;
-            // Masked CNPJ as it appears in the table: 78.187.773/0001-16
-            const maskedCnpj = cnpj.replace(
-                /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-                "$1.$2.$3/$4-$5",
-            );
+    viewports.forEach((viewport) => {
+        const isMobileViewport = Array.isArray(viewport)
+            ? viewport[0] < desktopBreakpoint
+            : viewport === "iphone-6";
 
-            cy.visit("/dashboard");
-            cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
-            cy.getByCy("search-tab-clients").click();
+        describe(`viewport ${Array.isArray(viewport) ? viewport.join("x") : viewport}`, () => {
+            beforeEach(() => {
+                if (Array.isArray(viewport)) {
+                    cy.viewport(viewport[0], viewport[1]);
+                    return;
+                }
 
-            cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
-            cy.getByCy("clients-apply-filters").click();
+                cy.viewport(viewport);
+            });
 
-            cy.getByCy("clients-results").should("exist");
-            // Wait for the filter to be applied by checking for the masked CNPJ
-            cy.getByCy("clients-results").should("contain", maskedCnpj);
-            cy.getByCy("clients-results").find('[data-cy^="client-row-"]').should("have.length", 1);
+            it("filters clients by CNPJ and navigates to details and proposals", () => {
+                cy.fixture("registered-client.json").then((data) => {
+                    const cnpj: string = data.registered_cnpj;
+                    const maskedCnpj = cnpj.replace(
+                        /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+                        "$1.$2.$3/$4-$5",
+                    );
 
-            cy.getByCy("clients-results").find('[data-cy^="client-details-"]').first().click();
-            cy.url().should("include", `/dashboard/client/${cnpj}`);
+                    cy.visit("/dashboard");
+                    cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
+                    cy.getByCy("search-tab-clients").click();
 
-            cy.visit("/dashboard");
-            cy.getByCy("search-tab-clients").click();
-            cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
-            cy.getByCy("clients-apply-filters").click();
+                    cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
+                    cy.getByCy("clients-apply-filters").click();
 
-            cy.getByCy("clients-results").should("contain", maskedCnpj);
-            cy.getByCy("clients-results").find('[data-cy^="client-proposals-"]').first().click();
-            cy.location("pathname").should("eq", "/dashboard/");
-            cy.location("search").should(
-                "eq",
-                `?tab=proposals&proposal_page=1&proposals_cnpj=${cnpj}`,
-            );
+                    cy.getByCy("clients-results").should("exist");
+                    cy.getByCy("clients-results").should("contain", maskedCnpj);
+
+                    if (isMobileViewport) {
+                        cy.get('[data-cy^="client-card-"]')
+                            .should("have.length", 1)
+                            .first()
+                            .within(() => {
+                                cy.get('[data-cy^="client-details-"]:visible').first().click();
+                            });
+                    } else {
+                        cy.getByCy("clients-results")
+                            .find('[data-cy^="client-row-"]')
+                            .should("have.length", 1);
+                        cy.getByCy("clients-results")
+                            .find('[data-cy^="client-details-"]:visible')
+                            .first()
+                            .click();
+                    }
+
+                    cy.url().should("include", `/dashboard/client/${cnpj}`);
+
+                    cy.visit("/dashboard");
+                    cy.getByCy("search-tab-clients").click();
+                    cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
+                    cy.getByCy("clients-apply-filters").click();
+
+                    cy.getByCy("clients-results").should("contain", maskedCnpj);
+
+                    if (isMobileViewport) {
+                        cy.get('[data-cy^="client-card-"]')
+                            .should("have.length", 1)
+                            .first()
+                            .within(() => {
+                                cy.get('[data-cy^="client-proposals-"]:visible').first().click();
+                            });
+                    } else {
+                        cy.getByCy("clients-results")
+                            .find('[data-cy^="client-proposals-"]:visible')
+                            .first()
+                            .click();
+                    }
+
+                    cy.location("pathname").should("eq", "/dashboard/");
+                    cy.location("search").should(
+                        "eq",
+                        `?tab=proposals&proposal_page=1&proposals_cnpj=${cnpj}`,
+                    );
+                });
+            });
         });
     });
 });
