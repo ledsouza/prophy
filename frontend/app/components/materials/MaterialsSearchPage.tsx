@@ -4,7 +4,15 @@ import { LockOpenIcon, LockSimpleIcon } from "@phosphor-icons/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { Button, ErrorDisplay, Modal, Pagination, Spinner, Table } from "@/components/common";
+import {
+    Button,
+    ErrorDisplay,
+    MobileResultCard,
+    Modal,
+    Pagination,
+    Spinner,
+    Table,
+} from "@/components/common";
 import { Input, Select } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
@@ -58,6 +66,34 @@ const formatISODate = (iso: string) => {
     } catch {
         return iso;
     }
+};
+
+const renderVisibilityIndicator = (visibility: MaterialVisibility) => {
+    if (visibility === "PUB") {
+        return (
+            <span className="inline-flex items-center" title="Público">
+                <LockOpenIcon
+                    size={14}
+                    weight="bold"
+                    className="text-emerald-600/60"
+                    aria-hidden="true"
+                />
+                <span className="sr-only">Público</span>
+            </span>
+        );
+    }
+
+    return (
+        <span className="inline-flex items-center" title="Interno">
+            <LockSimpleIcon
+                size={14}
+                weight="bold"
+                className="text-gray-500/70"
+                aria-hidden="true"
+            />
+            <span className="sr-only">Interno</span>
+        </span>
+    );
 };
 
 const MaterialsSearchPage = () => {
@@ -426,38 +462,91 @@ const MaterialsSearchPage = () => {
                                 <Table
                                     data={results}
                                     keyExtractor={(row: MaterialDTO) => row.id}
+                                    mobileCardRenderer={(row: MaterialDTO) => (
+                                        <MobileResultCard
+                                            dataCy={`material-card-${row.id}`}
+                                            title={
+                                                <div className="flex items-center gap-2">
+                                                    {renderVisibilityIndicator(row.visibility)}
+                                                    <span>{row.title}</span>
+                                                </div>
+                                            }
+                                            fields={[
+                                                {
+                                                    label: "Descrição",
+                                                    value: row.description || "-",
+                                                },
+                                                {
+                                                    label: "Categoria",
+                                                    value: getCategoryLabel(row.category),
+                                                },
+                                                {
+                                                    label: "Criado em",
+                                                    value: formatISODate(row.created_at),
+                                                },
+                                                {
+                                                    label: "Atualizado em",
+                                                    value: formatISODate(row.updated_at),
+                                                },
+                                            ]}
+                                            actions={
+                                                <>
+                                                    <Button
+                                                        variant="primary"
+                                                        onClick={() => handleDownload(row)}
+                                                        className="w-full text-xs"
+                                                        dataCy={`material-download-${row.id}`}
+                                                    >
+                                                        Baixar
+                                                    </Button>
+                                                    {isProphyManager && (
+                                                        <>
+                                                            <Button
+                                                                variant="secondary"
+                                                                onClick={() => {
+                                                                    setMaterialToEdit(row);
+                                                                    setIsUpdateOpen(true);
+                                                                }}
+                                                                className="w-full text-xs"
+                                                                dataCy={`material-edit-${row.id}`}
+                                                            >
+                                                                Editar
+                                                            </Button>
+                                                            {row.visibility === "INT" && (
+                                                                <Button
+                                                                    variant="secondary"
+                                                                    onClick={() =>
+                                                                        openPermissions(row)
+                                                                    }
+                                                                    className="w-full text-xs"
+                                                                    dataCy={`material-permissions-${row.id}`}
+                                                                >
+                                                                    Permissões
+                                                                </Button>
+                                                            )}
+                                                            <Button
+                                                                variant="danger"
+                                                                onClick={() => {
+                                                                    setMaterialToDelete(row);
+                                                                    setIsDeleteOpen(true);
+                                                                }}
+                                                                className="w-full text-xs"
+                                                                dataCy={`material-delete-${row.id}`}
+                                                            >
+                                                                Excluir
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </>
+                                            }
+                                        />
+                                    )}
                                     columns={[
                                         {
                                             header: "Título",
                                             cell: (row: MaterialDTO) => (
                                                 <div className="flex items-center gap-2">
-                                                    {row.visibility === "PUB" ? (
-                                                        <span
-                                                            className="inline-flex items-center"
-                                                            title="Público"
-                                                        >
-                                                            <LockOpenIcon
-                                                                size={14}
-                                                                weight="bold"
-                                                                className="text-emerald-600/60"
-                                                                aria-hidden="true"
-                                                            />
-                                                            <span className="sr-only">Público</span>
-                                                        </span>
-                                                    ) : (
-                                                        <span
-                                                            className="inline-flex items-center"
-                                                            title="Interno"
-                                                        >
-                                                            <LockSimpleIcon
-                                                                size={14}
-                                                                weight="bold"
-                                                                className="text-gray-500/70"
-                                                                aria-hidden="true"
-                                                            />
-                                                            <span className="sr-only">Interno</span>
-                                                        </span>
-                                                    )}
+                                                    {renderVisibilityIndicator(row.visibility)}
                                                     <span>{row.title}</span>
                                                 </div>
                                             ),
@@ -494,6 +583,7 @@ const MaterialsSearchPage = () => {
                                                         variant="primary"
                                                         onClick={() => handleDownload(row)}
                                                         className="w-full text-xs"
+                                                        dataCy={`material-download-${row.id}`}
                                                     >
                                                         Baixar
                                                     </Button>
@@ -506,6 +596,7 @@ const MaterialsSearchPage = () => {
                                                                     setIsUpdateOpen(true);
                                                                 }}
                                                                 className="w-full text-xs"
+                                                                dataCy={`material-edit-${row.id}`}
                                                             >
                                                                 Editar
                                                             </Button>
@@ -517,6 +608,7 @@ const MaterialsSearchPage = () => {
                                                                     }
                                                                     className="w-full text-xs"
                                                                     data-testid="btn-open-permissions-modal"
+                                                                    dataCy={`material-permissions-${row.id}`}
                                                                 >
                                                                     Permissões
                                                                 </Button>
@@ -528,6 +620,7 @@ const MaterialsSearchPage = () => {
                                                                     setIsDeleteOpen(true);
                                                                 }}
                                                                 className="w-full text-xs"
+                                                                dataCy={`material-delete-${row.id}`}
                                                             >
                                                                 Excluir
                                                             </Button>
@@ -592,7 +685,7 @@ const MaterialsSearchPage = () => {
                 <Modal
                     isOpen={isDeleteOpen}
                     onClose={() => setIsDeleteOpen(false)}
-                    className="max-w-md mx-6 p-8"
+                    className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
                 >
                     {materialToDelete && (
                         <ConfirmDelete
@@ -614,7 +707,7 @@ const MaterialsSearchPage = () => {
                 <Modal
                     isOpen={isUpdateOpen}
                     onClose={() => setIsUpdateOpen(false)}
-                    className="max-w-3xl mx-6 p-8"
+                    className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
                 >
                     {materialToEdit && (
                         <MaterialUpdateForm
@@ -637,7 +730,7 @@ const MaterialsSearchPage = () => {
                 <Modal
                     isOpen={isPermissionsOpen}
                     onClose={() => setIsPermissionsOpen(false)}
-                    className="max-w-3xl mx-6 p-8"
+                    className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
                 >
                     {materialForPermissions && (
                         <div className="flex flex-col gap-4">

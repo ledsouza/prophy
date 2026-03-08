@@ -173,7 +173,11 @@ const ManageUserAssociationsModal = ({ isOpen, onClose, user }: Props) => {
         isAssociationsLoading || isClientsLoading || (isGuUser && isUnitsLoading) || !user;
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} className="max-w-2xl mx-6 p-6">
+        <Modal
+            isOpen={isOpen}
+            onClose={handleClose}
+            className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
+        >
             <div data-cy="gp-users-associations-modal">
                 <Typography element="h3" size="title3" className="font-semibold mb-2">
                     Gerenciar associações

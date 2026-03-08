@@ -380,7 +380,7 @@ const UsersPage = () => {
             <Modal
                 isOpen={createOpen}
                 onClose={setCreateOpen}
-                className="w-full max-w-lg mx-2 sm:mx-6 p-6"
+                className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
             >
                 <div data-cy="gp-users-create-modal">
                     <CreateManagedUserForm
@@ -394,7 +394,7 @@ const UsersPage = () => {
             <Modal
                 isOpen={editOpen}
                 onClose={setEditOpen}
-                className="w-full max-w-lg mx-2 sm:mx-6 p-6"
+                className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
             >
                 <div data-cy="gp-users-edit-modal">
                     {editingUser ? (
@@ -415,7 +415,7 @@ const UsersPage = () => {
             <Modal
                 isOpen={toggleActiveOpen}
                 onClose={setToggleActiveOpen}
-                className="w-full max-w-lg mx-2 sm:mx-6 p-6"
+                className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
             >
                 <div data-cy="gp-users-toggle-active-modal">
                     <Typography element="h3" size="title3" className="font-semibold">
