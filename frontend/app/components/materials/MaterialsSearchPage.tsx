@@ -578,7 +578,7 @@ const MaterialsSearchPage = () => {
                 <Modal
                     isOpen={isCreateOpen}
                     onClose={() => setIsCreateOpen(false)}
-                    className="max-w-4xl mx-6 p-8"
+                    className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
                 >
                     <MaterialForm
                         onSuccess={() => setIsCreateOpen(false)}
