@@ -279,3 +279,6 @@ pyrightconfig.json
 *.nogit.*
 notebooks/
 notebooks/*
+
+# Cypress artifacts
+frontend/cypress/screenshots/
