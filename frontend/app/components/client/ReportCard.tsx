@@ -27,6 +27,7 @@ import { getReportStatusDisplay } from "@/types/reportStatus";
 
 import { child } from "@/utils/logger";
 import {
+    ArchiveIcon,
     ArrowCounterClockwiseIcon,
     FileArrowDownIcon,
     TrashIcon,
@@ -252,7 +253,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                             aria-label="Arquivar relatório"
                             title="Arquivar relatório"
                         >
-                            <TrashIcon size={20} />
+                            <ArchiveIcon size={20} />
                         </Button>
                     )}
 
