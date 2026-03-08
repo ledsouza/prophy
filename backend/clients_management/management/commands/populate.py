@@ -1,35 +1,35 @@
 import json
 import os
-from random import choice, randint
-import uuid
 import re
+import uuid
 from datetime import date, timedelta
-
-from dateutil.relativedelta import relativedelta
+from random import choice, randint
 
 from clients_management.models import (
     Accessory,
     Appointment,
     Client,
+    Equipment,
     Modality,
     Proposal,
-    Unit,
-    Equipment,
     Report,
     ServiceOrder,
+    Unit,
 )
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.files import File
 from django.core.files.base import ContentFile
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
-from django.db import transaction, IntegrityError
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from faker import Faker
 from localflavor.br.br_states import STATE_CHOICES
+from materials.models import InstitutionalMaterial
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from users.models import UserAccount
-from materials.models import InstitutionalMaterial
 
 fake = Faker("pt_BR")
 
@@ -205,6 +205,9 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        if settings.DEBUG:
+            self.stdout.write(self.style.WARNING("Cleaning local media files..."))
+            call_command("clean_local_media", force=True)
         self.stdout.write(
             self.style.WARNING("Populating database... This may take a moment.")
         )
