@@ -3,6 +3,7 @@ import type { AppointmentDTO } from "@/types/appointment";
 import {
     can,
     shouldShow,
+    isCancelDisabled as _isCancelDisabled,
     isMarkDoneDisabled as _isMarkDoneDisabled,
     isRescheduleDisabled as _isRescheduleDisabled,
 } from "@/utils/permissions/appointment";
@@ -27,6 +28,7 @@ export function useAppointmentPermissions(appointment: AppointmentDTO, role?: Ro
         showJustificationViewerButton: shouldShow("justificationViewer", appointment, role),
 
         isRescheduleDisabled: _isRescheduleDisabled(appointment),
+        isCancelDisabled: _isCancelDisabled(appointment),
         isMarkDoneDisabled: _isMarkDoneDisabled(appointment),
     };
 }

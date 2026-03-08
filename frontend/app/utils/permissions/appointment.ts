@@ -85,6 +85,13 @@ export function isRescheduleDisabled(appointment: AppointmentDTO): boolean {
     }
 }
 
+export function isCancelDisabled(appointment: AppointmentDTO): boolean {
+    return (
+        appointment.status === AppointmentStatus.UNFULFILLED ||
+        appointment.status === AppointmentStatus.FULFILLED
+    );
+}
+
 /**
  * Business rule for disabling the "Mark as done" action:
  *

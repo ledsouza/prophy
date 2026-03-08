@@ -97,6 +97,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         showRescheduleButton,
         showJustifyButton,
         showJustificationViewerButton,
+        isCancelDisabled,
         isRescheduleDisabled,
         isMarkDoneDisabled,
     } = useAppointmentPermissions(appointment, role);
@@ -379,9 +380,15 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 className="h-10 w-full sm:min-h-11"
                                 data-testid="btn-appointment-cancel-schedule"
                                 dataCy={`appointment-cancel-${appointment.id}`}
-                                disabled={isDeleting}
+                                disabled={isDeleting || isCancelDisabled}
                                 aria-label="Cancelar agenda"
-                                title="Cancelar agenda"
+                                title={
+                                    appointment.status === AppointmentStatus.FULFILLED
+                                        ? "Agendamento já realizado; não é possível cancelar"
+                                        : appointment.status === AppointmentStatus.UNFULFILLED
+                                          ? "Agendamento não realizado; não é possível cancelar"
+                                          : "Cancelar agenda"
+                                }
                             >
                                 <CalendarXIcon size={20} />
                             </Button>
@@ -570,9 +577,15 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 className="w-full sm:w-auto"
                                 data-testid="btn-appointment-cancel-schedule"
                                 dataCy={`appointment-cancel-${appointment.id}`}
-                                disabled={isDeleting}
+                                disabled={isDeleting || isCancelDisabled}
                                 aria-label="Cancelar agenda"
-                                title="Cancelar agenda"
+                                title={
+                                    appointment.status === AppointmentStatus.FULFILLED
+                                        ? "Agendamento já realizado; não é possível cancelar"
+                                        : appointment.status === AppointmentStatus.UNFULFILLED
+                                          ? "Agendamento não realizado; não é possível cancelar"
+                                          : "Cancelar agenda"
+                                }
                             >
                                 <CalendarXIcon size={20} />
                             </Button>
