@@ -6,8 +6,15 @@ import type {
     UpdateMaterialArgs,
 } from "@/types/material";
 import { camelToSnake, toFormData } from "@/utils/formData";
+import { child } from "@/utils/logger";
 import { apiSlice } from "../services/apiSlice";
 import { PaginatedResponse } from "../services/apiTypes";
+import {
+    createDownloadQueryFn,
+    type DownloadSuccessResult,
+} from "../services/downloadEndpoint";
+
+const log = child({ feature: "materialApiSlice" });
 
 const materialApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -106,11 +113,18 @@ const materialApiSlice = apiSlice.injectEndpoints({
                 { type: "Material", id: "LIST" },
             ],
         }),
-        downloadMaterialFile: builder.query<Blob, number>({
-            query: (id) => ({
-                url: `materials/${id}/download/`,
-                method: "GET",
-                responseHandler: (response) => response.blob(),
+        downloadMaterialFile: builder.query<DownloadSuccessResult, number>({
+            queryFn: createDownloadQueryFn<number>({
+                buildRequest: (id) => ({
+                    url: `materials/${id}/download/`,
+                    method: "GET",
+                }),
+                getFallbackFilename: (id) => `material_${id}`,
+                getLogContext: (id) => ({ materialId: id }),
+                log,
+                successMessage: "Material downloaded successfully",
+                errorMessage: "Failed to download material file",
+                preferContentDisposition: true,
             }),
             keepUnusedDataFor: 0,
         }),

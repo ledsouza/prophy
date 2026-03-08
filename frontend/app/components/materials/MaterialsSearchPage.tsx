@@ -286,16 +286,7 @@ const MaterialsSearchPage = () => {
 
     const handleDownload = async (row: MaterialDTO) => {
         try {
-            const blob = await triggerDownload(row.id).unwrap();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            const fileName = row.file_name || `material_${row.id}`;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
+            await triggerDownload(row.id).unwrap();
         } catch (e: unknown) {
             handleApiError(e, "Falha ao baixar arquivo");
         }

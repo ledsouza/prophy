@@ -1,6 +1,13 @@
 import type { ServiceOrderDTO, UpdateServiceOrderPayload } from "@/types/service-order";
 import { apiSlice } from "../services/apiSlice";
+import {
+    createDownloadQueryFn,
+    type DownloadSuccessResult,
+} from "../services/downloadEndpoint";
 import type { CreateServiceOrderArgs } from "../types/serviceOrderApi";
+import { child } from "@/utils/logger";
+
+const log = child({ feature: "serviceOrderApiSlice" });
 
 export const serviceOrderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -23,11 +30,17 @@ export const serviceOrderApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: "Appointment", id: "LIST" }],
         }),
-        downloadServiceOrderPDF: builder.query<Blob, number>({
-            query: (id) => ({
-                url: `service-orders/${id}/pdf/`,
-                method: "GET",
-                responseHandler: (response) => response.blob(),
+        downloadServiceOrderPDF: builder.query<DownloadSuccessResult, number>({
+            queryFn: createDownloadQueryFn<number>({
+                buildRequest: (id) => ({
+                    url: `service-orders/${id}/pdf/`,
+                    method: "GET",
+                }),
+                getFallbackFilename: (id) => `service_order_${id}.pdf`,
+                getLogContext: (id) => ({ serviceOrderId: id }),
+                log,
+                successMessage: "Service order PDF downloaded successfully",
+                errorMessage: "Failed to download service order PDF",
             }),
             keepUnusedDataFor: 0,
         }),

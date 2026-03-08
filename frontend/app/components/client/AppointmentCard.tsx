@@ -31,7 +31,6 @@ import type { AppointmentDTO } from "@/types/appointment";
 import type { ServiceOrderDTO } from "@/types/service-order";
 import { buildUpdateSOPayloadByRole } from "@/utils/permissions/appointment";
 
-import { downloadBlob } from "@/utils/download";
 import { formatPhoneNumber } from "@/utils/format";
 import { child } from "@/utils/logger";
 import {
@@ -144,11 +143,9 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         }
 
         try {
-            const blob = await downloadServiceOrderPDF(serviceOrderId).unwrap();
-            const filename = `service_order_${serviceOrderId}.pdf`;
-            downloadBlob(blob, filename);
+            await downloadServiceOrderPDF(serviceOrderId).unwrap();
             log.info(
-                { appointmentId: appointment.id, serviceOrderId, filename },
+                { appointmentId: appointment.id, serviceOrderId },
                 "SO PDF exported successfully",
             );
             toast.success("Ordem de Serviço exportada com sucesso.");

@@ -4,15 +4,16 @@ import type {
     ReportSearchDTO,
     SearchReportsArgs,
 } from "@/types/report";
-import { downloadBlobFromContentDisposition } from "@/utils/download";
 import { child } from "@/utils/logger";
-import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { apiSlice } from "../services/apiSlice";
+import {
+    createDownloadQueryFn,
+    type DownloadSuccessResult,
+} from "../services/downloadEndpoint";
 import { PaginatedResponse } from "../services/apiTypes";
 import { createPaginatedQueryFn } from "../services/paginationHelpers";
 import type {
     CreateReportArgs,
-    DownloadReportResult,
     UpdateReportFileArgs,
 } from "../types/reportApi";
 
@@ -57,63 +58,19 @@ const reportApiSlice = apiSlice.injectEndpoints({
             },
             invalidatesTags: [{ type: "Report", id: "LIST" }],
         }),
-        downloadReportFile: builder.query<DownloadReportResult, number>({
-            queryFn: async (
-                id,
-                api,
-                extraOptions,
-                baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>,
-            ) => {
-                try {
-                    const result = await baseQuery(
-                        {
-                            url: `reports/${id}/download/`,
-                            method: "GET",
-                            responseHandler: (response) => {
-                                const contentDisposition =
-                                    response.headers.get("content-disposition");
-                                return response.blob().then((blob) => ({
-                                    blob,
-                                    contentDisposition,
-                                }));
-                            },
-                        },
-                        api,
-                        extraOptions,
-                    );
-
-                    if (result.error) {
-                        log.error(
-                            { reportId: id, error: result.error },
-                            "Failed to download report file",
-                        );
-                        return { error: result.error };
-                    }
-
-                    const { blob, contentDisposition } = result.data as {
-                        blob: Blob;
-                        contentDisposition: string | null;
-                    };
-
-                    downloadBlobFromContentDisposition({
-                        blob,
-                        contentDisposition,
-                        fallbackFilename: `relatorio_${id}`,
-                    });
-
-                    log.info({ reportId: id }, "Report downloaded successfully");
-
-                    return { data: { success: true } };
-                } catch (error) {
-                    log.error({ reportId: id, error }, "Unexpected error during report download");
-                    return {
-                        error: {
-                            status: "CUSTOM_ERROR",
-                            error: String(error),
-                        },
-                    };
-                }
-            },
+        downloadReportFile: builder.query<DownloadSuccessResult, number>({
+            queryFn: createDownloadQueryFn<number>({
+                buildRequest: (id) => ({
+                    url: `reports/${id}/download/`,
+                    method: "GET",
+                }),
+                getFallbackFilename: (id) => `relatorio_${id}`,
+                getLogContext: (id) => ({ reportId: id }),
+                log,
+                successMessage: "Report downloaded successfully",
+                errorMessage: "Failed to download report file",
+                preferContentDisposition: true,
+            }),
             keepUnusedDataFor: 0,
         }),
         /**
