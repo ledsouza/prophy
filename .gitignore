@@ -282,3 +282,6 @@ notebooks/*
 
 # Cypress artifacts
 frontend/cypress/screenshots/
+
+# Local IDE settings
+.vscode/
