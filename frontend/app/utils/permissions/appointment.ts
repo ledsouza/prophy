@@ -43,7 +43,7 @@ const SHOW_RULES = {
         (a.status === AppointmentStatus.PENDING || a.status === AppointmentStatus.RESCHEDULED),
 
     rescheduleAppointment: (a: AppointmentDTO, role?: Role) =>
-        can("rescheduleAppointment", role) && a.status !== AppointmentStatus.FULFILLED,
+        can("rescheduleAppointment", role),
 
     justifyAppointment: (a: AppointmentDTO, role?: Role) =>
         can("justifyAppointment", role) && a.status === AppointmentStatus.UNFULFILLED,
