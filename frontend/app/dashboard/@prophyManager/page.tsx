@@ -472,7 +472,8 @@ function SearchPage() {
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
                     <TabList
                         className={clsx(
-                            "flex gap-2 overflow-x-auto rounded-xl bg-gray-100 p-2 mb-6",
+                            "prophy-tab-list prophy-tab-list--subtle",
+                            "flex gap-2 overflow-x-auto rounded-xl p-2 mb-6",
                             "flex-nowrap -mx-1",
                             "sm:mx-0 sm:overflow-visible sm:gap-0 sm:space-x-1 sm:p-1",
                         )}

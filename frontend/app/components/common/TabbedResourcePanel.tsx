@@ -103,7 +103,7 @@ const TabbedResourcePanel = ({
                     <TabList
                         className={clsx(
                             "flex gap-2 overflow-x-auto",
-                            "rounded-xl bg-primary/20",
+                            "prophy-tab-list prophy-tab-list--subtle rounded-xl",
                             "p-1 mb-4",
                             "sm:gap-1 sm:overflow-visible",
                             classNames.tabs,

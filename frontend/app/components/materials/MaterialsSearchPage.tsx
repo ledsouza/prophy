@@ -339,7 +339,7 @@ const MaterialsSearchPage = () => {
 
     return (
         <main className="flex flex-col gap-6 px-4 md:px-6 lg:px-8 py-4">
-            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <div className="bg-bg-surface rounded-xl shadow-lg p-6 md:p-8">
                 <div className="flex items-center justify-between mb-6">
                     <Typography element="h1" size="title2" className="font-bold">
                         Materiais Institucionais
@@ -403,7 +403,7 @@ const MaterialsSearchPage = () => {
                 </div>
 
                 {/* Results */}
-                <div className="results-panel p-6" data-cy="materials-results">
+                <div className="results-panel p-4 sm:p-6" data-cy="materials-results">
                     <Typography element="h2" size="title3" className="font-bold mb-4">
                         Resultados
                     </Typography>

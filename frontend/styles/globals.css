@@ -5,6 +5,12 @@
     --color-secondary: rgb(var(--secondary));
     --color-tertiary: rgb(var(--tertiary));
     --color-quaternary: rgb(var(--quaternary));
+    --color-tab-surface: rgb(var(--tab-surface));
+    --color-tab-surface-strong: rgb(var(--tab-surface-strong));
+    --color-tab-active: rgb(var(--tab-active));
+    --color-tab-active-text: rgb(var(--tab-active-text));
+    --color-tab-inactive-text: rgb(var(--tab-inactive-text));
+    --color-tab-hover: rgb(var(--tab-hover));
     --color-danger: rgb(var(--danger));
     --color-success: rgb(var(--success));
     --color-warning: rgb(var(--warning));
@@ -65,6 +71,12 @@
         --secondary: 44, 81, 191;
         --tertiary: 128, 157, 242;
         --quaternary: 182, 197, 242;
+        --tab-surface: 119, 175, 235;
+        --tab-surface-strong: 96, 160, 228;
+        --tab-active: 52, 102, 191;
+        --tab-active-text: 255, 255, 255;
+        --tab-inactive-text: 255, 255, 255;
+        --tab-hover: 73, 125, 210;
 
         --bg-light: 255, 255, 255;
         --bg-surface: 238, 241, 245;
@@ -97,6 +109,58 @@
 @layer components {
     .results-panel {
         @apply bg-white rounded-xl;
+    }
+
+    .prophy-tab-list {
+        background-color: rgba(var(--tab-surface), 1);
+    }
+
+    .prophy-tab-list--subtle {
+        background-color: rgba(var(--tab-surface), 0.22);
+    }
+
+    .prophy-tab {
+        border: 1px solid transparent;
+        color: rgba(var(--tab-inactive-text), 1);
+        transition:
+            background-color 160ms ease,
+            border-color 160ms ease,
+            color 160ms ease,
+            box-shadow 160ms ease,
+            transform 160ms ease;
+    }
+
+    .prophy-tab:hover {
+        background-color: rgba(var(--tab-hover), 0.32);
+        color: rgba(var(--tab-active-text), 1);
+    }
+
+    .prophy-tab--selected {
+        background-color: rgba(var(--tab-active), 1);
+        border-color: rgba(var(--bg-light), 0.9);
+        color: rgba(var(--tab-active-text), 1);
+        box-shadow:
+            0 0 0 2px rgba(var(--bg-light), 0.85),
+            0 8px 18px rgba(var(--tab-active), 0.28);
+        transform: translateY(-1px);
+    }
+
+    .prophy-tab-list--subtle .prophy-tab {
+        color: rgba(var(--primary), 0.88);
+    }
+
+    .prophy-tab-list--subtle .prophy-tab:hover {
+        background-color: rgba(var(--tab-active), 0.12);
+        color: rgba(var(--primary), 1);
+    }
+
+    .prophy-tab-list--subtle .prophy-tab--selected {
+        background-color: rgba(var(--tab-active), 1);
+        border-color: rgba(var(--tertiary), 0.45);
+        color: rgba(var(--tab-active-text), 1);
+        box-shadow:
+            0 0 0 1px rgba(var(--tab-active), 0.22),
+            0 8px 18px rgba(var(--tab-active), 0.24);
     }
 
     .prophy-calendar {

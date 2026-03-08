@@ -150,7 +150,7 @@ const Table = <T extends {}>({
                     className={clsx("min-w-full", hasCustomWidths ? "table-fixed" : "table-auto")}
                 >
                     <thead>
-                        <tr className="bg-gray-50">
+                        <tr className="bg-white">
                             {columns.map((column) => (
                                 <th
                                     key={column.header}

@@ -227,7 +227,7 @@ function ClientPage() {
 
             <ResourcePanelShell>
                 <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                    <TabList className="flex gap-2 overflow-x-auto rounded-xl bg-gray-100 p-1 mb-6 flex-nowrap sm:gap-1 sm:overflow-visible">
+                    <TabList className="prophy-tab-list prophy-tab-list--subtle flex gap-2 overflow-x-auto rounded-xl p-1 mb-6 flex-nowrap sm:gap-1 sm:overflow-visible">
                         <Tab>Clientes</Tab>
                         <Tab>Agendamentos</Tab>
                         <Tab>Relatórios</Tab>
