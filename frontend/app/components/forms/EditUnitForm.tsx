@@ -204,7 +204,7 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                         disabled={disabled}
                         data-testid="unit-state-input"
                     >
-                        {disabled ? <br /> : "Estado"}
+                        Estado
                     </ComboBox>
                 ) : (
                     <div>
@@ -224,7 +224,7 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
                         disabled={disabled}
                         data-testid="unit-city-input"
                     >
-                        {disabled ? <br /> : "Cidade"}
+                        Cidade
                     </ComboBox>
                 ) : (
                     <Input

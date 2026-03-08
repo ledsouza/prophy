@@ -210,7 +210,7 @@ const EditClientForm = ({
                         disabled={disabled}
                         data-testid="institution-state-input"
                     >
-                        {disabled ? <br /> : "Estado"}
+                        Estado
                     </ComboBox>
                 ) : (
                     <div>
@@ -230,7 +230,7 @@ const EditClientForm = ({
                         disabled={disabled}
                         data-testid="institution-city-input"
                     >
-                        {disabled ? <br /> : "Cidade"}
+                        Cidade
                     </ComboBox>
                 ) : (
                     <Input
