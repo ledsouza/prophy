@@ -52,7 +52,7 @@ function EquipmentReportsTab({ equipmentId }: EquipmentReportsTabProps) {
                 equipmentId,
                 error: (error as any)?.status ?? (error as any)?.message ?? "unknown",
             },
-            "Failed to load equipment reports"
+            "Failed to load equipment reports",
         );
         return (
             <ErrorDisplay
@@ -94,7 +94,7 @@ function EquipmentReportsTab({ equipmentId }: EquipmentReportsTabProps) {
             <Modal
                 isOpen={isCreateOpen}
                 onClose={() => setIsCreateOpen(false)}
-                className="max-w-lg"
+                className="w-full max-w-lg"
             >
                 <ReportForm
                     isUnit={false}

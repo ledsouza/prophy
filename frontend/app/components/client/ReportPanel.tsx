@@ -71,7 +71,7 @@ function ReportPanel({
                 equipmentId,
                 error: (error as any)?.status ?? (error as any)?.message ?? "unknown",
             },
-            "Failed to load reports"
+            "Failed to load reports",
         );
         return (
             <div className={containerClassName}>
@@ -98,7 +98,7 @@ function ReportPanel({
             <Modal
                 isOpen={isCreateOpen}
                 onClose={() => setIsCreateOpen(false)}
-                className="max-w-lg"
+                className="w-full max-w-lg"
             >
                 <ReportForm
                     isUnit
