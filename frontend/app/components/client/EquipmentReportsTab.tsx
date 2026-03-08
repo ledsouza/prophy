@@ -6,6 +6,7 @@ import { ReportList } from "@/components/client";
 import { Button, ErrorDisplay, Modal, Spinner } from "@/components/common";
 import { ReportForm } from "@/components/forms";
 import { Typography } from "@/components/foundation";
+import { FilePlusIcon } from "@phosphor-icons/react";
 
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { useListReportsQuery } from "@/redux/features/reportApiSlice";
@@ -71,9 +72,12 @@ function EquipmentReportsTab({ equipmentId }: EquipmentReportsTabProps) {
                     </Typography>
                     <Button
                         onClick={() => setIsCreateOpen(true)}
+                        aria-label="Gerar relatório"
+                        className="px-2 sm:px-3"
                         data-testid="btn-create-equipment-report"
                     >
-                        Gerar relatório
+                        <FilePlusIcon size={20} className="sm:hidden" />
+                        <span className="hidden sm:inline">Gerar relatório</span>
                     </Button>
                 </div>
             )}
