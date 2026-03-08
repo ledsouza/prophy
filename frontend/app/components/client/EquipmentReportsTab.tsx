@@ -83,7 +83,7 @@ function EquipmentReportsTab({ equipmentId }: EquipmentReportsTabProps) {
             )}
 
             {/* Reports list with scroll */}
-            <div className="flex-1 overflow-y-auto pr-2">
+            <div className="flex-1 overflow-y-auto pr-2 bg-bg-surface rounded-xl p-2 sm:p-3">
                 <ReportList
                     reports={reports || []}
                     emptyStateMessage="Nenhum relatório cadastrado para este equipamento."
