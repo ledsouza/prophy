@@ -28,7 +28,7 @@ export default defineConfig({
                         if (!res.ok) {
                             const text = await res.text();
                             throw new Error(
-                                `django_cypress csrftoken failed: ${res.status} ${text}`
+                                `django_cypress csrftoken failed: ${res.status} ${text}`,
                             );
                         }
 
@@ -36,7 +36,7 @@ export default defineConfig({
                         const match = setCookieHeader.match(/csrftoken=([^;]+)/);
                         if (!match) {
                             throw new Error(
-                                "django_cypress csrftoken did not set csrftoken cookie"
+                                "django_cypress csrftoken did not set csrftoken cookie",
                             );
                         }
 
@@ -45,7 +45,7 @@ export default defineConfig({
 
                     const manage = async (
                         command: string,
-                        parameters: string[] = []
+                        parameters: string[] = [],
                     ): Promise<void> => {
                         const csrfToken = await fetchCsrfToken();
                         const res = await fetch(cypressManageUrl, {
@@ -68,6 +68,7 @@ export default defineConfig({
                     };
 
                     await manage("flush", ["--no-input"]);
+                    await manage("clean_local_media", ["--force"]);
                     await manage("populate", []);
 
                     return null;
