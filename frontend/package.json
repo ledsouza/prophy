@@ -34,7 +34,7 @@
         "date-fns": "^4.1.0",
         "gerador-validador-cpf": "^6.3.0",
         "lodash": "^4.17.23",
-        "next": "16.1.5",
+        "next": "16.1.7",
         "pino": "^10.3.0",
         "react": "^19",
         "react-dom": "^19",
