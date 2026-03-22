@@ -276,19 +276,13 @@ function ClientDetailPage() {
                 {currentModal === Modals.REVIEW_CLIENT &&
                     selectedClientInOperation &&
                     filteredClient && (
-                        <div className="flex flex-row">
-                            <EditClientForm
-                                title="Alterações requisitadas"
-                                reviewMode
-                                client={selectedClientInOperation}
-                            />
-
-                            <EditClientForm
-                                title="Informações atuais"
-                                disabled
-                                client={filteredClient}
-                            />
-                        </div>
+                        <EditClientForm
+                            title="Revisão de atualização de dados"
+                            description={'Uma alteração foi detectada em "Informações de Contato"'}
+                            reviewMode
+                            client={selectedClientInOperation}
+                            originalClient={filteredClient}
+                        />
                     )}
 
                 {currentModal === Modals.ADD_UNIT && filteredClient?.id && (
@@ -315,15 +309,13 @@ function ClientDetailPage() {
                 )}
 
                 {currentModal === Modals.REVIEW_EDIT_UNIT && selectedUnit && filteredClient && (
-                    <div className="flex flex-row">
-                        <EditUnitForm
-                            title="Alterações requisitadas"
-                            reviewMode
-                            unit={selectedUnitOperation as UnitDTO}
-                        />
-
-                        <EditUnitForm title="Informações atuais" disabled unit={selectedUnit} />
-                    </div>
+                    <EditUnitForm
+                        title="Revisão de atualização de dados"
+                        description={'Uma alteração foi detectada em "Informações da Unidade"'}
+                        reviewMode
+                        unit={selectedUnitOperation as UnitDTO}
+                        originalUnit={selectedUnit}
+                    />
                 )}
 
                 {currentModal === Modals.DELETE_UNIT && <ModalDeleteUnit />}

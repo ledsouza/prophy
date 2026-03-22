@@ -240,15 +240,13 @@ function UnitPage() {
                     )}
 
                     {currentModal === Modals.REVIEW_EDIT_UNIT && selectedUnit && (
-                        <div className="flex flex-row">
-                            <EditUnitForm
-                                title="Alterações requisitadas"
-                                reviewMode
-                                unit={selectedUnitOperation as UnitDTO}
-                            />
-
-                            <EditUnitForm title="Informações atuais" disabled unit={selectedUnit} />
-                        </div>
+                        <EditUnitForm
+                            title="Revisão de atualização de dados"
+                            description={'Uma alteração foi detectada em "Informações da Unidade"'}
+                            reviewMode
+                            unit={selectedUnitOperation as UnitDTO}
+                            originalUnit={selectedUnit}
+                        />
                     )}
 
                     {currentModal === Modals.DELETE_UNIT && <ModalDeleteUnit />}
@@ -284,19 +282,13 @@ function UnitPage() {
                     {currentModal === Modals.REVIEW_EDIT_EQUIPMENT &&
                         selectedEquipmentOperation &&
                         selectedEquipment && (
-                            <div className="flex flex-row">
-                                <EditEquipmentForm
-                                    title="Alterações requisitadas"
-                                    reviewMode
-                                    equipment={selectedEquipmentOperation}
-                                />
-
-                                <EditEquipmentForm
-                                    title="Informações atuais"
-                                    disabled
-                                    equipment={selectedEquipment}
-                                />
-                            </div>
+                            <EditEquipmentForm
+                                title="Revisão de atualização de dados"
+                                description={'Uma alteração foi detectada em "Dados do Equipamento"'}
+                                reviewMode
+                                equipment={selectedEquipmentOperation}
+                                originalEquipment={selectedEquipment}
+                            />
                         )}
 
                     {currentModal === Modals.DELETE_EQUIPMENT && <ModalDeleteEquipment />}

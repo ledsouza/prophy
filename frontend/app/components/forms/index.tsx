@@ -13,6 +13,7 @@ export { default as AddUnitForm } from "./AddUnitForm";
 export { default as EditUnitForm } from "./EditUnitForm";
 export { default as CreateManagedUserForm } from "./CreateManagedUserForm";
 export { default as EditManagedUserForm } from "./EditManagedUserForm";
+export { default as ReviewEditDiff } from "./ReviewEditDiff";
 export { default as ReviewDeleteUnitForm } from "./ReviewDeleteUnitForm";
 export { default as AddEquipmentForm } from "./AddEquipmentForm";
 export { default as EditEquipmentForm } from "./EditEquipmentForm";
