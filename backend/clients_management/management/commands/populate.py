@@ -226,7 +226,11 @@ class Command(BaseCommand):
         self.populate_pending_appointment_scenarios()
 
         self.create_json_fixture(
-            approved_cnpjs, users, default_clients, default_units, default_equipments
+            approved_cnpjs,
+            users,
+            default_clients,
+            default_units,
+            default_equipments,
         )
         self.stdout.write(
             self.style.SUCCESS("Database populated and fixture created successfully!")
@@ -1581,7 +1585,12 @@ class Command(BaseCommand):
         )
 
     def create_json_fixture(
-        self, approved_cnpjs, users, default_clients, default_units, default_equipments
+        self,
+        approved_cnpjs,
+        users,
+        default_clients,
+        default_units,
+        default_equipments,
     ):
         """Creates JSON fixture files from the populated data."""
         fixture_data_map = [
