@@ -1,5 +1,5 @@
 import {
-    LARGE_DESKTOP_VIEWPORT,
+    DESKTOP_VIEWPORT,
     MOBILE_VIEWPORT,
     describeForViewports,
 } from "../support/e2eTestUtils";
@@ -86,7 +86,7 @@ describe("Review edit modals", () => {
         );
     }
 
-    describeForViewports([LARGE_DESKTOP_VIEWPORT, MOBILE_VIEWPORT], (viewport) => {
+    describeForViewports([DESKTOP_VIEWPORT, MOBILE_VIEWPORT], (viewport) => {
         it("allows the responsible physicist to reject a client edit request", () => {
             requestClientEdit(rejectedClientName);
 
