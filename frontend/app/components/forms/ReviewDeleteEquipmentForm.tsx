@@ -95,7 +95,7 @@ const ReviewDeleteEquipmentForm = ({
     }, [isRejected, setValue]);
 
     return (
-        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+        <div className="w-full max-w-md sm:mx-auto sm:w-full">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 {!isRejected && (
                     <>

@@ -23,6 +23,8 @@ import { Typography } from "@/components/foundation";
 import { OperationStatus } from "@/enums";
 import { useAppDispatch } from "@/redux/hooks";
 import { unitSchema } from "@/schemas";
+import ReviewEditDiff from "./ReviewEditDiff";
+import { getUnitReviewDiffFields } from "./reviewEditDiffFields";
 
 export type EditUnitFields = z.infer<typeof unitSchema>;
 
@@ -34,9 +36,17 @@ type EditUnitFormProps = {
     disabled?: boolean;
     reviewMode?: boolean;
     unit: UnitDTO;
+    originalUnit?: UnitDTO;
 };
 
-const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUnitFormProps) => {
+const EditUnitForm = ({
+    title,
+    description,
+    disabled,
+    reviewMode,
+    unit,
+    originalUnit,
+}: EditUnitFormProps) => {
     const dispatch = useAppDispatch();
 
     const {
@@ -73,6 +83,45 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
 
     const [createEditUnitOperation] = useCreateEditUnitOperationMutation();
     const [editUnit] = useUpdateUnitMutation();
+
+    const submitReviewDecision = async (operationStatus: OperationStatus, note?: string) => {
+        try {
+            const response = await editUnit({
+                unitID: unit.id,
+                unitData:
+                    operationStatus === OperationStatus.REJECTED
+                        ? {
+                              operation_status: OperationStatus.REJECTED,
+                              note,
+                          }
+                        : {
+                              operation_status: OperationStatus.ACCEPTED,
+                          },
+            });
+
+            if (response.error) {
+                if (isErrorWithMessages(response.error)) {
+                    throw new Error(response.error.data.messages[0]);
+                }
+
+                throw new Error("Um erro inesperado ocorreu.");
+            }
+
+            const successMessage =
+                operationStatus === OperationStatus.REJECTED
+                    ? "Revisão concluída! O cliente será notificado da rejeição."
+                    : "Dados atualizados com sucesso!";
+
+            toast.success(successMessage);
+            dispatch(closeModal());
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Algo deu errado. Tente novamente mais tarde.",
+            );
+        }
+    };
 
     function isDataUnchanged(submittedData: EditUnitFormFields, originalData: UnitDTO) {
         return Object.entries(submittedData).every(([key, value]) => {
@@ -299,8 +348,33 @@ const EditUnitForm = ({ title, description, disabled, reviewMode, unit }: EditUn
         }
     }, [isRejected, setValue]);
 
+    if (reviewMode && disabled) {
+        return null;
+    }
+
+    if (reviewMode) {
+        return (
+            <ReviewEditDiff
+                title={title ?? "Revisão de atualização de dados"}
+                subtitle={
+                    description ?? "Uma alteração foi detectada em \"Informações da Unidade\""
+                }
+                fields={getUnitReviewDiffFields(originalUnit ?? unit, unit)}
+                rejectionNote=""
+                rejectionError={errors.note?.message}
+                isSubmitting={isSubmitting}
+                onAccept={() => {
+                    void submitReviewDecision(OperationStatus.ACCEPTED);
+                }}
+                onReject={(note) => {
+                    void submitReviewDecision(OperationStatus.REJECTED, note);
+                }}
+            />
+        );
+    }
+
     return (
-        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+        <div className="w-full max-w-md sm:mx-auto sm:w-full">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 {!isRejected ? (
                     <>

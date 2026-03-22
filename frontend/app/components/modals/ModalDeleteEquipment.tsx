@@ -39,7 +39,7 @@ const ModalDeleteEquipment = () => {
     }
 
     return (
-        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+        <div className="w-full max-w-md sm:mx-auto sm:w-full">
             <Typography element="h2" size="title2" className="mb-6">
                 Tem certeza que deseja excluir este equipamento?
             </Typography>

@@ -11,29 +11,6 @@ type Props = {
     className?: string;
 };
 
-/**
- * Modal: controlled, accessible dialog built on @headlessui/react Dialog.
- * Renders a full-screen backdrop and a centered panel with transitions.
- *
- * Spacing with className (per consumer):
- * - Apply p-* to set inner padding of the white panel (e.g., p-6, p-8).
- * - Add mx-* to keep horizontal gutter on small screens (e.g., mx-6).
- * - Constrain width with max-w-* (works with default sm:w-full).
- * - Default vertical margin is sm:my-8; override with sm:my-0 or a custom value.
- *   Tailwind utilities in className come last, so matching breakpoint utilities
- *   override defaults.
- *
- * Example:
- *   <Modal isOpen={open} onClose={setOpen} className="max-w-4xl mx-6 p-8">
- *     <MyForm />
- *   </Modal>
- *
- * @param {object} props
- * @param {React.ReactNode} props.children - Modal content.
- * @param {boolean} props.isOpen - Controls visibility.
- * @param {(value: boolean) => void} props.onClose - Called on backdrop/ESC to close.
- * @param {string} [props.className] - Tailwind classes for the panel (padding, margins, width).
- */
 const Modal = ({ children, isOpen, onClose, className }: Props) => {
     return (
         <Dialog open={isOpen} onClose={onClose} className="relative z-10" data-testid="modal">
@@ -53,20 +30,20 @@ const Modal = ({ children, isOpen, onClose, className }: Props) => {
                 <div
                     className={clsx(
                         "flex min-h-full items-end justify-center",
-                        "p-0 text-center",
-                        "sm:items-center sm:p-0",
+                        "p-4 text-center sm:p-4",
+                        "sm:items-center",
                     )}
                 >
                     <DialogPanel
                         transition
                         className={clsx(
                             "relative w-full max-w-full transform overflow-visible rounded-none",
-                            "bg-white text-left shadow-xl",
+                            "bg-white p-4 text-left shadow-xl sm:p-4",
                             "transition-all",
                             "data-closed:translate-y-4 data-closed:opacity-0",
                             "data-enter:duration-300 data-leave:duration-200",
                             "data-enter:ease-out data-leave:ease-in",
-                            "sm:my-8 sm:w-full sm:rounded-lg",
+                            "sm:w-full sm:rounded-lg",
                             "data-closed:sm:translate-y-0 data-closed:sm:scale-95",
                             className,
                         )}

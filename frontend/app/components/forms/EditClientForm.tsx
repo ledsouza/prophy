@@ -24,6 +24,8 @@ import { OperationStatus } from "@/enums";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { handleApiError } from "@/redux/services/errorHandling";
+import ReviewEditDiff from "./ReviewEditDiff";
+import { getClientReviewDiffFields } from "./reviewEditDiffFields";
 
 const editClientSchema = clientSchema;
 
@@ -37,6 +39,7 @@ type EditClientProps = {
     disabled?: boolean;
     reviewMode?: boolean;
     client: ClientDTO;
+    originalClient?: ClientDTO;
 };
 
 const EditClientForm = ({
@@ -45,6 +48,7 @@ const EditClientForm = ({
     disabled = false,
     reviewMode = false,
     client,
+    originalClient,
 }: EditClientProps) => {
     const dispatch = useAppDispatch();
 
@@ -82,6 +86,38 @@ const EditClientForm = ({
 
     const [createEditClientOperation] = useCreateEditClientOperationMutation();
     const [editClient] = useEditClientMutation();
+
+    const submitReviewDecision = async (operationStatus: OperationStatus, note?: string) => {
+        try {
+            const response = await editClient({
+                clientID: client.id,
+                clientData:
+                    operationStatus === OperationStatus.REJECTED
+                        ? {
+                              operation_status: OperationStatus.REJECTED,
+                              note,
+                          }
+                        : {
+                              operation_status: OperationStatus.ACCEPTED,
+                          },
+            });
+
+            if (response.error) {
+                handleApiError(response.error);
+                return;
+            }
+
+            const successMessage =
+                operationStatus === OperationStatus.REJECTED
+                    ? "Revisão concluída! O cliente será notificado da rejeição."
+                    : "Dados atualizados com sucesso!";
+
+            toast.success(successMessage);
+            dispatch(closeModal());
+        } catch (error) {
+            handleApiError(error);
+        }
+    };
 
     const isDataUnchanged = (
         editData: Omit<EditClientFields, "note">,
@@ -387,8 +423,33 @@ const EditClientForm = ({
         }
     }, [isRejected, setValue]);
 
+    if (reviewMode && disabled) {
+        return null;
+    }
+
+    if (reviewMode) {
+        return (
+            <ReviewEditDiff
+                title={title ?? "Revisão de atualização de dados"}
+                subtitle={
+                    description ?? "Uma alteração foi detectada em \"Informações de Contato\""
+                }
+                fields={getClientReviewDiffFields(originalClient ?? client, client)}
+                rejectionNote=""
+                rejectionError={errors.note?.message}
+                isSubmitting={isSubmitting}
+                onAccept={() => {
+                    void submitReviewDecision(OperationStatus.ACCEPTED);
+                }}
+                onReject={(note) => {
+                    void submitReviewDecision(OperationStatus.REJECTED, note);
+                }}
+            />
+        );
+    }
+
     return (
-        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+        <div className="w-full max-w-md sm:mx-auto sm:w-full">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 {!isRejected ? (
                     <>

@@ -134,7 +134,7 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
 
     return (
         <div
-            className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md"
+            className="w-full max-w-md sm:mx-auto sm:w-full"
             data-cy="proposal-edit-modal"
         >
             <Form onSubmit={handleSubmit(onSubmit)}>

@@ -40,6 +40,8 @@ import { Typography } from "@/components/foundation";
 import { OperationStatus } from "@/enums";
 import Role from "@/enums/Role";
 import { XCircleIcon } from "@phosphor-icons/react";
+import ReviewEditDiff from "./ReviewEditDiff";
+import { getEquipmentReviewDiffFields } from "./reviewEditDiffFields";
 
 const editAccessorySchema = accessorySchema
     .extend({
@@ -92,6 +94,7 @@ type EditEquipmentFormProps = {
     disabled?: boolean;
     reviewMode?: boolean;
     equipment: EquipmentDTO | EquipmentOperationDTO;
+    originalEquipment?: EquipmentDTO;
 };
 
 const EditEquipmentForm = ({
@@ -100,6 +103,7 @@ const EditEquipmentForm = ({
     reviewMode,
     disabled,
     equipment,
+    originalEquipment,
 }: EditEquipmentFormProps) => {
     const dispatch = useAppDispatch();
 
@@ -203,6 +207,55 @@ const EditEquipmentForm = ({
         setCurrentImageUrl(process.env.NEXT_PUBLIC_HOST + imageEndpoint);
         setCurrentImageTitle(title);
         setImageModalOpen(true);
+    };
+
+    const handleDiffPreview = (fieldId: string) => {
+        if (fieldId === "equipment_photo" && equipment.equipment_photo) {
+            handleViewImage(equipment.equipment_photo, "Foto do equipamento");
+        }
+
+        if (fieldId === "label_photo" && equipment.label_photo) {
+            handleViewImage(equipment.label_photo, "Foto do rótulo do equipamento");
+        }
+    };
+
+    const submitReviewDecision = async (operationStatus: OperationStatus, note?: string) => {
+        try {
+            const equipmentData = new FormData();
+
+            equipmentData.append("operation_status", operationStatus);
+
+            if (note) {
+                equipmentData.append("note", note);
+            }
+
+            const response = await editEquipment({
+                equipmentID: equipment.id,
+                equipmentData,
+            });
+
+            if (response.error) {
+                throw new Error(
+                    `Error updating equipment review: ${JSON.stringify(response.error)}`,
+                );
+            }
+
+            const successMessage =
+                operationStatus === OperationStatus.REJECTED
+                    ? "Revisão concluída! O cliente será notificado da rejeição."
+                    : "Dados atualizados com sucesso!";
+
+            toast.success(successMessage);
+            dispatch(closeModal());
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error("Failed to update equipment review:", error.message);
+            } else {
+                console.error("Failed to update equipment review:", error);
+            }
+
+            toast.error("Algo deu errado. Tente novamente mais tarde.");
+        }
     };
 
     const isSameData = (equipmentFormData: FormData, accessoriesFormData: FormData[]) => {
@@ -1008,8 +1061,40 @@ const EditEquipmentForm = ({
         return null;
     }
 
+    if (reviewMode && disabled) {
+        return null;
+    }
+
+    if (reviewMode) {
+        return (
+            <>
+                <ReviewEditDiff
+                    title={title ?? "Revisão de atualização de dados"}
+                    subtitle={
+                        description ?? "Uma alteração foi detectada em \"Dados do Equipamento\""
+                    }
+                    fields={getEquipmentReviewDiffFields(
+                        originalEquipment ?? (equipment as EquipmentDTO),
+                        equipment as EquipmentOperationDTO,
+                    )}
+                    rejectionNote=""
+                    rejectionError={errors.note?.message}
+                    isSubmitting={isSubmitting}
+                    onOpenPreview={handleDiffPreview}
+                    onAccept={() => {
+                    void submitReviewDecision(OperationStatus.ACCEPTED);
+                    }}
+                    onReject={(note) => {
+                    void submitReviewDecision(OperationStatus.REJECTED, note);
+                    }}
+                />
+                <ImageViewModal />
+            </>
+        );
+    }
+
     return (
-        <div className="m-6 sm:mx-auto sm:w-full sm:max-w-md max-w-md">
+        <div className="w-full max-w-md sm:mx-auto sm:w-full">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 {!isRejected ? (
                     <>
