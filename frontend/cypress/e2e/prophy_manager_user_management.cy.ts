@@ -6,11 +6,20 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("prophy manager - user management", () => {
-    before(() => {
+    beforeEach(() => {
         cy.setupDB();
     });
 
     const TOAST_TIMEOUT_MS = 10_000;
+
+    const selectRole = (fieldCy: string, roleLabel: string) => {
+        cy.getByCy(fieldCy).find("button").click();
+        cy.getByCy(`${fieldCy}-options`)
+            .contains('[role="option"]', roleLabel)
+            .scrollIntoView()
+            .click();
+        cy.getByCy(fieldCy).should("contain", roleLabel);
+    };
 
     const goToLastPage = () => {
         const clickNextIfEnabled = () => {
@@ -48,7 +57,7 @@ describe("prophy manager - user management", () => {
             cy.visit("/dashboard/users", { failOnStatusCode: false });
 
             cy.location("pathname").should("include", "/dashboard/users");
-            cy.get('[data-cy="gp-users-page"]', { timeout: 20000 }).should("exist");
+            cy.getByCy("gp-users-page", { timeout: 20000 }).should("exist");
 
             const cpf = generate();
             const runId = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
@@ -63,12 +72,7 @@ describe("prophy manager - user management", () => {
             cy.getByCy("gp-users-create-name").type(userName);
             cy.getByCy("gp-users-create-email").type(userEmail);
             cy.getByCy("gp-users-create-phone").type(userPhone);
-            cy.getByCy("gp-users-create-role").find("button").click();
-            cy.getByCy("gp-users-create-role-options")
-                .should("be.visible")
-                .contains('[role="option"]', "Gerente Prophy")
-                .click();
-            cy.getByCy("gp-users-create-role").should("contain", "Gerente Prophy");
+            selectRole("gp-users-create-role", "Gerente Prophy");
             cy.getByCy("gp-users-create-submit").click();
 
             cy.wait("@createManagedUser")
@@ -120,12 +124,7 @@ describe("prophy manager - user management", () => {
 
                     cy.getByCy("gp-users-edit-modal").should("exist");
 
-                    cy.getByCy("gp-users-edit-role").find("button").click();
-                    cy.getByCy("gp-users-edit-role-options")
-                        .should("be.visible")
-                        .contains('[role="option"]', "Gerente Prophy")
-                        .click();
-                    cy.getByCy("gp-users-edit-role").should("contain", "Gerente Prophy");
+                    selectRole("gp-users-edit-role", "Gerente Prophy");
 
                     cy.getByCy("gp-users-edit-submit").click();
 

@@ -5,6 +5,10 @@ Cypress.on("uncaught:exception", (err) => {
         return false;
     }
 
+    if (err.message.includes("ResizeObserver loop completed with undelivered notifications.")) {
+        return false;
+    }
+
     if (
         err.message.includes("Minified React error #418") ||
         err.message.includes("Minified React error #423")
