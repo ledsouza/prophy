@@ -332,7 +332,10 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
             </div>
             {/* Actions */}
             <div className="flex flex-col gap-4 pt-4">
-                <div className="flex flex-col gap-3 sm:hidden">
+                <div
+                    className="flex flex-col gap-3 sm:hidden"
+                    data-cy={`appointment-mobile-actions-${appointment.id}`}
+                >
                     <div className={mobileActionGridClass}>
                         {canViewServiceOrder && (
                             <Button
@@ -399,6 +402,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 }}
                                 className="h-10 w-full sm:min-h-11"
                                 data-testid="btn-done"
+                                dataCy={`appointment-create-service-order-${appointment.id}`}
                                 aria-label="Marcar como realizada"
                                 title={
                                     appointment.status === AppointmentStatus.FULFILLED
@@ -448,7 +452,10 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                     )}
                 </div>
 
-                <div className="hidden flex-col gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div
+                    className="hidden flex-col gap-2 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+                    data-cy={`appointment-desktop-actions-${appointment.id}`}
+                >
                     <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                         {canViewServiceOrder && (
                             <>
@@ -490,6 +497,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 }}
                                 className="w-full sm:w-auto"
                                 data-testid="btn-done"
+                                dataCy={`appointment-create-service-order-${appointment.id}`}
                                 aria-label="Marcar como realizada"
                                 title={
                                     appointment.status === AppointmentStatus.FULFILLED

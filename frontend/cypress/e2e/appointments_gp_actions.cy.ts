@@ -2,7 +2,70 @@ import {
     DESKTOP_VIEWPORT,
     MOBILE_VIEWPORT,
     describeForViewports,
+    type ViewportConfig,
 } from "../support/e2eTestUtils";
+
+function getAppointmentIdFromConfirmButton(
+    subjectAlias: string,
+): Cypress.Chainable<string> {
+    return cy
+        .get(subjectAlias)
+        .scrollIntoView()
+        .find('[data-cy^="appointment-confirm-"]')
+        .first()
+        .invoke("attr", "data-cy")
+        .then((dataCy) => {
+            const appointmentId = dataCy?.replace("appointment-confirm-", "");
+
+            expect(appointmentId, "appointment id extracted from confirm button").to.be.a(
+                "string",
+            );
+            expect(appointmentId, "appointment id extracted from confirm button").not.to.be
+                .empty;
+
+            return appointmentId as string;
+        });
+}
+
+function getAppointmentActionContainerCy(
+    appointmentId: string,
+    viewport: ViewportConfig,
+): string {
+    if (viewport.isMobile) {
+        return `appointment-mobile-actions-${appointmentId}`;
+    }
+
+    return `appointment-desktop-actions-${appointmentId}`;
+}
+
+function getAppointmentAction(
+    appointmentId: string,
+    actionPrefix: string,
+    viewport: ViewportConfig,
+): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy
+        .getByCy(`appointment-card-${appointmentId}`)
+        .scrollIntoView()
+        .within(() => {
+            cy.getByCy(getAppointmentActionContainerCy(appointmentId, viewport))
+                .find(`[data-cy="${actionPrefix}-${appointmentId}"]`)
+                .should("have.length", 1);
+        })
+        .getByCy(getAppointmentActionContainerCy(appointmentId, viewport))
+        .find(`[data-cy="${actionPrefix}-${appointmentId}"]`)
+        .should("have.length", 1);
+}
+
+function confirmAppointment(appointmentId: string, viewport: ViewportConfig): void {
+    getAppointmentAction(appointmentId, "appointment-confirm", viewport)
+        .scrollIntoView()
+        .should("be.visible")
+        .click();
+    cy.getByCy("appointment-confirm-submit")
+        .scrollIntoView()
+        .should("be.visible")
+        .click();
+}
 
 describe("appointments - GP actions", () => {
     beforeEach(() => {
@@ -11,8 +74,6 @@ describe("appointments - GP actions", () => {
     });
 
     describeForViewports([DESKTOP_VIEWPORT, MOBILE_VIEWPORT], (viewport) => {
-        const actionsSelector = viewport.isMobile ? ".sm\\:hidden" : ".sm\\:flex";
-
         it("confirms and cancels an appointment from unit details", () => {
             cy.fixture("default-units.json").then((units) => {
                 cy.visit(`/dashboard/unit/${units.unit1.id}`);
@@ -24,43 +85,18 @@ describe("appointments - GP actions", () => {
                     .first()
                     .as("confirmableAppointment");
 
-                cy.get("@confirmableAppointment")
-                    .scrollIntoView()
-                    .find('[data-cy^="appointment-confirm-"]')
-                    .first()
-                    .invoke("attr", "data-cy")
-                    .then((dataCy) => {
-                        const appointmentId = dataCy?.replace("appointment-confirm-", "");
-                        cy.get(`[data-cy="appointment-card-${appointmentId}"]`)
-                            .scrollIntoView()
-                            .find(actionsSelector)
-                            .first()
-                            .should("be.visible")
-                            .find('[data-cy^="appointment-confirm-"]')
-                            .first()
-                            .scrollIntoView()
-                            .should("be.visible")
-                            .click();
-                        cy.getByCy("appointment-confirm-submit")
-                            .scrollIntoView()
-                            .should("be.visible")
-                            .click();
+                getAppointmentIdFromConfirmButton("@confirmableAppointment").then((appointmentId) => {
+                    confirmAppointment(appointmentId, viewport);
 
-                        cy.get(`[data-cy="appointment-card-${appointmentId}"]`)
-                            .scrollIntoView()
-                            .find(actionsSelector)
-                            .first()
-                            .should("be.visible")
-                            .find('[data-cy^="appointment-cancel-"]')
-                            .first()
-                            .scrollIntoView()
-                            .should("be.visible")
-                            .click();
-                        cy.getByCy("appointment-cancel-submit")
-                            .scrollIntoView()
-                            .should("be.visible")
-                            .click();
-                    });
+                    getAppointmentAction(appointmentId, "appointment-cancel", viewport)
+                        .scrollIntoView()
+                        .should("be.visible")
+                        .click();
+                    cy.getByCy("appointment-cancel-submit")
+                        .scrollIntoView()
+                        .should("be.visible")
+                        .click();
+                });
             });
         });
 
@@ -76,39 +112,20 @@ describe("appointments - GP actions", () => {
                         .first()
                         .as("serviceOrderAppointment");
 
-                    cy.get("@serviceOrderAppointment")
-                        .scrollIntoView()
-                        .find('[data-cy^="appointment-confirm-"]')
-                        .first()
-                        .invoke("attr", "data-cy")
-                        .then((dataCy) => {
-                            const appointmentId = dataCy?.replace("appointment-confirm-", "");
-                            cy.get(`[data-cy="appointment-card-${appointmentId}"]`)
-                                .scrollIntoView()
-                                .find(actionsSelector)
-                                .first()
-                                .should("be.visible")
-                                .find('[data-cy^="appointment-confirm-"]')
-                                .first()
-                                .scrollIntoView()
-                                .should("be.visible")
-                                .click();
-                            cy.getByCy("appointment-confirm-submit")
-                                .scrollIntoView()
-                                .should("be.visible")
-                                .click();
+                    getAppointmentIdFromConfirmButton("@serviceOrderAppointment").then(
+                        (appointmentId) => {
+                            confirmAppointment(appointmentId, viewport);
 
-                            cy.get(`[data-cy="appointment-card-${appointmentId}"]`)
-                                .scrollIntoView()
-                                .find(actionsSelector)
-                                .first()
-                                .should("be.visible")
-                                .find('[data-testid="btn-done"]')
-                                .first()
+                            getAppointmentAction(
+                                appointmentId,
+                                "appointment-create-service-order",
+                                viewport,
+                            )
                                 .scrollIntoView()
                                 .should("be.visible")
                                 .click();
-                        });
+                        },
+                    );
 
                     cy.getByCy("service-order-subject").type("Inspeção de rotina");
                     cy.getByCy("service-order-description").type(
@@ -130,9 +147,11 @@ describe("appointments - GP actions", () => {
                         .click();
 
                     cy.contains("Ordem de Serviço criada").should("be.visible");
-                    cy.get("@serviceOrderAppointment")
-                        .find("[data-testid=btn-done]")
-                        .should("not.exist");
+                    cy.get("@serviceOrderAppointment").within(() => {
+                        cy.get('[data-cy^="appointment-create-service-order-"]').should(
+                            "not.exist",
+                        );
+                    });
                 });
             });
         });
