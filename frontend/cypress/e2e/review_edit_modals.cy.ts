@@ -1,9 +1,12 @@
+import {
+    LARGE_DESKTOP_VIEWPORT,
+    MOBILE_VIEWPORT,
+    describeForViewports,
+} from "../support/e2eTestUtils";
+
 describe("Review edit modals", () => {
-    const viewports: Array<Cypress.ViewportPreset | [number, number]> = [[1440, 900], "iphone-6"];
-    const desktopBreakpoint = 640;
     const registeredClientName = "Hospital de Clínicas de Porto Alegre";
     const registeredClientCnpj = "78187773000116";
-    const registeredClientRoute = "/dashboard/client/78187773000116";
     const targetUnitId = 1000;
     const targetUnitRoute = "/dashboard/unit/1000/";
     const rejectedClientName = "Hospital de Clínicas de Porto Alegre Revisado";
@@ -12,15 +15,6 @@ describe("Review edit modals", () => {
     beforeEach(() => {
         cy.setupDB();
     });
-
-    function applyViewport(viewport: Cypress.ViewportPreset | [number, number]) {
-        if (Array.isArray(viewport)) {
-            cy.viewport(viewport[0], viewport[1]);
-            return;
-        }
-
-        cy.viewport(viewport);
-    }
 
     function requestClientEdit(newName: string) {
         cy.loginAs("client_user");
@@ -92,83 +86,73 @@ describe("Review edit modals", () => {
         );
     }
 
-    viewports.forEach((viewport) => {
-        const isMobileViewport = Array.isArray(viewport)
-            ? viewport[0] < desktopBreakpoint
-            : viewport === "iphone-6";
+    describeForViewports([LARGE_DESKTOP_VIEWPORT, MOBILE_VIEWPORT], (viewport) => {
+        it("allows the responsible physicist to reject a client edit request", () => {
+            requestClientEdit(rejectedClientName);
 
-        describe(`viewport ${Array.isArray(viewport) ? viewport.join("x") : viewport}`, () => {
-            beforeEach(() => {
-                applyViewport(viewport);
+            openReviewerClientDetails(viewport.isMobile);
+
+            cy.get('[data-testid="btn-review-edit-client"]', { timeout: 10000 }).click();
+
+            cy.getByCy("review-edit-diff-modal").should("exist");
+            cy.getByCy("review-diff-changed-field")
+                .should("have.length.at.least", 1)
+                .first()
+                .scrollIntoView()
+                .should("be.visible");
+            cy.getByCy("review-reject-btn").scrollIntoView().click();
+            cy.getByCy("review-rejection-note-input")
+                .should("be.visible")
+                .type("Dados divergentes para revisão");
+            cy.getByCy("review-rejection-submit-btn").should("be.visible").click();
+
+            cy.loginAs("client_user");
+            cy.visit("/dashboard");
+            selectRequesterClient();
+            cy.contains("Verificar motivo").should("be.visible").click();
+            cy.contains("Notas do Físico Médico Responsável").should("be.visible");
+            cy.contains("Dados divergentes para revisão").should("be.visible");
+
+            cy.window().then((win) => {
+                const root = win.document.documentElement;
+                expect(root.scrollWidth).to.be.at.most(root.clientWidth);
             });
+        });
 
-            it("allows the responsible physicist to reject a client edit request", () => {
-                requestClientEdit(rejectedClientName);
+        it("allows the responsible physicist to accept a unit edit request", () => {
+            requestUnitEdit(acceptedUnitName);
 
-                openReviewerClientDetails(isMobileViewport);
+            openReviewerClientDetails(viewport.isMobile);
+            openTargetUnitDetails();
 
-                cy.get('[data-testid="btn-review-edit-client"]', { timeout: 10000 }).click();
+            cy.get('[data-testid="btn-review-unit-operation"]', { timeout: 10000 }).click();
 
-                cy.getByCy("review-edit-diff-modal").should("exist");
-                cy.getByCy("review-diff-changed-field")
-                    .should("have.length.at.least", 1)
-                    .first()
-                    .scrollIntoView()
-                    .should("be.visible");
-                cy.getByCy("review-reject-btn").scrollIntoView().click();
-                cy.getByCy("review-rejection-note-input")
-                    .should("be.visible")
-                    .type("Dados divergentes para revisão");
-                cy.getByCy("review-rejection-submit-btn").should("be.visible").click();
+            cy.getByCy("review-edit-diff-modal").should("exist");
+            cy.getByCy("review-diff-changed-field")
+                .should("have.length.at.least", 1)
+                .first()
+                .scrollIntoView()
+                .should("be.visible");
 
-                cy.loginAs("client_user");
-                cy.visit("/dashboard");
-                selectRequesterClient();
-                cy.contains("Verificar motivo").should("be.visible").click();
-                cy.contains("Notas do Físico Médico Responsável").should("be.visible");
-                cy.contains("Dados divergentes para revisão").should("be.visible");
-
-                cy.window().then((win) => {
-                    const root = win.document.documentElement;
-                    expect(root.scrollWidth).to.be.at.most(root.clientWidth);
+            if (viewport.isMobile) {
+                cy.getByCy("review-edit-diff-modal").then(($modal) => {
+                    const rect = $modal[0].getBoundingClientRect();
+                    expect(Math.round(rect.left)).to.be.at.least(0);
+                    expect(Math.round(rect.right)).to.be.at.most(
+                        Cypress.config("viewportWidth"),
+                    );
                 });
-            });
+            }
 
-            it("allows the responsible physicist to accept a unit edit request", () => {
-                requestUnitEdit(acceptedUnitName);
+            cy.getByCy("review-accept-btn").scrollIntoView().should("be.visible").click();
 
-                openReviewerClientDetails(isMobileViewport);
-                openTargetUnitDetails();
+            cy.loginAs("admin_user");
+            cy.visit(targetUnitRoute);
+            cy.contains(acceptedUnitName).should("be.visible");
 
-                cy.get('[data-testid="btn-review-unit-operation"]', { timeout: 10000 }).click();
-
-                cy.getByCy("review-edit-diff-modal").should("exist");
-                cy.getByCy("review-diff-changed-field")
-                    .should("have.length.at.least", 1)
-                    .first()
-                    .scrollIntoView()
-                    .should("be.visible");
-
-                if (isMobileViewport) {
-                    cy.getByCy("review-edit-diff-modal").then(($modal) => {
-                        const rect = $modal[0].getBoundingClientRect();
-                        expect(Math.round(rect.left)).to.be.at.least(0);
-                        expect(Math.round(rect.right)).to.be.at.most(
-                            Cypress.config("viewportWidth"),
-                        );
-                    });
-                }
-
-                cy.getByCy("review-accept-btn").scrollIntoView().should("be.visible").click();
-
-                cy.loginAs("admin_user");
-                cy.visit(targetUnitRoute);
-                cy.contains(acceptedUnitName).should("be.visible");
-
-                cy.window().then((win) => {
-                    const root = win.document.documentElement;
-                    expect(root.scrollWidth).to.be.at.most(root.clientWidth);
-                });
+            cy.window().then((win) => {
+                const root = win.document.documentElement;
+                expect(root.scrollWidth).to.be.at.most(root.clientWidth);
             });
         });
     });

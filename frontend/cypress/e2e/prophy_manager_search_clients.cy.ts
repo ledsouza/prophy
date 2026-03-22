@@ -1,7 +1,11 @@
-describe("prophy manager - search clients", () => {
-    const viewports: Array<Cypress.ViewportPreset | [number, number]> = [[1280, 720], "iphone-6"];
-    const desktopBreakpoint = 640;
+import {
+    DESKTOP_VIEWPORT,
+    MOBILE_VIEWPORT,
+    describeForViewports,
+    visitDashboardAs,
+} from "../support/e2eTestUtils";
 
+describe("prophy manager - search clients", () => {
     beforeEach(() => {
         cy.setupDB();
         cy.loginAs("admin_user");
@@ -29,85 +33,70 @@ describe("prophy manager - search clients", () => {
         });
     });
 
-    viewports.forEach((viewport) => {
-        const isMobileViewport = Array.isArray(viewport)
-            ? viewport[0] < desktopBreakpoint
-            : viewport === "iphone-6";
+    describeForViewports([DESKTOP_VIEWPORT, MOBILE_VIEWPORT], (viewport) => {
+        it("filters clients by CNPJ and navigates to details and proposals", () => {
+            cy.fixture("registered-client.json").then((data) => {
+                const cnpj: string = data.registered_cnpj;
+                const maskedCnpj = cnpj.replace(
+                    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+                    "$1.$2.$3/$4-$5",
+                );
 
-        describe(`viewport ${Array.isArray(viewport) ? viewport.join("x") : viewport}`, () => {
-            beforeEach(() => {
-                if (Array.isArray(viewport)) {
-                    cy.viewport(viewport[0], viewport[1]);
-                    return;
+                cy.visit("/dashboard");
+                cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
+                cy.getByCy("search-tab-clients").click();
+
+                cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
+                cy.getByCy("clients-apply-filters").click();
+
+                cy.getByCy("clients-results").should("exist");
+                cy.getByCy("clients-results").should("contain", maskedCnpj);
+
+                if (viewport.isMobile) {
+                    cy.get('[data-cy^="client-card-"]')
+                        .should("have.length", 1)
+                        .first()
+                        .within(() => {
+                            cy.get('[data-cy^="client-details-"]:visible').first().click();
+                        });
+                } else {
+                    cy.getByCy("clients-results")
+                        .find('[data-cy^="client-row-"]')
+                        .should("have.length", 1);
+                    cy.getByCy("clients-results")
+                        .find('[data-cy^="client-details-"]:visible')
+                        .first()
+                        .click();
                 }
 
-                cy.viewport(viewport);
-            });
+                cy.url().should("include", `/dashboard/client/${cnpj}`);
 
-            it("filters clients by CNPJ and navigates to details and proposals", () => {
-                cy.fixture("registered-client.json").then((data) => {
-                    const cnpj: string = data.registered_cnpj;
-                    const maskedCnpj = cnpj.replace(
-                        /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-                        "$1.$2.$3/$4-$5",
-                    );
+                cy.visit("/dashboard");
+                cy.getByCy("search-tab-clients").click();
+                cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
+                cy.getByCy("clients-apply-filters").click();
 
-                    cy.visit("/dashboard");
-                    cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
-                    cy.getByCy("search-tab-clients").click();
+                cy.getByCy("clients-results").should("contain", maskedCnpj);
 
-                    cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
-                    cy.getByCy("clients-apply-filters").click();
+                if (viewport.isMobile) {
+                    cy.get('[data-cy^="client-card-"]')
+                        .should("have.length", 1)
+                        .first()
+                        .within(() => {
+                            cy.get('[data-cy^="client-proposals-"]:visible').first().click();
+                        });
+                } else {
+                    cy.getByCy("clients-results")
+                        .find('[data-cy^="client-proposals-"]:visible')
+                        .first()
+                        .click();
+                }
 
-                    cy.getByCy("clients-results").should("exist");
-                    cy.getByCy("clients-results").should("contain", maskedCnpj);
-
-                    if (isMobileViewport) {
-                        cy.get('[data-cy^="client-card-"]')
-                            .should("have.length", 1)
-                            .first()
-                            .within(() => {
-                                cy.get('[data-cy^="client-details-"]:visible').first().click();
-                            });
-                    } else {
-                        cy.getByCy("clients-results")
-                            .find('[data-cy^="client-row-"]')
-                            .should("have.length", 1);
-                        cy.getByCy("clients-results")
-                            .find('[data-cy^="client-details-"]:visible')
-                            .first()
-                            .click();
-                    }
-
-                    cy.url().should("include", `/dashboard/client/${cnpj}`);
-
-                    cy.visit("/dashboard");
-                    cy.getByCy("search-tab-clients").click();
-                    cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
-                    cy.getByCy("clients-apply-filters").click();
-
-                    cy.getByCy("clients-results").should("contain", maskedCnpj);
-
-                    if (isMobileViewport) {
-                        cy.get('[data-cy^="client-card-"]')
-                            .should("have.length", 1)
-                            .first()
-                            .within(() => {
-                                cy.get('[data-cy^="client-proposals-"]:visible').first().click();
-                            });
-                    } else {
-                        cy.getByCy("clients-results")
-                            .find('[data-cy^="client-proposals-"]:visible')
-                            .first()
-                            .click();
-                    }
-
-                    cy.location("pathname").should("eq", "/dashboard/");
-                    cy.location("search").should(
-                        "eq",
-                        `?tab=proposals&proposal_page=1&proposals_cnpj=${cnpj}`,
-                    );
-                });
+                cy.location("pathname").should("eq", "/dashboard/");
+                cy.location("search").should(
+                    "eq",
+                    `?tab=proposals&proposal_page=1&proposals_cnpj=${cnpj}`,
+                );
             });
         });
     });
