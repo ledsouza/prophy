@@ -25,25 +25,11 @@ describe("materials - smoke", () => {
                     return;
                 }
 
-                cy.get("body").then(($body) => {
-                    const mobileCards = $body.find('[data-cy^="material-card-"]');
-
-                    if (mobileCards.length > 0) {
-                        cy.get('[data-cy^="material-card-"]')
-                            .should("have.length.greaterThan", 0)
-                            .first()
-                            .should("be.visible");
-                        cy.getByCy("materials-results")
-                            .find("table")
-                            .should("not.be.visible");
-                        return;
-                    }
-
-                    cy.getByCy("materials-results").should(
-                        "contain",
-                        "Nenhum material encontrado com os filtros aplicados",
-                    );
-                });
+                cy.get('[data-cy^="material-card-"]', { timeout: 10000 })
+                    .should("have.length.greaterThan", 0)
+                    .first()
+                    .should("be.visible");
+                cy.getByCy("materials-results").find("table").should("not.be.visible");
             });
         }
     });
