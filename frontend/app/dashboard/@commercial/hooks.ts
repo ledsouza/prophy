@@ -5,7 +5,7 @@ import { useListProposalsQuery, type ProposalDTO } from "@/redux/features/propos
 import { useListAppointmentsPageQuery } from "@/redux/features/appointmentApiSlice";
 import type { ClientDTO } from "@/types/client";
 import type { AppointmentDTO } from "@/types/appointment";
-import { PaginatedResponse } from "@/redux/services/apiSlice";
+import type { PaginatedResponse } from "@/redux/services/apiTypes";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import type { SerializedError } from "@reduxjs/toolkit";
 import type { AppointmentFilters, ClientFilters, ProposalFilters } from "./types";

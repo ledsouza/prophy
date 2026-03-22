@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useListClientsQuery } from "@/redux/features/clientApiSlice";
 import type { ClientDTO } from "@/types/client";
 import { EquipmentDTO, useListEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
-import { PaginatedResponse } from "@/redux/services/apiSlice";
+import type { PaginatedResponse } from "@/redux/services/apiTypes";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
 import { AppointmentFilters, ClientFilters, EquipmentFilters } from "./types";
