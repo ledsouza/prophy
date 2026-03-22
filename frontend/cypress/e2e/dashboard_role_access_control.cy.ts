@@ -1,4 +1,5 @@
 import { ROLE_USERS, type RoleUser } from "../support/roleUsers";
+import { visitDashboardAs } from "../support/e2eTestUtils";
 
 type ProtectedRouteTest = {
     name: string;
@@ -67,8 +68,7 @@ describe("dashboard - role access control", () => {
         cy.fixture("default-clients.json").then((clients) => {
             const cnpj: string = clients.client1.cnpj;
 
-            cy.loginAs("admin_user");
-            cy.visit(`/dashboard/client/${cnpj}`, { failOnStatusCode: false });
+            visitDashboardAs("admin_user", `/dashboard/client/${cnpj}`);
 
             cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
             cy.getByCy("gp-update-data-btn").should("exist");

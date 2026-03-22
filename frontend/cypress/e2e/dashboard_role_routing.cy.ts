@@ -1,4 +1,5 @@
 import { ROLE_USERS } from "../support/roleUsers";
+import { visitDashboardAs } from "../support/e2eTestUtils";
 
 describe("dashboard routing", () => {
     before(() => {
@@ -7,8 +8,7 @@ describe("dashboard routing", () => {
 
     for (const user of ROLE_USERS) {
         it(`opens /dashboard for ${user}`, () => {
-            cy.loginAs(user);
-            cy.visit("/dashboard");
+            visitDashboardAs(user);
 
             cy.url().should("include", "/dashboard");
             cy.getByCy("dashboard-root").should("exist");
