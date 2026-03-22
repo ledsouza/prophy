@@ -8,6 +8,8 @@
 - Reset the DB using the Cypress task `db:seed` (Django seed).
 - Standardize viewport coverage with helpers from
   `cypress/support/e2eTestUtils.ts`.
+- Responsive suites must always be labeled only as `viewport desktop` and
+  `viewport mobile`.
 - Prefer a single shared test flow for desktop/mobile and branch only where
   the UI structure actually differs.
 - Prefer `cy.getByCy(...)` over raw `[data-cy="..."]` selectors.

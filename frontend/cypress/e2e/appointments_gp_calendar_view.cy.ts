@@ -1,8 +1,14 @@
+import {
+    DESKTOP_VIEWPORT,
+    MOBILE_VIEWPORT,
+    applyViewport,
+} from "../support/e2eTestUtils";
+
 describe("appointments - GP calendar view", () => {
     beforeEach(() => {
         cy.setupDB();
         cy.loginAs("admin_user");
-        cy.viewport(1280, 720);
+        applyViewport(DESKTOP_VIEWPORT.value);
     });
 
     it("toggles to calendar view and persists in URL", () => {
@@ -46,7 +52,7 @@ describe("appointments - GP calendar view", () => {
     });
 
     it("hides calendar view on mobile", () => {
-        cy.viewport(390, 844);
+        applyViewport(MOBILE_VIEWPORT.value);
         cy.visit("/dashboard?tab=appointments&view=calendar");
         cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
 

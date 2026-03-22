@@ -1,9 +1,9 @@
-describe("Responsive layout shell", () => {
-    const iphoneViewport: [number, number] = [390, 844];
+import { MOBILE_VIEWPORT, applyViewport } from "../support/e2eTestUtils";
 
+describe("Responsive layout shell", () => {
     beforeEach(() => {
         cy.setupDB();
-        cy.viewport(iphoneViewport[0], iphoneViewport[1]);
+        applyViewport(MOBILE_VIEWPORT.value);
         cy.loginAs("admin_user");
     });
 

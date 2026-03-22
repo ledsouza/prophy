@@ -1,7 +1,14 @@
+import {
+    DESKTOP_VIEWPORT,
+    MOBILE_VIEWPORT,
+    applyViewport,
+} from "../support/e2eTestUtils";
+
 describe("prophy manager - pending appointment alerts", () => {
     beforeEach(() => {
         cy.setupDB();
         cy.loginAs("admin_user");
+        applyViewport(DESKTOP_VIEWPORT.value);
     });
 
     it("highlights pending appointment clients and keeps compliant clients unhighlighted (desktop)", () => {
@@ -80,7 +87,7 @@ describe("prophy manager - pending appointment alerts", () => {
             };
 
             cy.intercept("GET", "**/api/clients/?*").as("getClients");
-            cy.viewport("iphone-6");
+            applyViewport(MOBILE_VIEWPORT.value);
             cy.visit("/dashboard");
             cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
             cy.getByCy("search-tab-clients").click();

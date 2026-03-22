@@ -14,21 +14,9 @@ export const DESKTOP_VIEWPORT: ViewportConfig = {
     isMobile: false,
 };
 
-export const LARGE_DESKTOP_VIEWPORT: ViewportConfig = {
-    name: "large-desktop",
-    value: [1440, 900],
-    isMobile: false,
-};
-
 export const MOBILE_VIEWPORT: ViewportConfig = {
     name: "mobile",
     value: "iphone-6",
-    isMobile: true,
-};
-
-export const MOBILE_TALL_VIEWPORT: ViewportConfig = {
-    name: "mobile-tall",
-    value: [390, 844],
     isMobile: true,
 };
 

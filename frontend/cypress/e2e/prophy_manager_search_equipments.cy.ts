@@ -1,55 +1,43 @@
-describe("prophy manager - search equipments", () => {
-    const viewports: Array<Cypress.ViewportPreset | [number, number]> = [[1280, 720], "iphone-6"];
-    const desktopBreakpoint = 640;
+import {
+    DESKTOP_VIEWPORT,
+    MOBILE_VIEWPORT,
+    describeForViewports,
+} from "../support/e2eTestUtils";
 
+describe("prophy manager - search equipments", () => {
     beforeEach(() => {
         cy.setupDB();
         cy.loginAs("admin_user");
     });
 
-    viewports.forEach((viewport) => {
-        const isMobileViewport = Array.isArray(viewport)
-            ? viewport[0] < desktopBreakpoint
-            : viewport === "iphone-6";
+    describeForViewports([DESKTOP_VIEWPORT, MOBILE_VIEWPORT], (viewport) => {
+        it("navigates to unit details from equipments tab", () => {
+            cy.visit("/dashboard");
+            cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
 
-        describe(`viewport ${Array.isArray(viewport) ? viewport.join("x") : viewport}`, () => {
-            beforeEach(() => {
-                if (Array.isArray(viewport)) {
-                    cy.viewport(viewport[0], viewport[1]);
-                    return;
-                }
+            cy.getByCy("search-tab-equipments").click();
 
-                cy.viewport(viewport);
-            });
+            cy.getByCy("equipments-results").should("exist");
 
-            it("navigates to unit details from equipments tab", () => {
-                cy.visit("/dashboard");
-                cy.getByCy("dashboard-root").should("have.attr", "data-cy-role", "GP");
+            if (viewport.isMobile) {
+                cy.get('[data-cy^="equipment-card-"]')
+                    .should("have.length.greaterThan", 0)
+                    .first()
+                    .within(() => {
+                        cy.get('[data-cy^="equipment-details-"]:visible').first().click();
+                    });
+            } else {
+                cy.getByCy("equipments-results")
+                    .find('[data-cy^="equipment-row-"]')
+                    .should("have.length.greaterThan", 0);
 
-                cy.getByCy("search-tab-equipments").click();
+                cy.getByCy("equipments-results")
+                    .find('[data-cy^="equipment-details-"]:visible')
+                    .first()
+                    .click();
+            }
 
-                cy.getByCy("equipments-results").should("exist");
-
-                if (isMobileViewport) {
-                    cy.get('[data-cy^="equipment-card-"]')
-                        .should("have.length.greaterThan", 0)
-                        .first()
-                        .within(() => {
-                            cy.get('[data-cy^="equipment-details-"]:visible').first().click();
-                        });
-                } else {
-                    cy.getByCy("equipments-results")
-                        .find('[data-cy^="equipment-row-"]')
-                        .should("have.length.greaterThan", 0);
-
-                    cy.getByCy("equipments-results")
-                        .find('[data-cy^="equipment-details-"]:visible')
-                        .first()
-                        .click();
-                }
-
-                cy.location("pathname").should("match", /\/dashboard\/unit\/[0-9]+/);
-            });
+            cy.location("pathname").should("match", /\/dashboard\/unit\/[0-9]+/);
         });
     });
 });
