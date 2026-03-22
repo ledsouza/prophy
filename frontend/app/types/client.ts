@@ -5,7 +5,7 @@
  Keeps immutable/server-managed fields (id, users, status) out of
  writes and allows different create vs update shapes.
 */
-import type { ListQueryParams, Operation } from "@/redux/services/apiSlice";
+import type { ListQueryParams, Operation } from "@/redux/services/apiTypes";
 import type { UserDTO } from "@/types/user";
 
 /**
