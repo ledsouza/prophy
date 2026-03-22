@@ -278,7 +278,7 @@ export default function MedicalPhysicistClientSearchSection({
                                                     router.push(`/dashboard/client/${client.cnpj}`)
                                                 }
                                                 className="flex items-center gap-2 text-xs"
-                                                dataCy={`${dataCyPrefix}-client-details-${client.id}`}
+                                                dataCy={`${dataCyPrefix}-client-details-mobile-${client.id}`}
                                             >
                                                 Detalhes
                                             </Button>

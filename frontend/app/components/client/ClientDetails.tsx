@@ -270,6 +270,7 @@ function ClientDetails({
                     listBoxButtonStyles="pl-2"
                     listBoxButtonSize="lg"
                     dataTestId="client-options"
+                    dataCy="client-options"
                 />
                 <Typography element="p" size="md" dataTestId="client-details">
                     <b>CNPJ:</b> {cnpjMask(filteredClient?.cnpj)}
