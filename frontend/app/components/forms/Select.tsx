@@ -1,7 +1,7 @@
 "use client";
 
 import cn from "classnames";
-import React, { CSSProperties, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Role from "@/enums/Role";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
@@ -13,11 +13,168 @@ import {
     ListboxButton,
     ListboxOption,
     ListboxOptions,
-    Portal,
 } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
 import { Typography } from "@/components/foundation";
+
+type SelectAnchor = "top" | "top start" | "top end" | "bottom" | "bottom start" | "bottom end";
+
+type SelectContentProps = {
+    label: string;
+    labelAddon: React.ReactNode;
+    labelSize: "sm" | "md" | "lg";
+    labelStyles: string;
+    listBoxStyles: string;
+    listBoxButtonStyle: string;
+    listBoxButtonSize: "sm" | "md" | "lg";
+    isPlaceholder: boolean;
+    placeholder?: string;
+    selectedData: SelectData | null;
+    disabled: boolean;
+    optionsDataCy?: string;
+    options: SelectData[];
+    operationsIDs?: Set<number>;
+    rejectedOperationIDs?: Set<number>;
+    isStaff: boolean;
+    listOptionStyles: string;
+    listOptionSize: "sm" | "md" | "lg";
+    optionsAnchor?: SelectAnchor;
+};
+
+const SelectContent = ({
+    label,
+    labelAddon,
+    labelSize,
+    labelStyles,
+    listBoxStyles,
+    listBoxButtonStyle,
+    listBoxButtonSize,
+    isPlaceholder,
+    placeholder,
+    selectedData,
+    disabled,
+    optionsDataCy,
+    options,
+    operationsIDs,
+    rejectedOperationIDs,
+    isStaff,
+    listOptionStyles,
+    listOptionSize,
+    optionsAnchor,
+}: SelectContentProps) => {
+    const [resolvedAnchor, setResolvedAnchor] = useState<SelectAnchor | undefined>(optionsAnchor);
+
+    useEffect(() => {
+        setResolvedAnchor(optionsAnchor);
+    }, [optionsAnchor]);
+
+    return (
+        <>
+            {label && (
+                <div className="flex items-center gap-2">
+                    <Typography element="p" size={labelSize}>
+                        <Label className={labelStyles}>{label}</Label>
+                    </Typography>
+                    {labelAddon}
+                </div>
+            )}
+            <div className={`relative mt-2 ${listBoxStyles}`}>
+                <ListboxButton className={listBoxButtonStyle}>
+                    <Typography
+                        element="span"
+                        size={listBoxButtonSize}
+                        className={cn(
+                            "ml-3 block truncate",
+                            isPlaceholder
+                                ? "text-placeholder font-normal"
+                                : "text-gray-primary font-normal",
+                        )}
+                    >
+                        {isPlaceholder ? (placeholder ?? "Selecione...") : selectedData?.value}
+                    </Typography>
+                    {!disabled && (
+                        <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                            <ChevronUpDownIcon
+                                aria-hidden="true"
+                                className="h-5 w-5 text-gray-400"
+                            />
+                        </span>
+                    )}
+                </ListboxButton>
+
+                <ListboxOptions
+                    modal={false}
+                    transition
+                    anchor={resolvedAnchor}
+                    data-cy={optionsDataCy}
+                    className={cn(
+                        "z-9999 overflow-auto rounded-md bg-white py-1",
+                        "text-base shadow-lg ring-1 ring-black ring-opacity-5",
+                        "focus:outline-none data-closed:data-leave:opacity-0",
+                        "data-leave:transition data-leave:duration-100 data-leave:ease-in",
+                        "sm:text-sm",
+                        resolvedAnchor ? "[--anchor-gap:4px]" : "absolute z-10 mt-1 w-full",
+                    )}
+                >
+                    {options.map((option) => {
+                        const listBoxOptionStyle = cn(
+                            "group relative",
+                            "cursor-default select-none",
+                            "py-2 pl-3 pr-9",
+                            "text-primary",
+                            "data-focus:bg-primary data-focus:text-white",
+                            {
+                                "animate-warning": operationsIDs?.has(option.id),
+                                "animate-danger": rejectedOperationIDs?.has(option.id) && !isStaff,
+                            },
+                            listOptionStyles,
+                        );
+
+                        const isSelected = selectedData?.id === option.id;
+
+                        const typographyStyle = cn("block truncate", "ml-3", {
+                            "font-semibold": isSelected,
+                        });
+
+                        const checkIconStyle = cn(
+                            "absolute",
+                            "inset-y-0 right-0 pr-4",
+                            "flex items-center",
+                            "text-primary",
+                            "group-data-focus:text-white",
+                            {
+                                hidden: !isSelected,
+                            },
+                        );
+
+                        return (
+                            <ListboxOption
+                                key={option.id}
+                                value={option}
+                                className={listBoxOptionStyle}
+                            >
+                                <div className="flex items-center">
+                                    <Typography
+                                        element="span"
+                                        size={listOptionSize}
+                                        className={typographyStyle}
+                                    >
+                                        {option.value}
+                                    </Typography>
+                                </div>
+
+                                <span className={checkIconStyle}>
+                                    <CheckIcon aria-hidden="true" className="h-5 w-5" />
+                                </span>
+                            </ListboxOption>
+                        );
+                    })}
+                </ListboxOptions>
+            </div>
+        </>
+    );
+};
 
 export type SelectData = {
     id: number;
@@ -43,6 +200,7 @@ export type SelectProps = {
     dataTestId?: string | undefined;
     dataCy?: string;
     placeholder?: string;
+    optionsAnchor?: SelectAnchor;
 };
 
 /**
@@ -101,6 +259,7 @@ const Select = ({
     dataTestId,
     dataCy,
     placeholder,
+    optionsAnchor,
 }: SelectProps) => {
     const [hasOperation, setHasOperation] = useState(false);
     const [isRejected, setIsRejected] = useState(false);
@@ -120,59 +279,6 @@ const Select = ({
             setIsRejected(false);
         }
     }, [operationsIDs, rejectedOperationIDs]);
-
-    const buttonRef = useRef<HTMLButtonElement>(null);
-    const [optionsStyle, setOptionsStyle] = useState<CSSProperties>({});
-
-    const updatePosition = () => {
-        const el = buttonRef.current;
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const viewportPadding = 16;
-        const viewportWidth = window.visualViewport?.width ?? document.documentElement.clientWidth;
-        const viewportHeight =
-            window.visualViewport?.height ?? document.documentElement.clientHeight;
-        const maxWidth = Math.max(viewportWidth - viewportPadding * 2, 0);
-        const clampedWidth = Math.min(rect.width, maxWidth);
-        const maxLeft = Math.max(viewportWidth - viewportPadding - clampedWidth, 0);
-        const clampedLeft = Math.min(Math.max(rect.left, viewportPadding), maxLeft);
-        const spaceBelow = viewportHeight - rect.bottom - viewportPadding;
-        const spaceAbove = rect.top - viewportPadding;
-        const desiredMaxHeight = 224;
-        const shouldFlip = spaceBelow < desiredMaxHeight && spaceAbove > spaceBelow;
-        const availableSpace = shouldFlip ? spaceAbove : spaceBelow;
-        const maxHeight = Math.max(Math.min(availableSpace, desiredMaxHeight), 0);
-        const nextStyle: CSSProperties = {
-            position: "fixed",
-            left: clampedLeft,
-            width: clampedWidth,
-            maxHeight,
-            boxSizing: "border-box",
-            zIndex: 9999,
-        };
-
-        if (shouldFlip) {
-            nextStyle.top = rect.top - maxHeight - 4;
-        } else {
-            nextStyle.top = rect.bottom + 4;
-        }
-
-        setOptionsStyle(nextStyle);
-    };
-
-    useEffect(() => {
-        const onScrollOrResize = () => updatePosition();
-        window.addEventListener("scroll", onScrollOrResize, true);
-        window.addEventListener("resize", onScrollOrResize);
-        return () => {
-            window.removeEventListener("scroll", onScrollOrResize, true);
-            window.removeEventListener("resize", onScrollOrResize);
-        };
-    }, []);
-
-    useEffect(() => {
-        updatePosition();
-    }, [selectedData]);
 
     const listBoxButtonStyle = cn(
         "relative w-full rounded-md border-0 h-9 bg-white pr-10 sm:leading-6 flex items-center",
@@ -195,115 +301,29 @@ const Select = ({
         <div data-testid={dataTestId} data-cy={dataCy}>
             <Field disabled={disabled}>
                 <Listbox value={selectedData} onChange={setSelect} by="id">
-                    {label && (
-                        <div className="flex items-center gap-2">
-                            <Typography element="p" size={labelSize}>
-                                <Label className={labelStyles}>{label}</Label>
-                            </Typography>
-                            {labelAddon}
-                        </div>
+                    {() => (
+                        <SelectContent
+                            label={label}
+                            labelAddon={labelAddon}
+                            labelSize={labelSize}
+                            labelStyles={labelStyles}
+                            listBoxStyles={listBoxStyles}
+                            listBoxButtonStyle={listBoxButtonStyle}
+                            listBoxButtonSize={listBoxButtonSize}
+                            isPlaceholder={isPlaceholder}
+                            placeholder={placeholder}
+                            selectedData={selectedData}
+                            disabled={disabled}
+                            optionsDataCy={optionsDataCy}
+                            options={options}
+                            operationsIDs={operationsIDs}
+                            rejectedOperationIDs={rejectedOperationIDs}
+                            isStaff={isStaff}
+                            listOptionStyles={listOptionStyles}
+                            listOptionSize={listOptionSize}
+                            optionsAnchor={optionsAnchor}
+                        />
                     )}
-                    <div className={`relative mt-2 ${listBoxStyles}`}>
-                        <ListboxButton
-                            ref={buttonRef}
-                            className={listBoxButtonStyle}
-                            onClick={updatePosition}
-                        >
-                            <Typography
-                                element="span"
-                                size={listBoxButtonSize}
-                                className={cn(
-                                    "ml-3 block truncate",
-                                    isPlaceholder
-                                        ? "text-placeholder font-normal"
-                                        : "text-gray-primary font-normal",
-                                )}
-                            >
-                                {isPlaceholder
-                                    ? (placeholder ?? "Selecione...")
-                                    : selectedData?.value}
-                            </Typography>
-                            {!disabled && (
-                                <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                                    <ChevronUpDownIcon
-                                        aria-hidden="true"
-                                        className="h-5 w-5 text-gray-400"
-                                    />
-                                </span>
-                            )}
-                        </ListboxButton>
-
-                        <Portal>
-                            <ListboxOptions
-                                modal={false}
-                                transition
-                                style={optionsStyle}
-                                data-cy={optionsDataCy}
-                                className={cn(
-                                    "fixed z-9999 overflow-auto rounded-md bg-white py-1",
-                                    "text-base shadow-lg ring-1 ring-black ring-opacity-5",
-                                    "focus:outline-none data-closed:data-leave:opacity-0",
-                                    "data-leave:transition data-leave:duration-100 data-leave:ease-in",
-                                    "sm:text-sm box-border",
-                                )}
-                            >
-                                {options.map((option) => {
-                                    const listBoxOptionStyle = cn(
-                                        "group relative",
-                                        "cursor-default select-none",
-                                        "py-2 pl-3 pr-9",
-                                        "text-primary",
-                                        "data-focus:bg-primary data-focus:text-white",
-                                        {
-                                            "animate-warning": operationsIDs?.has(option.id),
-                                            "animate-danger":
-                                                rejectedOperationIDs?.has(option.id) && !isStaff,
-                                        },
-                                        listOptionStyles,
-                                    );
-
-                                    const isSelected = selectedData?.id === option.id;
-
-                                    const typographyStyle = cn("block truncate", "ml-3", {
-                                        "font-semibold": isSelected,
-                                    });
-
-                                    const checkIconStyle = cn(
-                                        "absolute",
-                                        "inset-y-0 right-0 pr-4",
-                                        "flex items-center",
-                                        "text-primary",
-                                        "group-data-focus:text-white",
-                                        {
-                                            hidden: !isSelected,
-                                        },
-                                    );
-
-                                    return (
-                                        <ListboxOption
-                                            key={option.id}
-                                            value={option}
-                                            className={listBoxOptionStyle}
-                                        >
-                                            <div className="flex items-center">
-                                                <Typography
-                                                    element="span"
-                                                    size={listOptionSize}
-                                                    className={typographyStyle}
-                                                >
-                                                    {option.value}
-                                                </Typography>
-                                            </div>
-
-                                            <span className={checkIconStyle}>
-                                                <CheckIcon aria-hidden="true" className="h-5 w-5" />
-                                            </span>
-                                        </ListboxOption>
-                                    );
-                                })}
-                            </ListboxOptions>
-                        </Portal>
-                    </div>
                 </Listbox>
             </Field>
         </div>

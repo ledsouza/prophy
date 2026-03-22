@@ -199,6 +199,7 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
                     setSelect={handleStatusChange}
                     label="Situação"
                     dataTestId="proposal-status-select"
+                    optionsAnchor="top start"
                 />
 
                 <div className="flex gap-2 py-4">
