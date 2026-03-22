@@ -1,6 +1,6 @@
 "use client";
 
-import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { TabGroup, TabPanel, TabPanels } from "@headlessui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -31,6 +31,7 @@ import {
     ResourcePanelShell,
     Spinner,
     Tab,
+    TabList,
 } from "@/components/common";
 import {
     AddUnitForm,
@@ -227,7 +228,7 @@ function ClientPage() {
 
             <ResourcePanelShell>
                 <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                    <TabList className="prophy-tab-list prophy-tab-list--subtle flex gap-2 overflow-x-auto rounded-xl p-1 mb-6 flex-nowrap sm:gap-1 sm:overflow-visible">
+                    <TabList className="mb-6">
                         <Tab>Clientes</Tab>
                         <Tab>Agendamentos</Tab>
                         <Tab>Relatórios</Tab>
@@ -319,19 +320,13 @@ function ClientPage() {
                 {currentModal === Modals.REVIEW_CLIENT &&
                     selectedClientInOperation &&
                     filteredClient && (
-                        <div className="flex flex-row">
-                            <EditClientForm
-                                title="Alterações requisitadas"
-                                reviewMode
-                                client={selectedClientInOperation}
-                            />
-
-                            <EditClientForm
-                                title="Informações atuais"
-                                disabled
-                                client={filteredClient}
-                            />
-                        </div>
+                        <EditClientForm
+                            title="Revisão de atualização de dados"
+                            description={'Uma alteração foi detectada em "Informações de Contato"'}
+                            reviewMode
+                            client={selectedClientInOperation}
+                            originalClient={filteredClient}
+                        />
                     )}
 
                 {currentModal === Modals.ADD_UNIT && selectedClient?.id && (
@@ -358,15 +353,13 @@ function ClientPage() {
                 )}
 
                 {currentModal === Modals.REVIEW_EDIT_UNIT && selectedUnit && filteredClient && (
-                    <div className="flex flex-row">
-                        <EditUnitForm
-                            title="Alterações requisitadas"
-                            reviewMode
-                            unit={selectedUnitOperation as UnitDTO}
-                        />
-
-                        <EditUnitForm title="Informações atuais" disabled unit={selectedUnit} />
-                    </div>
+                    <EditUnitForm
+                        title="Revisão de atualização de dados"
+                        description={'Uma alteração foi detectada em "Informações da Unidade"'}
+                        reviewMode
+                        unit={selectedUnitOperation as UnitDTO}
+                        originalUnit={selectedUnit}
+                    />
                 )}
 
                 {currentModal === Modals.DELETE_UNIT && <ModalDeleteUnit />}

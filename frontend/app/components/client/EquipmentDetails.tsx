@@ -4,7 +4,6 @@ import {
     DisclosureButton,
     DisclosurePanel,
     TabGroup,
-    TabList,
     TabPanel,
     TabPanels,
 } from "@headlessui/react";
@@ -18,8 +17,8 @@ import { AccessoryType } from "@/redux/features/modalityApiSlice";
 import notFound from "@/assets/image-not-found.png";
 import { CaretDownIcon, XCircleIcon } from "@phosphor-icons/react";
 
+import { Tab, TabList } from "@/components/common";
 import { Typography } from "@/components/foundation";
-import { Tab } from "@/components/common";
 import { EquipmentReportsTab } from "@/components/client";
 
 type EquipmentDetailsProps = {
@@ -97,7 +96,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
 
                 <div className="m-6">
                     <TabGroup>
-                        <TabList className="flex space-x-1 rounded-xl bg-gray-100 p-1">
+                        <TabList className="mb-0">
                             <Tab>Informações Gerais</Tab>
                             <Tab>Especificações Técnicas</Tab>
                             <Tab>Manutenção</Tab>

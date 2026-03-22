@@ -1,8 +1,7 @@
 "use client";
 
-import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { TabGroup, TabPanel, TabPanels } from "@headlessui/react";
 import { WarningIcon } from "@phosphor-icons/react";
-import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -34,6 +33,7 @@ import {
     ReportsSearchTab,
     Spinner,
     Tab,
+    TabList,
     Table,
 } from "@/components/common";
 import {
@@ -470,14 +470,7 @@ function SearchPage() {
                 </Typography>
 
                 <TabGroup selectedIndex={selectedTabIndex} onChange={handleTabChange}>
-                    <TabList
-                        className={clsx(
-                            "prophy-tab-list prophy-tab-list--subtle",
-                            "flex gap-2 overflow-x-auto rounded-xl p-2 mb-6",
-                            "flex-nowrap -mx-1",
-                            "sm:mx-0 sm:overflow-visible sm:gap-0 sm:space-x-1 sm:p-1",
-                        )}
-                    >
+                    <TabList className="mb-6 p-2 -mx-1 sm:mx-0 sm:gap-0 sm:space-x-1 sm:p-1">
                         <div className="flex-none sm:flex-1" data-cy="search-tab-clients">
                             <Tab>Clientes</Tab>
                         </div>

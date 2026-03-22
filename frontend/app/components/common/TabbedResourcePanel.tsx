@@ -1,9 +1,9 @@
 "use client";
 
-import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { TabGroup, TabPanel, TabPanels } from "@headlessui/react";
 import { ReactNode, useState } from "react";
 
-import { Tab } from "@/components/common";
+import { Tab, TabList } from "@/components/common";
 import clsx from "clsx";
 
 type TabConfig = {
@@ -100,15 +100,7 @@ const TabbedResourcePanel = ({
                     onChange={handleChange}
                     className="h-full flex flex-col min-h-0"
                 >
-                    <TabList
-                        className={clsx(
-                            "flex gap-2 overflow-x-auto",
-                            "prophy-tab-list prophy-tab-list--subtle rounded-xl",
-                            "p-1 mb-4",
-                            "sm:gap-1 sm:overflow-visible",
-                            classNames.tabs,
-                        )}
-                    >
+                    <TabList className={clsx("mb-4", classNames.tabs)}>
                         {tabs.map((t) => (
                             <Tab key={t.id}>
                                 <div

@@ -1,6 +1,6 @@
 "use client";
 
-import { TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { TabGroup, TabPanel, TabPanels } from "@headlessui/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -35,6 +35,7 @@ import {
     ResourcePanelShell,
     Spinner,
     Tab,
+    TabList,
 } from "@/components/common";
 import {
     AddUnitForm,
@@ -269,7 +270,7 @@ function ClientPage() {
 
             <ResourcePanelShell>
                 <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                    <TabList className="prophy-tab-list prophy-tab-list--subtle flex gap-2 overflow-x-auto rounded-xl p-1 mb-6 flex-nowrap sm:gap-1 sm:overflow-visible">
+                    <TabList className="mb-6">
                         <Tab>Clientes</Tab>
                         <Tab>Agendamentos</Tab>
                         <Tab>Relatórios</Tab>
