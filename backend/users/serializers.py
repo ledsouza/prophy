@@ -10,6 +10,13 @@ from users.models import UserAccount
 User = get_user_model()
 
 
+class CurrentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "cpf", "name", "email", "phone", "role", "is_active", "is_staff"]
+        read_only_fields = ["id", "cpf", "role", "is_active", "is_staff"]
+
+
 class CustomUserDeleteSerializer(UserDeleteSerializer):
     """
     Custom serializer for user deletion that doesn't require the current password.

@@ -127,6 +127,13 @@ DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": "auth/password-reset/{uid}/{token}",
     "EMAIL_FRONTEND_DOMAIN": FRONTEND_URL.split("/")[-1],
     "EMAIL_FRONTEND_SITE_NAME": "Prophy",
+    "SET_PASSWORD_RETYPE": True,
+    "USER_ID_FIELD": "id",
+    "LOGIN_FIELD": "cpf",
+    "SERIALIZERS": {
+        "current_user": "users.serializers.CurrentUserSerializer",
+        "user": "users.serializers.CurrentUserSerializer",
+    },
 }
 
 AUTH_COOKIE = "access"

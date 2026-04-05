@@ -12,7 +12,11 @@ from rest_framework_simplejwt.views import (
 )
 from django_filters.rest_framework import DjangoFilterBackend
 
-from users.serializers import UnitManagerUserSerializer, CustomUserDeleteSerializer
+from users.serializers import (
+    CurrentUserSerializer,
+    UnitManagerUserSerializer,
+    CustomUserDeleteSerializer,
+)
 from users.email import UnitManagerPasswordResetEmail
 from users.models import UserAccount
 
@@ -233,6 +237,8 @@ class ExtendedUserViewSet(DjoserUserViewSet):
         return permissions
 
     def get_serializer_class(self):
+        if self.action == "me":
+            return CurrentUserSerializer
         if self.action == "destroy":
             return CustomUserDeleteSerializer
         return super().get_serializer_class()
