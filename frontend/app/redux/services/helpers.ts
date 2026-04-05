@@ -1,6 +1,7 @@
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { UnitDTO, UnitOperationDTO } from "../features/unitApiSlice";
 import { EquipmentDTO, EquipmentOperationDTO } from "../features/equipmentApiSlice";
+import { getUnitOperationForUnit } from "@/utils/unit-operations";
 
 /**
  * Type predicate to narrow an unknown error to `FetchBaseQueryError`
@@ -46,17 +47,7 @@ export const getUnitOperation = (
     unit: UnitDTO,
     unitsOperations: UnitOperationDTO[] | undefined
 ) => {
-    // Add operations has the same id of the entity
-    // because they don't have a original entity associated with them
-    const AddUnitOperation = unitsOperations?.find((operation) => operation.id === unit.id);
-
-    if (AddUnitOperation) {
-        return AddUnitOperation;
-    }
-
-    // Return for other types of operations
-    // because they have a original entity associated with them
-    return unitsOperations?.find((operation) => operation.original_unit === unit.id);
+    return getUnitOperationForUnit(unit, unitsOperations);
 };
 
 export const getEquipmentOperation = (

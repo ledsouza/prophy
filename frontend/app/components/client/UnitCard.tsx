@@ -20,6 +20,7 @@ import { Modals, openModal, setUnit, setUnitOperation } from "@/redux/features/m
 import { useAppDispatch } from "@/redux/hooks";
 import { isResponseError } from "@/redux/services/helpers";
 import { shouldHideRejectedAddOperation } from "@/utils/operations";
+import { canReviewOperations } from "@/utils/unit-operations";
 import { toast } from "react-toastify";
 
 type UnitCardProps = {
@@ -34,7 +35,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
     const dispatch = useAppDispatch();
 
     const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === Role.FMI || userData?.role === Role.GP;
+    const canReview = canReviewOperations(userData?.role as Role | undefined);
 
     const { data: equipmentOperations } = useListAllEquipmentsOperationsQuery();
     const [deleteUnitOperation] = useDeleteUnitOperationMutation();
@@ -42,12 +43,13 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
     const [status, setStatus] = useState<OperationStatus>();
     const [hasOperation, setHasOperation] = useState(false);
     const [isRejected, setIsRejected] = useState(false);
+    const isReviewer = canReview;
 
     const containerStyle = cn(
         "bg-light rounded-xl shadow-sm p-4 sm:p-6 divide-y divide-gray-200 hover:ring-1 hover:ring-inset focus:ring-inset hover:ring-primary",
         {
             "animate-warning": hasOperation,
-            "animate-danger": isRejected && !isStaff,
+            "animate-danger": isRejected && !isReviewer,
         },
     );
 
@@ -121,12 +123,12 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
     }
 
     useEffect(() => {
-        if (isStaff && unitOperation?.operation_status === OperationStatus.REJECTED) {
+        if (canReview && unitOperation?.operation_status === OperationStatus.REJECTED) {
             setStatus(OperationStatus.ACCEPTED);
             return;
         }
         setStatus(unitOperation ? unitOperation.operation_status : OperationStatus.ACCEPTED);
-    }, [unitOperation, isStaff]);
+    }, [unitOperation, canReview]);
 
     useEffect(() => {
         const unitIDsFromEquipmentOpsReview = equipmentOperations
@@ -155,7 +157,7 @@ function UnitCard({ unit, unitOperation, equipmentsCount, dataTestId }: UnitCard
         }
     }, [status, equipmentOperations, unit.id]);
 
-    if (shouldHideRejectedAddOperation(isStaff, unitOperation)) {
+    if (shouldHideRejectedAddOperation(canReview, unitOperation)) {
         return;
     }
 

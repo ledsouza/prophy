@@ -9,6 +9,7 @@ import { PencilLineIcon, TrashIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/common";
 import { isUnit } from "@/utils/type-checks";
+import { canReviewOperations } from "@/utils/unit-operations";
 
 type CardButtonsProps = {
     entity: UnitDTO | EquipmentDTO;
@@ -38,7 +39,7 @@ function CardButtons({
     onReviewEdit,
 }: CardButtonsProps) {
     const { data: userData } = useRetrieveUserQuery();
-    const isStaff = userData?.role === Role.FMI || userData?.role === Role.GP;
+    const canReview = canReviewOperations(userData?.role as Role | undefined);
 
     if (userData?.role === Role.C) {
         return (
@@ -86,7 +87,7 @@ function CardButtons({
 
                 {status === OperationStatus.REVIEW &&
                     operation?.operation_type === OperationType.ADD &&
-                    !isStaff && (
+                    !canReview && (
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}
@@ -99,7 +100,7 @@ function CardButtons({
 
                 {status === OperationStatus.REVIEW &&
                     operation?.operation_type === OperationType.ADD &&
-                    isStaff && (
+                    canReview && (
                         <Button
                             variant="primary"
                             onClick={onReviewAdd}
@@ -112,7 +113,7 @@ function CardButtons({
 
                 {status === OperationStatus.REVIEW &&
                     operation?.operation_type === OperationType.EDIT &&
-                    !isStaff && (
+                    !canReview && (
                         <Button
                             variant="danger"
                             onClick={onCancelEdit}
@@ -125,7 +126,7 @@ function CardButtons({
 
                 {status === OperationStatus.REVIEW &&
                     operation?.operation_type === OperationType.EDIT &&
-                    isStaff && (
+                    canReview && (
                         <Button
                             variant="primary"
                             onClick={onReviewEdit}
@@ -138,7 +139,7 @@ function CardButtons({
 
                 {status === OperationStatus.REVIEW &&
                     operation?.operation_type === OperationType.DELETE &&
-                    !isStaff &&
+                    !canReview &&
                     (!isUnit(entity) || userData?.role !== Role.GU) && (
                         <Button
                             variant="danger"
@@ -152,7 +153,7 @@ function CardButtons({
 
                 {status === OperationStatus.REVIEW &&
                     operation?.operation_type === OperationType.DELETE &&
-                    isStaff && (
+                    canReview && (
                         <Button
                             variant="primary"
                             onClick={onReviewDelete}
@@ -163,7 +164,7 @@ function CardButtons({
                         </Button>
                     )}
 
-                {status === OperationStatus.REJECTED && !isStaff && (
+                {status === OperationStatus.REJECTED && !canReview && (
                     <Button
                         variant="danger"
                         onClick={onReject}
@@ -174,7 +175,7 @@ function CardButtons({
                     </Button>
                 )}
 
-                {status === OperationStatus.REJECTED && isStaff && (
+                {status === OperationStatus.REJECTED && canReview && (
                     <div className="grid w-full grid-cols-2 gap-2 sm:contents">
                         <Button
                             variant="secondary"

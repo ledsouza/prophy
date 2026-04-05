@@ -3,7 +3,7 @@ import React from "react";
 import { OperationStatus } from "@/enums";
 import { defaultOperationStatusOrder } from "@/constants/ordering";
 
-import { getEquipmentsCount, getUnitOperation } from "@/redux/services/helpers";
+import { getEquipmentsCount } from "@/redux/services/helpers";
 import {
     UnitDTO,
     useListAllUnitsOperationsQuery,
@@ -11,6 +11,7 @@ import {
 import { useListAllEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 
 import { sortByOperationStatus } from "@/utils/sorting";
+import { buildUnitListItems } from "@/utils/unit-operations";
 
 import { UnitCard } from "@/components/client";
 import { Typography } from "@/components/foundation";
@@ -36,29 +37,28 @@ const UnitList = ({
 }: UnitListProps) => {
     const { data: unitsOperations } = useListAllUnitsOperationsQuery();
     const { data: equipments } = useListAllEquipmentsQuery();
+    const unitListItems = buildUnitListItems(searchedUnits, unitsOperations);
 
-    const handleUnitStatus = (unit: UnitDTO): OperationStatus => {
-        const unitOperation = getUnitOperation(unit, unitsOperations);
-
-        if (unitOperation) {
-            return unitOperation.operation_status as OperationStatus;
-        } else {
-            return OperationStatus.ACCEPTED;
+    const handleUnitStatus = ({ operation }: (typeof unitListItems)[number]): OperationStatus => {
+        if (operation) {
+            return operation.operation_status as OperationStatus;
         }
+
+        return OperationStatus.ACCEPTED;
     };
 
     return (
         <div className="flex flex-col gap-6">
-            {searchedUnits && searchedUnits.length > 0 ? (
+            {unitListItems.length > 0 ? (
                 sortByOperationStatus(
-                    searchedUnits,
+                    unitListItems,
                     OperationStatusOrder,
                     handleUnitStatus
-                ).map((unit) => (
+                ).map(({ unit, operation }) => (
                     <UnitCard
                         key={unit.id}
                         unit={unit}
-                        unitOperation={getUnitOperation(unit, unitsOperations)}
+                        unitOperation={operation}
                         equipmentsCount={getEquipmentsCount(unit, equipments)}
                         dataTestId={`unit-card-${unit.id}`}
                     />
