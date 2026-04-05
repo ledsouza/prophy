@@ -57,7 +57,10 @@ describe("prophy manager - user management", () => {
             cy.visit("/dashboard/users", { failOnStatusCode: false });
 
             cy.location("pathname").should("include", "/dashboard/users");
-            cy.getByCy("gp-users-page", { timeout: 20000 }).should("exist");
+            cy.wait("@listManagedUsers")
+                .its("response.statusCode")
+                .should("eq", 200);
+            cy.getByCy("gp-users-page").should("exist");
 
             const cpf = generate();
             const runId = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
