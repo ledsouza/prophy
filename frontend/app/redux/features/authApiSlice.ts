@@ -2,11 +2,13 @@ import type { UserDTO } from "@/types/user";
 import { apiSlice } from "../services/apiSlice";
 import { PaginatedResponse } from "../services/apiTypes";
 import type {
+    ChangeOwnPasswordRequest,
     CreateManagedUserRequest,
     ListManagedUsersQuery,
     RegisterUnitManagerRequest,
     RegisterUnitManagerResponse,
     ResetPasswordRequest,
+    UpdateOwnProfileRequest,
     UpdateManagedUserRequest,
     UserAuth,
 } from "../types/authApi";
@@ -34,6 +36,22 @@ const authApiSlice = apiSlice.injectEndpoints({
         }),
         retrieveUser: builder.query<UserDTO, void>({
             query: () => "users/me/",
+            providesTags: [{ type: "User", id: "ME" }],
+        }),
+        updateOwnProfile: builder.mutation<UserDTO, UpdateOwnProfileRequest>({
+            query: (requestBody) => ({
+                url: "users/me/",
+                method: "PATCH",
+                body: requestBody,
+            }),
+            invalidatesTags: [{ type: "User", id: "ME" }],
+        }),
+        changeOwnPassword: builder.mutation<void, ChangeOwnPasswordRequest>({
+            query: (requestBody) => ({
+                url: "users/set_password/",
+                method: "POST",
+                body: requestBody,
+            }),
         }),
         getById: builder.query<UserDTO, UserDTO["id"]>({
             query: (id) => ({
@@ -124,6 +142,8 @@ export const {
     useLogoutMutation,
     useVerifyMutation,
     useRetrieveUserQuery,
+    useUpdateOwnProfileMutation,
+    useChangeOwnPasswordMutation,
     useGetByIdQuery,
     useGetByCPFQuery,
     useLazyGetByCPFQuery,

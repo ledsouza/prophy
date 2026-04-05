@@ -26,6 +26,18 @@ export type ResetPasswordRequest = {
     re_new_password: string;
 };
 
+export type UpdateOwnProfileRequest = {
+    name: string;
+    email: string;
+    phone: string;
+};
+
+export type ChangeOwnPasswordRequest = {
+    current_password: string;
+    new_password: string;
+    re_new_password: string;
+};
+
 export type ListManagedUsersQuery = {
     page?: number;
     cpf?: string;
