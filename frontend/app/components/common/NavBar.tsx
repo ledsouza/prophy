@@ -8,6 +8,7 @@ import { useAppSelector, useAppDispatch } from "@/redux/hooks";
 import { useLogoutMutation, useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import { logout as setLogout } from "@/redux/features/authSlice";
 import Role from "@/enums/Role";
+import { roleLabel } from "@/utils/roles";
 
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
@@ -42,6 +43,13 @@ export default function Navbar() {
     const isSelected = (path: string) => {
         return normalizePathname(pathname) === normalizePathname(path);
     };
+
+    const userInitials = userData?.name
+        ?.split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .join("");
 
     const authLinks = (isMobile: boolean) => (
         <>
@@ -107,6 +115,35 @@ export default function Navbar() {
             </NavLink>
         </>
     );
+
+    const userIdentity = (isMobile: boolean) => {
+        if (!isAuthenticated || !userData) {
+            return null;
+        }
+
+        return (
+            <div
+                className={
+                    isMobile
+                        ? "mb-3 flex items-center gap-3 rounded-lg border border-gray-tertiary/40 bg-white px-3 py-3"
+                        : "mr-3 flex items-center gap-3 rounded-lg border border-gray-tertiary/40 bg-white px-3 py-2"
+                }
+                data-cy="current-user-badge"
+            >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
+                    {userInitials || "U"}
+                </div>
+                <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-primary">
+                        {userData.name}
+                    </p>
+                    <p className="truncate text-xs text-gray-primary">
+                        {roleLabel(userData.role)}
+                    </p>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <Disclosure as="nav" className="bg-light border-b border-gray-tertiary/40">
@@ -182,6 +219,7 @@ export default function Navbar() {
                                 </div>
 
                                 <div className="hidden sm:flex items-center">
+                                    {isAuthenticated && userIdentity(false)}
                                     {isAuthenticated && (
                                         <NavLink
                                             variant="light"
@@ -199,6 +237,7 @@ export default function Navbar() {
 
                     <DisclosurePanel className="sm:hidden">
                         <div className="space-y-1 px-2 pb-3 pt-2">
+                            {userIdentity(true)}
                             {isAuthenticated ? authLinks(true) : guestLinks(true)}
                         </div>
                     </DisclosurePanel>
