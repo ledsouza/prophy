@@ -12,12 +12,13 @@ import { useCreateAddUnitOperationMutation } from "@/redux/features/unitApiSlice
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
 
+import { Button } from "@/components/common";
 import { Typography } from "@/components/foundation";
-import { Spinner, Button } from "@/components/common";
-import { Form, Input, ComboBox } from "@/components/forms";
+import { Form } from "@/components/forms";
 import { useAppDispatch } from "@/redux/hooks";
 import { closeModal } from "@/redux/features/modalSlice";
 import { OperationStatus } from "@/enums";
+import UnitFields from "./UnitFields";
 
 export type AddUnitFields = z.infer<typeof unitSchema>;
 
@@ -97,88 +98,17 @@ const AddUnitForm = ({ clientId }: AddUnitFormProps) => {
                     formulário será enviado para análise de um físico médico responsável, que fará a
                     revisão e validação das informações fornecidas.
                 </Typography>
-                <Input
-                    {...register("name")}
-                    type="text"
-                    errorMessage={errors.name?.message}
-                    placeholder="Digite o nome da unidade"
-                    data-testid="unit-name-input"
-                    label="Nome"
-                />
-                <Input
-                    {...register("cnpj")}
-                    type="text"
-                    errorMessage={errors.cnpj?.message}
-                    placeholder="Digite o CNPJ da unidade"
-                    data-testid="unit-cnpj-input"
-                    label="CNPJ"
-                />
-                <Input
-                    {...register("email")}
-                    type="text"
-                    errorMessage={errors.email?.message}
-                    placeholder="nome@email.com"
-                    data-testid="unit-email-input"
-                    label="E-mail"
-                />
-                <Input
-                    {...register("phone")}
-                    type="text"
-                    errorMessage={errors.phone?.message}
-                    placeholder="DD9XXXXXXXX"
-                    data-testid="unit-phone-input"
-                    label="Telefone"
-                />
-                {isEstadosSuccess && estados ? (
-                    <ComboBox
-                        data={estados.map((estado) => ({
-                            id: estado.id,
-                            name: estado.nome,
-                            sigla: estado.sigla,
-                        }))}
-                        errorMessage={errors.state ? "Estado da instituição é obrigatório." : ""}
-                        placeholder="Digite o estado e selecione"
-                        selectedValue={selectedEstado}
-                        onChange={handleEstadoChange}
-                        data-testid="unit-state-input"
-                    >
-                        Estado
-                    </ComboBox>
-                ) : (
-                    <div>
-                        <Spinner />
-                    </div>
-                )}
-                {isMunicipiosSuccess && municipios ? (
-                    <ComboBox
-                        data={municipios.map((municipio) => ({
-                            id: municipio.id,
-                            name: municipio.nome,
-                        }))}
-                        errorMessage={errors.state ? "Cidade da instituição é obrigatória." : ""}
-                        placeholder="Digite a cidade e selecione"
-                        selectedValue={selectedMunicipio}
-                        onChange={handleMunicipioChange}
-                        data-testid="unit-city-input"
-                    >
-                        Cidade
-                    </ComboBox>
-                ) : (
-                    <Input
-                        disabled
-                        errorMessage={errors.state ? "Cidade da instituição é obrigatória." : ""}
-                        placeholder="Selecione um estado"
-                        data-testid="unit-city-input"
-                        label="Cidade"
-                    />
-                )}
-                <Input
-                    {...register("address")}
-                    type="text"
-                    errorMessage={errors.address?.message}
-                    placeholder="Rua, número, bairro"
-                    data-testid="unit-address-input"
-                    label="Endereço"
+                <UnitFields
+                    register={register}
+                    errors={errors}
+                    estados={estados}
+                    isEstadosSuccess={isEstadosSuccess}
+                    selectedEstado={selectedEstado}
+                    handleEstadoChange={handleEstadoChange}
+                    municipios={municipios}
+                    isMunicipiosSuccess={isMunicipiosSuccess}
+                    selectedMunicipio={selectedMunicipio}
+                    handleMunicipioChange={handleMunicipioChange}
                 />
 
                 <div className="flex gap-2 py-4">

@@ -17,13 +17,13 @@ import { isErrorWithMessages } from "@/redux/services/helpers";
 
 import { useIBGELocalidades, useNeedReview } from "@/hooks";
 
-import { Spinner } from "@/components/common";
-import { ComboBox, Form, FormButtons, Input, Textarea } from "@/components/forms";
+import { Form, FormButtons, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import { OperationStatus } from "@/enums";
 import { useAppDispatch } from "@/redux/hooks";
 import { unitSchema } from "@/schemas";
 import ReviewEditDiff from "./ReviewEditDiff";
+import UnitFields from "./UnitFields";
 import { getUnitReviewDiffFields } from "./reviewEditDiffFields";
 
 export type EditUnitFields = z.infer<typeof unitSchema>;
@@ -202,98 +202,19 @@ const EditUnitForm = ({
         }
 
         return (
-            <>
-                <Input
-                    {...register("name")}
-                    type="text"
-                    errorMessage={errors.name?.message}
-                    placeholder="Digite o nome da unidade"
-                    disabled={disabled}
-                    data-testid="unit-name-input"
-                    label="Nome"
-                />
-                <Input
-                    {...register("cnpj")}
-                    type="text"
-                    errorMessage={errors.cnpj?.message}
-                    placeholder="Digite o CNPJ da unidade"
-                    disabled={disabled}
-                    data-testid="unit-cnpj-input"
-                    label="CNPJ"
-                />
-                <Input
-                    {...register("email")}
-                    type="text"
-                    errorMessage={errors.email?.message}
-                    placeholder="nome@email.com"
-                    disabled={disabled}
-                    data-testid="unit-email-input"
-                    label="E-mail"
-                />
-                <Input
-                    {...register("phone")}
-                    type="text"
-                    errorMessage={errors.phone?.message}
-                    placeholder="DD9XXXXXXXX"
-                    disabled={disabled}
-                    data-testid="unit-phone-input"
-                    label="Telefone"
-                />
-                {isEstadosSuccess && estados ? (
-                    <ComboBox
-                        data={estados.map((estado) => ({
-                            id: estado.id,
-                            name: estado.nome,
-                            sigla: estado.sigla,
-                        }))}
-                        errorMessage={errors.state ? "Estado da instituição é obrigatório." : ""}
-                        placeholder="Digite o estado e selecione"
-                        selectedValue={selectedEstado}
-                        onChange={handleEstadoChange}
-                        disabled={disabled}
-                        data-testid="unit-state-input"
-                    >
-                        Estado
-                    </ComboBox>
-                ) : (
-                    <div>
-                        <Spinner />
-                    </div>
-                )}
-                {isMunicipiosSuccess && municipios && selectedEstado ? (
-                    <ComboBox
-                        data={municipios.map((municipio) => ({
-                            id: municipio.id,
-                            name: municipio.nome,
-                        }))}
-                        errorMessage={errors.city ? "Cidade da instituição é obrigatória." : ""}
-                        placeholder="Digite a cidade e selecione"
-                        selectedValue={selectedMunicipio}
-                        onChange={handleMunicipioChange}
-                        disabled={disabled}
-                        data-testid="unit-city-input"
-                    >
-                        Cidade
-                    </ComboBox>
-                ) : (
-                    <Input
-                        disabled
-                        errorMessage={errors.city ? "Cidade da instituição é obrigatória." : ""}
-                        placeholder="Selecione um estado"
-                        data-testid="unit-city-input"
-                        label="Cidade"
-                    />
-                )}
-                <Input
-                    {...register("address")}
-                    type="text"
-                    errorMessage={errors.address?.message}
-                    placeholder="Rua, número, bairro"
-                    disabled={disabled}
-                    data-testid="unit-address-input"
-                    label="Endereço"
-                />
-            </>
+            <UnitFields
+                register={register}
+                errors={errors}
+                disabled={disabled}
+                estados={estados}
+                isEstadosSuccess={isEstadosSuccess}
+                selectedEstado={selectedEstado}
+                handleEstadoChange={handleEstadoChange}
+                municipios={municipios}
+                isMunicipiosSuccess={isMunicipiosSuccess}
+                selectedMunicipio={selectedMunicipio}
+                handleMunicipioChange={handleMunicipioChange}
+            />
         );
     };
 

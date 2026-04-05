@@ -25,6 +25,7 @@ import {
     EditClientForm,
     EditUnitForm,
     Input,
+    ReviewAddUnitForm,
     ReviewDeleteUnitForm,
 } from "@/components/forms";
 import { Typography } from "@/components/foundation";
@@ -353,12 +354,11 @@ export default function MedicalPhysicistClientDetailPage({
                 )}
 
                 {currentModal === Modals.REVIEW_ADD_UNIT && selectedUnitOperation && (
-                    <EditUnitForm
+                    <ReviewAddUnitForm
                         title="Unidade requisitada"
                         description={`Verifique as informações. Se identificar algum erro,
                             você pode editá-las ou rejeitá-las completamente.`}
-                        reviewMode
-                        unit={selectedUnitOperation as UnitDTO}
+                        unitOperation={selectedUnitOperation}
                     />
                 )}
 

@@ -11,6 +11,7 @@ export { default as RegisterForm } from "./RegisterForm";
 export { default as EditClientForm } from "./EditClientForm";
 export { default as AddUnitForm } from "./AddUnitForm";
 export { default as EditUnitForm } from "./EditUnitForm";
+export { default as ReviewAddUnitForm } from "./ReviewAddUnitForm";
 export { default as CreateManagedUserForm } from "./CreateManagedUserForm";
 export { default as EditManagedUserForm } from "./EditManagedUserForm";
 export { default as ReviewEditDiff } from "./ReviewEditDiff";
