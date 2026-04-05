@@ -84,6 +84,15 @@ export default function Navbar() {
                 </NavLink>
             )}
             <NavLink
+                isSelected={isSelected("/dashboard/profile/")}
+                isMobile={isMobile}
+                variant={isMobile ? "light" : undefined}
+                href="/dashboard/profile"
+                dataCy="profile-nav"
+            >
+                Meu Perfil
+            </NavLink>
+            <NavLink
                 isMobile={isMobile}
                 variant={isMobile ? "light" : undefined}
                 onClick={handleLogout}
@@ -211,6 +220,14 @@ export default function Navbar() {
                                                         Usuários
                                                     </NavLink>
                                                 )}
+                                                <NavLink
+                                                    isSelected={isSelected("/dashboard/profile/")}
+                                                    variant="light"
+                                                    href="/dashboard/profile"
+                                                    dataCy="profile-nav"
+                                                >
+                                                    Meu Perfil
+                                                </NavLink>
                                             </>
                                         ) : (
                                             guestLinks(false, "light")
