@@ -25,8 +25,10 @@ import {
     APPOINTMENT_STATUS_OPTIONS,
     getAppointmentStatusClasses,
     getAppointmentStatusFromOptionId,
+    getAppointmentStatusOptionIdFromValue,
 } from "@/constants/appointmentStatus";
 import { formatDateTime } from "@/utils/format";
+import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
 
 import AppointmentsCalendar from "./AppointmentsCalendar";
 
@@ -37,6 +39,7 @@ type AppointmentFilters = {
     client_name: string;
     unit_city: string;
     unit_name: string;
+    responsible_cpf: string;
 };
 
 type AppointmentSearchTabProps = {
@@ -54,6 +57,7 @@ const EMPTY_FILTERS: AppointmentFilters = {
     client_name: "",
     unit_city: "",
     unit_name: "",
+    responsible_cpf: "",
 };
 
 export default function AppointmentSearchTab({
@@ -87,6 +91,51 @@ export default function AppointmentSearchTab({
     const [selectedClientName, setSelectedClientName] = useState("");
     const [selectedUnitCity, setSelectedUnitCity] = useState("");
     const [selectedUnitName, setSelectedUnitName] = useState("");
+    const [selectedResponsibleCpf, setSelectedResponsibleCpf] = useState("");
+
+    useEffect(() => {
+        const pageFromUrl = searchParams.get(pageKey);
+        const dateStart = searchParams.get("appointments_date_start") || "";
+        const dateEnd = searchParams.get("appointments_date_end") || "";
+        const appointmentStatus = searchParams.get("appointments_status");
+        const clientName = searchParams.get("appointments_client_name") || "";
+        const unitCity = searchParams.get("appointments_unit_city") || "";
+        const unitName = searchParams.get("appointments_unit_name") || "";
+        const responsibleCpf = searchParams.get("appointments_responsible_cpf") || "";
+
+        if (pageFromUrl) {
+            const parsedPage = Number(pageFromUrl);
+            if (!Number.isNaN(parsedPage) && parsedPage > 0) {
+                setCurrentPage(parsedPage);
+            }
+        }
+
+        restoreTextFilterStates(dateStart, setSelectedDateStart);
+        restoreTextFilterStates(dateEnd, setSelectedDateEnd);
+        restoreTextFilterStates(clientName, setSelectedClientName);
+        restoreTextFilterStates(unitCity, setSelectedUnitCity);
+        restoreTextFilterStates(unitName, setSelectedUnitName);
+        restoreTextFilterStates(responsibleCpf, setSelectedResponsibleCpf);
+
+        const appointmentStatusOptionId = getAppointmentStatusOptionIdFromValue(
+            appointmentStatus,
+        );
+        restoreSelectFilterStates(
+            appointmentStatusOptionId.toString(),
+            APPOINTMENT_STATUS_OPTIONS,
+            setSelectedStatus,
+        );
+
+        setAppliedFilters({
+            date_start: dateStart,
+            date_end: dateEnd,
+            status: appointmentStatus || "",
+            client_name: clientName,
+            unit_city: unitCity,
+            unit_name: unitName,
+            responsible_cpf: responsibleCpf,
+        });
+    }, [searchParams]);
 
     const queryParams = useMemo(() => {
         const params: Record<string, unknown> = { page: currentPage };
@@ -97,6 +146,9 @@ export default function AppointmentSearchTab({
         if (appliedFilters.client_name) params.client_name = appliedFilters.client_name;
         if (appliedFilters.unit_city) params.unit_city = appliedFilters.unit_city;
         if (appliedFilters.unit_name) params.unit_name = appliedFilters.unit_name;
+        if (appliedFilters.responsible_cpf) {
+            params.responsible_cpf = appliedFilters.responsible_cpf;
+        }
 
         return params;
     }, [currentPage, appliedFilters]);
@@ -130,6 +182,7 @@ export default function AppointmentSearchTab({
             client_name: selectedClientName,
             unit_city: selectedUnitCity,
             unit_name: selectedUnitName,
+            responsible_cpf: selectedResponsibleCpf,
         }),
     });
 
@@ -146,6 +199,7 @@ export default function AppointmentSearchTab({
             setSelectedClientName("");
             setSelectedUnitCity("");
             setSelectedUnitName("");
+            setSelectedResponsibleCpf("");
         },
         emptyFilters: EMPTY_FILTERS,
     });
@@ -161,6 +215,7 @@ export default function AppointmentSearchTab({
             client_name: selectedClientName,
             unit_city: selectedUnitCity,
             unit_name: selectedUnitName,
+            responsible_cpf: selectedResponsibleCpf,
         }),
         setCurrentPage,
     });
@@ -235,6 +290,14 @@ export default function AppointmentSearchTab({
                     placeholder="Digite o nome da unidade"
                     label="Nome da Unidade"
                     dataCy={`${dataCyPrefix}-filter-unit-name`}
+                />
+
+                <Input
+                    value={selectedResponsibleCpf}
+                    onChange={(e) => setSelectedResponsibleCpf(e.target.value)}
+                    placeholder="Digite o CPF"
+                    label="CPF do físico responsável"
+                    dataCy={`${dataCyPrefix}-filter-responsible-cpf`}
                 />
             </div>
 
@@ -318,6 +381,7 @@ export default function AppointmentSearchTab({
                                 client_name: appliedFilters.client_name,
                                 unit_city: appliedFilters.unit_city,
                                 unit_name: appliedFilters.unit_name,
+                                responsible_cpf: appliedFilters.responsible_cpf,
                             }}
                         />
                     </div>

@@ -1249,6 +1249,16 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                     "Filter appointments by unit name " "(case-insensitive contains)."
                 ),
             ),
+            openapi.Parameter(
+                name="responsible_cpf",
+                in_=openapi.IN_QUERY,
+                type=openapi.TYPE_STRING,
+                description=(
+                    "Filter appointments by a responsible physicist CPF "
+                    "(digits only). Matches Client.users with role "
+                    "FMI/FME/GP."
+                ),
+            ),
         ],
         responses={
             200: openapi.Response(
@@ -1534,6 +1544,17 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         unit_name = query_params.get("unit_name")
         if unit_name is not None:
             queryset = queryset.filter(unit__name__icontains=unit_name)
+
+        responsible_cpf = query_params.get("responsible_cpf")
+        if responsible_cpf is not None:
+            queryset = queryset.filter(
+                unit__client__users__cpf=responsible_cpf,
+                unit__client__users__role__in=[
+                    UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+                    UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+                    UserAccount.Role.PROPHY_MANAGER,
+                ],
+            )
 
         return queryset
 

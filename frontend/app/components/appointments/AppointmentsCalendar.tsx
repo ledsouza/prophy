@@ -21,6 +21,7 @@ type AppointmentsCalendarFilters = {
     client_name: string;
     unit_city: string;
     unit_name: string;
+    responsible_cpf: string;
 };
 
 type VisibleRange = {
@@ -166,6 +167,7 @@ export default function AppointmentsCalendar({ dataCyPrefix, filters }: Appointm
             client_name: normalizeFilterValue(filters.client_name),
             unit_city: normalizeFilterValue(filters.unit_city),
             unit_name: normalizeFilterValue(filters.unit_name),
+            responsible_cpf: normalizeFilterValue(filters.responsible_cpf),
         };
     }, [filters, visibleRange]);
 

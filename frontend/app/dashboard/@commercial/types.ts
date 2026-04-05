@@ -21,4 +21,5 @@ export type AppointmentFilters = {
     client_name: string;
     unit_city: string;
     unit_name: string;
+    responsible_cpf: string;
 };

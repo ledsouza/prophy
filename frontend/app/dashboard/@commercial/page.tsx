@@ -141,6 +141,7 @@ function SearchPage() {
             client_name: "",
             unit_city: "",
             unit_name: "",
+            responsible_cpf: "",
         });
 
     const [selectedAppointmentDateStart, setSelectedAppointmentDateStart] = useState("");
@@ -152,6 +153,8 @@ function SearchPage() {
     const [selectedAppointmentClientName, setSelectedAppointmentClientName] = useState("");
     const [selectedAppointmentUnitCity, setSelectedAppointmentUnitCity] = useState("");
     const [selectedAppointmentUnitName, setSelectedAppointmentUnitName] = useState("");
+    const [selectedAppointmentResponsibleCpf, setSelectedAppointmentResponsibleCpf] =
+        useState("");
 
     const {
         clientsData,
@@ -220,6 +223,7 @@ function SearchPage() {
                 client_name: selectedAppointmentClientName,
                 unit_city: selectedAppointmentUnitCity,
                 unit_name: selectedAppointmentUnitName,
+                responsible_cpf: selectedAppointmentResponsibleCpf,
             }),
         },
     });
@@ -332,6 +336,7 @@ function SearchPage() {
             client_name: selectedAppointmentClientName,
             unit_city: selectedAppointmentUnitCity,
             unit_name: selectedAppointmentUnitName,
+            responsible_cpf: selectedAppointmentResponsibleCpf,
         }),
         setCurrentPage: setAppointmentsCurrentPage,
     });
@@ -349,6 +354,7 @@ function SearchPage() {
             client_name: selectedAppointmentClientName,
             unit_city: selectedAppointmentUnitCity,
             unit_name: selectedAppointmentUnitName,
+            responsible_cpf: selectedAppointmentResponsibleCpf,
         }),
     });
 
@@ -365,6 +371,7 @@ function SearchPage() {
                 setSelectedAppointmentClientName("");
                 setSelectedAppointmentUnitCity("");
                 setSelectedAppointmentUnitName("");
+                setSelectedAppointmentResponsibleCpf("");
             },
             emptyFilters: {
                 date_start: "",
@@ -373,6 +380,7 @@ function SearchPage() {
                 client_name: "",
                 unit_city: "",
                 unit_name: "",
+                responsible_cpf: "",
             },
         });
 
@@ -507,12 +515,18 @@ function SearchPage() {
                     const clientName = params.get("appointments_client_name") || "";
                     const unitCity = params.get("appointments_unit_city") || "";
                     const unitName = params.get("appointments_unit_name") || "";
+                    const responsibleCpf =
+                        params.get("appointments_responsible_cpf") || "";
 
                     restoreTextFilterStates(dateStart, setSelectedAppointmentDateStart);
                     restoreTextFilterStates(dateEnd, setSelectedAppointmentDateEnd);
                     restoreTextFilterStates(clientName, setSelectedAppointmentClientName);
                     restoreTextFilterStates(unitCity, setSelectedAppointmentUnitCity);
                     restoreTextFilterStates(unitName, setSelectedAppointmentUnitName);
+                    restoreTextFilterStates(
+                        responsibleCpf,
+                        setSelectedAppointmentResponsibleCpf,
+                    );
 
                     const appointmentStatusOptionId =
                         getAppointmentStatusOptionIdFromValue(appointmentStatus);
@@ -531,6 +545,7 @@ function SearchPage() {
                     client_name: params.get("appointments_client_name") || "",
                     unit_city: params.get("appointments_unit_city") || "",
                     unit_name: params.get("appointments_unit_name") || "",
+                    responsible_cpf: params.get("appointments_responsible_cpf") || "",
                 }),
             },
         },
@@ -967,6 +982,16 @@ function SearchPage() {
                                     onChange={(e) => setSelectedAppointmentUnitName(e.target.value)}
                                     placeholder="Digite o nome da unidade"
                                     label="Nome da Unidade"
+                                />
+
+                                <Input
+                                    value={selectedAppointmentResponsibleCpf}
+                                    onChange={(e) =>
+                                        setSelectedAppointmentResponsibleCpf(e.target.value)
+                                    }
+                                    placeholder="Digite o CPF"
+                                    label="CPF do físico responsável"
+                                    dataCy="appointments-filter-responsible-cpf"
                                 />
                             </div>
 

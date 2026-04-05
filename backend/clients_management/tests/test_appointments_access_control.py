@@ -187,3 +187,74 @@ def test_appointments_delete_only_prophy_manager():
     client.force_authenticate(user=prophy_manager)
     ok = client.delete(f"/api/appointments/{appointment.id}/")
     assert ok.status_code == status.HTTP_204_NO_CONTENT
+
+
+@pytest.mark.django_db
+def test_appointments_list_filter_responsible_cpf_returns_only_linked_appointments():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    internal_physicist = UserFactory(
+        role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+    )
+
+    allowed_client = ClientFactory()
+    allowed_client.users.add(internal_physicist)
+    allowed_unit = UnitFactory(client=allowed_client)
+    allowed_appointment = AppointmentFactory(unit=allowed_unit)
+
+    denied_client = ClientFactory()
+    denied_unit = UnitFactory(client=denied_client)
+    AppointmentFactory(unit=denied_unit)
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.get(
+        "/api/appointments/",
+        {"responsible_cpf": internal_physicist.cpf},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 1
+    assert response.data["results"][0]["id"] == allowed_appointment.id
+
+
+@pytest.mark.django_db
+def test_appointments_list_filter_responsible_cpf_returns_empty_when_user_not_linked():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    internal_physicist = UserFactory(
+        role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+    )
+
+    unrelated_client = ClientFactory()
+    unrelated_unit = UnitFactory(client=unrelated_client)
+    AppointmentFactory(unit=unrelated_unit)
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.get(
+        "/api/appointments/",
+        {"responsible_cpf": internal_physicist.cpf},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 0
+
+
+@pytest.mark.django_db
+def test_appointments_list_filter_responsible_cpf_returns_empty_for_invalid_role():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    unit_manager = UserFactory(role=UserAccount.Role.UNIT_MANAGER)
+
+    linked_client = ClientFactory()
+    linked_client.users.add(unit_manager)
+    linked_unit = UnitFactory(client=linked_client)
+    AppointmentFactory(unit=linked_unit)
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.get(
+        "/api/appointments/",
+        {"responsible_cpf": unit_manager.cpf},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 0
