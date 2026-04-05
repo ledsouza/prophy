@@ -20,7 +20,10 @@ declare global {
     namespace Cypress {
         interface Chainable {
             /** Select element by the `data-cy` attribute. */
-            getByCy(value: string): Chainable<JQuery<HTMLElement>>;
+            getByCy(
+                value: string,
+                options?: Partial<Cypress.Loggable & Cypress.Timeoutable & Cypress.Withinable>,
+            ): Chainable<JQuery<HTMLElement>>;
 
             /**
              * Reset the backend database to a deterministic seed.
@@ -38,9 +41,15 @@ declare global {
     }
 }
 
-Cypress.Commands.add("getByCy", (value: string) => {
-    return cy.get(`[data-cy="${value}"]`);
-});
+Cypress.Commands.add(
+    "getByCy",
+    (
+        value: string,
+        options?: Partial<Cypress.Loggable & Cypress.Timeoutable & Cypress.Withinable>,
+    ) => {
+        return cy.get(`[data-cy="${value}"]`, options);
+    },
+);
 
 Cypress.Commands.add("setupDB", () => {
     return cy.task("db:seed");
