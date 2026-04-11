@@ -1,12 +1,17 @@
 <p align="center">
-   <img width="150" height="150" src="frontend/public/images/prophy-icon.png" alt="Prophy Logo">
+   <img
+      width="150"
+      height="150"
+      src="frontend/public/images/prophy-icon.png"
+      alt="Prophy Logo"
+   >
 </p>
 
-<h1 align="center">MedPhys Hub</h1>
+<h1 align="center">Prophy</h1>
 
 <div align="center">
 
-![Status Badge](https://img.shields.io/badge/Status-In%20Progress-yellow)
+![Status Badge](https://img.shields.io/badge/Status-Active%20Development-yellow)
 
 </div>
 
@@ -14,264 +19,357 @@
 
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
 ![Django REST Framework](https://img.shields.io/badge/Django_REST_Framework-092E20?style=for-the-badge&logo=django&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
-![Cypress](https://img.shields.io/badge/Cypress-17202C?style=for-the-badge&logo=cypress&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Redux](https://img.shields.io/badge/Redux-593D88?style=for-the-badge&logo=redux&logoColor=white)
+![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-593D88?style=for-the-badge&logo=redux&logoColor=white)
 ![RTK Query](https://img.shields.io/badge/RTK_Query-593D88?style=for-the-badge&logo=redux&logoColor=white)
 ![Zod](https://img.shields.io/badge/Zod-3068B7?style=for-the-badge&logo=zod&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
-![DigitalOcean](https://img.shields.io/badge/DigitalOcean-0080FF?style=for-the-badge&logo=digitalocean&logoColor=white)
+![Cypress](https://img.shields.io/badge/Cypress-17202C?style=for-the-badge&logo=cypress&logoColor=white)
 
 </div>
 
-## Description
+## Overview
 
-This application is a comprehensive web-based system designed for medical physicists at Prophy, providing a centralized platform to efficiently manage client data, schedule appointments, and organize institutional materials.
+Prophy is a web platform for managing medical physics service operations.
+It combines a Django REST API with a Next.js frontend to support internal
+staff, commercial users, client managers, unit managers, and medical
+physicists in their daily workflows.
 
-## Motivation
+The repository is organized as a decoupled full-stack application:
 
-Companies providing medical physics services often lack a standardized tool to manage and organize data and business processes. Each company relies on its own methods, making it challenging for regulatory entities like ANVISA and CNEN to conduct audits effectively. Additionally, medical physicists frequently resort to manual processes for managing data and workflows, which are error-prone and time-consuming.
+- `backend/`: Django + Django REST Framework API
+- `frontend/`: Next.js application with TypeScript
 
-The goal of this project is to develop software that standardizes auditing processes and automates business workflows related to medical physics services. By doing so, it aims to enhance the security of healthcare services and improve the efficiency of medical physicists, ensuring better compliance and streamlined operations.
+## Current Capabilities
 
-## Quick Start
+The codebase currently implements the following areas.
 
-### Set up a Python environment based on the `pyproject.toml` file:
+### Authentication and user management
 
-1. **Install Poetry**:
-   Poetry is a robust tool for dependency management and packaging in Python. To install it, follow the docs: [Poetry Installation](https://python-poetry.org/docs/#installation)
+- JWT login, refresh, verify, and logout flows
+- User management endpoints for administrative roles
+- Role-aware permissions and association management
+- Client/user and unit manager association endpoints
+- Support for Google OIDC authentication in the backend
 
-2. **Initialize the Project**:
-   Navigate to your project directory containing the `pyproject.toml` file and run:
+### Client operations and domain data
 
-    ```bash
-    poetry install
-    ```
+- Client, unit, and equipment management APIs
+- Approval workflow for changes through requisition operations:
+    - client operations
+    - unit operations
+    - equipment operations
+- Proposal management and proposal file downloads
+- Status endpoints for proposals and clients
 
-    This command will create a virtual environment and install the dependencies specified in the `pyproject.toml`.
+### Appointments, service orders, and reports
 
-### Set up the environment for the frontend:
+- Appointment listing, creation, updates, filtering, and access control
+- Service order creation and update flows
+- Service order PDF generation
+- Report creation, listing, retrieval, filtering, and download
+- Report soft delete and restore flows
+- Scheduled-task trigger endpoints for overdue appointments,
+  report notifications, and contract notifications
 
-1. **Install Node.js and npm**:
-    - Download and install the latest Long-Term Support (LTS) version of Node.js from the official website: [https://nodejs.org/](https://nodejs.org/).
-    - The Node.js installer includes npm (Node Package Manager), which you'll use to manage project dependencies.
+### Institutional materials
 
-2. **Install Project Dependencies**:
-    - Inside of the `frontend` folder, run:
+- Institutional material CRUD
+- Visibility and permission-based access rules
+- Material download endpoint with role-based access control
 
-        ```bash
-        npm install
-        ```
+### Frontend application
 
-        This command reads the `package.json` file and installs all specified dependencies into a `node_modules` folder.
+- Public landing page and authentication pages
+- Role-oriented dashboard structure for:
+    - Prophy Manager
+    - Commercial
+    - Internal Medical Physicist
+    - External Medical Physicist
+    - Client Manager
+    - Unit Manager
+- Redux Toolkit + RTK Query for state and API integration
+- Form validation with Zod and React Hook Form
+- Cypress setup for component and E2E testing
+- Client-side structured logging utilities
 
-### Set up the enviroment variables
+## Tech Stack
 
-#### Environment Variables for Backend
+### Backend
 
-To run this Django project, specific environment variables must be configured in a `.env` file located at the `backend` folder. Below is a detailed explanation of all the environment variables required:
+- Python 3.12
+- Django 5.2
+- Django REST Framework
+- Djoser
+- Simple JWT
+- django-filter
+- drf-yasg
+- pytest, pytest-django, pytest-cov, pytest-xdist, pytest-mock
+- factory-boy
 
-1. **DJANGO_SECRET_KEY**
+### Frontend
 
-- **Description**: The secret key used by Django for cryptographic signing.
-- **Purpose**: This key ensures the security of cookies, tokens, and other cryptographic processes.
-- **Example**: `DJANGO_SECRET_KEY='<random_generated_secret_key>`
-- **Note**: This should be a long, unique, and randomly generated string. Never share it publicly.
+- Next.js 16
+- React 19
+- TypeScript 5
+- Redux Toolkit and RTK Query
+- Tailwind CSS 4
+- Zod
+- Cypress
 
-2. **DEBUG**
+## Architecture Overview
 
-- **Description**: Controls whether the application is in debug mode.
-- **Purpose**: Debug mode is helpful during development but should always be set to `False` in production.
-- **Values**:
-    - `True`: Enables debug mode.
-    - `False`: Disables debug mode.
-- **Example**: `DEBUG=True`
+### Backend apps
 
-3. **AUTH_COOKIE_SECURE**
+- `users`: authentication, user profiles, role management,
+  and association endpoints
+- `clients_management`: clients, units, equipment, accessories,
+  appointments, proposals, service orders, and reports
+- `requisitions`: approval and workflow entities for changes to
+  clients, units, and equipment
+- `materials`: institutional materials and permission handling
 
-- **Description**: Determines whether the authentication cookie should only be sent over secure (HTTPS) connections.
-- **Purpose**: Enhances the security of cookies by restricting them to HTTPS.
-- **Values**:
-    - `True`: Only allow cookies over HTTPS.
-    - `False`: Allow cookies over both HTTP and HTTPS (useful for local development).
-- **Example**: `AUTH_COOKIE_SECURE=False`
+### Main API entry points
 
-4. **FRONTEND_URL**
+All API routes are served under `/api/`.
 
-- **Description**: The URL of the frontend application that interacts with this Django backend.
-- **Purpose**: Used for configuring CORS and other integrations with the frontend.
-- **Example**: `FRONTEND_URL='http://localhost:3000'`
+- Authentication and users:
+    - `/api/jwt/create/`
+    - `/api/jwt/refresh/`
+    - `/api/jwt/verify/`
+    - `/api/logout/`
+    - `/api/users/`
+    - `/api/users/manage/`
+- Client management:
+    - `/api/clients/`
+    - `/api/units/`
+    - `/api/equipments/`
+    - `/api/appointments/`
+    - `/api/proposals/`
+    - `/api/service-orders/`
+    - `/api/reports/`
+- Requisitions:
+    - `/api/clients/operations/`
+    - `/api/units/operations/`
+    - `/api/equipments/operations/`
+- Materials:
+    - `/api/materials/`
+- API documentation:
+    - `/api/docs/`
 
-5. **DJANGO_ALLOWED_HOSTS**
+## Repository Structure
 
-- **Description**: Specifies the host/domain names that this Django site can serve.
-- **Purpose**: Protects against HTTP Host header attacks.
-- **Values**: A comma-separated list of allowed hostnames.
-- **Example**: `DJANGO_ALLOWED_HOSTS='127.0.0.1,localhost'`
+```text
+.
+├── backend/
+│   ├── clients_management/
+│   ├── core/
+│   ├── materials/
+│   ├── requisitions/
+│   ├── users/
+│   └── tests/
+├── frontend/
+│   ├── app/
+│   ├── cypress/
+│   ├── public/
+│   └── styles/
+├── pyproject.toml
+└── README.md
+```
 
-#### Mailgun Credentials for Email Services
+## Local Development Setup
 
-The application uses Mailgun for sending emails. The following environment variables are required to authenticate sending emails:
+### 1. Install backend dependencies
 
-6. **MAILGUN_API_KEY**
-
-- **Description**: The API key provided by Mailgun for authenticating API requests.
-- **Purpose**: Allows the application to authenticate with Mailgun's API to send emails programmatically.
-- **Example**: `MAILGUN_API_KEY='key-1234567890abcdef1234567890abcdef'`
-
-7. **MAILGUN_DOMAIN**
-
-- **Description**: The domain name configured in your Mailgun account for sending emails.
-- **Purpose**: Specifies which domain should be used as the sender domain for outgoing emails.
-- **Example**: `MAILGUN_DOMAIN='mg.yourdomain.com'`
-
-8. **DEFAULT_FROM_EMAIL**
-
-- **Description**: The default email address that will appear as the sender for outgoing emails.
-- **Purpose**: Sets the "From" field in emails sent by the application, ensuring consistent sender identification.
-- **Example**: `DEFAULT_FROM_EMAIL='noreply@yourdomain.com'`
-
-#### Environment Variables for Frontend
-
-To run the frontend application, only one variable must be set in a `.env` file located at `frontend` folder.
-
-1. **NEXT_PUBLIC_HOST**
-
-- Description: The host URL for the backend application, used by the frontend to communicate with the backend API.
-- Purpose: Ensures the frontend correctly points to the backend application.
-- Example: `NEXT_PUBLIC_HOST=http://localhost:8000`
-
-#### Notes
-
-1. **Security**: Do not expose your `.env` file publicly or commit it to version control systems like Git.
-2. **Production Configuration**: Ensure that `DEBUG` is `False` and `AUTH_COOKIE_SECURE` is `True` in production.
-3. **Dynamic Configuration**: You can create separate `.env` files for different environments (e.g., `.env.production` and `.env.development`) and load them accordingly.
-
-Ensure all required variables are properly set before running the application to avoid errors or insecure configurations.
-
-### Set up database
-
-1. Inside of the `backend` folder, run the migratios:
+This project uses Poetry for Python dependency management.
 
 ```bash
-python manage.py makemigrations
+poetry install
 ```
+
+### 2. Install frontend dependencies
+
+Inside `frontend/`, install Node dependencies:
+
+```bash
+npm install
+```
+
+## Environment Variables
+
+The backend reads environment variables from `backend/.env`.
+The frontend typically uses `frontend/.env.local`.
+
+### Backend variables
+
+Required or commonly used variables in the current codebase:
+
+| Variable                           | Purpose                                         |
+| ---------------------------------- | ----------------------------------------------- |
+| `DJANGO_SECRET_KEY`                | Django secret key                               |
+| `DEBUG`                            | Enables development behavior when set to `True` |
+| `DJANGO_ALLOWED_HOSTS`             | Comma-separated allowed hosts                   |
+| `FRONTEND_URL`                     | Frontend URL used by backend integrations       |
+| `AUTH_COOKIE_SECURE`               | Controls secure auth cookie behavior            |
+| `OIDC_AUDIENCE`                    | Optional audience used by OIDC authentication   |
+| `MAILGUN_API_KEY`                  | Mailgun API key                                 |
+| `DOMAIN`                           | Mailgun sender domain                           |
+| `MAILGUN_API_URL`                  | Optional Mailgun API URL override               |
+| `DEFAULT_FROM_EMAIL`               | Default sender email                            |
+| `NOTIFICATION_OVERRIDE_RECIPIENTS` | Optional notification override recipients       |
+
+Optional production storage variables:
+
+| Variable                         | Purpose                     |
+| -------------------------------- | --------------------------- |
+| `GCS_BUCKET_NAME`                | Google Cloud Storage bucket |
+| `GCS_PROJECT_ID`                 | Google Cloud project ID     |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Service account file path   |
+
+Example `backend/.env`:
+
+```env
+DJANGO_SECRET_KEY=change-me
+DEBUG=True
+DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+FRONTEND_URL=http://localhost:3000
+AUTH_COOKIE_SECURE=False
+DEFAULT_FROM_EMAIL=noreply@example.com
+MAILGUN_API_KEY=your-mailgun-key
+DOMAIN=mg.example.com
+```
+
+### Frontend variables
+
+Current frontend environment variables referenced in the codebase:
+
+| Variable                   | Purpose                                    |
+| -------------------------- | ------------------------------------------ |
+| `NEXT_PUBLIC_HOST`         | Backend base host used by the frontend     |
+| `NEXT_PUBLIC_APP_VERSION`  | Optional version string for logs           |
+| `NEXT_PUBLIC_LOG_LEVEL`    | Client log level                           |
+| `NEXT_PUBLIC_LOG_ENDPOINT` | Optional endpoint for shipping client logs |
+
+Example `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_HOST=http://localhost:8000
+NEXT_PUBLIC_APP_VERSION=local
+NEXT_PUBLIC_LOG_LEVEL=info
+```
+
+## Database Setup
+
+The default local database in the current backend settings is SQLite.
+
+Run migrations from `backend/`:
 
 ```bash
 python manage.py migrate
 ```
 
-2. Run the script to populate the database with some example data:
+If you need to create new migrations during development:
+
+```bash
+python manage.py makemigrations
+```
+
+## Seed and Reset Flow
+
+The repository includes `backend/flush_and_populate_db.sh`, which:
+
+1. flushes the database
+2. cleans local media files
+3. runs the `populate` management command
+
+From `backend/`:
 
 ```bash
 ./flush_and_populate_db.sh
 ```
 
-This script clears the database and removes local media files before
-repopulating the data when running in DEBUG mode.
+## Running the Application
 
-### Run the application
+Run backend and frontend in separate terminals.
 
-1. In the `backend` folder, run:
+### Backend
+
+From `backend/`:
 
 ```bash
 python manage.py runserver
 ```
 
-2. In a different terminal and inside the `frontend` folder, run:
+### Frontend
+
+From `frontend/`:
 
 ```bash
-npm run build && npm run start
+npm run dev
 ```
 
-If the environment variables were correctly set up, the application should be running in your local machine!
+Default local URLs:
 
-## Detailed Features
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
+- Swagger docs: `http://localhost:8000/api/docs/`
 
-### User Authentication and Authorization
+## Testing
 
-- **Secure user registration and login system.**
-- **Role-based access control (RBAC) with the following user profiles:**
-    - **Prophy Manager:** Full access to all features.
-    - **Comercial**: Access to clients data (read-only), reports (read-only) and proposal of contracts (add/edit/read)
-    - **Internal Medical Physicist:** Access to most features, including client-specific data, institutional materials, and scheduling.
-    - **Client Manager:** Access to their own institution's data, equipment information, schedules (read-only), and invoices (read-only).
-    - **Unit Manager:** Assigned by a Client Manager to manage specific units, with access limited to their assigned units' data.
-    - **External Medical Physicist:** Limited access to schedules (read-only) and client data (read-only) associated with their assigned clients.
+### Backend tests
 
-### Client Management
+The backend uses pytest with Django settings configured in `pyproject.toml`.
 
-- **Client Registration Form:**
-    - Allows approved clients to submit their information and request services.
-- **Client Dashboard:**
-    - Clients can register and manage their institution's information:
-        - CNPJ (Brazilian company ID)
-        - Institution details
-        - Contact details
-        - Units and responsible managers
-        - Equipment inventory
-    - Updating data needs approval from someone in the Prophy Staff
-- **Client Data Management (Internal Staff):**
-    - Internal staff can view, edit, review, and manage client data:
-        - Client details
-        - Units
-        - Equipments
-        - Invoices (including download options and payment status updates)
-    - Advanced filtering options for efficient data retrieval.
+From the repository root:
 
-### Scheduling and Appointments
+```bash
+poetry run pytest
+```
 
-- **Appointment Scheduling:**
-    - Internal staff can schedule appointments, specifying:
-        - Date and time
-        - Client
-        - Equipment involved
-        - Description of the service that will be provided
-        - Appointment status (scheduled, completed)
-        - Reports
-    - Google Calendar integration for seamless scheduling and reminders.
-- **Appointment Views:**
-    - Clients and assigned external physicists can view their scheduled appointments.
-    - Notifications and reminders via email and Google Calendar integration.
+### Frontend tests
 
-### Institutional Materials
+From `frontend/`:
 
-- **Material Management:**
-    - Internal staff can upload and manage institutional materials:
-        - PDFs
-        - Video links
-        - Categorization by client profile and diagnostic modality
-    - Access control to ensure only authorized users can view and download materials.
+```bash
+npm run cypress:open
+```
 
-### Billing and Invoices
+or:
 
-- **Invoice Generation:**
-    - System generates invoices based on services provided.
-    - Internal staff can manage invoice details and payment status.
-- **Payment Tracking:**
-    - Clients can view their invoices, download copies, and upload payment confirmations.
+```bash
+npm run cypress:run
+```
 
-## Project Status and Future Development
+The Cypress configuration uses:
 
-The project is actively in development. There's 4 stages of development:
+- `baseUrl: http://localhost:3000`
+- `apiUrl: http://localhost:8000/api`
 
-- [x] User authentication and client registration.
-- [ ] Client data management for both internal staff and clients _(actively under development)_.
-- [ ] Appointment scheduling and Reports.
-- [ ] Institutional materials management and access control.
+It also provides a `db:seed` task that resets and repopulates the backend
+through the `django_cypress` integration.
 
-Future development will include:
+## API Documentation
 
-- **Enhanced reporting and analytics.**
-- **Mobile app for clients and staff.**
-- **Continuous improvement based on user feedback.**
+Swagger UI is available at:
 
-## 🤝 Contributing
+```text
+/api/docs/
+```
 
-If you'd like to contribute, please fork the repository and open a pull request to the `main` branch.
+This route is configured with `drf-yasg` in `backend/core/urls.py`.
+
+## Contributing
+
+If you want to contribute:
+
+1. fork the repository
+2. create a feature branch
+3. open a pull request targeting `main`
+
+Suggested commit message for this documentation update:
+
+```text
+docs(readme): update project documentation to match current codebase
+```
