@@ -671,7 +671,7 @@ const MaterialsSearchPage = () => {
                 <Modal
                     isOpen={isCreateOpen}
                     onClose={() => setIsCreateOpen(false)}
-                    className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
+                    className="w-full max-w-lg mx-0 sm:mx-6 p-6 sm:p-8"
                 >
                     <MaterialForm
                         onSuccess={() => setIsCreateOpen(false)}
@@ -707,7 +707,7 @@ const MaterialsSearchPage = () => {
                 <Modal
                     isOpen={isUpdateOpen}
                     onClose={() => setIsUpdateOpen(false)}
-                    className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
+                    className="w-full max-w-lg mx-0 sm:mx-6 p-6 sm:p-8"
                 >
                     {materialToEdit && (
                         <MaterialUpdateForm
@@ -730,7 +730,7 @@ const MaterialsSearchPage = () => {
                 <Modal
                     isOpen={isPermissionsOpen}
                     onClose={() => setIsPermissionsOpen(false)}
-                    className="w-full max-w-4xl mx-0 sm:mx-6 p-6 sm:p-8"
+                    className="w-full max-w-lg mx-0 sm:mx-6 p-6 sm:p-8"
                 >
                     {materialForPermissions && (
                         <div className="flex flex-col gap-4">
