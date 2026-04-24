@@ -16,6 +16,7 @@ services:
       retries: 10
 
   backend-e2e:
+    image: prophy-backend:e2e
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -53,6 +54,7 @@ services:
     command: ["/app/scripts/e2e-entrypoint.sh"]
 
   frontend-e2e:
+    image: prophy-frontend:prod
     build:
       context: .
       dockerfile: frontend/Dockerfile
@@ -78,6 +80,7 @@ services:
       retries: 12
 
   cypress:
+    image: prophy-cypress:e2e
     build:
       context: .
       dockerfile: frontend/Dockerfile.cypress
