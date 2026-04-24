@@ -17,7 +17,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        if not settings.DEBUG and not settings.ENABLE_CYPRESS_ROUTES:
+        if not settings.DEBUG and not settings.ALLOW_LOCAL_MEDIA_CLEANUP:
             raise CommandError(
                 "Local media cleanup is only allowed in DEBUG or E2E mode."
             )

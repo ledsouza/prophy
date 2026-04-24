@@ -210,7 +210,7 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        if settings.DEBUG:
+        if settings.ALLOW_LOCAL_MEDIA_CLEANUP:
             self.stdout.write(self.style.WARNING("Cleaning local media files..."))
             call_command("clean_local_media", force=True)
         self.stdout.write(
@@ -1598,6 +1598,9 @@ class Command(BaseCommand):
         default_equipments,
     ):
         """Creates JSON fixture files from the populated data."""
+        if not settings.EXPORT_CYPRESS_FIXTURES:
+            return
+
         fixture_data_map = [
             (
                 {
