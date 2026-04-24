@@ -20,5 +20,9 @@ INSTALLED_APPS = [
 ENABLE_CYPRESS_ROUTES = True
 OIDC_AUDIENCE = prod_settings.OIDC_AUDIENCE or getenv("OIDC_AUDIENCE", "e2e")
 
+EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+ANYMAIL = {}
+DEFAULT_FROM_EMAIL = "no-reply@localhost"
+
 
 BASE_DIR = prod_settings.BASE_DIR

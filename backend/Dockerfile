@@ -61,11 +61,18 @@ CMD ["sh", "-c", "cd /app/backend && python manage.py runserver 0.0.0.0:8000"]
 
 FROM python-base AS prod
 
+ARG OIDC_AUDIENCE=build-time
+
 COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
 
 RUN pip install "gunicorn==23.0.0"
 
 COPY backend /app
+
+RUN --mount=type=cache,target=/root/.cache \
+    DJANGO_SETTINGS_MODULE=core.settings.prod \
+    OIDC_AUDIENCE=$OIDC_AUDIENCE \
+    python /app/manage.py collectstatic --noinput
 
 RUN chmod +x /app/scripts/e2e-entrypoint.sh
 
