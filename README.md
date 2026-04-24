@@ -504,6 +504,10 @@ overrides:
 - `docker-compose.staging.yml` (staging for Cypress + pytest)
 - `docker-compose.prod.yml` (local production-like stack)
 
+Both staging and local prod-like stacks share the same Nginx config:
+
+- `infra/nginx/app.conf`
+
 ### Backend tests
 
 The backend uses pytest with Django settings configured in `pyproject.toml`.
