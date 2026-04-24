@@ -6,6 +6,7 @@ import type { EquipmentDTO, EquipmentOperationDTO } from "@/redux/features/equip
 import type { UnitDTO } from "@/redux/features/unitApiSlice";
 
 import type { ReviewDiffField } from "./ReviewEditDiff";
+import { resolveMediaPath } from "@/utils/url";
 
 type DiffFieldConfig<T> = {
     id: string;
@@ -49,7 +50,7 @@ const imagePreview = (src?: string, alt?: string): ReactNode => {
             <TypographyLabel>{alt}</TypographyLabel>
             <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
                 <Image
-                    src={process.env.NEXT_PUBLIC_HOST + src}
+                    src={resolveMediaPath(src)}
                     alt={alt ?? "Imagem do equipamento"}
                     width={480}
                     height={240}

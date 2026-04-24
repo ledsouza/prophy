@@ -1,10 +1,11 @@
 import { child } from "@/utils/logger";
+import { resolveApiBaseUrl } from "@/utils/url";
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Mutex } from "async-mutex";
 import { logout, setAuth } from "../features/authSlice";
 
-const baseUrl = `${process.env.NEXT_PUBLIC_HOST}/api/`;
+const baseUrl = resolveApiBaseUrl();
 
 const log = child({ feature: "apiSlice" });
 

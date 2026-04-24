@@ -45,6 +45,7 @@ import {
     getContractTypeDisplay,
     getStatusDisplay,
 } from "@/utils/format";
+import { resolveApiPath } from "@/utils/url";
 
 export function ProposalsSearchSection() {
     const searchParams = useSearchParams();
@@ -374,13 +375,17 @@ export function ProposalsSearchSection() {
                                         cell: (proposal: ProposalDTO) => (
                                             <div className="flex flex-col gap-1">
                                                 <a
-                                                    href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/pdf/`}
+                                                    href={resolveApiPath(
+                                                        `/api/proposals/${proposal.id}/download/pdf/`,
+                                                    )}
                                                     className="text-primary hover:underline text-xs"
                                                 >
                                                     PDF
                                                 </a>
                                                 <a
-                                                    href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/word/`}
+                                                    href={resolveApiPath(
+                                                        `/api/proposals/${proposal.id}/download/word/`,
+                                                    )}
                                                     className="text-primary hover:underline text-xs"
                                                 >
                                                     Word
@@ -461,13 +466,17 @@ export function ProposalsSearchSection() {
                                                 <div className="flex flex-col gap-2">
                                                     <div className="flex flex-col gap-1">
                                                         <a
-                                                            href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/pdf/`}
+                                                            href={resolveApiPath(
+                                                                `/api/proposals/${proposal.id}/download/pdf/`,
+                                                            )}
                                                             className="text-primary hover:underline text-xs"
                                                         >
                                                             PDF
                                                         </a>
                                                         <a
-                                                            href={`${process.env.NEXT_PUBLIC_HOST}/api/proposals/${proposal.id}/download/word/`}
+                                                            href={resolveApiPath(
+                                                                `/api/proposals/${proposal.id}/download/word/`,
+                                                            )}
                                                             className="text-primary hover:underline text-xs"
                                                         >
                                                             Word

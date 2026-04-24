@@ -33,6 +33,7 @@ import { useModality } from "@/hooks/use-modality";
 import useRequireAuth from "@/hooks/use-require-auth";
 import { displaySingularAccessoryType } from "@/utils/format";
 import { fetchPhoto } from "@/utils/media";
+import { resolveMediaPath } from "@/utils/url";
 
 import { Button, Modal, Spinner } from "@/components/common";
 import { Form, FormButtons, Input, Select, Textarea } from "@/components/forms";
@@ -204,7 +205,7 @@ const EditEquipmentForm = ({
     };
 
     const handleViewImage = (imageEndpoint: string, title: string) => {
-        setCurrentImageUrl(process.env.NEXT_PUBLIC_HOST + imageEndpoint);
+        setCurrentImageUrl(resolveMediaPath(imageEndpoint));
         setCurrentImageTitle(title);
         setImageModalOpen(true);
     };

@@ -18,6 +18,7 @@ import notFound from "@/assets/image-not-found.png";
 import { CaretDownIcon, XCircleIcon } from "@phosphor-icons/react";
 
 import { Tab, TabList } from "@/components/common";
+import { resolveMediaPath } from "@/utils/url";
 import { Typography } from "@/components/foundation";
 import { EquipmentReportsTab } from "@/components/client";
 
@@ -31,25 +32,11 @@ function buildImageSrc(pathOrUrl: string | null | undefined): string {
         return "";
     }
 
-    if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
-        return pathOrUrl;
-    }
-
-    const host = process.env.NEXT_PUBLIC_HOST ?? "";
-    if (!host) {
-        return pathOrUrl;
-    }
-
-    return `${host.replace(/\/$/, "")}/${pathOrUrl.replace(/^\//, "")}`;
+    return resolveMediaPath(pathOrUrl);
 }
 
 function shouldDisableOptimization(src: string): boolean {
-    const host = process.env.NEXT_PUBLIC_HOST;
-    if (!host) {
-        return false;
-    }
-
-    return src.startsWith(host);
+    return src.startsWith("http://") || src.startsWith("https://");
 }
 
 function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {

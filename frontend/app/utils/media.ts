@@ -1,6 +1,8 @@
+import { resolveApiPath } from "@/utils/url";
+
 export async function fetchPhoto(endpoint: string): Promise<File> {
     try {
-        const response = await fetch(process.env.NEXT_PUBLIC_HOST + endpoint);
+        const response = await fetch(resolveApiPath(endpoint));
         const blob = await response.blob();
 
         const filename = endpoint.split("/").pop();
@@ -13,7 +15,6 @@ export async function fetchPhoto(endpoint: string): Promise<File> {
             type: blob.type,
         });
     } catch (error) {
-        // Re-throw the error to allow the caller to handle it
         throw error;
     }
 }
