@@ -6,4 +6,5 @@ Use one of:
 - core.settings.dev
 - core.settings.test
 - core.settings.prod
+- core.settings.e2e
 """

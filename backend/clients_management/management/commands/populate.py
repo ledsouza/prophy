@@ -90,7 +90,12 @@ EQUIPMENT_LABEL_PHOTO_PATH = BASE_DIR / "static" / "serial-number.jpg"
 PROPOSAL_PDF_PATH = BASE_DIR / "static" / "placeholder.pdf"
 PROPOSAL_WORD_PATH = BASE_DIR / "static" / "Placeholder.docx"
 
-FIXTURE_PATH = os.path.join(project_root, "frontend", "cypress", "fixtures")
+CYPRESS_FIXTURE_PATH = os.getenv("CYPRESS_FIXTURE_PATH")
+FIXTURE_PATH = (
+    CYPRESS_FIXTURE_PATH
+    if CYPRESS_FIXTURE_PATH
+    else os.path.join(project_root, "frontend", "cypress", "fixtures")
+)
 
 
 def fake_phone_number():

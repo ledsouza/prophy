@@ -17,8 +17,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        if not settings.DEBUG:
-            raise CommandError("Local media cleanup is only allowed in DEBUG mode.")
+        if not settings.DEBUG and not settings.ENABLE_CYPRESS_ROUTES:
+            raise CommandError(
+                "Local media cleanup is only allowed in DEBUG or E2E mode."
+            )
 
         if not options["force"]:
             raise CommandError("Pass --force to delete local media files.")

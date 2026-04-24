@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 from os import getenv, path
 from pathlib import Path
+from urllib.parse import urlparse
 
 from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
@@ -20,11 +21,15 @@ DEBUG = getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
+FRONTEND_URL = getenv("FRONTEND_URL", "http://localhost:3000")
+
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
+    FRONTEND_URL,
 ]
 CORS_ALLOW_CREDENTIALS = True
+ENABLE_CYPRESS_ROUTES = False
 
 INSTALLED_APPS = [
     "core.apps.ProphyAdminConfig",
@@ -79,12 +84,49 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-DATABASES = {
-    "default": {
+def _get_default_sqlite_database() -> dict[str, str | Path]:
+    return {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
-}
+
+
+def _get_postgresql_database() -> dict[str, str | int]:
+    database_url = getenv("DATABASE_URL")
+
+    if database_url:
+        parsed = urlparse(database_url)
+        engine = "django.db.backends.postgresql"
+
+        return {
+            "ENGINE": engine,
+            "NAME": parsed.path.lstrip("/"),
+            "USER": parsed.username or "",
+            "PASSWORD": parsed.password or "",
+            "HOST": parsed.hostname or "",
+            "PORT": parsed.port or 5432,
+        }
+
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": getenv("POSTGRES_DB", "prophy"),
+        "USER": getenv("POSTGRES_USER", "prophy"),
+        "PASSWORD": getenv("POSTGRES_PASSWORD", "prophy"),
+        "HOST": getenv("POSTGRES_HOST", "postgres"),
+        "PORT": int(getenv("POSTGRES_PORT", "5432")),
+    }
+
+
+def _get_database_settings() -> dict[str, dict[str, str | int | Path]]:
+    database_engine = getenv("DATABASE_ENGINE", "sqlite").lower()
+
+    if database_engine == "postgres":
+        return {"default": _get_postgresql_database()}
+
+    return {"default": _get_default_sqlite_database()}
+
+
+DATABASES = _get_database_settings()
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -111,8 +153,6 @@ STATIC_ROOT = BASE_DIR.joinpath("static")
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR.joinpath("media")
-
-FRONTEND_URL = getenv("FRONTEND_URL", "http://localhost:3000")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),

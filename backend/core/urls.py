@@ -33,9 +33,10 @@ urlpatterns = [
 ]
 
 
-urlpatterns += [
-    path("", include("django_cypress.urls")),
-]
+if settings.ENABLE_CYPRESS_ROUTES:
+    urlpatterns += [
+        path("", include("django_cypress.urls")),
+    ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

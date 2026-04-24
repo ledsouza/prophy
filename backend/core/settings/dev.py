@@ -11,6 +11,8 @@ for _name in dir(base_settings):
 
 DEBUG = True
 
+ENABLE_CYPRESS_ROUTES = True
+
 
 INSTALLED_APPS = [
     *base_settings.INSTALLED_APPS,
