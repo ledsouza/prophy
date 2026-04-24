@@ -19,7 +19,7 @@ INSTALLED_APPS = [
 
 ENABLE_CYPRESS_ROUTES = True
 EXPORT_CYPRESS_FIXTURES = True
-OIDC_AUDIENCE = prod_settings.OIDC_AUDIENCE or getenv("OIDC_AUDIENCE", "e2e")
+OIDC_AUDIENCE = prod_settings.OIDC_AUDIENCE or getenv("OIDC_AUDIENCE", "staging")
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 ANYMAIL = {}

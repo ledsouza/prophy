@@ -6,9 +6,11 @@ services:
       - staging-postgres-data:/var/lib/postgresql/data
 
   backend:
-    image: prophy-backend:e2e
+    image: prophy-backend:staging
     build:
-      target: e2e
+      context: .
+      dockerfile: backend/Dockerfile
+      target: staging
     depends_on:
       postgres:
         condition: service_healthy
@@ -22,11 +24,12 @@ services:
       FRONTEND_URL: http://proxy:8080
       DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend,proxy"
       AUTH_COOKIE_SECURE: "False"
-      OIDC_AUDIENCE: e2e
+      OIDC_AUDIENCE: staging
       CYPRESS_FIXTURE_PATH: /e2e-fixtures
     ports:
       - "8000:8080"
     volumes:
+      - staging-media:/app/media
       - e2e-fixtures:/e2e-fixtures
     healthcheck:
       test:
@@ -39,7 +42,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
-    command: ["/app/scripts/e2e-entrypoint.sh"]
+    command: ["/app/scripts/staging-entrypoint.sh"]
 
   frontend:
     depends_on:
@@ -77,7 +80,11 @@ services:
       - e2e-fixtures:/app/frontend/cypress/fixtures
 
   backend-tests:
-    image: prophy-backend:e2e
+    image: prophy-backend:staging
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: staging
     environment:
       DJANGO_SETTINGS_MODULE: core.settings.test
     command: ["pytest"]

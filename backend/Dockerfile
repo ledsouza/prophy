@@ -74,7 +74,7 @@ RUN --mount=type=cache,target=/root/.cache \
     OIDC_AUDIENCE=$OIDC_AUDIENCE \
     python /app/manage.py collectstatic --noinput
 
-RUN chmod +x /app/scripts/e2e-entrypoint.sh
+RUN chmod +x /app/scripts/staging-entrypoint.sh
 
 RUN chown -R appuser:appuser /app
 
@@ -89,7 +89,7 @@ ENV DJANGO_SETTINGS_MODULE=core.settings.prod
 CMD ["sh", "-c", "gunicorn core.wsgi:application --bind 0.0.0.0:${PORT:-8080}"]
 
 
-FROM prod AS e2e
+FROM prod AS staging
 
 COPY --from=builder-base $POETRY_HOME $POETRY_HOME
 
@@ -102,4 +102,4 @@ RUN --mount=type=cache,target=/root/.cache \
 
 WORKDIR /app
 
-ENV DJANGO_SETTINGS_MODULE=core.settings.e2e
+ENV DJANGO_SETTINGS_MODULE=core.settings.staging
