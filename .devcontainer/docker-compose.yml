@@ -6,8 +6,8 @@ services:
       target: dev
     volumes:
       - ..:/app:cached
-      - backend-poetry-cache:/root/.cache/pypoetry
-      - backend-pip-cache:/root/.cache/pip
+      - backend-poetry-cache:/home/appuser/.cache/pypoetry
+      - backend-pip-cache:/home/appuser/.cache/pip
     working_dir: /app/backend
     ports:
       - "8000:8000"
@@ -39,6 +39,22 @@ services:
     depends_on:
       - backend
 
+  cypress:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile.cypress
+    volumes:
+      - ..:/app:cached
+      - frontend-cypress-cache:/root/.cache/Cypress
+    working_dir: /app/frontend
+    environment:
+      CYPRESS_BASE_URL: http://frontend:3000
+      CYPRESS_API_URL: http://backend:8000/api
+    depends_on:
+      - frontend
+      - backend
+    command: ["sleep", "infinity"]
+
 volumes:
   backend-poetry-cache:
   backend-pip-cache:
@@ -46,3 +62,4 @@ volumes:
   frontend-next-cache:
   frontend-turbo-cache:
   frontend-npm-cache:
+  frontend-cypress-cache:
