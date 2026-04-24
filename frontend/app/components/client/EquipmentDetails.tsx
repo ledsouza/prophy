@@ -36,7 +36,11 @@ function buildImageSrc(pathOrUrl: string | null | undefined): string {
 }
 
 function shouldDisableOptimization(src: string): boolean {
-    return src.startsWith("http://") || src.startsWith("https://");
+    if (src.startsWith("http://") || src.startsWith("https://")) {
+        return true;
+    }
+
+    return src.startsWith("/media/");
 }
 
 function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
