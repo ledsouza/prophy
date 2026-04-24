@@ -169,13 +169,14 @@ All API routes are served under `/api/`.
 │   ├── materials/
 │   ├── requisitions/
 │   ├── users/
-│   └── tests/
+│   ├── tests/
+│   ├── pyproject.toml
+│   └── poetry.lock
 ├── frontend/
 │   ├── app/
 │   ├── cypress/
 │   ├── public/
 │   └── styles/
-├── pyproject.toml
 └── README.md
 ```
 
@@ -186,6 +187,7 @@ All API routes are served under `/api/`.
 This project uses Poetry for Python dependency management.
 
 ```bash
+cd backend
 poetry install
 ```
 
@@ -195,6 +197,114 @@ Inside `frontend/`, install Node dependencies:
 
 ```bash
 npm install
+```
+
+## Dev Container Setup
+
+The repository includes a multi-service dev container aligned with the
+future Cloud Run split deployment model:
+
+- `backend` service built from `backend/Dockerfile` using the `dev` target
+- `frontend` service built from `frontend/Dockerfile` using the `dev` target
+
+The dev container keeps backend and frontend isolated while preserving a
+single full-stack workspace in VS Code.
+
+### Docker targets
+
+Each service Dockerfile defines two targets:
+
+- `dev`: used by the dev container for local development tooling
+- `prod`: used to build the production image for Cloud Run
+
+### How the dev container maps the repository
+
+The dev container uses a bind mount to map your host repository into the
+container filesystem. In `.devcontainer/docker-compose.yml`, the mount is:
+
+```yaml
+volumes:
+  - ..:/app:cached
+```
+
+Inside the container, `/app` is the repository root. Since this repo is a
+monorepo with `backend/` and `frontend/` folders, the paths inside the
+container become:
+
+```text
+/app/backend
+/app/frontend
+```
+
+The `dev` Dockerfile targets do not copy code because the bind mount provides
+it at runtime. This keeps local development fast and allows live reload.
+
+### Cloud Run requires self-contained images
+
+Cloud Run does not use devcontainer or docker-compose mounts. That means the
+container image must include the application code inside the image itself.
+The `prod` targets handle this by copying application files into the image:
+
+- Backend `prod` target copies `backend/` into `/app`
+- Frontend `prod` target copies the built Next.js output into `/app`
+
+When deploying to Cloud Run, always build the `prod` target.
+
+```bash
+docker build -f backend/Dockerfile --target prod -t prophy-backend .
+docker build -f frontend/Dockerfile --target prod -t prophy-frontend .
+```
+
+### Open in the dev container
+
+Use the VS Code Dev Containers extension and reopen the repository in the
+container. The setup forwards these ports:
+
+- `3000` for the Next.js frontend
+- `8000` for the Django backend
+
+After the container is created, install commands run automatically for both
+Poetry and npm.
+
+### Service startup behavior inside the dev container
+
+The dev container now auto-starts both development servers:
+
+- Django backend on `0.0.0.0:8000`
+- Next.js frontend on `0.0.0.0:3000`
+
+That means after opening the dev container and waiting for startup to
+finish, you can access:
+
+- `http://localhost:8000`
+- `http://localhost:3000`
+
+You can still open terminals and run ad-hoc commands in either service, but
+starting the application servers manually is no longer required for the
+default workflow.
+
+### Git commit signing inside the dev container
+
+VS Code Dev Containers forwards the local SSH agent into the container when
+an agent is available on the host. This repository's dev images include
+`openssh-client` so Git can use `ssh-keygen` for SSH-based commit signing.
+
+If you sign commits with 1Password SSH Agent, make sure your Git
+configuration is available inside the container and includes:
+
+```bash
+git config --global gpg.format ssh
+git config --global commit.gpgsign true
+git config --global user.signingkey "$(ssh-add -L | head -n 1)"
+```
+
+After rebuilding the dev container, you can verify the setup with:
+
+```bash
+which ssh-keygen
+ssh-add -L
+git config --get gpg.format
+git config --get user.signingkey
 ```
 
 ## Environment Variables
@@ -251,6 +361,7 @@ Current frontend environment variables referenced in the codebase:
 | `NEXT_PUBLIC_APP_VERSION`  | Optional version string for logs           |
 | `NEXT_PUBLIC_LOG_LEVEL`    | Client log level                           |
 | `NEXT_PUBLIC_LOG_ENDPOINT` | Optional endpoint for shipping client logs |
+| `CYPRESS_API_URL`          | Cypress backend API base URL               |
 
 Example `frontend/.env.local`:
 
@@ -260,9 +371,36 @@ NEXT_PUBLIC_APP_VERSION=local
 NEXT_PUBLIC_LOG_LEVEL=info
 ```
 
+For devcontainer runs, Cypress needs the backend reachable from inside the
+Docker network. In `.devcontainer/docker-compose.yml`, the frontend service
+sets:
+
+```env
+CYPRESS_API_URL=http://backend:8000/api
+```
+
+The backend service also allows the Docker hostname so the Cypress task can
+reach the `django_cypress` endpoints:
+
+```env
+DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,backend
+```
+
 ## Database Setup
 
 The default local database in the current backend settings is SQLite.
+
+The backend is now prepared for two database modes:
+
+- development default: SQLite
+- production target: PostgreSQL / Cloud SQL
+
+You can keep using SQLite locally. For PostgreSQL-based environments,
+configure one of the following:
+
+- `DATABASE_ENGINE=postgres` with `DATABASE_URL`
+- `DATABASE_ENGINE=postgres` with `POSTGRES_DB`, `POSTGRES_USER`,
+  `POSTGRES_PASSWORD`, `POSTGRES_HOST`, and `POSTGRES_PORT`
 
 Run migrations from `backend/`:
 
@@ -316,13 +454,47 @@ Default local URLs:
 - Backend: `http://localhost:8000`
 - Swagger docs: `http://localhost:8000/api/docs/`
 
+## Production Image Strategy
+
+The production deployment target is Cloud Run with separate frontend and
+backend services.
+
+### Backend production image
+
+Build the backend production image from the `prod` target:
+
+```bash
+docker build -f backend/Dockerfile --target prod -t prophy-backend:prod .
+```
+
+This image is intended to run the Django application in production.
+
+### Frontend production image
+
+Build the frontend production image from the `prod` target:
+
+```bash
+docker build -f frontend/Dockerfile --target prod -t prophy-frontend:prod .
+```
+
+This image is intended to run the Next.js application in production.
+
+### Cloud Run target architecture
+
+Recommended production topology:
+
+- one Cloud Run service for the Django backend
+- one Cloud Run service for the Next.js frontend
+- Cloud SQL for the production database
+- GCS for production object storage where applicable
+
 ## Testing
 
 ### Backend tests
 
 The backend uses pytest with Django settings configured in `pyproject.toml`.
 
-From the repository root:
+From `backend/`:
 
 ```bash
 poetry run pytest
@@ -346,6 +518,7 @@ The Cypress configuration uses:
 
 - `baseUrl: http://localhost:3000`
 - `apiUrl: http://localhost:8000/api`
+- `CYPRESS_API_URL` to override the backend API base URL
 
 It also provides a `db:seed` task that resets and repopulates the backend
 through the `django_cypress` integration.

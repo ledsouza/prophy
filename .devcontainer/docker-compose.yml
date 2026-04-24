@@ -1,0 +1,48 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      target: dev
+    volumes:
+      - ..:/app:cached
+      - backend-poetry-cache:/root/.cache/pypoetry
+      - backend-pip-cache:/root/.cache/pip
+    working_dir: /app/backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_ENGINE: sqlite
+      FRONTEND_URL: http://localhost:3000
+      DJANGO_ALLOWED_HOSTS: 127.0.0.1,localhost,backend
+      AUTH_COOKIE_SECURE: "False"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: frontend/Dockerfile
+      target: dev
+    volumes:
+      - ..:/app:cached
+      - frontend-node-modules:/app/frontend/node_modules
+      - frontend-next-cache:/app/frontend/.next
+      - frontend-turbo-cache:/app/frontend/.turbo
+      - frontend-npm-cache:/root/.npm
+    working_dir: /app/frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_HOST: http://localhost:8000
+      CYPRESS_API_URL: http://backend:8000/api
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "1000"
+    depends_on:
+      - backend
+
+volumes:
+  backend-poetry-cache:
+  backend-pip-cache:
+  frontend-node-modules:
+  frontend-next-cache:
+  frontend-turbo-cache:
+  frontend-npm-cache:

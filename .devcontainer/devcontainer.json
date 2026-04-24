@@ -1,0 +1,43 @@
+{
+    "name": "prophy-fullstack",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "backend",
+    "workspaceFolder": "/app",
+    "shutdownAction": "stopCompose",
+    "forwardPorts": [3000, 8000],
+    "runServices": ["backend", "frontend"],
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {}
+    },
+    "portsAttributes": {
+        "3000": {
+            "label": "frontend"
+        },
+        "8000": {
+            "label": "backend"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "saoudrizwan.claude-dev",
+                "charliermarsh.ruff",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "bradlc.vscode-tailwindcss",
+                "ms-azuretools.vscode-docker",
+                "cypress-io.cypress-snippets"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.envFile": "/app/backend/.env",
+                "python.testing.pytestEnabled": true,
+                "python.testing.pytestArgs": ["/app/backend"],
+                "python.analysis.extraPaths": ["/app/backend"],
+                "eslint.workingDirectories": ["/app/frontend"]
+            }
+        }
+    }
+}

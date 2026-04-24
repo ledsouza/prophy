@@ -1,0 +1,108 @@
+services:
+  postgres:
+    image: postgres:16.6-alpine
+    environment:
+      POSTGRES_DB: prophy
+      POSTGRES_USER: prophy
+      POSTGRES_PASSWORD: prophy
+    ports:
+      - "5432:5432"
+    volumes:
+      - e2e-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prophy -d prophy"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend-e2e:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: e2e
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_ENGINE: postgres
+      POSTGRES_DB: prophy
+      POSTGRES_USER: prophy
+      POSTGRES_PASSWORD: prophy
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      FRONTEND_URL: http://proxy:8080
+      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-e2e,proxy"
+      AUTH_COOKIE_SECURE: "False"
+      OIDC_AUDIENCE: e2e
+      CYPRESS_FIXTURE_PATH: /e2e-fixtures
+    ports:
+      - "8000:8080"
+    volumes:
+      - e2e-fixtures:/e2e-fixtures
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/docs/').read()",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    user: "0:0"
+    command: ["/app/scripts/e2e-entrypoint.sh"]
+
+  frontend-e2e:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: prod
+    depends_on:
+      - backend-e2e
+    environment:
+      NEXT_PUBLIC_HOST: http://proxy:8080
+      HOSTNAME: 0.0.0.0
+      PORT: 8080
+    ports:
+      - "3000:8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:8080',res=>process.exit(res.statusCode?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  cypress:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.cypress
+    depends_on:
+      frontend-e2e:
+        condition: service_healthy
+      backend-e2e:
+        condition: service_healthy
+    environment:
+      CYPRESS_BASE_URL: http://proxy:8080
+      CYPRESS_API_URL: http://backend-e2e:8080/api
+    volumes:
+      - e2e-fixtures:/app/cypress/fixtures
+
+  proxy:
+    image: nginx:1.27-alpine
+    depends_on:
+      - frontend-e2e
+      - backend-e2e
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infra/nginx/e2e.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  e2e-postgres-data:
+  e2e-fixtures:
