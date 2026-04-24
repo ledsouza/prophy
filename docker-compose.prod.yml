@@ -1,46 +1,31 @@
 services:
-  postgres-prod-local:
-    image: postgres:16.6-alpine
-    environment:
-      POSTGRES_DB: prophy
-      POSTGRES_USER: prophy
-      POSTGRES_PASSWORD: prophy
+  postgres:
     ports:
       - "5433:5432"
     volumes:
-      - prod-local-postgres-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U prophy -d prophy"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      - prod-postgres-data:/var/lib/postgresql/data
 
-  backend-prod-local:
-    image: prophy-backend:prod
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-      target: prod
+  backend:
     depends_on:
-      postgres-prod-local:
+      postgres:
         condition: service_healthy
-      populate-prod-local:
+      seed:
         condition: service_completed_successfully
     environment:
       DATABASE_ENGINE: postgres
       POSTGRES_DB: prophy
       POSTGRES_USER: prophy
       POSTGRES_PASSWORD: prophy
-      POSTGRES_HOST: postgres-prod-local
+      POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      FRONTEND_URL: http://proxy-prod-local:8080
-      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend-prod-local,proxy-prod-local"
+      FRONTEND_URL: http://proxy:8080
+      DJANGO_ALLOWED_HOSTS: "127.0.0.1,localhost,backend,proxy"
       AUTH_COOKIE_SECURE: "False"
       DJANGO_SETTINGS_MODULE: core.settings.prod_local
     ports:
       - "8001:8080"
     volumes:
-      - prod-local-media:/app/media
+      - prod-media:/app/media
     healthcheck:
       test:
         [
@@ -53,16 +38,11 @@ services:
       timeout: 5s
       retries: 12
 
-  frontend-prod-local:
-    image: prophy-frontend:prod
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-      target: prod
+  frontend:
     depends_on:
-      - backend-prod-local
+      - backend
     environment:
-      NEXT_PUBLIC_HOST: http://proxy-prod-local:8080
+      NEXT_PUBLIC_HOST: http://proxy:8080
       HOSTNAME: 0.0.0.0
       PORT: 8080
     ports:
@@ -79,39 +59,35 @@ services:
       timeout: 5s
       retries: 12
 
-  proxy-prod-local:
-    image: nginx:1.27-alpine
+  proxy:
     depends_on:
-      - frontend-prod-local
-      - backend-prod-local
+      - frontend
+      - backend
     ports:
       - "8081:8080"
     volumes:
-      - prod-local-media:/var/www/media:ro
+      - prod-media:/var/www/media:ro
       - ./infra/nginx/prod-local.conf:/etc/nginx/conf.d/default.conf:ro
 
-  populate-prod-local:
+  seed:
     image: prophy-backend:prod
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-      target: prod
     depends_on:
-      postgres-prod-local:
+      postgres:
         condition: service_healthy
     environment:
       DATABASE_ENGINE: postgres
       POSTGRES_DB: prophy
       POSTGRES_USER: prophy
       POSTGRES_PASSWORD: prophy
-      POSTGRES_HOST: postgres-prod-local
+      POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       DJANGO_SETTINGS_MODULE: core.settings.prod_local
     volumes:
       - ./backend:/app
-      - prod-local-media:/app/media
-    command: ["sh", "-c", "python /app/manage.py migrate && /app/flush_and_populate_db.sh"]
+      - prod-media:/app/media
+    command:
+      ["sh", "-c", "python /app/manage.py migrate && /app/flush_and_populate_db.sh"]
 
 volumes:
-  prod-local-postgres-data:
-  prod-local-media:
+  prod-postgres-data:
+  prod-media:

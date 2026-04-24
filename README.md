@@ -201,6 +201,11 @@ npm install
 
 ## Dev Container Setup
 
+The dev container now reuses the shared Docker Compose stack:
+
+- `docker-compose.yml`
+- `docker-compose.dev.yml`
+
 The repository includes a multi-service dev container aligned with the
 future Cloud Run split deployment model:
 
@@ -220,7 +225,7 @@ Each service Dockerfile defines two targets:
 ### How the dev container maps the repository
 
 The dev container uses a bind mount to map your host repository into the
-container filesystem. In `.devcontainer/docker-compose.yml`, the mount is:
+container filesystem. In `docker-compose.dev.yml`, the mount is:
 
 ```yaml
 volumes:
@@ -372,8 +377,7 @@ NEXT_PUBLIC_LOG_LEVEL=info
 ```
 
 For devcontainer runs, Cypress needs the backend reachable from inside the
-Docker network. In `.devcontainer/docker-compose.yml`, the frontend service
-sets:
+Docker network. In `docker-compose.dev.yml`, the frontend service sets:
 
 ```env
 CYPRESS_API_URL=http://backend:8000/api
@@ -489,6 +493,16 @@ Recommended production topology:
 - GCS for production object storage where applicable
 
 ## Testing
+
+### Docker environments
+
+The Docker Compose stack is split into a base file plus per-environment
+overrides:
+
+- `docker-compose.yml` (shared base)
+- `docker-compose.dev.yml` (devcontainer/local development)
+- `docker-compose.staging.yml` (staging for Cypress + pytest)
+- `docker-compose.prod.yml` (local production-like stack)
 
 ### Backend tests
 

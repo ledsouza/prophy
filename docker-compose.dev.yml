@@ -1,11 +1,9 @@
 services:
   backend:
     build:
-      context: ..
-      dockerfile: backend/Dockerfile
       target: dev
     volumes:
-      - ..:/app:cached
+      - .:/app:cached
       - backend-poetry-cache:/home/appuser/.cache/pypoetry
       - backend-pip-cache:/home/appuser/.cache/pip
     working_dir: /app/backend
@@ -19,11 +17,9 @@ services:
 
   frontend:
     build:
-      context: ..
-      dockerfile: frontend/Dockerfile
       target: dev
     volumes:
-      - ..:/app:cached
+      - .:/app:cached
       - frontend-node-modules:/app/frontend/node_modules
       - frontend-next-cache:/app/frontend/.next
       - frontend-turbo-cache:/app/frontend/.turbo
@@ -40,13 +36,9 @@ services:
       - backend
 
   cypress:
-    build:
-      context: ..
-      dockerfile: frontend/Dockerfile.cypress
     volumes:
-      - ..:/app:cached
+      - .:/app:cached
       - frontend-cypress-cache:/root/.cache/Cypress
-    working_dir: /app/frontend
     environment:
       CYPRESS_BASE_URL: http://frontend:3000
       CYPRESS_API_URL: http://backend:8000/api
@@ -54,6 +46,12 @@ services:
       - frontend
       - backend
     command: ["sleep", "infinity"]
+
+  postgres:
+    profiles: ["disabled"]
+
+  proxy:
+    profiles: ["disabled"]
 
 volumes:
   backend-poetry-cache:

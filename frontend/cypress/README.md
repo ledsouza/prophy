@@ -107,7 +107,7 @@ Headless:
 npm run cypress:run
 ```
 
-## Docker E2E (prod-like)
+## Docker E2E (staging)
 
 This uses a production-like stack for the app and a dedicated Cypress runner
 container. It includes Postgres, runs migrations on startup, and seeds the
