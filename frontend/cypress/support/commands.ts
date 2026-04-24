@@ -56,7 +56,17 @@ Cypress.Commands.add("setupDB", () => {
 });
 
 Cypress.Commands.add("loginAs", (user: UserFixtureKey) => {
-    const apiUrl: string = Cypress.env("apiUrl");
+    const resolveBaseUrl = (): string => {
+        const baseUrl = Cypress.config("baseUrl") as string | undefined;
+
+        return baseUrl || "http://localhost:3000";
+    };
+
+    const baseUrl = resolveBaseUrl();
+    const loginUrl = new URL("/api/jwt/create/", baseUrl).toString();
+    const verifyUrl = new URL("/api/jwt/verify/", baseUrl).toString();
+
+    cy.visit("/");
 
     cy.fixture("users.json").then((users: UsersFixture) => {
         const creds = users[user];
@@ -66,7 +76,7 @@ Cypress.Commands.add("loginAs", (user: UserFixtureKey) => {
 
         cy.request({
             method: "POST",
-            url: `${apiUrl}/jwt/create/`,
+            url: loginUrl,
             body: {
                 cpf: creds.cpf,
                 password: creds.password,
@@ -80,6 +90,13 @@ Cypress.Commands.add("loginAs", (user: UserFixtureKey) => {
 
             cy.setCookie("access", access);
             cy.setCookie("refresh", refresh);
+            cy.request({
+                method: "POST",
+                url: verifyUrl,
+                failOnStatusCode: true,
+            });
+            cy.getCookie("access").should("exist");
+            cy.getCookie("refresh").should("exist");
         });
     });
 

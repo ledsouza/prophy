@@ -107,6 +107,18 @@ Headless:
 npm run cypress:run
 ```
 
+## Docker E2E (prod-like)
+
+This uses a production-like stack for the app and a dedicated Cypress runner
+container. It includes Postgres, runs migrations on startup, and seeds the
+database via the Cypress task.
+
+From `frontend/`:
+
+```bash
+npm run e2e:docker
+```
+
 CI-style (assumes Next already built):
 
 ```bash

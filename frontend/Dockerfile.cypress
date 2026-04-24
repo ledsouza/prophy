@@ -1,0 +1,15 @@
+FROM cypress/included:15.9.0
+
+WORKDIR /app
+
+COPY frontend/package.json frontend/package-lock.json ./
+
+RUN npm ci
+
+COPY frontend/cypress ./cypress
+COPY frontend/cypress.config.ts ./cypress.config.ts
+COPY frontend/tsconfig.json ./tsconfig.json
+
+ENV CYPRESS_CACHE_FOLDER=/root/.cache/Cypress
+
+CMD ["npx", "cypress", "run"]

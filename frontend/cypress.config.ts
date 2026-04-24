@@ -7,13 +7,19 @@ export default defineConfig({
             bundler: "webpack",
         },
     },
+    defaultCommandTimeout: 12000,
+    pageLoadTimeout: 120000,
+    responseTimeout: 30000,
 
     e2e: {
-        baseUrl: "http://localhost:3000",
+        baseUrl: process.env.CYPRESS_BASE_URL || "http://localhost:3000",
         setupNodeEvents(on, config) {
             on("task", {
                 "db:seed": async () => {
-                    const baseUrl = config.env.apiUrl || "http://localhost:8000/api";
+                    const baseUrl =
+                        process.env.CYPRESS_API_URL
+                        || config.env.apiUrl
+                        || "http://localhost:8000/api";
                     const cypressManageUrl = `${baseUrl.replace(/\/$/, "")}/../__cypress__/manage/`;
                     const csrfUrl = `${baseUrl.replace(/\/$/, "")}/../__cypress__/csrftoken/`;
 
@@ -78,6 +84,6 @@ export default defineConfig({
     },
 
     env: {
-        apiUrl: "http://localhost:8000/api",
+        apiUrl: process.env.CYPRESS_API_URL || "http://localhost:8000/api",
     },
 });

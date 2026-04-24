@@ -14,6 +14,7 @@ const nextConfig = {
     env: {
         NEXT_PUBLIC_APP_VERSION: pkg.version,
     },
+    output: "standalone",
     serverExternalPackages: ["pino", "pino-pretty"],
     outputFileTracingRoot: path.join(__dirname, ".."),
     trailingSlash: true,
@@ -32,6 +33,18 @@ const nextConfig = {
                 protocol: "http",
                 hostname: "localhost",
                 port: "8000",
+                pathname: "/**",
+            },
+            {
+                protocol: "http",
+                hostname: "backend-e2e",
+                port: "8080",
+                pathname: "/**",
+            },
+            {
+                protocol: "http",
+                hostname: "proxy",
+                port: "8080",
                 pathname: "/**",
             },
         ],
