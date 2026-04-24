@@ -1,6 +1,6 @@
 FROM cypress/included:15.9.0
 
-WORKDIR /app
+WORKDIR /app/frontend
 
 COPY frontend/package.json frontend/package-lock.json ./
 

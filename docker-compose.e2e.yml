@@ -50,7 +50,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
-    user: "0:0"
     command: ["/app/scripts/e2e-entrypoint.sh"]
 
   frontend-e2e:
@@ -83,6 +82,8 @@ services:
       context: .
       dockerfile: frontend/Dockerfile.cypress
     depends_on:
+      proxy:
+        condition: service_started
       frontend-e2e:
         condition: service_healthy
       backend-e2e:
@@ -91,7 +92,7 @@ services:
       CYPRESS_BASE_URL: http://proxy:8080
       CYPRESS_API_URL: http://backend-e2e:8080/api
     volumes:
-      - e2e-fixtures:/app/cypress/fixtures
+      - e2e-fixtures:/app/frontend/cypress/fixtures
 
   proxy:
     image: nginx:1.27-alpine
