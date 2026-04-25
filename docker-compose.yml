@@ -13,13 +13,6 @@ services:
       dockerfile: frontend/Dockerfile
       target: prod
 
-  cypress:
-    image: prophy-cypress:e2e
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile.cypress
-    working_dir: /app/frontend
-
   proxy:
     image: nginx:1.27-alpine
 

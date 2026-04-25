@@ -38,6 +38,11 @@ services:
       - backend
 
   cypress:
+    image: prophy-cypress:e2e
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.cypress
+    working_dir: /app/frontend
     volumes:
       - .:/app:cached
       - frontend-cypress-cache:/root/.cache/Cypress

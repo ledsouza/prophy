@@ -4,6 +4,8 @@ WORKDIR /app/frontend
 
 COPY frontend/package.json frontend/package-lock.json ./
 
+ENV CYPRESS_INSTALL_BINARY=0
+
 RUN npm ci
 
 
