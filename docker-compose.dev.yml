@@ -54,12 +54,6 @@ services:
       - backend
     command: ["sleep", "infinity"]
 
-  postgres:
-    profiles: ["disabled"]
-
-  proxy:
-    profiles: ["disabled"]
-
 volumes:
   backend-poetry-cache:
   backend-pip-cache:

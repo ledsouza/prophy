@@ -215,6 +215,43 @@ future Cloud Run split deployment model:
 The dev container keeps backend and frontend isolated while preserving a
 single full-stack workspace in VS Code.
 
+### Dev compose modes
+
+Local development uses a base compose file plus optional overrides.
+This keeps the default workflow fast while still allowing parity checks.
+
+Base files:
+
+- `docker-compose.yml` (shared base)
+- `docker-compose.dev.yml` (default dev)
+
+Optional dev overrides:
+
+- `docker-compose.dev.db.yml` (Postgres parity)
+- `docker-compose.dev.proxy.yml` (Nginx proxy parity)
+
+Recommended team modes:
+
+- fast dev: backend + frontend with SQLite
+- dev + db: Postgres parity for backend work
+- dev + db + proxy: full routing/cookie parity checks
+
+Example commands:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml \
+  -f docker-compose.dev.db.yml up
+```
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml \
+  -f docker-compose.dev.db.yml -f docker-compose.dev.proxy.yml up
+```
+
 ### Docker targets
 
 Each service Dockerfile defines two targets:
@@ -500,13 +537,19 @@ The Docker Compose stack is split into a base file plus per-environment
 overrides:
 
 - `docker-compose.yml` (shared base)
-- `docker-compose.dev.yml` (devcontainer/local development)
+- `docker-compose.dev.yml` (default dev)
+- `docker-compose.dev.db.yml` (dev Postgres parity)
+- `docker-compose.dev.proxy.yml` (dev Nginx parity)
 - `docker-compose.staging.yml` (staging for Cypress + pytest)
 - `docker-compose.prod.yml` (local production-like stack)
 
 Both staging and local prod-like stacks share the same Nginx config:
 
 - `infra/nginx/app.conf`
+
+Dev proxy mode uses a separate config for local ports:
+
+- `infra/nginx/app.dev.conf`
 
 ### Backend tests
 
