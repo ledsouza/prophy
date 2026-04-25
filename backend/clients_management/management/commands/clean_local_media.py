@@ -19,7 +19,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if not settings.DEBUG and not settings.ALLOW_LOCAL_MEDIA_CLEANUP:
             raise CommandError(
-                "Local media cleanup is only allowed in DEBUG or E2E mode."
+                "Local media cleanup is only allowed in DEBUG or staging mode."
             )
 
         if not options["force"]:
