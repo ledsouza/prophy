@@ -45,6 +45,7 @@ services:
     command: ["/app/scripts/staging-entrypoint.sh"]
 
   frontend:
+    image: prophy-frontend:staging
     depends_on:
       - backend
     environment:

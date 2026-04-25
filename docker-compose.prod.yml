@@ -6,6 +6,7 @@ services:
       - prod-postgres-data:/var/lib/postgresql/data
 
   backend:
+    image: prophy-backend:prod
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,6 +40,7 @@ services:
       retries: 12
 
   frontend:
+    image: prophy-frontend:prod
     depends_on:
       - backend
     environment:

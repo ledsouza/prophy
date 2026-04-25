@@ -1,5 +1,6 @@
 services:
   backend:
+    image: prophy-backend:dev
     build:
       target: dev
     volumes:
@@ -16,6 +17,7 @@ services:
       AUTH_COOKIE_SECURE: "False"
 
   frontend:
+    image: prophy-frontend:dev
     build:
       target: dev
     volumes:
