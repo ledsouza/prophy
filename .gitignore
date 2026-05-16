@@ -285,4 +285,5 @@ frontend/cypress/screenshots/
 
 # Local IDE settings
 .vscode/
-.clinerules/
+.claude/
+CLAUDE.md
