@@ -1,6 +1,8 @@
 .DS_Store
 .env.local
 .env.*
+**/.env.local
+**/.env.*.local
 .git
 .gitignore
 .next
