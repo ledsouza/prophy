@@ -287,3 +287,4 @@ frontend/cypress/screenshots/
 .vscode/
 .claude/
 CLAUDE.md
+.mcp.json
