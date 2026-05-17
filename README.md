@@ -180,174 +180,78 @@ All API routes are served under `/api/`.
 └── README.md
 ```
 
+## Prerequisites
+
+- Python 3.12+
+- [Poetry](https://python-poetry.org/) for Python dependency management
+- Node.js 20+ and npm
+
 ## Local Development Setup
 
-### 1. Install backend dependencies
+### 1. Configure environment variables
 
-This project uses Poetry for Python dependency management.
+Copy the examples below into the appropriate files.
 
-```bash
-cd backend
-poetry install
+`backend/.env`:
+
+```env
+DJANGO_SECRET_KEY=change-me
+DEBUG=True
+DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+FRONTEND_URL=http://localhost:3000
+AUTH_COOKIE_SECURE=False
+DEFAULT_FROM_EMAIL=noreply@example.com
 ```
 
-### 2. Install frontend dependencies
+`frontend/.env.local`:
 
-Inside `frontend/`, install Node dependencies:
+```env
+NEXT_PUBLIC_HOST=http://localhost:8000
+NEXT_PUBLIC_APP_VERSION=local
+NEXT_PUBLIC_LOG_LEVEL=info
+```
+
+### 2. Install dependencies
 
 ```bash
+# Backend (from backend/)
+poetry install
+
+# Frontend (from frontend/)
 npm install
 ```
 
-## Dev Container Setup
-
-The dev container now reuses the shared Docker Compose stack:
-
-- `docker-compose.yml`
-- `docker-compose.dev.yml`
-
-The repository includes a multi-service dev container aligned with the
-future Cloud Run split deployment model:
-
-- `backend` service built from `backend/Dockerfile` using the `dev` target
-- `frontend` service built from `frontend/Dockerfile` using the `dev` target
-
-The dev container keeps backend and frontend isolated while preserving a
-single full-stack workspace in VS Code.
-
-### Dev compose modes
-
-Local development uses a base compose file plus optional overrides.
-This keeps the default workflow fast while still allowing parity checks.
-
-Base files:
-
-- `docker-compose.yml` (shared base)
-- `docker-compose.dev.yml` (default dev)
-
-Optional dev overrides:
-
-- `docker-compose.dev.db.yml` (Postgres parity)
-- `docker-compose.dev.proxy.yml` (Nginx proxy parity)
-
-Recommended team modes:
-
-- fast dev: backend + frontend with SQLite
-- dev + db: Postgres parity for backend work
-- dev + db + proxy: full routing/cookie parity checks
-
-Example commands:
+### 3. Set up the database
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# From backend/
+python manage.py migrate
 ```
+
+To seed the database with sample data:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml \
-  -f docker-compose.dev.db.yml up
+# From backend/
+./flush_and_populate_db.sh
 ```
+
+### 4. Run the development servers
+
+Open two terminals.
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml \
-  -f docker-compose.dev.db.yml -f docker-compose.dev.proxy.yml up
+# Terminal 1 — backend (from backend/)
+python manage.py runserver
+
+# Terminal 2 — frontend (from frontend/)
+npm run dev
 ```
 
-### Docker targets
+Default local URLs:
 
-Each service Dockerfile defines two targets:
-
-- `dev`: used by the dev container for local development tooling
-- `prod`: used to build the production image for Cloud Run
-
-### How the dev container maps the repository
-
-The dev container uses a bind mount to map your host repository into the
-container filesystem. In `docker-compose.dev.yml`, the mount is:
-
-```yaml
-volumes:
-  - ..:/app:cached
-```
-
-Inside the container, `/app` is the repository root. Since this repo is a
-monorepo with `backend/` and `frontend/` folders, the paths inside the
-container become:
-
-```text
-/app/backend
-/app/frontend
-```
-
-The `dev` Dockerfile targets do not copy code because the bind mount provides
-it at runtime. This keeps local development fast and allows live reload.
-
-### Cloud Run requires self-contained images
-
-Cloud Run does not use devcontainer or docker-compose mounts. That means the
-container image must include the application code inside the image itself.
-The `prod` targets handle this by copying application files into the image:
-
-- Backend `prod` target copies `backend/` into `/app`
-- Frontend `prod` target copies the built Next.js output into `/app`
-
-When deploying to Cloud Run, always build the `prod` target.
-
-```bash
-docker build -f backend/Dockerfile --target prod -t prophy-backend .
-docker build -f frontend/Dockerfile --target prod -t prophy-frontend .
-```
-
-### Open in the dev container
-
-Use the VS Code Dev Containers extension and reopen the repository in the
-container. The setup forwards these ports:
-
-- `3000` for the Next.js frontend
-- `8000` for the Django backend
-
-After the container is created, install commands run automatically for both
-Poetry and npm.
-
-### Service startup behavior inside the dev container
-
-The dev container now auto-starts both development servers:
-
-- Django backend on `0.0.0.0:8000`
-- Next.js frontend on `0.0.0.0:3000`
-
-That means after opening the dev container and waiting for startup to
-finish, you can access:
-
-- `http://localhost:8000`
-- `http://localhost:3000`
-
-You can still open terminals and run ad-hoc commands in either service, but
-starting the application servers manually is no longer required for the
-default workflow.
-
-### Git commit signing inside the dev container
-
-VS Code Dev Containers forwards the local SSH agent into the container when
-an agent is available on the host. This repository's dev images include
-`openssh-client` so Git can use `ssh-keygen` for SSH-based commit signing.
-
-If you sign commits with 1Password SSH Agent, make sure your Git
-configuration is available inside the container and includes:
-
-```bash
-git config --global gpg.format ssh
-git config --global commit.gpgsign true
-git config --global user.signingkey "$(ssh-add -L | head -n 1)"
-```
-
-After rebuilding the dev container, you can verify the setup with:
-
-```bash
-which ssh-keygen
-ssh-add -L
-git config --get gpg.format
-git config --get user.signingkey
-```
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
+- Swagger docs: `http://localhost:8000/api/docs/`
 
 ## Environment Variables
 
@@ -413,20 +317,6 @@ NEXT_PUBLIC_APP_VERSION=local
 NEXT_PUBLIC_LOG_LEVEL=info
 ```
 
-For devcontainer runs, Cypress needs the backend reachable from inside the
-Docker network. In `docker-compose.dev.yml`, the frontend service sets:
-
-```env
-CYPRESS_API_URL=http://backend:8000/api
-```
-
-The backend service also allows the Docker hostname so the Cypress task can
-reach the `django_cypress` endpoints:
-
-```env
-DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost,backend
-```
-
 ## Database Setup
 
 The default local database in the current backend settings is SQLite.
@@ -469,31 +359,41 @@ From `backend/`:
 ./flush_and_populate_db.sh
 ```
 
-## Running the Application
+## Staging Environment
 
-Run backend and frontend in separate terminals.
-
-### Backend
-
-From `backend/`:
+The staging stack builds fully self-contained images and wires up Postgres,
+Nginx, and Cypress. Use it to validate E2E flows before shipping — not for
+active feature development.
 
 ```bash
-python manage.py runserver
+# From repo root
+docker compose -f docker-compose.yml -f docker-compose.staging.yml up --build
 ```
 
-### Frontend
-
-From `frontend/`:
+Or via the frontend npm script:
 
 ```bash
-npm run dev
+# From frontend/
+npm run e2e:docker
 ```
 
-Default local URLs:
+The staging stack runs:
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8000`
-- Swagger docs: `http://localhost:8000/api/docs/`
+- `backend` — `staging` image target behind Gunicorn/Uvicorn on port 8080
+- `frontend` — `staging` image target on port 8080
+- `proxy` — Nginx (`infra/nginx/app.conf`) on port 8080
+- `postgres` — PostgreSQL 16 on port 5432
+- `cypress` — headless Cypress run against the proxy
+- `backend-tests` — pytest run inside the staging backend image
+
+Ports exposed to the host:
+
+| Service | Host port |
+| ------- | --------- |
+| proxy | 8080 |
+| backend | 8000 |
+| frontend | 3000 |
+| postgres | 5432 |
 
 ## Production Image Strategy
 
@@ -531,29 +431,9 @@ Recommended production topology:
 
 ## Testing
 
-### Docker environments
-
-The Docker Compose stack is split into a base file plus per-environment
-overrides:
-
-- `docker-compose.yml` (shared base)
-- `docker-compose.dev.yml` (default dev)
-- `docker-compose.dev.db.yml` (dev Postgres parity)
-- `docker-compose.dev.proxy.yml` (dev Nginx parity)
-- `docker-compose.staging.yml` (staging for Cypress + pytest)
-- `docker-compose.prod.yml` (local production-like stack)
-
-Both staging and local prod-like stacks share the same Nginx config:
-
-- `infra/nginx/app.conf`
-
-Dev proxy mode uses a separate config for local ports:
-
-- `infra/nginx/app.dev.conf`
-
 ### Backend tests
 
-The backend uses pytest with Django settings configured in `pyproject.toml`.
+Run natively against your local SQLite database — no Docker needed.
 
 From `backend/`:
 
@@ -561,28 +441,26 @@ From `backend/`:
 poetry run pytest
 ```
 
-### Frontend tests
+### Frontend E2E tests (Cypress)
 
-From `frontend/`:
+Two modes:
 
-```bash
-npm run cypress:open
-```
-
-or:
+**Local** — run against locally running servers (fastest iteration):
 
 ```bash
-npm run cypress:run
+# Requires both servers already running on :3000 and :8000
+npm run cypress:open   # interactive UI
+npm run cypress:run    # headless
 ```
 
-The Cypress configuration uses:
+**Staging** — run against fully-built Docker images (CI parity):
 
-- `baseUrl: http://localhost:3000`
-- `apiUrl: http://localhost:8000/api`
-- `CYPRESS_API_URL` to override the backend API base URL
+```bash
+npm run e2e:docker
+```
 
-It also provides a `db:seed` task that resets and repopulates the backend
-through the `django_cypress` integration.
+The `db:seed` Cypress task resets and repopulates the backend through the
+`django_cypress` integration before each E2E spec.
 
 ## API Documentation
 
@@ -601,9 +479,3 @@ If you want to contribute:
 1. fork the repository
 2. create a feature branch
 3. open a pull request targeting `main`
-
-Suggested commit message for this documentation update:
-
-```text
-docs(readme): update project documentation to match current codebase
-```
