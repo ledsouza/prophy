@@ -143,12 +143,8 @@ export default function Navbar() {
                     {userInitials || "U"}
                 </div>
                 <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-primary">
-                        {userData.name}
-                    </p>
-                    <p className="truncate text-xs text-gray-primary">
-                        {roleLabel(userData.role)}
-                    </p>
+                    <p className="truncate text-sm font-semibold text-primary">{userData.name}</p>
+                    <p className="truncate text-xs text-gray-primary">{roleLabel(userData.role)}</p>
                 </div>
             </div>
         );

@@ -9,7 +9,7 @@ type Props = {
 
 export default function Form({ children, onSubmit, className }: Props) {
     return (
-        <form className={clsx("space-y-6", className)} onSubmit={onSubmit}>
+        <form className={clsx("space-y-6", className)} method="post" onSubmit={onSubmit}>
             {children}
         </form>
     );

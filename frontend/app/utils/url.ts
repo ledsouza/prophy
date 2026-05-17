@@ -22,10 +22,6 @@ export const getIdFromUrl = (pathname: string) => {
 };
 
 export const resolveApiBaseUrl = () => {
-    if (typeof window !== "undefined") {
-        return "/api/";
-    }
-
     const host = process.env.NEXT_PUBLIC_HOST;
 
     if (host) {
@@ -36,10 +32,6 @@ export const resolveApiBaseUrl = () => {
 };
 
 export const resolveApiPath = (path: string) => {
-    if (typeof window !== "undefined") {
-        return normalizePath(path);
-    }
-
     const host = process.env.NEXT_PUBLIC_HOST;
     const normalizedPath = normalizePath(path);
 
