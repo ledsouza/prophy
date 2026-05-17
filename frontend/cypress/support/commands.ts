@@ -56,15 +56,11 @@ Cypress.Commands.add("setupDB", () => {
 });
 
 Cypress.Commands.add("loginAs", (user: UserFixtureKey) => {
-    const resolveBaseUrl = (): string => {
-        const baseUrl = Cypress.config("baseUrl") as string | undefined;
-
-        return baseUrl || "http://localhost:3000";
-    };
-
-    const baseUrl = resolveBaseUrl();
-    const loginUrl = new URL("/api/jwt/create/", baseUrl).toString();
-    const verifyUrl = new URL("/api/jwt/verify/", baseUrl).toString();
+    const apiUrl = (Cypress.env("apiUrl") as string | undefined)
+        || "http://localhost:8000/api";
+    const base = apiUrl.replace(/\/$/, "");
+    const loginUrl = `${base}/jwt/create/`;
+    const verifyUrl = `${base}/jwt/verify/`;
 
     cy.visit("/");
 
