@@ -25,6 +25,13 @@ class ProposalSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProposalListSerializer(ProposalSerializer):
+    is_registered_client = serializers.BooleanField(read_only=True)
+
+    class Meta(ProposalSerializer.Meta):
+        pass
+
+
 class UserNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAccount

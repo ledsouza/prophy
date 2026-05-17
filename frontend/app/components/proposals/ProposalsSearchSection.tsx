@@ -1,6 +1,6 @@
 "use client";
 
-import { PencilSimpleIcon } from "@phosphor-icons/react";
+import { PencilSimpleIcon, WarningIcon } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -13,6 +13,7 @@ import {
     useFilterRestoration,
     usePageNavigation,
 } from "@/hooks";
+import { ProposalStatus } from "@/enums";
 import { ProposalDTO, useListProposalsQuery } from "@/redux/features/proposalApiSlice";
 import { restoreSelectFilterStates, restoreTextFilterStates } from "@/utils/filter-restoration";
 
@@ -361,12 +362,30 @@ export function ProposalsSearchSection() {
                                         header: "Situação",
                                         cell: (proposal: ProposalDTO) => {
                                             const statusInfo = getStatusDisplay(proposal.status);
+                                            const showWarning =
+                                                proposal.status ===
+                                                    ProposalStatus.ACCEPTED &&
+                                                !proposal.is_registered_client;
                                             return (
-                                                <span
-                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
-                                                >
-                                                    {statusInfo.text}
-                                                </span>
+                                                <div className="flex flex-row items-center gap-1.5">
+                                                    <span
+                                                        className={`inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
+                                                    >
+                                                        {statusInfo.text}
+                                                    </span>
+                                                    {showWarning && (
+                                                        <span className="relative group">
+                                                            <WarningIcon
+                                                                size={16}
+                                                                className="text-warning cursor-help"
+                                                                data-cy={`proposal-not-registered-${proposal.id}`}
+                                                            />
+                                                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-xs text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-opacity pointer-events-none z-10">
+                                                                Cliente não cadastrado
+                                                            </span>
+                                                        </span>
+                                                    )}
+                                                </div>
                                             );
                                         },
                                     },
@@ -417,16 +436,33 @@ export function ProposalsSearchSection() {
                                 keyExtractor={(proposal: ProposalDTO) => proposal.id}
                                 mobileCardRenderer={(proposal: ProposalDTO) => {
                                     const statusInfo = getStatusDisplay(proposal.status);
+                                    const showWarning =
+                                        proposal.status === ProposalStatus.ACCEPTED &&
+                                        !proposal.is_registered_client;
                                     return (
                                         <MobileResultCard
                                             dataCy={`proposal-card-${proposal.id}`}
                                             title={cnpjMask(proposal.cnpj)}
                                             badge={
-                                                <span
-                                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
-                                                >
-                                                    {statusInfo.text}
-                                                </span>
+                                                <div className="flex flex-row items-center gap-1.5">
+                                                    <span
+                                                        className={`inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
+                                                    >
+                                                        {statusInfo.text}
+                                                    </span>
+                                                    {showWarning && (
+                                                        <span className="relative group">
+                                                            <WarningIcon
+                                                                size={16}
+                                                                className="text-warning cursor-help"
+                                                                data-cy={`proposal-not-registered-mobile-${proposal.id}`}
+                                                            />
+                                                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-xs text-white bg-gray-800 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-opacity pointer-events-none z-10">
+                                                                Cliente não cadastrado
+                                                            </span>
+                                                        </span>
+                                                    )}
+                                                </div>
                                             }
                                             fields={[
                                                 {

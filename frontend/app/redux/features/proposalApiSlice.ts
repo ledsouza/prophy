@@ -17,6 +17,7 @@ export type ProposalDTO = {
     status: ProposalStatus;
     pdf_version: string | null;
     word_version: string | null;
+    is_registered_client: boolean;
 };
 
 type ListProposalsParams = ListQueryParams & {

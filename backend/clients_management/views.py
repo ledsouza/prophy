@@ -54,6 +54,7 @@ from clients_management.serializers import (
     CNPJSerializer,
     EquipmentSerializer,
     ModalitySerializer,
+    ProposalListSerializer,
     ProposalSerializer,
     ReportSerializer,
     ServiceOrderCreateSerializer,
@@ -232,13 +233,19 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
 
         queryset = self._get_base_queryset()
         queryset = self._apply_filters(queryset, request.query_params)
-        return self._paginate_response(queryset, request, ProposalSerializer)
+        return self._paginate_response(
+            queryset, request, ProposalListSerializer
+        )
 
     def _get_base_queryset(self):
         """
         Get base queryset for proposals.
         """
-        return Proposal.objects.all()
+        return Proposal.objects.annotate(
+            is_registered_client=Exists(
+                Client.objects.filter(cnpj=OuterRef("cnpj"))
+            )
+        )
 
     @swagger_auto_schema(
         operation_summary="Create a new proposal",
