@@ -56,7 +56,7 @@ const useRegistrationForm = ({ validatedCNPJ, setIsModalOpen }: RegisterFormProp
             await login({ cpf, password });
             dispatch(setAuth());
 
-            const clientResponse = await createClient({
+            const clientData = await createClient({
                 cnpj: validatedCNPJ,
                 name: institutionName,
                 email: institutionEmail,
@@ -64,20 +64,18 @@ const useRegistrationForm = ({ validatedCNPJ, setIsModalOpen }: RegisterFormProp
                 address,
                 state,
                 city,
-            });
+            }).unwrap();
 
-            if (!clientResponse.error) {
-                await createUnit({
-                    cnpj: validatedCNPJ,
-                    name: institutionName,
-                    email: institutionEmail,
-                    phone: institutionPhone,
-                    address,
-                    state,
-                    city,
-                    client: clientResponse.data?.id,
-                });
-            }
+            await createUnit({
+                cnpj: validatedCNPJ,
+                name: institutionName,
+                email: institutionEmail,
+                phone: institutionPhone,
+                address,
+                state,
+                city,
+                client: clientData.id,
+            }).unwrap();
 
             toast.success("O seu cadastro foi realizado com sucesso!");
             setIsModalOpen(false);

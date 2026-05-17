@@ -8,6 +8,7 @@ from rest_framework.pagination import PageNumberPagination
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from clients_management.models import Proposal
 from users.models import UserAccount
 from requisitions.serializers import (
     ClientOperationSerializer,
@@ -153,14 +154,25 @@ class ClientOperationViewSet(viewsets.ViewSet):
             operation_status == ClientOperation.OperationStatus.ACCEPTED
             and user.role != UserAccount.Role.PROPHY_MANAGER
         ):
-            return Response(
-                {
-                    "detail": (
-                        "Only PROPHY_MANAGER can create accepted client operations."
-                    )
-                },
-                status=status.HTTP_403_FORBIDDEN,
+            cnpj = data.get("cnpj")
+            is_self_registration = (
+                operation_type == ClientOperation.OperationType.ADD
+                and cnpj is not None
+                and Proposal.objects.filter(
+                    cnpj=cnpj,
+                    status=Proposal.Status.ACCEPTED,
+                ).exists()
             )
+            if not is_self_registration:
+                return Response(
+                    {
+                        "detail": (
+                            "Only PROPHY_MANAGER can create "
+                            "accepted client operations."
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
         if operation_type == ClientOperation.OperationType.EDIT and not data.get(
             "original_client"
