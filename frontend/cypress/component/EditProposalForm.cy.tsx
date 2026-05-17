@@ -19,6 +19,7 @@ describe("EditProposalForm (component)", () => {
                     value: "1000.00",
                     contract_type: ContractType.ANNUAL,
                     status: ProposalStatus.PENDING,
+                    is_registered_client: false,
                     pdf_version: null,
                     word_version: null,
                 }}
