@@ -4,7 +4,7 @@ from django.urls import reverse
 from validate_docbr import CNPJ
 
 from requisitions.models import ClientOperation
-from tests.factories import ClientOperationFactory
+from tests.factories import ClientOperationFactory, ProposalFactory
 
 
 @pytest.mark.django_db
@@ -143,3 +143,55 @@ def test_edit_operation_copies_users_from_original_client(
     response = api_client.post(url, payload, format="json")
 
     assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_self_registration_associates_user_with_client(
+    api_client,
+    client_manager,
+):
+    proposal = ProposalFactory()
+    api_client.force_authenticate(user=client_manager)
+    url = reverse("clients-operations-list")
+
+    payload = {
+        "cnpj": proposal.cnpj,
+        "name": "Client",
+        "email": "client@example.com",
+        "phone": "11999999999",
+        "address": "Street",
+        "state": "SP",
+        "city": "São Paulo",
+        "operation_type": ClientOperation.OperationType.ADD,
+        "operation_status": ClientOperation.OperationStatus.ACCEPTED,
+    }
+
+    response = api_client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert client_manager.clients.filter(cnpj=proposal.cnpj).exists()
+
+
+@pytest.mark.django_db
+def test_ggc_without_accepted_proposal_cannot_create_accepted_operation(
+    api_client,
+    client_manager,
+):
+    api_client.force_authenticate(user=client_manager)
+    url = reverse("clients-operations-list")
+
+    payload = {
+        "cnpj": CNPJ().generate(),
+        "name": "Client",
+        "email": "client@example.com",
+        "phone": "11999999999",
+        "address": "Street",
+        "state": "SP",
+        "city": "São Paulo",
+        "operation_type": ClientOperation.OperationType.ADD,
+        "operation_status": ClientOperation.OperationStatus.ACCEPTED,
+    }
+
+    response = api_client.post(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN

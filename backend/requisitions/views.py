@@ -150,29 +150,33 @@ class ClientOperationViewSet(viewsets.ViewSet):
         user: UserAccount = request.user
         operation_status = data.get("operation_status")
         operation_type = data.get("operation_type")
+        cnpj = data.get("cnpj")
+
+        is_self_registration = (
+            operation_status == ClientOperation.OperationStatus.ACCEPTED
+            and user.role != UserAccount.Role.PROPHY_MANAGER
+            and operation_type == ClientOperation.OperationType.ADD
+            and cnpj is not None
+            and Proposal.objects.filter(
+                cnpj=cnpj,
+                status=Proposal.Status.ACCEPTED,
+            ).exists()
+        )
+
         if (
             operation_status == ClientOperation.OperationStatus.ACCEPTED
             and user.role != UserAccount.Role.PROPHY_MANAGER
+            and not is_self_registration
         ):
-            cnpj = data.get("cnpj")
-            is_self_registration = (
-                operation_type == ClientOperation.OperationType.ADD
-                and cnpj is not None
-                and Proposal.objects.filter(
-                    cnpj=cnpj,
-                    status=Proposal.Status.ACCEPTED,
-                ).exists()
+            return Response(
+                {
+                    "detail": (
+                        "Only PROPHY_MANAGER can create "
+                        "accepted client operations."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
             )
-            if not is_self_registration:
-                return Response(
-                    {
-                        "detail": (
-                            "Only PROPHY_MANAGER can create "
-                            "accepted client operations."
-                        )
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
 
         if operation_type == ClientOperation.OperationType.EDIT and not data.get(
             "original_client"
@@ -190,6 +194,9 @@ class ClientOperationViewSet(viewsets.ViewSet):
                 return Response(
                     {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
                 )
+
+            if is_self_registration:
+                new_client.users.add(user)
 
             original_client_id = data.get("original_client")
             if original_client_id:
