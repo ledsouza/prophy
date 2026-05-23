@@ -337,14 +337,26 @@ const CreateClientForm = ({ title, description }: CreateClientFormProps) => {
                     {isManagedUsersLoading ? (
                         <Spinner />
                     ) : (
-                        <MultiSelect
-                            label="Usuários"
-                            options={userOptions}
-                            value={selectedUserIds}
-                            onChange={setSelectedUserIds}
-                            dataTestId="create-client-users"
-                            dataCy="create-client-users"
-                        />
+                        <div>
+                            <MultiSelect
+                                label="Usuários"
+                                options={userOptions}
+                                value={selectedUserIds}
+                                onChange={setSelectedUserIds}
+                                dataTestId="create-client-users"
+                                dataCy="create-client-users"
+                            />
+                            <Typography
+                                element="p"
+                                size="sm"
+                                variant="secondary"
+                                className="mt-1"
+                            >
+                                Exibe apenas usuários com os perfis: Gerente
+                                Prophy, Físico Médico Interno, Físico Médico
+                                Externo e Comercial.
+                            </Typography>
+                        </div>
                     )}
 
                     <div className="flex gap-2 py-4">
