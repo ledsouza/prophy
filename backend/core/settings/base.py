@@ -5,9 +5,9 @@ from os import getenv, path
 from pathlib import Path
 from urllib.parse import urlparse
 
+from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
-from google.oauth2 import service_account
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -153,10 +153,18 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR.joinpath("static")
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR.joinpath("media")
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
@@ -229,52 +237,35 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.UserAccount"
 
 
-def apply_production_storage_settings() -> None:
-    """Configure GCS storages when running outside DEBUG.
+def build_production_storages() -> dict[str, dict]:
+    """STORAGES config for real production: media on GCS via ADC, static via WhiteNoise.
 
-    This keeps the storage config out of test/dev environments.
+    Uses Application Default Credentials — the attached Cloud Run service
+    account is picked up automatically by django-storages at runtime.
+    GCS_PROJECT_ID and GOOGLE_APPLICATION_CREDENTIALS are not required.
+
+    Raises ImproperlyConfigured if GCS_BUCKET_NAME is unset so the
+    container fails fast instead of silently writing to ephemeral local disk.
     """
-
-    if DEBUG:
-        return
-
     gcs_bucket_name = getenv("GCS_BUCKET_NAME")
-    gcs_project_id = getenv("GCS_PROJECT_ID")
-    google_application_credentials = getenv("GOOGLE_APPLICATION_CREDENTIALS")
-
-    if not gcs_bucket_name or not gcs_project_id or not google_application_credentials:
-        return
-
-    global STATIC_URL, MEDIA_URL, STORAGES
-
-    STATIC_URL = f"https://storage.googleapis.com/{gcs_bucket_name}/static/"
-    MEDIA_URL = f"https://storage.googleapis.com/{gcs_bucket_name}/media/"
-
-    gs_credentials = service_account.Credentials.from_service_account_file(
-        google_application_credentials
-    )
-    STORAGES = {
+    if not gcs_bucket_name:
+        raise ImproperlyConfigured(
+            "GCS_BUCKET_NAME must be set when running production settings. "
+            "Media uploads require Google Cloud Storage; refusing to fall "
+            "back to ephemeral local disk."
+        )
+    return {
         "default": {
             "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
             "OPTIONS": {
                 "bucket_name": gcs_bucket_name,
-                "project_id": gcs_project_id,
-                "credentials": gs_credentials,
                 "iam_sign_blob": True,
                 "location": "media",
             },
         },
         "staticfiles": {
-            "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
-            "OPTIONS": {
-                "bucket_name": gcs_bucket_name,
-                "project_id": gcs_project_id,
-                "credentials": gs_credentials,
-                "iam_sign_blob": True,
-                "location": "static",
-            },
+            "BACKEND": (
+                "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            ),
         },
     }
-
-
-apply_production_storage_settings()

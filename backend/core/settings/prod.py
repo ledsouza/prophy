@@ -8,6 +8,8 @@ from .base import *  # noqa: F403
 
 DEBUG = False
 
+STORAGES = build_production_storages()  # noqa: F405
+
 _secret_key = getenv("DJANGO_SECRET_KEY")
 if not _secret_key:
     raise ImproperlyConfigured(
