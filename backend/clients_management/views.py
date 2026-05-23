@@ -1913,7 +1913,7 @@ class ServiceOrderViewSet(viewsets.ViewSet):
                     },
                     status=status.HTTP_403_FORBIDDEN,
                 )
-            order = serializer.save()
+            order = serializer.save(responsible_prophy=user)
             return Response(
                 ServiceOrderSerializer(order).data, status=status.HTTP_201_CREATED
             )

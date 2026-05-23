@@ -240,6 +240,10 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
             ),
         ),
         InfoItem(label="Tipo OS:", value="Serviço"),
+        InfoItem(
+            label="Responsável Prophy:",
+            value=order.responsible_prophy.name,
+        ),
     ]
 
     left_table = _make_info_table(left_info, styles, 3.2 * cm, 6.3 * cm)

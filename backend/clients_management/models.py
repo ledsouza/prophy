@@ -486,6 +486,7 @@ class ServiceOrder(models.Model):
         description (TextField): Detailed description of the requested work.
         conclusion (TextField): Summary of the work performed and resolution.
         updates (TextField): A running log of updates and notes for the service order.
+        responsible_prophy (ForeignKey): The Prophy user who created this order.
     """
 
     subject = models.CharField(
@@ -506,6 +507,12 @@ class ServiceOrder(models.Model):
         "Atualização",
         blank=True,
         null=True,
+    )
+    responsible_prophy = models.ForeignKey(
+        "users.UserAccount",
+        on_delete=models.PROTECT,
+        related_name="service_orders",
+        verbose_name="Responsável Prophy",
     )
 
     def __str__(self):

@@ -192,6 +192,9 @@ class ServiceOrderFactory(factory.django.DjangoModelFactory):
     description = factory.Faker("paragraph")
     conclusion = factory.Faker("paragraph")
     updates = factory.Faker("paragraph")
+    responsible_prophy = factory.SubFactory(
+        "tests.factories.users.UserFactory"
+    )
 
     @factory.post_generation
     def equipments(self, create, extracted, **kwargs):

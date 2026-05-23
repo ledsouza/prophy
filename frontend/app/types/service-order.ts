@@ -12,6 +12,7 @@ export type ServiceOrderDTO = {
     conclusion: string;
     updates?: string | null;
     equipments: number[];
+    responsible_prophy: number;
 };
 
 export type ServiceOrderBase = Pick<
