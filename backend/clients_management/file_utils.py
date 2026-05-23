@@ -4,6 +4,11 @@ Utility functions for file handling in the clients_management app.
 
 import mimetypes
 
+mimetypes.add_type(
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".docx",
+)
+
 
 def get_content_type_from_filename(filename: str) -> str:
     """
