@@ -6,6 +6,8 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+from core.views import HealthCheckView
+
 schema_view = get_schema_view(
     openapi.Info(
         title="Prophy Medical Physics Management System API",
@@ -21,6 +23,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/health/", HealthCheckView.as_view(), name="health-check"),
     path("api/", include("users.urls")),
     path("api/", include("clients_management.urls")),
     path("api/", include("requisitions.urls")),
