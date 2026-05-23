@@ -17,9 +17,9 @@ describe("profile forms", () => {
         beforeEach(() => {
             cy.setupDB();
             cy.loginAs("admin_user");
-            cy.intercept("GET", PROFILE_ENDPOINT).as("getOwnProfile");
-            cy.intercept("PATCH", PROFILE_ENDPOINT).as("updateOwnProfile");
-            cy.intercept("POST", CHANGE_PASSWORD_ENDPOINT).as("changeOwnPassword");
+            cy.intercept("GET", "**/api/users/me/").as("getOwnProfile");
+            cy.intercept("PATCH", "**/api/users/me/").as("updateOwnProfile");
+            cy.intercept("POST", "**/api/users/set_password/").as("changeOwnPassword");
         });
 
         it(`renders the profile page and keeps both forms accessible on ${viewport.name}`, () => {

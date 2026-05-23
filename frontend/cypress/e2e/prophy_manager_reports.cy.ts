@@ -49,7 +49,7 @@ describe("prophy manager - reports", () => {
                 cy.getByCy("reports-results")
                     .find('[data-cy^="report-restore-"]:visible')
                     .first()
-                    .scrollIntoView()
+                    .scrollIntoView({ block: "center" })
                     .click();
             }
 

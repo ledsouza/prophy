@@ -1,6 +1,4 @@
-import json
 import os
-import re
 import uuid
 from datetime import date, timedelta
 from random import choice, randint
@@ -31,71 +29,36 @@ from materials.models import InstitutionalMaterial
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from users.models import UserAccount
 
-fake = Faker("pt_BR")
-
-BASE_DIR = settings.BASE_DIR
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "..", "..", "..", ".."))
-
-
-CPF_ADMIN = "03446254005"
-CPF_CLIENT_MANAGER = "82484874073"
-CPF_UNIT_MANAGER = "51407390031"
-CPF_COMERCIAL = "85866936003"
-CPF_EXTERNAL_PHYSICIST = "50283042036"
-CPF_INTERNAL_PHYSICIST = "91623042321"
-PASSWORD = "passwordtest"
-
-REJECTED_PROPOSAL_CNPJ = "09352176000187"
-APPROVED_PROPOSAL_CNPJ = "26661570000116"
-
-REGISTERED_CNPJ = "78187773000116"
-
-# Deterministic CNPJs used by Cypress E2E tests for the
-# "Pending Appointment" feature.
-PENDING_APPOINTMENT_CNPJ = "43388625948375"
-COMPLIANT_APPOINTMENT_CNPJ = "15615131549217"
-
-
-# E2E registration requires a CNPJ whose latest proposal is ACCEPTED
-# but it is not yet registered as a Client.
-ELIGIBLE_REGISTRATION_CNPJ = APPROVED_PROPOSAL_CNPJ
-
-# Deterministic CNPJ that will never have proposals created by this seed.
-NO_PROPOSAL_CNPJ = "21835755000186"
-
-MODALITIES = [
-    "Raio X Convencional",
-    "Raio X Móvel",
-    "Litotripsia",
-    "Angiógrafo",
-    "Arco C",
-    "Telecomandada",
-    "Mamografia",
-    "Tomografia Computadorizada",
-    "PET/CT",
-    "SPECT/CT",
-    "Raio X Extraoral",
-    "Raio X Panorâmico",
-    "Tomografia Cone Beam",
-    "Raio X Intraoral",
-    "Ultrassom",
-    "Ressonância Magnética",
-    "PET/RM",
-    "Densitometria Óssea",
-]
-
-EQUIPMENT_PHOTO_PATH = BASE_DIR / "static" / "mamografia.jpg"
-EQUIPMENT_LABEL_PHOTO_PATH = BASE_DIR / "static" / "serial-number.jpg"
-PROPOSAL_PDF_PATH = BASE_DIR / "static" / "placeholder.pdf"
-PROPOSAL_WORD_PATH = BASE_DIR / "static" / "Placeholder.docx"
-
-CYPRESS_FIXTURE_PATH = os.getenv("CYPRESS_FIXTURE_PATH")
-FIXTURE_PATH = (
-    CYPRESS_FIXTURE_PATH
-    if CYPRESS_FIXTURE_PATH
-    else os.path.join(project_root, "frontend", "cypress", "fixtures")
+from ._seed_common import (
+    APPROVED_PROPOSAL_CNPJ,
+    COMPLIANT_APPOINTMENT_CNPJ,
+    CPF_ADMIN,
+    CPF_CLIENT_MANAGER,
+    CPF_COMERCIAL,
+    CPF_EXTERNAL_PHYSICIST,
+    CPF_INTERNAL_PHYSICIST,
+    CPF_UNIT_MANAGER,
+    ELIGIBLE_REGISTRATION_CNPJ,
+    EQUIPMENT_LABEL_PHOTO_PATH,
+    EQUIPMENT_PHOTO_PATH,
+    FIXTURE_PATH,
+    MODALITIES,
+    NO_PROPOSAL_CNPJ,
+    PASSWORD,
+    PENDING_APPOINTMENT_CNPJ,
+    PROPOSAL_PDF_PATH,
+    PROPOSAL_WORD_PATH,
+    REGISTERED_CNPJ,
+    REJECTED_PROPOSAL_CNPJ,
+    create_fixture_path,
+    get_accessory_type,
+    make_report_file,
+    raise_postgres_id_floor,
+    safe_slug,
+    write_json_file,
 )
+
+fake = Faker("pt_BR")
 
 
 def fake_phone_number():
@@ -108,50 +71,6 @@ def fake_cnpj():
 
 def fake_cpf():
     return fake.cpf().replace(".", "").replace("-", "")
-
-
-def get_accessory_type(modality: str) -> Modality.AccessoryType:
-    """Returns the accessory type for a given modality."""
-    modality_to_accessory_map = {
-        "Raio X Convencional": Modality.AccessoryType.DETECTOR,
-        "Raio X Móvel": Modality.AccessoryType.DETECTOR,
-        "Mamografia": Modality.AccessoryType.DETECTOR,
-        "Raio X Intraoral": Modality.AccessoryType.DETECTOR,
-        "Ressonância Magnética": Modality.AccessoryType.COIL,
-        "PET/RM": Modality.AccessoryType.COIL,
-        "Ultrassom": Modality.AccessoryType.TRANSDUCER,
-    }
-    return modality_to_accessory_map.get(modality, Modality.AccessoryType.NONE)
-
-
-def create_fixture_path(output_name: str) -> str:
-    return os.path.join(FIXTURE_PATH, output_name)
-
-
-def write_json_file(data: dict, file_path: str) -> None:
-    """
-    Writes data to a JSON file with indentation.
-
-    Args:
-        data: A dictionary to be converted to JSON.
-        file_path (str): The path to the file where the JSON data will be saved.
-    """
-    # Ensure the parent directory exists before trying to open the file.
-    parent_directory = os.path.dirname(file_path)
-    if (
-        parent_directory
-        # Check if parent_directory is not an empty string (e.g., for files in cwd)
-    ):
-        os.makedirs(parent_directory, exist_ok=True)
-
-    with open(file_path, "w", encoding="utf-8") as json_file:
-        json.dump(data, json_file, indent=2)
-
-
-# Helper functions for Report generation
-def safe_slug(s: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
-    return slug[:50] or "entidade"
 
 
 def random_completion_date(report_type_code: str) -> date:
@@ -178,38 +97,15 @@ def random_completion_date(report_type_code: str) -> date:
         return today - timedelta(days=delta)
 
 
-def make_report_file(report_type_code: str, entity_name: str) -> ContentFile:
-    """
-    Creates a report file by copying a placeholder PDF or DOCX file.
-    Alternates between PDF and DOCX formats for variety in testing.
-    """
-    uid = uuid.uuid4().hex[:8]
-    slug = safe_slug(entity_name)
-
-    # Alternate between PDF and DOCX based on hash of entity_name
-    use_pdf = hash(entity_name) % 2 == 0
-
-    if use_pdf:
-        source_path = BASE_DIR / "static" / "placeholder.pdf"
-        extension = "pdf"
-    else:
-        source_path = BASE_DIR / "static" / "Placeholder.docx"
-        extension = "docx"
-
-    filename = f"report-{report_type_code}-{slug}-{uid}.{extension}"
-
-    # Read the placeholder file and create a ContentFile with it
-    with source_path.open(mode="rb") as f:
-        file_content = f.read()
-
-    return ContentFile(file_content, name=filename)
-
-
 class Command(BaseCommand):
     help = "Populate the database with fake data."
 
+    def _raise_postgres_id_floor(self) -> None:
+        raise_postgres_id_floor()
+
     @transaction.atomic
     def handle(self, *args, **options):
+        self._raise_postgres_id_floor()
         if settings.ALLOW_LOCAL_MEDIA_CLEANUP:
             self.stdout.write(self.style.WARNING("Cleaning local media files..."))
             call_command("clean_local_media", force=True)
@@ -554,7 +450,7 @@ class Command(BaseCommand):
         all_users = UserAccount.objects.all()
         user_client = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
         user_unit_manager = UserAccount.objects.get(cpf=CPF_UNIT_MANAGER)
-        clients = Client.objects.filter(users=user_client)
+        clients = Client.objects.filter(users=user_client).order_by("id")
 
         def _create_unit_fixture_data(unit_obj):
             """Helper function to create a dictionary for unit fixture data."""
@@ -699,7 +595,7 @@ class Command(BaseCommand):
                 operation_type=EquipmentOperation.OperationType.CLOSED,
                 operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
                 created_by=user_client,
-                unit=Unit.objects.filter(client__users=user_client)[0],
+                unit=Unit.objects.filter(client__users=user_client).order_by("id")[0],
                 modality=modalities.get(name="Mamografia"),
                 manufacturer=choice(manufactures),
                 model=fake.word().upper() + "-" + str(randint(100, 999)),
@@ -713,7 +609,7 @@ class Command(BaseCommand):
                 operation_type=EquipmentOperation.OperationType.CLOSED,
                 operation_status=EquipmentOperation.OperationStatus.ACCEPTED,
                 created_by=user_client,
-                unit=Unit.objects.filter(client__users=user_client)[0],
+                unit=Unit.objects.filter(client__users=user_client).order_by("id")[0],
                 modality=modalities.get(name="Mamografia"),
                 manufacturer=choice(manufactures),
                 model=fake.word().upper() + "-" + str(randint(100, 999)),
@@ -1009,7 +905,9 @@ class Command(BaseCommand):
             }
 
         # Default service orders for automated testing (use the first two equipments deterministically)
-        default_equipments = list(equipments_qs.order_by("id")[:2])
+        default_equipments = list(
+            Equipment.objects.filter(id__in=[1000, 1001]).order_by("id")
+        )
 
         service_order1 = ServiceOrder.objects.create(
             subject="Calibração de Mamógrafo",

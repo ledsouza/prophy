@@ -26,13 +26,16 @@ describe("commercial - proposals smoke", () => {
                 cy.getByCy("proposal-edit-modal").should("not.exist");
 
                 if (viewport.isMobile) {
-                    cy.get('[data-cy^="proposal-card-"]')
-                        .should("have.length.greaterThan", 0)
-                        .first()
-                        .within(() => {
-                            cy.get('[data-cy^="proposal-edit-"]:visible').first().click();
-                        });
+                    cy.get('[data-cy^="proposal-card-"]').should(
+                        "have.length.greaterThan",
+                        0,
+                    );
+                    cy.get('[data-cy^="proposal-edit-"]:visible').first().click();
                 } else {
+                    cy.get('[data-cy^="proposal-edit-"]:visible').should(
+                        "have.length.greaterThan",
+                        0,
+                    );
                     cy.get('[data-cy^="proposal-edit-"]:visible')
                         .first()
                         .scrollIntoView()
