@@ -7,3 +7,6 @@
 
 # Binary plan output files — not useful in version control.
 *.tfplan
+
+# Local secret variable files — never commit passwords or keys.
+*.auto.tfvars
