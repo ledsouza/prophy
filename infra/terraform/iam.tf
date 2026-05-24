@@ -1,9 +1,8 @@
 # backend-sa: project-level grants applyable today.
 #
-# Deferred resource-scoped grants (added in the issue that creates
-# the target resource):
-#   - roles/storage.objectAdmin on the media bucket  → issue #198
-#   - roles/secretmanager.secretAccessor per secret  → issue #201
+# Resource-scoped grants live beside the resource they protect:
+#   - roles/storage.objectAdmin on the media bucket  → storage.tf (#199)
+#   - roles/secretmanager.secretAccessor per secret  → issue #201 (deferred)
 
 resource "google_project_iam_member" "backend_cloudsql_client" {
   project = var.project_id

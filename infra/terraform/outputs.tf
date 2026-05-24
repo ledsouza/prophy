@@ -27,3 +27,8 @@ output "postgres_socket_host" {
   description = "Value to set as POSTGRES_HOST on Cloud Run (Phase 4). Django/psycopg2 treats a leading '/' as a Unix-socket directory."
   value       = "/cloudsql/${google_sql_database_instance.postgres.connection_name}"
 }
+
+output "media_bucket_name" {
+  description = "Media uploads bucket name. Set as GCS_BUCKET_NAME on Cloud Run (Phase 4)."
+  value       = google_storage_bucket.media.name
+}

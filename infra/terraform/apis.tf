@@ -2,6 +2,7 @@ locals {
   enabled_apis = toset([
     "run.googleapis.com",
     "sqladmin.googleapis.com",
+    "storage.googleapis.com",
     "secretmanager.googleapis.com",
     "artifactregistry.googleapis.com",
     "iam.googleapis.com",
