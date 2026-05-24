@@ -221,11 +221,15 @@ poetry install
 npm install
 ```
 
+Poetry creates an isolated virtual environment for the backend.
+Prefix every backend command with `poetry run` so it always uses the
+correct environment, regardless of what is active in your shell.
+
 ### 3. Set up the database
 
 ```bash
 # From backend/
-python manage.py migrate
+poetry run python manage.py migrate
 ```
 
 To seed the database with sample data:
@@ -241,7 +245,7 @@ Open two terminals.
 
 ```bash
 # Terminal 1 — backend (from backend/)
-python manage.py runserver
+poetry run python manage.py runserver
 
 # Terminal 2 — frontend (from frontend/)
 npm run dev
@@ -258,64 +262,47 @@ Default local URLs:
 The backend reads environment variables from `backend/.env`.
 The frontend typically uses `frontend/.env.local`.
 
+Copy the committed example files to get started:
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
+```
+
+Each file is fully annotated — fill in the values appropriate for
+your environment. See the example files for the complete list of
+variables and their purpose.
+
 ### Backend variables
 
-Required or commonly used variables in the current codebase:
+`backend/.env.example` documents every variable. Key groups:
 
-| Variable                           | Purpose                                         |
-| ---------------------------------- | ----------------------------------------------- |
-| `DJANGO_SECRET_KEY`                | Django secret key                               |
-| `DEBUG`                            | Enables development behavior when set to `True` |
-| `DJANGO_ALLOWED_HOSTS`             | Comma-separated allowed hosts                   |
-| `FRONTEND_URL`                     | Frontend URL used by backend integrations       |
-| `AUTH_COOKIE_SECURE`               | Controls secure auth cookie behavior            |
-| `OIDC_AUDIENCE`                    | Optional audience used by OIDC authentication   |
-| `MAILGUN_API_KEY`                  | Mailgun API key                                 |
-| `DOMAIN`                           | Mailgun sender domain                           |
-| `MAILGUN_API_URL`                  | Optional Mailgun API URL override               |
-| `DEFAULT_FROM_EMAIL`               | Default sender email                            |
-| `NOTIFICATION_OVERRIDE_RECIPIENTS` | Optional notification override recipients       |
+| Variable                           | Notes                                             |
+| ---------------------------------- | ------------------------------------------------- |
+| `DJANGO_SECRET_KEY`                | Required. Generate a fresh value for production.  |
+| `DEBUG`                            | `True` locally, `False` in all other envs.        |
+| `DJANGO_ALLOWED_HOSTS`             | Comma-separated; required in production.          |
+| `CSRF_TRUSTED_ORIGINS`             | Required in production.                           |
+| `CORS_ALLOWED_ORIGINS`             | Required in production.                           |
+| `MAILGUN_API_KEY`                  | Rotate before first production deploy.            |
+| `GCS_BUCKET_NAME`                  | Required when using `core.settings.prod`.         |
+| `DATABASE_ENGINE`                  | `sqlite` (default) or `postgres`.                 |
 
-Optional production storage variables:
-
-| Variable                         | Purpose                     |
-| -------------------------------- | --------------------------- |
-| `GCS_BUCKET_NAME`                | Google Cloud Storage bucket |
-| `GCS_PROJECT_ID`                 | Google Cloud project ID     |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Service account file path   |
-
-Example `backend/.env`:
-
-```env
-DJANGO_SECRET_KEY=change-me
-DEBUG=True
-DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
-FRONTEND_URL=http://localhost:3000
-AUTH_COOKIE_SECURE=False
-DEFAULT_FROM_EMAIL=noreply@example.com
-MAILGUN_API_KEY=your-mailgun-key
-DOMAIN=mg.example.com
-```
+In production, sensitive values (`DJANGO_SECRET_KEY`, `POSTGRES_PASSWORD`,
+`MAILGUN_API_KEY`) are injected at runtime via Google Cloud Secret Manager
+rather than stored in a file. The example file marks which variables follow
+this pattern.
 
 ### Frontend variables
 
-Current frontend environment variables referenced in the codebase:
+`frontend/.env.example` documents every variable:
 
 | Variable                   | Purpose                                    |
 | -------------------------- | ------------------------------------------ |
-| `NEXT_PUBLIC_HOST`         | Backend base host used by the frontend     |
-| `NEXT_PUBLIC_APP_VERSION`  | Optional version string for logs           |
-| `NEXT_PUBLIC_LOG_LEVEL`    | Client log level                           |
-| `NEXT_PUBLIC_LOG_ENDPOINT` | Optional endpoint for shipping client logs |
-| `CYPRESS_API_URL`          | Cypress backend API base URL               |
-
-Example `frontend/.env.local`:
-
-```env
-NEXT_PUBLIC_HOST=http://localhost:8000
-NEXT_PUBLIC_APP_VERSION=local
-NEXT_PUBLIC_LOG_LEVEL=info
-```
+| `NEXT_PUBLIC_HOST`         | Backend base URL used by the frontend.     |
+| `NEXT_PUBLIC_APP_VERSION`  | Optional version string for log metadata.  |
+| `NEXT_PUBLIC_LOG_LEVEL`    | Client log level (default: `info`).        |
+| `NEXT_PUBLIC_LOG_ENDPOINT` | Optional endpoint for shipping client logs.|
 
 ## Database Setup
 
@@ -336,13 +323,13 @@ configure one of the following:
 Run migrations from `backend/`:
 
 ```bash
-python manage.py migrate
+poetry run python manage.py migrate
 ```
 
 If you need to create new migrations during development:
 
 ```bash
-python manage.py makemigrations
+poetry run python manage.py makemigrations
 ```
 
 ## Seed and Reset Flow
