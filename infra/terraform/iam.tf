@@ -20,8 +20,8 @@ resource "google_service_account_iam_member" "backend_token_creator_self" {
 
 # ci-sa: project-level grants applyable today.
 #
-# Deferred resource-scoped grants:
-#   - roles/artifactregistry.writer on the Docker repo → issue #199
+# Resource-scoped grants live beside the resource they protect:
+#   - roles/artifactregistry.writer on the Docker repo → artifact_registry.tf (#200)
 #
 # scheduler-sa: no project-level grants needed.
 #   - roles/run.invoker on the backend Cloud Run service → Phase 4

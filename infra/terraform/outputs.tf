@@ -32,3 +32,8 @@ output "media_bucket_name" {
   description = "Media uploads bucket name. Set as GCS_BUCKET_NAME on Cloud Run (Phase 4)."
   value       = google_storage_bucket.media.name
 }
+
+output "artifact_registry_repository_url" {
+  description = "Docker repo URI. Prefix image names with this when pushing/pulling (e.g. <url>/backend:<tag>)."
+  value       = "${google_artifact_registry_repository.docker.location}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker.repository_id}"
+}
