@@ -1,0 +1,9 @@
+# Downloaded provider plugins — like node_modules for Terraform; never commit.
+.terraform/
+
+# Local state files — belong in the remote GCS backend, not git.
+*.tfstate
+*.tfstate.backup
+
+# Binary plan output files — not useful in version control.
+*.tfplan
