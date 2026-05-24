@@ -44,10 +44,8 @@ resource "google_sql_user" "prophy" {
   password = var.db_password
 }
 
-# Stores the DB password so Cloud Run can read it at deploy time.
-#
-# Deferred: roles/secretmanager.secretAccessor on this secret for
-# backend-sa is granted in issue #201.
+# Value is Terraform-managed to stay in sync with the Cloud SQL user
+# password — both come from var.db_password, so they can never drift.
 resource "google_secret_manager_secret" "db_password" {
   secret_id = "postgres-password"
 
@@ -61,4 +59,11 @@ resource "google_secret_manager_secret" "db_password" {
 resource "google_secret_manager_secret_version" "db_password" {
   secret      = google_secret_manager_secret.db_password.id
   secret_data = var.db_password
+}
+
+resource "google_secret_manager_secret_iam_member" "backend_db_password_accessor" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.db_password.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.backend.email}"
 }

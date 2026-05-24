@@ -37,3 +37,12 @@ output "artifact_registry_repository_url" {
   description = "Docker repo URI. Prefix image names with this when pushing/pulling (e.g. <url>/backend:<tag>)."
   value       = "${google_artifact_registry_repository.docker.location}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.docker.repository_id}"
 }
+
+output "backend_set_secrets_flag" {
+  description = "Value for --set-secrets on the backend Cloud Run deploy (Phase 4 / #209)."
+  value = join(",", [
+    "DJANGO_SECRET_KEY=${google_secret_manager_secret.django_secret_key.secret_id}:latest",
+    "POSTGRES_PASSWORD=${google_secret_manager_secret.db_password.secret_id}:latest",
+    "MAILGUN_API_KEY=${google_secret_manager_secret.mailgun_api_key.secret_id}:latest",
+  ])
+}

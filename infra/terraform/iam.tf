@@ -2,7 +2,7 @@
 #
 # Resource-scoped grants live beside the resource they protect:
 #   - roles/storage.objectAdmin on the media bucket  → storage.tf (#199)
-#   - roles/secretmanager.secretAccessor per secret  → issue #201 (deferred)
+#   - roles/secretmanager.secretAccessor per secret  → secrets.tf, cloud_sql.tf (#201)
 
 resource "google_project_iam_member" "backend_cloudsql_client" {
   project = var.project_id
