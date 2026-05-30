@@ -46,3 +46,8 @@ output "backend_set_secrets_flag" {
     "MAILGUN_API_KEY=${google_secret_manager_secret.mailgun_api_key.secret_id}:latest",
   ])
 }
+
+output "migrate_job_name" {
+  description = "Cloud Run Job name used by CI to run migrations before deploy."
+  value       = google_cloud_run_v2_job.migrate.name
+}
