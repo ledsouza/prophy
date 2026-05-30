@@ -21,6 +21,8 @@ WORKDIR /app
 COPY --from=deps /app/frontend/node_modules ./frontend/node_modules
 COPY frontend ./frontend
 
+ARG NEXT_PUBLIC_HOST
+ENV NEXT_PUBLIC_HOST=$NEXT_PUBLIC_HOST
 ENV NEXT_TELEMETRY_DISABLED=1
 
 WORKDIR /app/frontend

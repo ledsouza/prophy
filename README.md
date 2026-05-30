@@ -402,8 +402,18 @@ This image is intended to run the Django application in production.
 Build the frontend production image from the `prod` target:
 
 ```bash
-docker build -f frontend/Dockerfile --target prod -t prophy-frontend:prod .
+docker build -f frontend/Dockerfile --target prod \
+  --build-arg NEXT_PUBLIC_HOST=https://api.prophy.com \
+  -t prophy-frontend:prod .
 ```
+
+> **Note — environment-specific image:** `NEXT_PUBLIC_HOST` is baked into the
+> client JavaScript bundle at `next build` time and cannot be overridden at
+> runtime. A frontend image is therefore tied to a specific backend URL; rebuild
+> the image whenever the backend URL changes.
+>
+> For local staging (docker-compose with the nginx proxy), omit
+> `--build-arg NEXT_PUBLIC_HOST` so the fallback `/api/` path is used instead.
 
 This image is intended to run the Next.js application in production.
 
