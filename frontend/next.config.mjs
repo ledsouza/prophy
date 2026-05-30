@@ -9,6 +9,31 @@ const __dirname = path.dirname(__filename);
 
 const pkg = require("./package.json");
 
+const isProd = process.env.NODE_ENV === "production";
+
+const devRemotePatterns = isProd
+    ? []
+    : [
+          {
+              protocol: "http",
+              hostname: "localhost",
+              port: "8000",
+              pathname: "/**",
+          },
+          {
+              protocol: "http",
+              hostname: "backend-e2e",
+              port: "8080",
+              pathname: "/**",
+          },
+          {
+              protocol: "http",
+              hostname: "proxy",
+              port: "8080",
+              pathname: "/**",
+          },
+      ];
+
 const nextConfig = {
     reactStrictMode: true,
     env: {
@@ -30,23 +55,12 @@ const nextConfig = {
                 pathname: "/**",
             },
             {
-                protocol: "http",
-                hostname: "localhost",
-                port: "8000",
+                protocol: "https",
+                hostname: "api.prophy.com",
+                port: "",
                 pathname: "/**",
             },
-            {
-                protocol: "http",
-                hostname: "backend-e2e",
-                port: "8080",
-                pathname: "/**",
-            },
-            {
-                protocol: "http",
-                hostname: "proxy",
-                port: "8080",
-                pathname: "/**",
-            },
+            ...devRemotePatterns,
         ],
     },
 };
