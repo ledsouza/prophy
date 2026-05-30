@@ -1,0 +1,22 @@
+name: WIF Dry-Run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  wif-test:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.CI_SA_EMAIL }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Verify authentication
+        run: gcloud projects list

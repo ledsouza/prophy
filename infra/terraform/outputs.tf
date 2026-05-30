@@ -51,3 +51,8 @@ output "migrate_job_name" {
   description = "Cloud Run Job name used by CI to run migrations before deploy."
   value       = google_cloud_run_v2_job.migrate.name
 }
+
+output "workload_identity_provider" {
+  description = "Full WIF provider resource name. Set as WIF_PROVIDER GitHub Actions variable for use with google-github-actions/auth."
+  value       = google_iam_workload_identity_pool_provider.github_actions.name
+}
