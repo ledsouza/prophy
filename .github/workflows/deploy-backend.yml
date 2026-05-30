@@ -1,0 +1,199 @@
+# Django backend pipeline — runs on every push and pull request.
+# The deploy job only runs when a push lands on main.
+#
+# Pipeline steps (deploy job):
+#   1. Authenticate to GCP using Workload Identity Federation (no long-lived keys).
+#   2. Build the backend Docker image (target: prod) from the repo root and push
+#      it to Artifact Registry, tagged with the git SHA and :latest.
+#   3. Update the Cloud Run migrate job to use the new image, then execute it.
+#      The job runs `manage.py migrate --noinput` against Cloud SQL before any
+#      traffic reaches the new revision.
+#   4. Deploy the new revision to Cloud Run and configure a startup probe so
+#      Cloud Run waits for gunicorn to be ready before routing traffic.
+#
+# ─── Required GitHub Actions variables ──────────────────────────────────────
+# Set these in: Settings → Secrets and variables → Actions → Variables
+#
+#   WIF_PROVIDER
+#     The full resource name of the Workload Identity Federation provider.
+#     Retrieve it after applying the Terraform configuration in infra/terraform/:
+#       terraform -chdir=infra/terraform output workload_identity_provider
+#
+#   CI_SA_EMAIL
+#     The service account email that GitHub Actions impersonates via WIF.
+#     Retrieve it after applying infra/terraform/:
+#       terraform -chdir=infra/terraform output ci_sa_email
+#
+#   CLOUD_SQL_CONNECTION_NAME
+#     The Cloud SQL instance connection name used to mount the Unix socket.
+#     Format: <project>:<region>:<instance>
+#     Retrieve it after applying infra/terraform/:
+#       terraform -chdir=infra/terraform output cloud_sql_connection_name
+#
+#   GCS_BUCKET_NAME
+#     The name of the Cloud Storage bucket used for media uploads.
+#     Retrieve it after applying infra/terraform/:
+#       terraform -chdir=infra/terraform output media_bucket_name
+#
+#   BACKEND_HOST
+#     The backend hostname without scheme (e.g. api.prophy.com).
+#     For initial deploys before a custom domain is mapped, use the Cloud Run
+#     generated URL — hostname only, no trailing slash, no https://.
+#     Retrieve the generated URL after the first deploy:
+#       gcloud run services describe prophy-backend \
+#         --region southamerica-east1 --format "value(status.url)"
+#     then strip the leading https://.
+#
+#   FRONTEND_HOST
+#     The frontend hostname without scheme (e.g. app.prophy.com).
+#     Used to set CORS_ALLOWED_ORIGINS and FRONTEND_URL on the backend service.
+#
+#   OIDC_AUDIENCE
+#     The full URL of the backend service, including scheme
+#     (e.g. https://api.prophy.com). Must match the audience configured in
+#     the Google OIDC provider used by Cloud Scheduler.
+#
+#   DEFAULT_FROM_EMAIL
+#     The sender address for outgoing email (e.g. noreply@prophy.com).
+#
+#   MAILGUN_DOMAIN
+#     The Mailgun sender domain (e.g. mg.prophy.com).
+#
+# ─── First-time setup (bootstrap) ───────────────────────────────────────────
+# Terraform requires a real image URI to create the Cloud Run migrate job.
+# On a brand-new environment, apply infra in two passes:
+#
+#   Pass 1 — build and push a bootstrap image, then apply Terraform:
+#     docker build --target prod -f backend/Dockerfile \
+#       -t southamerica-east1-docker.pkg.dev/prophy-497315/prophy/backend:init .
+#     docker push southamerica-east1-docker.pkg.dev/prophy-497315/prophy/backend:init
+#     terraform -chdir=infra/terraform apply \
+#       -var="backend_image_uri=southamerica-east1-docker.pkg.dev/prophy-497315/prophy/backend:init"
+#
+#   Pass 2 — populate secrets that are managed outside Terraform:
+#     grep '^DJANGO_SECRET_KEY=' backend/.env | cut -d= -f2- \
+#       | gcloud secrets versions add django-secret-key --data-file=-
+#     grep '^MAILGUN_API_KEY=' backend/.env | cut -d= -f2- \
+#       | gcloud secrets versions add mailgun-api-key --data-file=-
+#
+#   Pass 3 — set all GitHub Actions variables listed above, then push to main.
+#     CI will build the production image, run migrations, and deploy.
+#     After the first deploy, retrieve the Cloud Run URL, update BACKEND_HOST
+#     and OIDC_AUDIENCE to the real values, and push once more.
+
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  PROJECT_ID: prophy-497315
+  REGION: southamerica-east1
+  SERVICE_NAME: prophy-backend
+  MIGRATE_JOB: prophy-migrate
+  IMAGE_BASE: southamerica-east1-docker.pkg.dev/prophy-497315/prophy/backend
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install "poetry==2.4.1"
+
+      - name: Install dependencies
+        run: poetry install --with dev --no-root
+
+      - name: Run tests
+        run: poetry run pytest
+
+  deploy:
+    name: Deploy
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.CI_SA_EMAIL }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        id: image
+        run: |
+          IMAGE="${{ env.IMAGE_BASE }}:${{ github.sha }}"
+          docker build \
+            --target prod \
+            -f backend/Dockerfile \
+            -t "${IMAGE}" \
+            -t "${{ env.IMAGE_BASE }}:latest" \
+            .
+          docker push "${IMAGE}"
+          docker push "${{ env.IMAGE_BASE }}:latest"
+          echo "uri=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      - name: Update migrate job image
+        run: |
+          gcloud run jobs update ${{ env.MIGRATE_JOB }} \
+            --image "${{ steps.image.outputs.uri }}" \
+            --region ${{ env.REGION }}
+
+      - name: Run migrations
+        run: |
+          gcloud run jobs execute ${{ env.MIGRATE_JOB }} \
+            --region ${{ env.REGION }} \
+            --wait
+
+      - name: Deploy to Cloud Run
+        env:
+          IMAGE_URI: ${{ steps.image.outputs.uri }}
+          SQL_CONN: ${{ vars.CLOUD_SQL_CONNECTION_NAME }}
+          BACKEND_HOST: ${{ vars.BACKEND_HOST }}
+          FRONTEND_HOST: ${{ vars.FRONTEND_HOST }}
+          OIDC_AUD: ${{ vars.OIDC_AUDIENCE }}
+          GCS_BUCKET: ${{ vars.GCS_BUCKET_NAME }}
+          FROM_EMAIL: ${{ vars.DEFAULT_FROM_EMAIL }}
+          MG_DOMAIN: ${{ vars.MAILGUN_DOMAIN }}
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image "${IMAGE_URI}" \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --service-account "backend-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
+            --add-cloudsql-instances "${SQL_CONN}" \
+            --set-env-vars "DATABASE_ENGINE=postgres,POSTGRES_HOST=/cloudsql/${SQL_CONN},POSTGRES_DB=prophy,POSTGRES_USER=prophy,GCS_BUCKET_NAME=${GCS_BUCKET},DJANGO_ALLOWED_HOSTS=${BACKEND_HOST},CSRF_TRUSTED_ORIGINS=https://${BACKEND_HOST},CORS_ALLOWED_ORIGINS=https://${FRONTEND_HOST},OIDC_AUDIENCE=${OIDC_AUD},FRONTEND_URL=https://${FRONTEND_HOST},DEFAULT_FROM_EMAIL=${FROM_EMAIL},DOMAIN=${MG_DOMAIN}" \
+            --set-secrets "DJANGO_SECRET_KEY=django-secret-key:latest,POSTGRES_PASSWORD=postgres-password:latest,MAILGUN_API_KEY=mailgun-api-key:latest" \
+            --allow-unauthenticated
+
+      - name: Configure startup probe
+        # Sets a startup probe on the service so Cloud Run polls /api/health/
+        # and only routes traffic to a new revision once gunicorn responds.
+        # This prevents cold-start errors during rolling deploys.
+        run: |
+          gcloud run services update ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --startup-probe "initial-delay-seconds=5,period-seconds=5,failure-threshold=6,http-path=/api/health/"
