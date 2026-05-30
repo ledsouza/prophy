@@ -16,6 +16,6 @@ variable "db_password" {
 }
 
 variable "backend_image_uri" {
-  description = "Full Artifact Registry URI for the backend image (e.g. southamerica-east1-docker.pkg.dev/prophy-476319/prophy/backend:<sha>). Provided by Phase 4 CI at deploy time."
+  description = "Full Artifact Registry URI for the backend image (e.g. southamerica-east1-docker.pkg.dev/prophy-497315/prophy/backend:<sha>). Provided by Phase 4 CI at deploy time."
   type        = string
 }
