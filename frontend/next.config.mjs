@@ -11,6 +11,12 @@ const pkg = require("./package.json");
 
 const isProd = process.env.NODE_ENV === "production";
 
+const backendHostname =
+    process.env.NEXT_PUBLIC_HOST &&
+    !process.env.NEXT_PUBLIC_HOST.includes("localhost")
+        ? new URL(process.env.NEXT_PUBLIC_HOST).hostname
+        : "api.prophy.com";
+
 const devRemotePatterns = isProd
     ? []
     : [
@@ -56,7 +62,7 @@ const nextConfig = {
             },
             {
                 protocol: "https",
-                hostname: "api.prophy.com",
+                hostname: backendHostname,
                 port: "",
                 pathname: "/**",
             },

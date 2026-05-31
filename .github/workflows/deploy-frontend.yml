@@ -1,0 +1,139 @@
+# Next.js frontend pipeline — runs on every push and pull request.
+# The deploy job only runs when a push lands on main.
+#
+# Pipeline steps (deploy job):
+#   1. Authenticate to GCP using Workload Identity Federation (no long-lived keys).
+#   2. Build the frontend Docker image (target: prod) from the repo root with
+#      NEXT_PUBLIC_HOST baked in, then push to Artifact Registry tagged with
+#      the git SHA and :latest.
+#   3. Deploy the new revision to Cloud Run.
+#
+# ─── Required GitHub Actions variables ──────────────────────────────────────
+# Set these in: Settings → Secrets and variables → Actions → Variables
+#
+#   WIF_PROVIDER
+#     The full resource name of the Workload Identity Federation provider.
+#     Already set during issue #208. Retrieve with:
+#       terraform -chdir=infra/terraform output workload_identity_provider
+#
+#   CI_SA_EMAIL
+#     The service account email that GitHub Actions impersonates via WIF.
+#     Already set during issue #208. Retrieve with:
+#       terraform -chdir=infra/terraform output ci_sa_email
+#
+#   BACKEND_HOST
+#     The backend hostname without scheme (e.g. api.prophy.com).
+#     Already set during issue #209. Used here to bake NEXT_PUBLIC_HOST into
+#     the image at build time. Until the custom domain is mapped, this is the
+#     Cloud Run generated hostname:
+#       gcloud run services describe prophy-backend \
+#         --region southamerica-east1 --format "value(status.url)" \
+#         | sed 's|https://||'
+#
+# ─── First-time setup (bootstrap) ───────────────────────────────────────────
+# Cloud Run service URLs are deterministic — the hash in the URL is derived
+# from the GCP project number and is the same for every service in the same
+# project and region. Compute the frontend URL before it exists:
+#
+#   gcloud run services describe prophy-backend \
+#     --region southamerica-east1 \
+#     --format "value(status.url)" \
+#     | sed 's/prophy-backend/prophy-frontend/'
+#
+# Before merging this workflow:
+#   1. Set FRONTEND_HOST to the hostname from the command above (no https://).
+#   2. Re-trigger the backend pipeline so Django's CORS_ALLOWED_ORIGINS and
+#      FRONTEND_URL are updated before the frontend makes any API calls.
+#   3. Then merge — the frontend service will receive exactly the predicted URL.
+
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  PROJECT_ID: prophy-497315
+  REGION: southamerica-east1
+  SERVICE_NAME: prophy-frontend
+  IMAGE_BASE: southamerica-east1-docker.pkg.dev/prophy-497315/prophy/frontend
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_HOST: https://${{ vars.BACKEND_HOST }}
+        run: npm run build
+
+  deploy:
+    name: Deploy
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.CI_SA_EMAIL }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        id: image
+        run: |
+          IMAGE="${{ env.IMAGE_BASE }}:${{ github.sha }}"
+          docker build \
+            --platform linux/amd64 \
+            --target prod \
+            -f frontend/Dockerfile \
+            --build-arg NEXT_PUBLIC_HOST=https://${{ vars.BACKEND_HOST }} \
+            -t "${IMAGE}" \
+            -t "${{ env.IMAGE_BASE }}:latest" \
+            .
+          docker push "${IMAGE}"
+          docker push "${{ env.IMAGE_BASE }}:latest"
+          echo "uri=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image "${{ steps.image.outputs.uri }}" \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --service-account "frontend-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
+            --set-env-vars "HOSTNAME=0.0.0.0,PORT=8080" \
+            --min-instances=0 \
+            --max-instances=1 \
+            --allow-unauthenticated
