@@ -631,6 +631,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                             conclusion: "",
                             updates: "",
                             equipments: [],
+                            responsible_prophy: 0,
                         } as ServiceOrderDTO
                     }
                     unitId={appointment.unit}
