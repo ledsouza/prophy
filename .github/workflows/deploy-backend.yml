@@ -199,4 +199,4 @@ jobs:
         run: |
           gcloud run services update ${{ env.SERVICE_NAME }} \
             --region ${{ env.REGION }} \
-            --startup-probe "initial-delay-seconds=5,period-seconds=5,failure-threshold=6,http-path=/api/health/"
+            --startup-probe "httpGet.path=/api/health/,initialDelaySeconds=5,periodSeconds=5,failureThreshold=6"
