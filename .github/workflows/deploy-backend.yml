@@ -190,13 +190,5 @@ jobs:
             --set-secrets "DJANGO_SECRET_KEY=django-secret-key:latest,POSTGRES_PASSWORD=postgres-password:latest,MAILGUN_API_KEY=mailgun-api-key:latest" \
             --min-instances=0 \
             --max-instances=1 \
+            --startup-probe "httpGet.path=/api/health/,initialDelaySeconds=5,periodSeconds=5,failureThreshold=6" \
             --allow-unauthenticated
-
-      - name: Configure startup probe
-        # Sets a startup probe on the service so Cloud Run polls /api/health/
-        # and only routes traffic to a new revision once gunicorn responds.
-        # This prevents cold-start errors during rolling deploys.
-        run: |
-          gcloud run services update ${{ env.SERVICE_NAME }} \
-            --region ${{ env.REGION }} \
-            --startup-probe "httpGet.path=/api/health/,initialDelaySeconds=5,periodSeconds=5,failureThreshold=6"
