@@ -133,7 +133,7 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --service-account "frontend-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
-            --set-env-vars "HOSTNAME=0.0.0.0,PORT=8080" \
+            --set-env-vars "HOSTNAME=0.0.0.0" \
             --min-instances=0 \
             --max-instances=1 \
             --allow-unauthenticated
