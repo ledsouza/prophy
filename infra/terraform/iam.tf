@@ -23,8 +23,7 @@ resource "google_service_account_iam_member" "backend_token_creator_self" {
 # Resource-scoped grants live beside the resource they protect:
 #   - roles/artifactregistry.writer on the Docker repo → artifact_registry.tf (#200)
 #
-# scheduler-sa: no project-level grants needed.
-#   - roles/run.invoker on the backend Cloud Run service → Phase 4
+# scheduler-sa: resource-scoped grant on the backend Cloud Run service.
 
 resource "google_project_iam_member" "ci_run_admin" {
   project = var.project_id
@@ -50,4 +49,14 @@ resource "google_service_account_iam_member" "ci_act_as_frontend" {
   service_account_id = google_service_account.frontend.name
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.ci.email}"
+}
+
+# Cloud Run service is not managed by Terraform (deployed by CI), so the
+# service name is hardcoded rather than referenced as a resource.
+resource "google_cloud_run_v2_service_iam_member" "scheduler_backend_invoker" {
+  project  = var.project_id
+  location = var.region
+  name     = "prophy-backend"
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.scheduler.email}"
 }

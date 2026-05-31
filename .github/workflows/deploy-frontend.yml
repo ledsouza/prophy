@@ -23,9 +23,8 @@
 #
 #   BACKEND_HOST
 #     The backend hostname without scheme (e.g. api.prophy.com).
-#     Already set during issue #209. Used here to bake NEXT_PUBLIC_HOST into
-#     the image at build time. Until the custom domain is mapped, this is the
-#     Cloud Run generated hostname:
+#     Used here to bake NEXT_PUBLIC_HOST into the image at build time.
+#     Until the custom domain is mapped, this is the Cloud Run generated hostname:
 #       gcloud run services describe prophy-backend \
 #         --region southamerica-east1 --format "value(status.url)" \
 #         | sed 's|https://||'
