@@ -2,6 +2,11 @@ resource "google_cloud_run_v2_job" "migrate" {
   name     = "prophy-migrate"
   location = var.region
 
+  # CI updates the image on every deploy; the job may need to be
+  # recreated when Terraform changes its structure. Keeping this false
+  # avoids blocking Terraform-driven replacements.
+  deletion_protection = false
+
   depends_on = [google_project_service.apis]
 
   template {
