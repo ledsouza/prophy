@@ -62,6 +62,29 @@ def test_verify_reads_access_cookie_and_returns_valid_true():
 
 
 @pytest.mark.django_db
+def test_logout_deletion_cookies_match_auth_cookie_samesite_setting(settings):
+    # Simulate production where SameSite=None is required for
+    # cross-origin cookie deletion to work correctly.
+    settings.AUTH_COOKIE_SAMESITE = "None"
+
+    client = APIClient()
+    user = UserFactory(cpf="12345678901")
+
+    login = client.post(
+        "/api/jwt/create/",
+        {"cpf": user.cpf, "password": "testpass123"},
+        format="json",
+    )
+    assert login.status_code == status.HTTP_200_OK
+
+    response = client.post("/api/logout/", {}, format="json")
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert response.cookies["access"]["samesite"] == "None"
+    assert response.cookies["refresh"]["samesite"] == "None"
+
+
+@pytest.mark.django_db
 def test_logout_clears_access_and_refresh_cookies():
     client = APIClient()
     user = UserFactory(cpf="12345678901")
