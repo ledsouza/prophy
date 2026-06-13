@@ -23,6 +23,7 @@ import { Typography } from "@/components/foundation";
 import { APPOINTMENT_TYPE_OPTIONS, getAppointmentTypeById } from "@/constants/appointment";
 import AppointmentStatus from "@/enums/AppointmentStatus";
 import AppointmentType from "@/enums/AppointmentType";
+import { handleApiError } from "@/redux/services/errorHandling";
 import { child } from "@/utils/logger";
 
 type AppointmentScheduleFields = z.infer<typeof appointmentScheduleSchema>;
@@ -202,10 +203,9 @@ const AppointmentScheduleForm = ({
                 },
                 "Appointment schedule submit failed",
             );
-            toast.error(
-                isUpdate
-                    ? "Não foi possível atualizar a agenda. Verifique os dados e tente novamente."
-                    : "Não foi possível criar o agendamento. Verifique os dados e tente novamente.",
+            handleApiError(
+                err,
+                `Appointment schedule ${isUpdate ? "update" : "create"} failed`,
             );
         }
     };

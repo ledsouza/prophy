@@ -258,3 +258,69 @@ def test_appointments_list_filter_responsible_cpf_returns_empty_for_invalid_role
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["count"] == 0
+
+
+@pytest.mark.django_db
+def test_create_past_appointment_as_prophy_manager_succeeds():
+    api_client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    unit = UnitFactory()
+
+    payload = _appointment_payload(unit_id=unit.id)
+    payload["date"] = (timezone.now() - timezone.timedelta(days=1)).isoformat()
+
+    api_client.force_authenticate(user=prophy_manager)
+    response = api_client.post("/api/appointments/", payload)
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_create_past_appointment_as_internal_physicist_fails():
+    api_client = APIClient()
+    physicist = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
+    linked_client = ClientFactory()
+    linked_client.users.add(physicist)
+    unit = UnitFactory(client=linked_client)
+
+    payload = _appointment_payload(unit_id=unit.id)
+    payload["date"] = (timezone.now() - timezone.timedelta(days=1)).isoformat()
+
+    api_client.force_authenticate(user=physicist)
+    response = api_client.post("/api/appointments/", payload)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "date" in response.data
+
+
+@pytest.mark.django_db
+def test_create_past_appointment_as_commercial_fails():
+    api_client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    unit = UnitFactory()
+
+    payload = _appointment_payload(unit_id=unit.id)
+    payload["date"] = (timezone.now() - timezone.timedelta(days=1)).isoformat()
+
+    api_client.force_authenticate(user=commercial)
+    response = api_client.post("/api/appointments/", payload)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "date" in response.data
+
+
+@pytest.mark.django_db
+def test_update_past_appointment_date_as_prophy_manager_succeeds():
+    api_client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    appointment = AppointmentFactory()
+
+    past_date = (timezone.now() - timezone.timedelta(days=1)).isoformat()
+
+    api_client.force_authenticate(user=prophy_manager)
+    response = api_client.patch(
+        f"/api/appointments/{appointment.id}/",
+        {"date": past_date},
+    )
+
+    assert response.status_code == status.HTTP_200_OK

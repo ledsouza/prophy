@@ -1348,7 +1348,10 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
-        serializer = AppointmentSerializer(data=request.data)
+        serializer = AppointmentSerializer(
+            data=request.data,
+            context={"request": request},
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -1422,7 +1425,12 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
             )
 
         data = request.data.copy()
-        serializer = AppointmentSerializer(appointment, data=data, partial=partial)
+        serializer = AppointmentSerializer(
+            appointment,
+            data=data,
+            partial=partial,
+            context={"request": request},
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

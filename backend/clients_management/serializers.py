@@ -3,6 +3,7 @@ from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 from users.models import UserAccount
 
@@ -206,6 +207,19 @@ class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = "__all__"
+
+    def validate_date(self, value):
+        request = self.context.get("request")
+        if request is not None:
+            user: UserAccount = request.user
+            if (
+                user.role != UserAccount.Role.PROPHY_MANAGER
+                and value < timezone.now()
+            ):
+                raise serializers.ValidationError(
+                    "Não é permitido agendar uma visita no passado."
+                )
+        return value
 
     def to_representation(self, instance: Appointment):
         representation = super().to_representation(instance)
