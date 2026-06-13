@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useCallback, useEffect, useRef } from "react";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import clsx from "clsx";
 
@@ -12,8 +12,65 @@ type Props = {
 };
 
 const Modal = ({ children, isOpen, onClose, className }: Props) => {
+    const panelRef = useRef<HTMLDivElement>(null);
+    const pointerUpRecentlyRef = useRef(false);
+    const pointerDownInsidePanelRef = useRef(false);
+
+    // Headless UI closes the dialog on `pointerup`, which also fires when the
+    // user clicks or drags a scrollbar (scrollbars never emit a `click`).
+    // Suppress every pointer-driven close here and instead close from a real
+    // `click` (see handleClick). Escape and other non-pointer closes still
+    // pass through, so Headless UI keeps owning Escape.
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const onPointerUp = () => {
+            pointerUpRecentlyRef.current = true;
+            // Clear on the next task so that Headless UI's synchronous
+            // document-capture handler still sees the flag as true.
+            setTimeout(() => {
+                pointerUpRecentlyRef.current = false;
+            }, 0);
+        };
+
+        // Window capture runs before Headless UI's document-capture handler,
+        // so the flag is set by the time handleClose is invoked.
+        window.addEventListener("pointerup", onPointerUp, true);
+        return () => window.removeEventListener("pointerup", onPointerUp, true);
+    }, [isOpen]);
+
+    const handleClose = useCallback(
+        (value: boolean) => {
+            if (pointerUpRecentlyRef.current) return;
+            onClose(value);
+        },
+        [onClose],
+    );
+
+    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        pointerDownInsidePanelRef.current =
+            panelRef.current?.contains(e.target as Node) ?? false;
+    };
+
+    // Drive legitimate backdrop closes from the real `click` event.
+    // Scrollbar interactions never emit `click`, so they cannot close the modal.
+    // Guard against drag-from-panel-to-backdrop (text selection) by checking
+    // where the pointer-down originated.
+    const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const clickedInsidePanel =
+            panelRef.current?.contains(e.target as Node) ?? false;
+        if (!pointerDownInsidePanelRef.current && !clickedInsidePanel) {
+            onClose(false);
+        }
+    };
+
     return (
-        <Dialog open={isOpen} onClose={onClose} className="relative z-10" data-testid="modal">
+        <Dialog
+            open={isOpen}
+            onClose={handleClose}
+            className="relative z-10"
+            data-testid="modal"
+        >
             <DialogBackdrop
                 transition
                 className={clsx(
@@ -26,7 +83,11 @@ const Modal = ({ children, isOpen, onClose, className }: Props) => {
                 )}
             />
 
-            <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div
+                className="fixed inset-0 z-10 w-screen overflow-y-auto"
+                onPointerDown={handlePointerDown}
+                onClick={handleClick}
+            >
                 <div
                     className={clsx(
                         "flex min-h-full items-end justify-center",
@@ -35,6 +96,7 @@ const Modal = ({ children, isOpen, onClose, className }: Props) => {
                     )}
                 >
                     <DialogPanel
+                        ref={panelRef}
                         transition
                         className={clsx(
                             "relative w-full max-w-full transform overflow-visible rounded-none",
