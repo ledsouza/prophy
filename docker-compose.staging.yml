@@ -86,6 +86,7 @@ services:
 
   backend-tests:
     image: prophy-backend:staging
+    profiles: ["backend-tests"]
     build:
       context: .
       dockerfile: backend/Dockerfile

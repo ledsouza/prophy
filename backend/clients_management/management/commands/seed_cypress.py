@@ -498,9 +498,9 @@ class Command(BaseCommand):
     # --------------------------------------------------------- service orders
 
     def _seed_service_orders(self) -> None:
+        admin = UserAccount.objects.get(cpf=CPF_ADMIN)
         unit1000 = Unit.objects.get(id=1000)
         eq_list = list(Equipment.objects.filter(id__in=[1000, 1001]).order_by("id"))
-        tz = timezone.get_current_timezone()
 
         so1 = ServiceOrder.objects.create(
             id=1000,
@@ -513,6 +513,7 @@ class Command(BaseCommand):
                 "Equipamento calibrado e testado com sucesso. "
                 "Qualidade das imagens dentro dos parâmetros aceitáveis."
             ),
+            responsible_prophy=admin,
         )
         if eq_list:
             so1.equipments.add(eq_list[0])
@@ -540,6 +541,7 @@ class Command(BaseCommand):
                 "Manutenção preventiva executada conforme protocolo. "
                 "Equipamento liberado para uso."
             ),
+            responsible_prophy=admin,
         )
         if len(eq_list) > 1:
             so2.equipments.add(eq_list[1])

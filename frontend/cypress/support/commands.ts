@@ -56,7 +56,7 @@ Cypress.Commands.add("setupDB", () => {
 });
 
 Cypress.Commands.add("loginAs", (user: UserFixtureKey) => {
-    const apiUrl = (Cypress.env("apiUrl") as string | undefined)
+    const apiUrl = (Cypress.expose("apiUrl") as string | undefined)
         || "http://localhost:8000/api";
     const base = apiUrl.replace(/\/$/, "");
     const loginUrl = `${base}/jwt/create/`;

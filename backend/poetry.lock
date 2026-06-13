@@ -700,26 +700,28 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-anymail"
-version = "13.1"
-description = "Django email backends and webhooks for Amazon SES, Brevo,  MailerSend, Mailgun, Mailjet, Mandrill, Postal, Postmark, Resend,  Scaleway TEM, SendGrid, SparkPost, and Unisender Go  (EmailBackend, transactional email tracking and inbound email signals)"
+version = "15.0"
+description = "Django email backends and webhooks for Amazon SES, Brevo,  MailerSend, Mailgun, Mailjet, Mailtrap, Mandrill, Postal, Postmark, Resend,  Scaleway TEM, SendGrid, SparkPost, and Unisender Go  (EmailBackend, transactional email tracking and inbound email signals)"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_anymail-13.1-py3-none-any.whl", hash = "sha256:63e48402ec8258f17640eb73c8c64141f16d2f8ae7d448d0fb1c66e82b7cbcf6"},
-    {file = "django_anymail-13.1.tar.gz", hash = "sha256:b51783176f8a8382e958808151551558e4a46d1375fbc343742d1ebd06ce8e9e"},
+    {file = "django_anymail-15.0-py3-none-any.whl", hash = "sha256:64d33dd1084bfc8e4e12245f56629be40aa0b0498fc7fc7544d87b9b2048be1e"},
+    {file = "django_anymail-15.0.tar.gz", hash = "sha256:23d8ab6589afe8cc1ae7665c26879814ad192f4c3ed837a2a1868b0a056869e0"},
 ]
 
 [package.dependencies]
-django = ">=4.0"
+django = ">=5.0"
+idna = "*"
 requests = ">=2.4.3"
 urllib3 = ">=1.25.0"
 
 [package.extras]
 amazon-ses = ["boto3 (>=1.24.6)"]
-postal = ["cryptography ; python_version >= \"3.9\""]
+postal = ["cryptography"]
 resend = ["svix"]
-sendgrid = ["cryptography ; python_version >= \"3.9\""]
+sendgrid = ["cryptography"]
+uts46 = ["uts46"]
 
 [[package]]
 name = "django-cors-headers"
@@ -989,18 +991,21 @@ doc = ["Sphinx", "sphinx-rtd-theme", "sphinxcontrib-spelling"]
 
 [[package]]
 name = "faker"
-version = "28.4.1"
+version = "40.23.0"
 description = "Faker is a Python package that generates fake data for you."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "Faker-28.4.1-py3-none-any.whl", hash = "sha256:e59c01d1e8b8e20a83255ab8232c143cb2af3b4f5ab6a3f5ce495f385ad8ab4c"},
-    {file = "faker-28.4.1.tar.gz", hash = "sha256:4294d169255a045990720d6f3fa4134b764a4cdf46ef0d3c7553d2506f1adaa1"},
+    {file = "faker-40.23.0-py3-none-any.whl", hash = "sha256:775922453e54afa42eaf60eac478fa3a969357f224d09a8022b93e3ad88f18ae"},
+    {file = "faker-40.23.0.tar.gz", hash = "sha256:f135e563f1f95f19346bb680bc2e43570bc43b7893e566023746f51f32c69dfc"},
 ]
 
 [package.dependencies]
-python-dateutil = ">=2.4"
+tzdata = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+tzdata = ["tzdata"]
 
 [[package]]
 name = "google-api-core"
@@ -2794,7 +2799,7 @@ description = "Provider of IANA time zone data"
 optional = false
 python-versions = ">=2"
 groups = ["main", "dev"]
-markers = "sys_platform == \"win32\""
+markers = "sys_platform == \"win32\" or platform_system == \"Windows\""
 files = [
     {file = "tzdata-2026.2-py2.py3-none-any.whl", hash = "sha256:bbe9af844f658da81a5f95019480da3a89415801f6cc966806612cc7169bffe7"},
     {file = "tzdata-2026.2.tar.gz", hash = "sha256:9173fde7d80d9018e02a662e168e5a2d04f87c41ea174b139fbef642eda62d10"},
@@ -2832,13 +2837,14 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 
 [[package]]
 name = "validate-docbr"
-version = "1.11.1"
+version = "2.0.0"
 description = "Validate brazilian documents."
 optional = false
-python-versions = "*"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "validate_docbr-1.11.1-py3-none-any.whl", hash = "sha256:dcd58ba672f0661f387515e42a26e9fc201b437498b9de7e96369a7e9563f36c"},
+    {file = "validate_docbr-2.0.0-py3-none-any.whl", hash = "sha256:08b4a7c49ea1018179151dad94b7192425925b0b23fed0045f3261831a4ae43c"},
+    {file = "validate_docbr-2.0.0.tar.gz", hash = "sha256:c7693783718c7c3d90bdb759a6b41eca647fb297d74a50e0bcdc6244690a8545"},
 ]
 
 [[package]]
@@ -2871,4 +2877,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "4a9d039993cd0c8c33ed1edbdf28957b2c09d959b5309b25dc010b92a8a1461f"
+content-hash = "3c5d59e8c1b70529d9f6726d023edc165b3f3a8b2143775a8283aab99034542c"

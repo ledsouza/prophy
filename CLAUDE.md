@@ -24,6 +24,7 @@ Infrastructure is Terraform-managed (`infra/terraform/`). CI/CD runs via GitHub 
 - **Analyze before implementing.** Read existing patterns, components, and utilities before writing new code. Match the established style of the surrounding code.
 - **Do not run the application.** The user is responsible for running the dev server.
 - **Ask when ambiguous.** If a request is unclear or could be improved, raise it rather than guessing.
+- **Never edit `pyproject.toml` directly.** Always use the Poetry CLI (`poetry add`, `poetry remove`) to manage backend dependencies.
 
 ## Commands
 

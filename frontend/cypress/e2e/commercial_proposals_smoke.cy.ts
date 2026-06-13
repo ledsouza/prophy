@@ -44,7 +44,6 @@ describe("commercial - proposals smoke", () => {
 
                 cy.getByCy("proposal-edit-modal").should("exist");
                 cy.getByCy("proposal-edit-submit")
-                    .scrollIntoView()
                     .should("be.visible")
                     .click();
 

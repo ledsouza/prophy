@@ -61,20 +61,16 @@ describe("prophy manager - search clients", () => {
                         });
                 } else {
                     cy.getByCy("clients-results")
-                        .find('[data-cy^="client-row-"]')
-                        .should("have.length", 1);
-                    cy.getByCy("clients-results")
-                        .find('[data-cy^="client-details-"]:visible')
-                        .first()
+                        .contains('[data-cy^="client-row-"]', maskedCnpj)
+                        .find('[data-cy^="client-details-"]')
                         .click();
                 }
 
                 cy.url().should("include", `/dashboard/client/${cnpj}`);
 
-                cy.visit("/dashboard");
-                cy.getByCy("search-tab-clients").click();
-                cy.getByCy("clients-filter-cnpj").clear().type(cnpj);
-                cy.getByCy("clients-apply-filters").click();
+                cy.visit(
+                    `/dashboard?tab=clients&client_page=1&clients_cnpj=${cnpj}`,
+                );
 
                 cy.getByCy("clients-results").should("contain", maskedCnpj);
 
@@ -87,8 +83,12 @@ describe("prophy manager - search clients", () => {
                         });
                 } else {
                     cy.getByCy("clients-results")
+                        .find('[data-cy^="client-row-"]')
+                        .should("have.length", 1)
+                        .should("contain.text", maskedCnpj);
+                    cy.getByCy("clients-results")
                         .find('[data-cy^="client-proposals-"]:visible')
-                        .first()
+                        .should("have.length", 1)
                         .click();
                 }
 

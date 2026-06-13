@@ -4,7 +4,7 @@ import {
     describeForViewports,
 } from "../support/e2eTestUtils";
 
-const API_URL = Cypress.env("apiUrl") as string;
+const API_URL = Cypress.expose("apiUrl") as string;
 const PROFILE_URL = "/dashboard/profile";
 const PROFILE_ENDPOINT = `${API_URL}/users/me/`;
 const CHANGE_PASSWORD_ENDPOINT = `${API_URL}/users/set_password/`;

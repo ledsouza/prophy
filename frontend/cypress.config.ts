@@ -11,14 +11,15 @@ export default defineConfig({
     pageLoadTimeout: 120000,
     responseTimeout: 30000,
 
+    allowCypressEnv: false,
+
     e2e: {
         baseUrl: process.env.CYPRESS_BASE_URL || "http://localhost:3000",
-        setupNodeEvents(on, config) {
+        setupNodeEvents(on, _config) {
             on("task", {
                 "db:seed": async () => {
                     const baseUrl =
                         process.env.CYPRESS_API_URL
-                        || config.env.apiUrl
                         || "http://localhost:8000/api";
                     const cypressManageUrl = `${baseUrl.replace(/\/$/, "")}/../__cypress__/manage/`;
                     const csrfUrl = `${baseUrl.replace(/\/$/, "")}/../__cypress__/csrftoken/`;
@@ -83,7 +84,7 @@ export default defineConfig({
         },
     },
 
-    env: {
+    expose: {
         apiUrl: process.env.CYPRESS_API_URL || "http://localhost:8000/api",
     },
 });
