@@ -904,6 +904,8 @@ class Command(BaseCommand):
                 "equipments": [eq.id for eq in service_order_obj.equipments.all()],
             }
 
+        admin_user = UserAccount.objects.get(cpf=CPF_ADMIN)
+
         # Default service orders for automated testing (use the first two equipments deterministically)
         default_equipments = list(
             Equipment.objects.filter(id__in=[1000, 1001]).order_by("id")
@@ -919,6 +921,7 @@ class Command(BaseCommand):
                 "Equipamento calibrado e testado com sucesso. Funcionamento normal restabelecido. "
                 "Qualidade das imagens dentro dos parâmetros aceitáveis."
             ),
+            responsible_prophy=admin_user,
             id=1000,
         )
         if default_equipments:
@@ -959,6 +962,7 @@ class Command(BaseCommand):
                 "Manutenção preventiva executada conforme protocolo. Equipamento liberado para uso. "
                 "Próxima manutenção agendada para 6 meses."
             ),
+            responsible_prophy=admin_user,
             id=1001,
         )
         if len(default_equipments) > 1:
@@ -1064,6 +1068,7 @@ class Command(BaseCommand):
                     subject=subject,
                     description=description,
                     conclusion=conclusion,
+                    responsible_prophy=admin_user,
                 )
 
                 # Associate 1-3 equipments from the same unit
