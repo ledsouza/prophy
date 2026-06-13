@@ -288,3 +288,6 @@ frontend/cypress/screenshots/
 .vscode/
 .claude/
 .mcp.json
+
+# Playwright MCP local files
+.playwright-mcp/
