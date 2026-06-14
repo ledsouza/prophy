@@ -5,8 +5,11 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("appointments - GP calendar view", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("admin_user");
         applyViewport(DESKTOP_VIEWPORT.value);
     });

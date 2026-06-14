@@ -1,5 +1,5 @@
 describe("reset password", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

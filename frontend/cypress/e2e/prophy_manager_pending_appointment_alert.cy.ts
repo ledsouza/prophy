@@ -5,8 +5,11 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("prophy manager - pending appointment alerts", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("admin_user");
         applyViewport(DESKTOP_VIEWPORT.value);
     });
@@ -17,6 +20,7 @@ describe("prophy manager - pending appointment alerts", () => {
             const compliantCnpj: string = data.compliant_cnpj;
             const resetFilters = () => {
                 cy.getByCy("clients-clear-filters").click();
+                cy.url().should("not.include", "clients_cnpj");
                 cy.getByCy("clients-filter-cnpj").should("have.value", "");
                 cy.getByCy("clients-results").should("exist");
             };
@@ -73,6 +77,7 @@ describe("prophy manager - pending appointment alerts", () => {
             const compliantCnpj: string = data.compliant_cnpj;
             const resetFilters = () => {
                 cy.getByCy("clients-clear-filters").click();
+                cy.url().should("not.include", "clients_cnpj");
                 cy.getByCy("clients-filter-cnpj").should("have.value", "");
                 cy.getByCy("clients-results").should("exist");
             };

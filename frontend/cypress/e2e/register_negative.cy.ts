@@ -1,5 +1,5 @@
 describe("register - negative cases", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

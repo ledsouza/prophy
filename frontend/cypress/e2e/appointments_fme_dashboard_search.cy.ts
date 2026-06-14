@@ -1,6 +1,9 @@
 describe("appointments - FME dashboard search", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("external_physicist_user");
     });
 

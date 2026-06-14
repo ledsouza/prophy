@@ -85,6 +85,7 @@ const Modal = ({ children, isOpen, onClose, className }: Props) => {
 
             <div
                 className="fixed inset-0 z-10 w-screen overflow-y-auto"
+                data-cy="modal-scroll-container"
                 onPointerDown={handlePointerDown}
                 onClick={handleClick}
             >

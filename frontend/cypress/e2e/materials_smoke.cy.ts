@@ -8,7 +8,7 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("materials - smoke", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

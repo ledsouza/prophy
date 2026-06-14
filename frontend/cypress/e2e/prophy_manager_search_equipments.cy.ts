@@ -5,8 +5,11 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("prophy manager - search equipments", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("admin_user");
     });
 

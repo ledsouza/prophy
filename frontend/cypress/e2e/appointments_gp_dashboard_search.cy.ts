@@ -1,6 +1,9 @@
 describe("appointments - GP dashboard search", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("admin_user");
         cy.intercept("POST", "**/api/jwt/verify/").as("verifyAuth");
         cy.intercept("GET", "**/api/users/me/").as("retrieveUser");

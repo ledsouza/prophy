@@ -1,6 +1,9 @@
 describe("appointments - GP dashboard filter client name", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("admin_user");
     });
 

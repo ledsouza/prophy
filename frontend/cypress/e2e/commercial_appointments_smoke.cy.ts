@@ -1,6 +1,9 @@
 describe("commercial - appointments smoke", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("comercial_user");
     });
 

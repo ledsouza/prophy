@@ -1,8 +1,11 @@
 import { MOBILE_VIEWPORT, applyViewport } from "../support/e2eTestUtils";
 
 describe("Responsive layout shell", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         applyViewport(MOBILE_VIEWPORT.value);
         cy.loginAs("admin_user");
     });

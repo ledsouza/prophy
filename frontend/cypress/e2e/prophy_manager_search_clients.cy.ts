@@ -6,8 +6,11 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("prophy manager - search clients", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("admin_user");
     });
 

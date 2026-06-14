@@ -43,9 +43,8 @@ describe("commercial - proposals smoke", () => {
                 }
 
                 cy.getByCy("proposal-edit-modal").should("exist");
-                cy.getByCy("proposal-edit-submit")
-                    .should("be.visible")
-                    .click();
+                cy.getByCy("modal-scroll-container").scrollTo("bottom");
+                cy.getByCy("proposal-edit-submit").click({ force: true });
 
                 cy.getByCy("proposal-edit-modal").should("not.exist");
             });

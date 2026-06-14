@@ -1,6 +1,9 @@
 describe("appointments - FMI dashboard search", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("internal_physicist_user");
     });
 
