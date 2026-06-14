@@ -109,7 +109,7 @@ const SelectContent = ({
                     anchor={resolvedAnchor}
                     data-cy={optionsDataCy}
                     className={cn(
-                        "z-9999 overflow-auto rounded-md bg-white py-1",
+                        "z-9999 max-h-56 overflow-auto rounded-md bg-white py-1",
                         "text-base shadow-lg ring-1 ring-black ring-opacity-5",
                         "focus:outline-none data-closed:data-leave:opacity-0",
                         "data-leave:transition data-leave:duration-100 data-leave:ease-in",
