@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import OuterRef, Subquery
 from django.db.models.query import QuerySet
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
 from users.models import UserAccount
 
@@ -22,7 +23,7 @@ class Command(BaseCommand):
 
         # We want to notify exactly one month in advance.
         # Let's run this command daily and catch anything due in 30-31 days.
-        today = date.today()
+        today = timezone.localdate()
         target_date_start = today + timedelta(days=30)
         target_date_end = today + timedelta(days=31)
 

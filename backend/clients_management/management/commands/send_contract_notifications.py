@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Max
 from django.db.models.query import QuerySet
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
 from users.models import UserAccount
 
@@ -26,7 +27,7 @@ class Command(BaseCommand):
             "Starting contract notification check (renewal + win-back)..."
         )
 
-        today = date.today()
+        today = timezone.localdate()
         threshold_date = today - relativedelta(months=11)
 
         renewal_count = self._send_renewal_notifications(threshold_date)

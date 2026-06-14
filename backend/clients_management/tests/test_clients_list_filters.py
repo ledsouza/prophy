@@ -206,7 +206,7 @@ def test_clients_list_needs_appointment_true_when_annual_accepted_proposal_has_n
     )
     unit = UnitFactory(client=client_op.client_ptr)
 
-    proposal_date = timezone.now().date()
+    proposal_date = timezone.localdate()
     ProposalFactory(
         cnpj=client_op.cnpj,
         status="A",

@@ -74,15 +74,15 @@ def test_send_due_report_notifications__sends_to_eligible_client_users(
         cnpj=equipment.unit.client.cnpj,
         contract_type=Proposal.ContractType.ANNUAL,
         status=Proposal.Status.ACCEPTED,
-        date=timezone.now().date(),
+        date=timezone.localdate(),
     )
     report = ReportFactory(
         equipment=equipment,
         unit=None,
         report_type=Report.ReportType.QUALITY_CONTROL,
-        completion_date=timezone.now().date(),
+        completion_date=timezone.localdate(),
     )
-    report.due_date = timezone.now().date() + timedelta(days=30)
+    report.due_date = timezone.localdate() + timedelta(days=30)
     report.save(update_fields=["due_date"])
 
     call_command("send_due_report_notifications")
@@ -150,16 +150,16 @@ def test_send_due_report_notifications__excludes_managers_when_latest_contract_i
         cnpj=equipment.unit.client.cnpj,
         contract_type=Proposal.ContractType.MONTHLY,
         status=Proposal.Status.ACCEPTED,
-        date=timezone.now().date(),
+        date=timezone.localdate(),
     )
 
     report = ReportFactory(
         equipment=equipment,
         unit=None,
         report_type=Report.ReportType.QUALITY_CONTROL,
-        completion_date=timezone.now().date(),
+        completion_date=timezone.localdate(),
     )
-    report.due_date = timezone.now().date() + timedelta(days=30)
+    report.due_date = timezone.localdate() + timedelta(days=30)
     report.save(update_fields=["due_date"])
 
     call_command("send_due_report_notifications")
@@ -194,7 +194,7 @@ def test_send_contract_notifications__renewal_sends_to_gp_commercial_and_client_
         return_value=message_instance,
     )
 
-    threshold_date = timezone.now().date() - relativedelta(months=11)
+    threshold_date = timezone.localdate() - relativedelta(months=11)
     cnpj = "12345678000190"
 
     gp = UserFactory(role=UserAccount.Role.PROPHY_MANAGER, email="gp@example.com")
@@ -262,7 +262,7 @@ def test_send_contract_notifications__winback_sends_only_to_commercial(
         return_value=message_instance,
     )
 
-    threshold_date = timezone.now().date() - relativedelta(months=11)
+    threshold_date = timezone.localdate() - relativedelta(months=11)
     cnpj = "98765432000198"
 
     commercial = UserFactory(
@@ -297,7 +297,7 @@ def test_send_contract_notifications__winback_skips_if_there_is_later_active_pro
         "clients_management.management.commands.send_contract_notifications.AnymailMessage.send"
     )
 
-    threshold_date = timezone.now().date() - relativedelta(months=11)
+    threshold_date = timezone.localdate() - relativedelta(months=11)
     cnpj = "11111111000191"
 
     commercial = UserFactory(
