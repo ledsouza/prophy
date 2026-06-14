@@ -23,7 +23,8 @@ function ClientContact({ client }: ClientContactProps) {
         userData?.role === Role.GGC ||
         userData?.role === Role.GU ||
         userData?.role === Role.FME ||
-        userData?.role === Role.GP
+        userData?.role === Role.GP ||
+        userData?.role === Role.C
     ) {
         return (
             <>

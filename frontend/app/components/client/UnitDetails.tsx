@@ -5,8 +5,10 @@ import {
     UnitOperationDTO,
     useDeleteUnitOperationMutation,
 } from "@/redux/features/unitApiSlice";
+import { useListAllClientsQuery } from "@/redux/features/clientApiSlice";
 
 import { formatPhoneNumber } from "@/utils/format";
+import { getUserByRole } from "@/utils/api";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
 
 import { ArrowFatLineLeftIcon } from "@phosphor-icons/react";
@@ -41,6 +43,13 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const isGGC = userData?.role === Role.GGC;
     const isGU = userData?.role === Role.GU;
     const isCommercial = userData?.role === Role.C;
+
+    const { data: clients } = useListAllClientsQuery();
+    const client = clients?.find((c) => c.id === unit.client);
+    const gerenteProphy = client ? getUserByRole(client, Role.GP) : undefined;
+    const fisicoInterno = client ? getUserByRole(client, Role.FMI) : undefined;
+    const fisicoExterno = client ? getUserByRole(client, Role.FME) : undefined;
+    const comercial = client ? getUserByRole(client, Role.C) : undefined;
     const [buttonsState, setButtonsState] = useState<ButtonsState>(ButtonsState.REVIEWNONSTAFF);
     const [loadingCancel, setLoadingCancel] = useState(false);
 
@@ -297,6 +306,83 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                     )}
                 </div>
             )}
+
+            <div>
+                <Typography
+                    element="h3"
+                    size="title3"
+                    className="font-bold"
+                    dataTestId="responsable-medical-physicist-header"
+                >
+                    Físico Médico Responsável
+                </Typography>
+
+                {gerenteProphy || fisicoInterno || fisicoExterno ? (
+                    <div className="flex flex-col gap-3">
+                        {gerenteProphy && (
+                            <Typography element="p" size="md">
+                                {gerenteProphy.name}
+                                <br />
+                                {formatPhoneNumber(gerenteProphy.phone)}
+                                <br />
+                                {gerenteProphy.email}
+                            </Typography>
+                        )}
+
+                        {fisicoInterno && (
+                            <Typography element="p" size="md">
+                                {fisicoInterno.name}
+                                <br />
+                                {formatPhoneNumber(fisicoInterno.phone)}
+                                <br />
+                                {fisicoInterno.email}
+                            </Typography>
+                        )}
+
+                        {fisicoExterno && userData?.role !== Role.FME && (
+                            <Typography element="p" size="md">
+                                {fisicoExterno.name}
+                                <br />
+                                {formatPhoneNumber(fisicoExterno.phone)}
+                                <br />
+                                {fisicoExterno.email}
+                            </Typography>
+                        )}
+                    </div>
+                ) : (
+                    <Typography dataTestId="empty-responsable-medical-physicist">
+                        Designaremos um físico médico para esta unidade e, em breve,
+                        disponibilizaremos os dados de contato do profissional responsável.
+                    </Typography>
+                )}
+            </div>
+
+            <div>
+                <Typography
+                    element="h3"
+                    size="title3"
+                    className="font-bold"
+                    dataTestId="comercial-header"
+                >
+                    Gerente Comercial
+                </Typography>
+
+                {comercial || gerenteProphy ? (
+                    <Typography element="p" size="md">
+                        {comercial?.name || gerenteProphy?.name}
+                        <br />
+                        {formatPhoneNumber(comercial?.phone) ||
+                            formatPhoneNumber(gerenteProphy?.phone)}
+                        <br />
+                        {comercial?.email || gerenteProphy?.email}
+                    </Typography>
+                ) : (
+                    <Typography dataTestId="empty-comercial">
+                        Designaremos um gerente comercial para esta unidade e, em breve,
+                        disponibilizaremos os dados de contato do profissional responsável.
+                    </Typography>
+                )}
+            </div>
         </div>
     );
 }
