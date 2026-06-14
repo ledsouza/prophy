@@ -142,7 +142,7 @@ export default function Navbar() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
                     {userInitials || "U"}
                 </div>
-                <div className="min-w-0">
+                <div className={`min-w-0 ${!isMobile ? "max-w-[160px]" : ""}`}>
                     <p className="truncate text-sm font-semibold text-primary">{userData.name}</p>
                     <p className="truncate text-xs text-gray-primary">{roleLabel(userData.role)}</p>
                 </div>
@@ -156,7 +156,7 @@ export default function Navbar() {
                 <>
                     <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
                         <div className="relative flex h-16 items-center">
-                            <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+                            <div className="absolute inset-y-0 left-0 flex items-center md:hidden">
                                 <DisclosureButton className="inline-flex items-center justify-center rounded-md p-2 text-primary hover:bg-quaternary/60 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-tertiary">
                                     <span className="sr-only">Abrir menu principal</span>
                                     {open ? (
@@ -166,8 +166,8 @@ export default function Navbar() {
                                     )}
                                 </DisclosureButton>
                             </div>
-                            <div className="flex w-full items-center justify-between">
-                                <div className="flex items-center gap-3 pl-12 sm:pl-0">
+                            <div className="flex w-full items-center">
+                                <div className="flex items-center gap-3 pl-12 md:pl-0">
                                     <Link
                                         href="/"
                                         aria-label="Prophy"
@@ -184,7 +184,7 @@ export default function Navbar() {
                                     </Link>
                                 </div>
 
-                                <div className="hidden sm:block absolute left-1/2 -translate-x-1/2">
+                                <div className="hidden md:flex flex-1 justify-center">
                                     <div className="flex items-center gap-2">
                                         {isAuthenticated ? (
                                             <>
@@ -231,7 +231,7 @@ export default function Navbar() {
                                     </div>
                                 </div>
 
-                                <div className="hidden sm:flex items-center">
+                                <div className="hidden md:flex items-center">
                                     {isAuthenticated && userIdentity(false)}
                                     {isAuthenticated && (
                                         <NavLink
@@ -248,7 +248,7 @@ export default function Navbar() {
                         </div>
                     </div>
 
-                    <DisclosurePanel className="sm:hidden">
+                    <DisclosurePanel className="md:hidden">
                         <div className="space-y-1 px-2 pb-3 pt-2">
                             {userIdentity(true)}
                             {isAuthenticated ? authLinks(true) : guestLinks(true)}
