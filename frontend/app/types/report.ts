@@ -4,6 +4,9 @@ export type ReportTypeCode =
     | "TE"
     | "LR"
     | "M"
+    | "MCDI"
+    | "MUS"
+    | "MRM"
     | "TR"
     | "TSR"
     | "AD"
@@ -65,6 +68,9 @@ export const reportTypeLabel: Record<ReportTypeCode, string> = {
     TE: "Teste de EPI",
     LR: "Levantamento Radiométrico e Fuga de Cabeçote",
     M: "Memorial",
+    MCDI: "Memorial CDI",
+    MUS: "Memorial US",
+    MRM: "Memorial RM",
     TR: "Treinamento de Radioproteção",
     TSR: "Treinamento de Segurança em Ressonância Magnética",
     AD: "Ato de designação",

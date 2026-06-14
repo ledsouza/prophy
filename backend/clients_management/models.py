@@ -718,6 +718,9 @@ class Report(models.Model):
         EPI_TEST = "TE", "Teste de EPI"
         RADIOMETRIC_SURVEY = "LR", "Levantamento Radiométrico e Fuga de Cabeçote"
         MEMORIAL = "M", "Memorial"
+        MEMORIAL_CDI = "MCDI", "Memorial CDI"
+        MEMORIAL_US = "MUS", "Memorial US"
+        MEMORIAL_RM = "MRM", "Memorial RM"
         RADIOPROTECTION_TRAINING = "TR", "Treinamento de Radioproteção"
         MRI_SAFETY_TRAINING = "TSR", "Treinamento de Segurança em Ressonância Magnética"
         DESIGNATION_ACT = "AD", "Ato de designação"
@@ -734,6 +737,9 @@ class Report(models.Model):
     UNIT_ONLY_TYPES = [
         ReportType.MONITOR_QUALITY_CONTROL,
         ReportType.MEMORIAL,
+        ReportType.MEMORIAL_CDI,
+        ReportType.MEMORIAL_US,
+        ReportType.MEMORIAL_RM,
         ReportType.RADIOPROTECTION_TRAINING,
         ReportType.MRI_SAFETY_TRAINING,
         ReportType.DESIGNATION_ACT,
@@ -770,7 +776,7 @@ class Report(models.Model):
     )
     report_type = models.CharField(
         "Tipo",
-        max_length=3,
+        max_length=4,
         choices=ReportType.choices,
     )
     deleted_at = models.DateTimeField(

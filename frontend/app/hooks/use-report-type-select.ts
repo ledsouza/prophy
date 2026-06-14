@@ -3,7 +3,7 @@ import { reportTypeLabel, type ReportTypeCode } from "@/types/report";
 import type { SelectData } from "@/components/forms/Select";
 
 const ALL_EQUIPMENT_ONLY_TYPES: ReportTypeCode[] = ["CQ", "TE", "LR"];
-const ALL_UNIT_ONLY_TYPES: ReportTypeCode[] = ["CQM", "M", "TR", "TSR", "AD", "ID", "POP", "O"];
+const ALL_UNIT_ONLY_TYPES: ReportTypeCode[] = ["CQM", "M", "MCDI", "MUS", "MRM", "TR", "TSR", "AD", "ID", "POP", "O"];
 
 type UseReportTypeSelectParams = {
     isUnit: boolean;
