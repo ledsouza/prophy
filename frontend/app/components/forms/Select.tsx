@@ -1,7 +1,7 @@
 "use client";
 
 import cn from "classnames";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Role from "@/enums/Role";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
@@ -19,6 +19,30 @@ import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { Typography } from "@/components/foundation";
 
 type SelectAnchor = "top" | "top start" | "top end" | "bottom" | "bottom start" | "bottom end";
+
+/*
+ * Detects whether a pointer event landed on a scrollbar gutter — the gap
+ * between an element's content edge (clientWidth/clientHeight, which excludes
+ * the scrollbar track) and its border-box edge (reported by
+ * getBoundingClientRect). Scrollbar clicks never emit `click`, so callers can
+ * safely call `preventDefault()` on `pointerup` for these without blocking
+ * genuine outside-click-to-close interactions.
+ */
+function isOnScrollbarGutter(e: PointerEvent, target: Element): boolean {
+    if (target === document.documentElement || target === document.body) {
+        return (
+            e.clientX >= document.documentElement.clientWidth ||
+            e.clientY >= document.documentElement.clientHeight
+        );
+    }
+    const rect = target.getBoundingClientRect();
+    return (
+        (e.clientX > rect.left + target.clientWidth &&
+            e.clientX <= rect.right) ||
+        (e.clientY > rect.top + target.clientHeight &&
+            e.clientY <= rect.bottom)
+    );
+}
 
 type SelectContentProps = {
     label: string;
@@ -40,6 +64,7 @@ type SelectContentProps = {
     listOptionStyles: string;
     listOptionSize: "sm" | "md" | "lg";
     optionsAnchor?: SelectAnchor;
+    open: boolean;
 };
 
 const SelectContent = ({
@@ -62,12 +87,46 @@ const SelectContent = ({
     listOptionStyles,
     listOptionSize,
     optionsAnchor,
+    open,
 }: SelectContentProps) => {
     const [resolvedAnchor, setResolvedAnchor] = useState<SelectAnchor | undefined>(optionsAnchor);
+    const optionsPanelRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         setResolvedAnchor(optionsAnchor);
     }, [optionsAnchor]);
+
+    /*
+     * Headless UI v2 registers a capture-phase `pointerup` listener on
+     * `document` that closes the Listbox unless `event.defaultPrevented` is
+     * true (source: headlessui.dev.cjs ~line 3650). A window capture listener
+     * fires before the document capture listener, so `preventDefault()` here
+     * is seen by Headless UI in time. We suppress the close for two cases:
+     *
+     * 1. Dropdown's own scrollbar — target is inside the options panel.
+     * 2. Page / modal scrollbar — target is a scroll container whose pointer
+     *    coordinates land in the scrollbar gutter (between clientWidth and the
+     *    border-box right edge). This is the same principle used in Modal.tsx:
+     *    scrollbar interactions never emit `click`, so genuine outside clicks
+     *    are unaffected.
+     *
+     * Option selection uses `click`, which is not suppressed by this handler.
+     */
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: PointerEvent) => {
+            const target = (e.composedPath?.()[0] ?? e.target) as Element | null;
+            if (!target || !(target instanceof Element)) return;
+            if (
+                optionsPanelRef.current?.contains(target) ||
+                isOnScrollbarGutter(e, target)
+            ) {
+                e.preventDefault();
+            }
+        };
+        window.addEventListener("pointerup", handler, true);
+        return () => window.removeEventListener("pointerup", handler, true);
+    }, [open]);
 
     return (
         <>
@@ -104,6 +163,7 @@ const SelectContent = ({
                 </ListboxButton>
 
                 <ListboxOptions
+                    ref={optionsPanelRef}
                     modal={false}
                     transition
                     anchor={resolvedAnchor}
@@ -301,8 +361,9 @@ const Select = ({
         <div data-testid={dataTestId} data-cy={dataCy}>
             <Field disabled={disabled}>
                 <Listbox value={selectedData} onChange={setSelect} by="id">
-                    {() => (
+                    {({ open }) => (
                         <SelectContent
+                            open={open}
                             label={label}
                             labelAddon={labelAddon}
                             labelSize={labelSize}
