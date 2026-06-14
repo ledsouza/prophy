@@ -304,12 +304,22 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
 
     # Description
     story.append(Paragraph("Descrição", styles["Section"]))
-    story.append(Paragraph(order.description, styles["Normal"]))
+    story.append(
+        Paragraph(
+            order.description.replace("\n", "<br/>"),
+            styles["Normal"],
+        )
+    )
     story.append(Spacer(1, 6))
 
     # Conclusion
     story.append(Paragraph("Conclusão", styles["Section"]))
-    story.append(Paragraph(order.conclusion, styles["Normal"]))
+    story.append(
+        Paragraph(
+            order.conclusion.replace("\n", "<br/>"),
+            styles["Normal"],
+        )
+    )
 
     # Updates (optional)
     updates_text = (order.updates or "").strip()
