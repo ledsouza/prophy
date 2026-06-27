@@ -25,7 +25,7 @@ def test_report_clean_equipment_only_requires_equipment_and_forbids_unit():
         unit=unit,
         completion_date=date.today(),
         report_type=Report.ReportType.QUALITY_CONTROL,
-        file=_pdf_file(),
+        pdf_file=_pdf_file(),
     )
 
     with pytest.raises(ValidationError):
@@ -36,7 +36,7 @@ def test_report_clean_equipment_only_requires_equipment_and_forbids_unit():
         equipment=equipment,
         completion_date=date.today(),
         report_type=Report.ReportType.QUALITY_CONTROL,
-        file=_pdf_file(),
+        pdf_file=_pdf_file(),
     )
 
     with pytest.raises(ValidationError):
@@ -52,7 +52,7 @@ def test_report_clean_unit_only_requires_unit_and_forbids_equipment():
         equipment=equipment,
         completion_date=date.today(),
         report_type=Report.ReportType.MEMORIAL,
-        file=_pdf_file(),
+        pdf_file=_pdf_file(),
     )
 
     with pytest.raises(ValidationError):
@@ -63,7 +63,7 @@ def test_report_clean_unit_only_requires_unit_and_forbids_equipment():
         equipment=equipment,
         completion_date=date.today(),
         report_type=Report.ReportType.MEMORIAL,
-        file=_pdf_file(),
+        pdf_file=_pdf_file(),
     )
 
     with pytest.raises(ValidationError):
@@ -80,7 +80,7 @@ def test_report_save_due_date_is_4_years_for_radiometric_survey():
         equipment=equipment,
         completion_date=completion_date,
         report_type=Report.ReportType.RADIOMETRIC_SURVEY,
-        file=_pdf_file(),
+        pdf_file=_pdf_file(),
     )
 
     assert report.due_date == completion_date + timedelta(days=4 * 365)
@@ -95,7 +95,7 @@ def test_report_save_due_date_is_1_year_for_other_types():
         unit=unit,
         completion_date=completion_date,
         report_type=Report.ReportType.MEMORIAL,
-        file=_pdf_file(),
+        pdf_file=_pdf_file(),
     )
 
     assert report.due_date == completion_date + timedelta(days=365)
@@ -119,7 +119,7 @@ def test_report_save_no_due_date_for_exception_types(report_type):
         unit=unit,
         completion_date=completion_date,
         report_type=report_type,
-        file=_pdf_file(),
+        pdf_file=_pdf_file(),
     )
 
     assert report.due_date is None

@@ -4,12 +4,7 @@ import type {
     ReportSearchDTO,
     SearchReportsArgs,
 } from "@/types/report";
-import { child } from "@/utils/logger";
 import { apiSlice } from "../services/apiSlice";
-import {
-    createDownloadQueryFn,
-    type DownloadSuccessResult,
-} from "../services/downloadEndpoint";
 import { PaginatedResponse } from "../services/apiTypes";
 import { createPaginatedQueryFn } from "../services/paginationHelpers";
 import type {
@@ -17,25 +12,24 @@ import type {
     UpdateReportFileArgs,
 } from "../types/reportApi";
 
-const log = child({ feature: "reportApiSlice" });
-
 const reportApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         /**
          * Lists reports.
          * - If args.page is provided: returns just that page (optionally filtered by unit/equipment).
-         * - If args.page is not provided: auto-paginates and returns all reports across all pages (optionally filtered by unit/equipment).
+         * - If args.page is not provided: auto-paginates and returns all reports across all pages.
          */
         listReports: builder.query<ReportDTO[], ListReportsArgs | void>({
             queryFn: createPaginatedQueryFn<ReportDTO, ListReportsArgs>("reports/"),
             providesTags: [{ type: "Report", id: "LIST" }],
         }),
         createReport: builder.mutation<ReportDTO, CreateReportArgs>({
-            query: ({ completion_date, report_type, file, unit, equipment }) => {
+            query: ({ completion_date, report_type, pdf_file, word_file, unit, equipment }) => {
                 const formData = new FormData();
                 formData.append("completion_date", completion_date);
                 formData.append("report_type", report_type);
-                formData.append("file", file);
+                formData.append("pdf_file", pdf_file);
+                formData.append("word_file", word_file);
                 if (typeof unit === "number") formData.append("unit", String(unit));
                 if (typeof equipment === "number") formData.append("equipment", String(equipment));
                 return {
@@ -47,9 +41,10 @@ const reportApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: [{ type: "Report", id: "LIST" }],
         }),
         updateReportFile: builder.mutation<ReportDTO, UpdateReportFileArgs>({
-            query: ({ id, file }) => {
+            query: ({ id, pdf_file, word_file }) => {
                 const formData = new FormData();
-                formData.append("file", file);
+                if (pdf_file) formData.append("pdf_file", pdf_file);
+                if (word_file) formData.append("word_file", word_file);
                 return {
                     url: `reports/${id}/`,
                     method: "PATCH",
@@ -58,25 +53,9 @@ const reportApiSlice = apiSlice.injectEndpoints({
             },
             invalidatesTags: [{ type: "Report", id: "LIST" }],
         }),
-        downloadReportFile: builder.query<DownloadSuccessResult, number>({
-            queryFn: createDownloadQueryFn<number>({
-                buildRequest: (id) => ({
-                    url: `reports/${id}/download/`,
-                    method: "GET",
-                }),
-                getFallbackFilename: (id) => `relatorio_${id}`,
-                getLogContext: (id) => ({ reportId: id }),
-                log,
-                successMessage: "Report downloaded successfully",
-                errorMessage: "Failed to download report file",
-                preferContentDisposition: true,
-            }),
-            keepUnusedDataFor: 0,
-        }),
         /**
          * Searches reports with filters.
-         * Returns paginated results with derived fields (status,
-         * responsibles).
+         * Returns paginated results with derived fields (status, responsibles).
          */
         searchReports: builder.query<PaginatedResponse<ReportSearchDTO>, SearchReportsArgs>({
             query: ({
@@ -90,7 +69,7 @@ const reportApiSlice = apiSlice.injectEndpoints({
                 unit_city,
                 responsible_cpf,
             }) => {
-                const params: Record<string, any> = { page };
+                const params: Record<string, unknown> = { page };
                 if (status) params.status = status;
                 if (due_date_start) params.due_date_start = due_date_start;
                 if (due_date_end) params.due_date_end = due_date_end;
@@ -163,7 +142,6 @@ export const {
     useListReportsQuery,
     useCreateReportMutation,
     useUpdateReportFileMutation,
-    useLazyDownloadReportFileQuery,
     useSearchReportsQuery,
     useSoftDeleteReportMutation,
     useHardDeleteReportMutation,

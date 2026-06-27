@@ -55,7 +55,7 @@ def client_with_reports(
         unit=unit,
         completion_date=today,
         report_type=Report.ReportType.MEMORIAL,
-        file="reports/overdue.pdf",
+        pdf_file="reports/overdue.pdf",
         due_date=today - timedelta(days=10),
     )
 
@@ -64,7 +64,7 @@ def client_with_reports(
         unit=unit,
         completion_date=today,
         report_type=Report.ReportType.MEMORIAL,
-        file="reports/due_soon.pdf",
+        pdf_file="reports/due_soon.pdf",
         due_date=today + timedelta(days=15),
     )
 
@@ -73,7 +73,7 @@ def client_with_reports(
         unit=unit,
         completion_date=today,
         report_type=Report.ReportType.MEMORIAL,
-        file="reports/ok.pdf",
+        pdf_file="reports/ok.pdf",
         due_date=today + timedelta(days=60),
     )
 
@@ -106,7 +106,7 @@ def another_client_with_reports(db, another_physicist):
         unit=unit,
         completion_date=today,
         report_type=Report.ReportType.MEMORIAL,
-        file="reports/another.pdf",
+        pdf_file="reports/another.pdf",
         due_date=today + timedelta(days=5),
     )
 
@@ -431,7 +431,7 @@ def test_filter_by_no_due_date_status_returns_only_no_due_date_reports(
         unit=unit,
         completion_date=date.today(),
         report_type=Report.ReportType.OTHERS,
-        file="reports/no_due_date.pdf",
+        pdf_file="reports/no_due_date.pdf",
     )
 
     url = reverse("reports-list")

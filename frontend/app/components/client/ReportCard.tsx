@@ -15,29 +15,89 @@ import Role from "@/enums/Role";
 import { useRetrieveUserQuery } from "@/redux/features/authApiSlice";
 import {
     useHardDeleteReportMutation,
-    useLazyDownloadReportFileQuery,
     useRestoreReportMutation,
     useSoftDeleteReportMutation,
     useUpdateReportFileMutation,
 } from "@/redux/features/reportApiSlice";
-import { reportFileSchema } from "@/schemas";
 import type { ReportDTO } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
 import { getReportStatusDisplay } from "@/types/reportStatus";
+import { resolveApiPath } from "@/utils/url";
 
 import { child } from "@/utils/logger";
 import {
     ArchiveIcon,
     ArrowCounterClockwiseIcon,
-    FileArrowDownIcon,
     TrashIcon,
     UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
-const updateReportFileFormSchema = z.object({
-    file: reportFileSchema,
-});
+const MAX_FILE_SIZE = 10_000_000;
+const ACCEPTED_PDF_TYPES = ["application/pdf"];
+const ACCEPTED_WORD_TYPES = [
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
+const updateReportFileFormSchema = z
+    .object({
+        pdf_file: z.custom<FileList>(),
+        word_file: z.custom<FileList>(),
+    })
+    .superRefine((data, ctx) => {
+        const hasPdf = data.pdf_file instanceof FileList && data.pdf_file.length > 0;
+        const hasWord = data.word_file instanceof FileList && data.word_file.length > 0;
+
+        if (!hasPdf && !hasWord) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Selecione ao menos um arquivo.",
+                path: ["pdf_file"],
+            });
+            return;
+        }
+
+        if (hasPdf) {
+            const f = data.pdf_file[0];
+            if (f instanceof File) {
+                if (f.size > MAX_FILE_SIZE) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "O arquivo PDF não pode ser maior que 10MB.",
+                        path: ["pdf_file"],
+                    });
+                }
+                if (!ACCEPTED_PDF_TYPES.includes(f.type)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "O formato do arquivo deve ser PDF.",
+                        path: ["pdf_file"],
+                    });
+                }
+            }
+        }
+
+        if (hasWord) {
+            const f = data.word_file[0];
+            if (f instanceof File) {
+                if (f.size > MAX_FILE_SIZE) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "O arquivo Word não pode ser maior que 10MB.",
+                        path: ["word_file"],
+                    });
+                }
+                if (!ACCEPTED_WORD_TYPES.includes(f.type)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "O formato do arquivo deve ser DOC ou DOCX.",
+                        path: ["word_file"],
+                    });
+                }
+            }
+        }
+    });
 
 type UpdateReportFileFormData = z.infer<typeof updateReportFileFormSchema>;
 
@@ -46,19 +106,12 @@ type ReportCardProps = {
     dataTestId?: string;
 };
 
-/**
- * ReportCard
- *
- * Displays a report summary with dates and file actions.
- *
- * Actions:
- * - Download current file (visible to all)
- * - Update/replace file (visible to GP/FMI/FME only)
- */
 function ReportCard({ report, dataTestId }: ReportCardProps) {
     const { data: userData } = useRetrieveUserQuery();
     const role = userData?.role;
     const canUpdate = role === Role.GP || role === Role.FMI || role === Role.FME;
+    const canDownloadWord =
+        role === Role.GP || role === Role.FMI || role === Role.FME || role === Role.C;
     const isGP = role === Role.GP;
     const log = child({ component: "ReportCard" });
 
@@ -68,7 +121,6 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
     const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
 
     const [updateReportFile, { isLoading: isUpdating }] = useUpdateReportFileMutation();
-    const [downloadReportFile, { isLoading: isDownloading }] = useLazyDownloadReportFileQuery();
     const [softDeleteReport, { isLoading: isSoftDeleting }] = useSoftDeleteReportMutation();
     const [hardDeleteReport, { isLoading: isHardDeleting }] = useHardDeleteReportMutation();
     const [restoreReport, { isLoading: isRestoring }] = useRestoreReportMutation();
@@ -107,31 +159,28 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
         "hover:ring-1 hover:ring-inset hover:ring-primary",
     );
 
-    async function handleDownload() {
-        if (!report.file) {
-            log.info({ reportId: report.id }, "Download blocked: no file URL");
-            toast.info("Sem arquivo disponível para download.");
-            return;
-        }
-        try {
-            await downloadReportFile(report.id).unwrap();
-            toast.success("Relatório exportado com sucesso.");
-        } catch (err) {
-            log.error({ reportId: report.id, error: (err as any)?.message }, "Download failed");
-            toast.error("Falha ao baixar o arquivo do relatório.");
-        }
-    }
-
     const onSubmit: SubmitHandler<UpdateReportFileFormData> = async (data) => {
+        const pdfFile =
+            data.pdf_file instanceof FileList && data.pdf_file.length > 0
+                ? data.pdf_file[0]
+                : undefined;
+        const wordFile =
+            data.word_file instanceof FileList && data.word_file.length > 0
+                ? data.word_file[0]
+                : undefined;
+
         try {
-            const file = data.file[0];
-            await updateReportFile({ id: report.id, file }).unwrap();
+            await updateReportFile({
+                id: report.id,
+                pdf_file: pdfFile,
+                word_file: wordFile,
+            }).unwrap();
             toast.success("Arquivo do relatório atualizado com sucesso.");
             reset();
             setUpdateOpen(false);
         } catch (err) {
             log.error(
-                { reportId: report.id, error: (err as any)?.message },
+                { reportId: report.id, error: (err as { message?: string })?.message },
                 "Update report file failed",
             );
             toast.error("Não foi possível atualizar o arquivo do relatório.");
@@ -152,7 +201,10 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             setSoftDeleteConfirmOpen(false);
             log.info({ reportId: report.id }, "Report soft deleted successfully");
         } catch (err) {
-            log.error({ reportId: report.id, error: (err as any)?.message }, "Soft delete failed");
+            log.error(
+                { reportId: report.id, error: (err as { message?: string })?.message },
+                "Soft delete failed",
+            );
             toast.error("Não foi possível arquivar o relatório.");
         }
     }
@@ -164,7 +216,10 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             setHardDeleteConfirmOpen(false);
             log.info({ reportId: report.id }, "Report hard deleted successfully");
         } catch (err) {
-            log.error({ reportId: report.id, error: (err as any)?.message }, "Hard delete failed");
+            log.error(
+                { reportId: report.id, error: (err as { message?: string })?.message },
+                "Hard delete failed",
+            );
             toast.error("Não foi possível excluir o relatório permanentemente.");
         }
     }
@@ -176,7 +231,10 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
             setRestoreConfirmOpen(false);
             log.info({ reportId: report.id }, "Report restored successfully");
         } catch (err) {
-            log.error({ reportId: report.id, error: (err as any)?.message }, "Restore failed");
+            log.error(
+                { reportId: report.id, error: (err as { message?: string })?.message },
+                "Restore failed",
+            );
             toast.error("Não foi possível desarquivar o relatório.");
         }
     }
@@ -218,18 +276,28 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                     </Typography>
                 </div>
 
-                <div className="flex flex-row flex-wrap gap-2 sm:flex-nowrap">
-                    <Button
-                        variant="secondary"
-                        onClick={handleDownload}
-                        disabled={isDownloading}
-                        className="flex-1 sm:w-auto"
-                        data-testid="btn-report-download"
-                        aria-label="Baixar relatório"
-                        title="Baixar relatório"
-                    >
-                        <FileArrowDownIcon size={20} />
-                    </Button>
+                <div className="flex flex-row flex-wrap items-center gap-3 sm:flex-nowrap">
+                    {/* File download links */}
+                    <div className="flex flex-col gap-1" data-testid="report-download-links">
+                        <a
+                            href={resolveApiPath(`/api/reports/${report.id}/download/pdf/`)}
+                            className="text-primary hover:underline text-xs"
+                            data-testid="btn-report-download-pdf"
+                            data-cy={`btn-report-download-pdf-${report.id}`}
+                        >
+                            PDF
+                        </a>
+                        {canDownloadWord && report.word_file && (
+                            <a
+                                href={resolveApiPath(`/api/reports/${report.id}/download/word/`)}
+                                className="text-primary hover:underline text-xs"
+                                data-testid="btn-report-download-word"
+                                data-cy={`btn-report-download-word-${report.id}`}
+                            >
+                                Word
+                            </a>
+                        )}
+                    </div>
 
                     {canUpdate && !report.is_deleted && (
                         <Button
@@ -295,12 +363,21 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                     </Typography>
 
                     <Input
-                        {...register("file")}
+                        {...register("pdf_file")}
                         type="file"
-                        accept=".pdf,.doc,.docx"
-                        errorMessage={errors.file?.message}
-                        label="Arquivo do relatório"
-                        data-testid="report-file-input"
+                        accept="application/pdf"
+                        errorMessage={errors.pdf_file?.message}
+                        label="Arquivo PDF (opcional, substitui o arquivo atual)"
+                        data-testid="report-pdf-file-input"
+                    ></Input>
+
+                    <Input
+                        {...register("word_file")}
+                        type="file"
+                        accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        errorMessage={errors.word_file?.message}
+                        label="Arquivo Word (opcional, substitui o arquivo atual)"
+                        data-testid="report-word-file-input"
                     ></Input>
 
                     <div className="flex justify-end gap-2">

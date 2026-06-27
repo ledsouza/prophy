@@ -31,7 +31,9 @@ export type ReportResponsible = {
 
 /**
  * Data Transfer Object for Report as exposed by the backend REST API.
- * Dates are ISO strings; file is expected to be a direct URL for download.
+ * Dates are ISO strings.
+ * pdf_file is always present; word_file is null for legacy reports and for
+ * roles that are not permitted to download it (GGC, GU).
  */
 export type ReportDTO = {
     id: number;
@@ -41,7 +43,8 @@ export type ReportDTO = {
     status: ReportStatus;
     unit: number | null;
     equipment: number | null;
-    file: string;
+    pdf_file: string;
+    word_file: string | null;
     is_deleted: boolean;
 };
 

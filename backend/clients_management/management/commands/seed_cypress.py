@@ -45,6 +45,7 @@ from ._seed_common import (
     create_groups,
     get_accessory_type,
     make_report_file,
+    make_report_word_file,
     populate_modalities,
     raise_postgres_id_floor,
     write_json_file,
@@ -467,16 +468,20 @@ class Command(BaseCommand):
         rtype = Report.UNIT_ONLY_TYPES[0]
         Report.objects.create(
             completion_date=date(2027, 5, 10),
-            file=make_report_file(rtype, "Unit 1000"),
+            pdf_file=make_report_file(rtype, "Unit 1000"),
+            word_file=make_report_word_file(rtype, "Unit 1000"),
             unit=unit1000,
             report_type=rtype,
         )
 
-        due_type = Report.UNIT_ONLY_TYPES[1] if len(Report.UNIT_ONLY_TYPES) > 1 else rtype
+        due_type = (
+            Report.UNIT_ONLY_TYPES[1] if len(Report.UNIT_ONLY_TYPES) > 1 else rtype
+        )
         Report.objects.create(
             completion_date=date.today() - timedelta(days=365 - 30),
             due_date=date.today() + timedelta(days=30),
-            file=make_report_file(due_type, "Unit 1000 - due soon"),
+            pdf_file=make_report_file(due_type, "Unit 1000 - due soon"),
+            word_file=make_report_word_file(due_type, "Unit 1000 - due soon"),
             unit=unit1000,
             report_type=due_type,
         )
@@ -484,13 +489,15 @@ class Command(BaseCommand):
         eq_type = Report.EQUIPMENT_ONLY_TYPES[0]
         Report.objects.create(
             completion_date=date.today() - timedelta(days=100),
-            file=make_report_file(eq_type, "Siemens-MAMMOMAT-100"),
+            pdf_file=make_report_file(eq_type, "Siemens-MAMMOMAT-100"),
+            word_file=make_report_word_file(eq_type, "Siemens-MAMMOMAT-100"),
             equipment=eq1000,
             report_type=eq_type,
         )
         Report.objects.create(
             completion_date=date.today() - timedelta(days=120),
-            file=make_report_file(eq_type, "GE-SENOGRAPHE-200"),
+            pdf_file=make_report_file(eq_type, "GE-SENOGRAPHE-200"),
+            word_file=make_report_word_file(eq_type, "GE-SENOGRAPHE-200"),
             equipment=eq1001,
             report_type=eq_type,
         )

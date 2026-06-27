@@ -104,14 +104,18 @@ def safe_slug(s: str) -> str:
 def make_report_file(report_type_code: str, entity_name: str) -> ContentFile:
     uid = uuid.uuid4().hex[:8]
     slug = safe_slug(entity_name)
-    use_pdf = hash(entity_name) % 2 == 0
-    if use_pdf:
-        source_path = Path(settings.BASE_DIR) / "static" / "placeholder.pdf"
-        extension = "pdf"
-    else:
-        source_path = Path(settings.BASE_DIR) / "static" / "Placeholder.docx"
-        extension = "docx"
-    filename = f"report-{report_type_code}-{slug}-{uid}.{extension}"
+    source_path = Path(settings.BASE_DIR) / "static" / "placeholder.pdf"
+    filename = f"report-{report_type_code}-{slug}-{uid}.pdf"
+    with source_path.open(mode="rb") as f:
+        file_content = f.read()
+    return ContentFile(file_content, name=filename)
+
+
+def make_report_word_file(report_type_code: str, entity_name: str) -> ContentFile:
+    uid = uuid.uuid4().hex[:8]
+    slug = safe_slug(entity_name)
+    source_path = Path(settings.BASE_DIR) / "static" / "Placeholder.docx"
+    filename = f"report-{report_type_code}-{slug}-{uid}.docx"
     with source_path.open(mode="rb") as f:
         file_content = f.read()
     return ContentFile(file_content, name=filename)

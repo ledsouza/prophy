@@ -37,7 +37,7 @@ urlpatterns = [
     path("clients/status/", ClientStatusView.as_view()),
     path("service-orders/<int:order_id>/pdf/", ServiceOrderPDFView.as_view()),
     path(
-        "reports/<int:report_id>/download/",
+        "reports/<int:report_id>/download/<str:file_type>/",
         ReportFileDownloadView.as_view(),
         name="report-file-download",
     ),

@@ -12,6 +12,8 @@ export {
     makeAppointmentScheduleSchema,
 } from "./appointment-schedule-schema";
 export { default as reportFileSchema } from "./report-file-schema";
+export { default as reportPdfFileSchema } from "./report-pdf-schema";
+export { default as reportWordFileSchema } from "./report-word-schema";
 export { default as proposalSchema } from "./proposal-schema";
 export { default as materialUpdateSchema } from "./material-update-schema";
 export { default as proposalPdfFileSchema } from "./proposal-pdf-schema";

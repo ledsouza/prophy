@@ -171,10 +171,18 @@ class ReportFactory(factory.django.DjangoModelFactory):
     completion_date = factory.Faker("date_this_year")
     report_type = Report.ReportType.QUALITY_CONTROL
 
-    file = SimpleUploadedFile(
+    pdf_file = SimpleUploadedFile(
         "report.pdf",
         b"file_content",
         content_type="application/pdf",
+    )
+    word_file = SimpleUploadedFile(
+        "report.docx",
+        b"file_content",
+        content_type=(
+            "application/vnd.openxmlformats-officedocument"
+            ".wordprocessingml.document"
+        ),
     )
 
     # Most tests for notifications will likely use unit-based reports,

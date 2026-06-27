@@ -265,6 +265,13 @@ class ReportSerializer(serializers.ModelSerializer):
     responsibles_display = serializers.SerializerMethodField()
     is_deleted = serializers.BooleanField(read_only=True)
 
+    # word_file is blank=True on the model so that legacy reports can be
+    # re-saved without a Word file. We declare it required=True here so the
+    # serializer enforces "both files on create". partial_update passes
+    # partial=True which makes this field optional, preserving the optional
+    # "replace one file" update behaviour.
+    word_file = serializers.FileField(required=True)
+
     class Meta:
         model = Report
         fields = "__all__"
@@ -297,6 +304,19 @@ class ReportSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance: Report):
         representation = super().to_representation(instance)
+
+        # Strip the Word file URL for roles that are not allowed to download
+        # the Word version. This is defence-in-depth; the download endpoint
+        # also enforces the same role check.
+        word_allowed_roles = [
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.COMMERCIAL,
+        ]
+        request = self.context.get("request")
+        if request is not None and request.user.role not in word_allowed_roles:
+            representation.pop("word_file", None)
 
         if instance.unit:
             representation["unit_name"] = instance.unit.name

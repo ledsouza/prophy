@@ -26,11 +26,11 @@ import {
 } from "@/hooks";
 import {
     useHardDeleteReportMutation,
-    useLazyDownloadReportFileQuery,
     useRestoreReportMutation,
     useSearchReportsQuery,
     useSoftDeleteReportMutation,
 } from "@/redux/features/reportApiSlice";
+import { resolveApiPath } from "@/utils/url";
 import type { ReportSearchDTO, ReportStatus } from "@/types/report";
 import { reportTypeLabel } from "@/types/report";
 import {
@@ -51,6 +51,11 @@ type ReportsSearchTabProps = {
 
 export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
     const isGP = currentUserRole === Role.GP;
+    const canDownloadWord =
+        currentUserRole === Role.GP ||
+        currentUserRole === Role.FMI ||
+        currentUserRole === Role.FME ||
+        currentUserRole === Role.C;
     const searchParams = useSearchParams();
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -86,7 +91,6 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         ...appliedFilters,
     });
 
-    const [downloadReport] = useLazyDownloadReportFileQuery();
     const [softDeleteReport, { isLoading: isSoftDeleting }] = useSoftDeleteReportMutation();
     const [hardDeleteReport, { isLoading: isHardDeleting }] = useHardDeleteReportMutation();
     const [restoreReport, { isLoading: isRestoring }] = useRestoreReportMutation();
@@ -204,14 +208,6 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         },
     });
 
-    const handleDownload = async (reportId: number) => {
-        try {
-            await downloadReport(reportId).unwrap();
-        } catch (err) {
-            log.error({ reportId, error: err }, "Failed to download report");
-        }
-    };
-
     async function handleSoftDelete() {
         if (!selectedReportId) return;
         try {
@@ -314,19 +310,36 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
               ]
             : []),
         {
+            header: "Arquivos",
+            width: "5rem",
+            cell: (report: ReportSearchDTO) => (
+                <div className="flex flex-col gap-1">
+                    <a
+                        href={resolveApiPath(`/api/reports/${report.id}/download/pdf/`)}
+                        className="text-primary hover:underline text-xs"
+                        data-testid={`btn-download-pdf-${report.id}`}
+                        data-cy={`report-download-pdf-${report.id}`}
+                    >
+                        PDF
+                    </a>
+                    {canDownloadWord && report.word_file && (
+                        <a
+                            href={resolveApiPath(`/api/reports/${report.id}/download/word/`)}
+                            className="text-primary hover:underline text-xs"
+                            data-testid={`btn-download-word-${report.id}`}
+                            data-cy={`report-download-word-${report.id}`}
+                        >
+                            Word
+                        </a>
+                    )}
+                </div>
+            ),
+        },
+        {
             header: "Ações",
             width: "8rem",
             cell: (report: ReportSearchDTO) => (
                 <div className="flex flex-col gap-2 items-stretch">
-                    <Button
-                        variant="primary"
-                        onClick={() => handleDownload(report.id)}
-                        className="w-full text-xs"
-                        data-testid={`btn-download-${report.id}`}
-                        dataCy={`report-download-${report.id}`}
-                    >
-                        Baixar
-                    </Button>
                     {isGP && !report.is_deleted && (
                         <Button
                             variant="danger"
@@ -538,14 +551,28 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                             ]}
                                             actions={
                                                 <div className="flex flex-col gap-2">
-                                                    <Button
-                                                        variant="primary"
-                                                        onClick={() => handleDownload(report.id)}
-                                                        className="w-full text-xs"
-                                                        dataCy={`report-download-${report.id}`}
-                                                    >
-                                                        Baixar
-                                                    </Button>
+                                                    <div className="flex gap-3">
+                                                        <a
+                                                            href={resolveApiPath(
+                                                                `/api/reports/${report.id}/download/pdf/`,
+                                                            )}
+                                                            className="text-primary hover:underline text-xs"
+                                                            data-cy={`report-download-pdf-${report.id}`}
+                                                        >
+                                                            PDF
+                                                        </a>
+                                                        {canDownloadWord && report.word_file && (
+                                                            <a
+                                                                href={resolveApiPath(
+                                                                    `/api/reports/${report.id}/download/word/`,
+                                                                )}
+                                                                className="text-primary hover:underline text-xs"
+                                                                data-cy={`report-download-word-${report.id}`}
+                                                            >
+                                                                Word
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                     {isGP && !report.is_deleted && (
                                                         <Button
                                                             variant="danger"

@@ -133,7 +133,7 @@ def report_for_unit(client_with_unit_and_equipment):
         unit=unit,
         report_type=Report.ReportType.MEMORIAL,
         completion_date=date.today(),
-        file=report_file,
+        pdf_file=report_file,
     )
 
 
@@ -152,7 +152,7 @@ def report_for_equipment(client_with_unit_and_equipment):
         equipment=equipment,
         report_type=Report.ReportType.QUALITY_CONTROL,
         completion_date=date.today(),
-        file=report_file,
+        pdf_file=report_file,
     )
 
 
@@ -420,7 +420,10 @@ class TestReportSoftDeleteDownload:
         report_for_unit.soft_delete(deleted_by=prophy_manager)
 
         api_client.force_authenticate(user=prophy_manager)
-        url = reverse("report-file-download", kwargs={"report_id": report_for_unit.id})
+        url = reverse(
+            "report-file-download",
+            kwargs={"report_id": report_for_unit.id, "file_type": "pdf"},
+        )
 
         response = api_client.get(url)
         assert response.status_code in [
@@ -447,7 +450,10 @@ class TestReportSoftDeleteDownload:
         report_for_unit.soft_delete(deleted_by=prophy_manager)
 
         api_client.force_authenticate(user=unit_manager)
-        url = reverse("report-file-download", kwargs={"report_id": report_for_unit.id})
+        url = reverse(
+            "report-file-download",
+            kwargs={"report_id": report_for_unit.id, "file_type": "pdf"},
+        )
 
         response = api_client.get(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -499,7 +505,10 @@ class TestReportSoftDeleteVisibilityPhysicists:
         report_for_unit.soft_delete(deleted_by=prophy_manager)
 
         api_client.force_authenticate(user=internal_physicist)
-        url = reverse("report-file-download", kwargs={"report_id": report_for_unit.id})
+        url = reverse(
+            "report-file-download",
+            kwargs={"report_id": report_for_unit.id, "file_type": "pdf"},
+        )
 
         response = api_client.get(url)
         assert response.status_code in [

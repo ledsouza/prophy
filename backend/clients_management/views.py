@@ -2197,7 +2197,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         """,
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=["completion_date", "report_type", "file"],
+            required=["completion_date", "report_type", "pdf_file", "word_file"],
             properties={
                 "completion_date": openapi.Schema(
                     type=openapi.TYPE_STRING,
@@ -2209,9 +2209,13 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                     description="Type of report",
                     enum=[choice[0] for choice in Report.ReportType.choices],
                 ),
-                "file": openapi.Schema(
+                "pdf_file": openapi.Schema(
                     type=openapi.TYPE_FILE,
-                    description="Report file (PDF or Word document)",
+                    description="Report PDF file",
+                ),
+                "word_file": openapi.Schema(
+                    type=openapi.TYPE_FILE,
+                    description="Report Word file (.doc or .docx)",
                 ),
                 "unit": openapi.Schema(
                     type=openapi.TYPE_INTEGER,
@@ -2626,6 +2630,17 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]
 
+    def _can_download_report_word(self, user: UserAccount) -> bool:
+        """
+        Check if user can download the Word version of a report.
+        """
+        return user.role in [
+            UserAccount.Role.PROPHY_MANAGER,
+            UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
+            UserAccount.Role.COMMERCIAL,
+        ]
+
     def _has_report_access(self, user: UserAccount, report: Report) -> bool:
         """Check if user has access to a specific report."""
         match user.role:
@@ -2790,11 +2805,13 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
 
 class ReportFileDownloadView(APIView):
     """
-    Download a report file with authentication.
+    Download a report file (PDF or Word) with authentication.
 
     Returns the file with proper Content-Disposition header to preserve
     the original filename.
-    Permissions: Same as ReportViewSet._has_report_access
+
+    PDF: accessible to all roles that pass _has_report_access.
+    Word: additionally restricted to PROPHY_MANAGER, FMI, FME, COMMERCIAL.
     """
 
     @swagger_auto_schema(
@@ -2805,15 +2822,22 @@ class ReportFileDownloadView(APIView):
                 in_=openapi.IN_PATH,
                 type=openapi.TYPE_INTEGER,
                 description="ID do Relatório",
-            )
+            ),
+            openapi.Parameter(
+                name="file_type",
+                in_=openapi.IN_PATH,
+                type=openapi.TYPE_STRING,
+                description="Tipo de arquivo: 'pdf' ou 'word'.",
+            ),
         ],
         responses={
             200: "File bytes",
+            400: "Invalid file type",
             403: "Forbidden",
             404: "Not found",
         },
     )
-    def get(self, request: Request, report_id: int):
+    def get(self, request: Request, report_id: int, file_type: str):
         user: UserAccount = request.user
 
         manager = Report.objects
@@ -2837,25 +2861,42 @@ class ReportFileDownloadView(APIView):
         viewset = ReportViewSet()
         if not viewset._has_report_access(user, report):
             return Response(
-                {
-                    "detail": """
-                    You do not have permission to download this report.
-                    """
-                },
+                {"detail": "You do not have permission to download this report."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if not report.file:
+        match file_type:
+            case "pdf":
+                file_field = report.pdf_file
+            case "word":
+                if not viewset._can_download_report_word(user):
+                    return Response(
+                        {
+                            "detail": (
+                                "You do not have permission to download"
+                                " the Word version of this report."
+                            )
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+                file_field = report.word_file
+            case _:
+                return Response(
+                    {"detail": "Invalid file type. Use 'pdf' or 'word'."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        if not file_field:
             return Response(
-                {"detail": "Report has no file attached."},
+                {"detail": "Report has no file attached for this type."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
         try:
-            filename = os.path.basename(report.file.name)
+            filename = os.path.basename(file_field.name)
             content_type = get_content_type_from_filename(filename)
             response = FileResponse(
-                report.file.open("rb"),
+                file_field.open("rb"),
                 as_attachment=True,
                 filename=filename,
                 content_type=content_type,
@@ -2863,8 +2904,9 @@ class ReportFileDownloadView(APIView):
             return response
         except Exception:
             logger.exception(
-                "Error serving report file for report_id=%s",
+                "Error serving report file for report_id=%s, file_type=%s",
                 report_id,
+                file_type,
             )
             return Response(
                 {"detail": "Error reading report file."},

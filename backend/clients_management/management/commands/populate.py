@@ -53,6 +53,7 @@ from ._seed_common import (
     create_fixture_path,
     get_accessory_type,
     make_report_file,
+    make_report_word_file,
     raise_postgres_id_floor,
     safe_slug,
     write_json_file,
@@ -677,7 +678,8 @@ class Command(BaseCommand):
         rtype = choice(Report.UNIT_ONLY_TYPES)
         Report.objects.create(
             completion_date=date(2027, 5, 10),
-            file=make_report_file(rtype, "Unit 1000"),
+            pdf_file=make_report_file(rtype, "Unit 1000"),
+            word_file=make_report_word_file(rtype, "Unit 1000"),
             unit=Unit.objects.get(id=1000),
             report_type=rtype,
         )
@@ -691,7 +693,8 @@ class Command(BaseCommand):
         Report.objects.create(
             completion_date=date.today() - timedelta(days=365 - 30),
             due_date=date.today() + timedelta(days=30),
-            file=make_report_file(due_report_type, "Unit 1000 - due soon"),
+            pdf_file=make_report_file(due_report_type, "Unit 1000 - due soon"),
+            word_file=make_report_word_file(due_report_type, "Unit 1000 - due soon"),
             unit=Unit.objects.get(id=1000),
             report_type=due_report_type,
         )
@@ -701,12 +704,11 @@ class Command(BaseCommand):
             for _ in range(randint(1, 3)):
                 rtype = choice(Report.EQUIPMENT_ONLY_TYPES)
                 completion = random_completion_date(rtype)
-                report_file = make_report_file(
-                    rtype, f"{equipment.manufacturer}-{equipment.model}"
-                )
+                entity = f"{equipment.manufacturer}-{equipment.model}"
                 Report.objects.create(
                     completion_date=completion,
-                    file=report_file,
+                    pdf_file=make_report_file(rtype, entity),
+                    word_file=make_report_word_file(rtype, entity),
                     equipment=equipment,
                     report_type=rtype,
                 )
@@ -716,10 +718,10 @@ class Command(BaseCommand):
             for _ in range(randint(1, 4)):
                 rtype = choice(Report.UNIT_ONLY_TYPES)
                 completion = random_completion_date(rtype)
-                report_file = make_report_file(rtype, unit.name)
                 Report.objects.create(
                     completion_date=completion,
-                    file=report_file,
+                    pdf_file=make_report_file(rtype, unit.name),
+                    word_file=make_report_word_file(rtype, unit.name),
                     unit=unit,
                     report_type=rtype,
                 )

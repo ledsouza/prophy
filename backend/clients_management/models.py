@@ -703,10 +703,14 @@ class Report(models.Model):
 
     Attributes:
         completion_date (DateField): Date when the report was completed
-        due_date (DateField): Due date calculated based on report type and completion date
-        file (FileField): The report document file
+        due_date (DateField): Due date calculated based on report type and
+            completion date
+        pdf_file (FileField): The report PDF document
+        word_file (FileField): The report Word document (optional for legacy
+            reports; new reports require both pdf_file and word_file)
         unit (ForeignKey): Reference to Unit (optional, depends on report type)
-        equipment (ForeignKey): Reference to Equipment (optional, depends on report type)
+        equipment (ForeignKey): Reference to Equipment (optional, depends on
+            report type)
         report_type (CharField): Type of report, chosen from ReportType choices
         deleted_at (DateTimeField): Timestamp when report was soft-deleted
         deleted_by (ForeignKey): User who soft-deleted the report
@@ -757,7 +761,12 @@ class Report(models.Model):
 
     completion_date = models.DateField("Data realizado")
     due_date = models.DateField("Data de vencimento", blank=True, null=True)
-    file = models.FileField("Arquivo", upload_to="reports/")
+    pdf_file = models.FileField("Arquivo PDF", upload_to="reports/pdfs/")
+    word_file = models.FileField(
+        "Arquivo Word",
+        upload_to="reports/words/",
+        blank=True,
+    )
     unit = models.ForeignKey(
         Unit,
         on_delete=models.SET_NULL,

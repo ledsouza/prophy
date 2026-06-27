@@ -11,7 +11,7 @@ import { Typography } from "@/components/foundation";
 
 import { useCreateReportMutation } from "@/redux/features/reportApiSlice";
 import { useReportTypeSelect } from "@/hooks";
-import { reportFileSchema } from "@/schemas";
+import { reportPdfFileSchema, reportWordFileSchema } from "@/schemas";
 
 type ReportFormProps = {
     isUnit: boolean;
@@ -27,7 +27,8 @@ const reportFormSchema = z.object({
         .string()
         .min(1, { message: "Data de conclusão é obrigatória." })
         .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data inválida." }),
-    file: reportFileSchema,
+    pdf_file: reportPdfFileSchema,
+    word_file: reportWordFileSchema,
 });
 
 type ReportFormFields = z.infer<typeof reportFormSchema>;
@@ -78,21 +79,21 @@ const ReportForm = ({
         }
 
         try {
-            const file = data.file[0];
             await createReport({
                 completion_date: data.completion_date,
                 report_type: selectedReportTypeCode,
-                file,
+                pdf_file: data.pdf_file[0],
+                word_file: data.word_file[0],
                 unit: isUnit ? unitId : undefined,
                 equipment: !isUnit ? equipmentId : undefined,
             }).unwrap();
 
             toast.success("Relatório criado com sucesso.");
             onSuccess?.();
-        } catch (err: any) {
+        } catch (err: unknown) {
             const message =
-                err?.data?.detail ||
-                err?.data?.message ||
+                (err as { data?: { detail?: string; message?: string } })?.data?.detail ||
+                (err as { data?: { detail?: string; message?: string } })?.data?.message ||
                 "Não foi possível gerar o relatório. Verifique os dados e tente novamente.";
             toast.error(message);
         }
@@ -125,12 +126,21 @@ const ReportForm = ({
                 />
 
                 <Input
-                    {...register("file")}
+                    {...register("pdf_file")}
                     type="file"
-                    accept=".pdf,.doc,.docx"
-                    errorMessage={errors.file?.message}
-                    label="Arquivo do relatório"
-                    data-testid="report-file-input"
+                    accept="application/pdf"
+                    errorMessage={errors.pdf_file?.message}
+                    label="Arquivo PDF do relatório"
+                    data-testid="report-pdf-file-input"
+                ></Input>
+
+                <Input
+                    {...register("word_file")}
+                    type="file"
+                    accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    errorMessage={errors.word_file?.message}
+                    label="Arquivo Word do relatório"
+                    data-testid="report-word-file-input"
                 ></Input>
 
                 <div className="flex gap-2 py-4">
