@@ -1,8 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import {
     Button,
@@ -13,7 +16,7 @@ import {
     Spinner,
     Table,
 } from "@/components/common";
-import { Input } from "@/components/forms";
+import { Form, Input } from "@/components/forms";
 import Select, { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
@@ -29,6 +32,7 @@ import {
     useRestoreReportMutation,
     useSearchReportsQuery,
     useSoftDeleteReportMutation,
+    useUpdateReportFileMutation,
 } from "@/redux/features/reportApiSlice";
 import { resolveApiPath } from "@/utils/url";
 import type { ReportSearchDTO, ReportStatus } from "@/types/report";
@@ -45,6 +49,74 @@ import { toast } from "react-toastify";
 
 const log = child({ component: "ReportsSearchTab" });
 
+const MAX_FILE_SIZE = 10_000_000;
+const ACCEPTED_PDF_TYPES = ["application/pdf"];
+const ACCEPTED_WORD_TYPES = [
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
+const updateReportFileFormSchema = z
+    .object({
+        pdf_file: z.custom<FileList>(),
+        word_file: z.custom<FileList>(),
+    })
+    .superRefine((data, ctx) => {
+        const hasPdf = data.pdf_file instanceof FileList && data.pdf_file.length > 0;
+        const hasWord = data.word_file instanceof FileList && data.word_file.length > 0;
+
+        if (!hasPdf && !hasWord) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Selecione ao menos um arquivo.",
+                path: ["pdf_file"],
+            });
+            return;
+        }
+
+        if (hasPdf) {
+            const f = data.pdf_file[0];
+            if (f instanceof File) {
+                if (f.size > MAX_FILE_SIZE) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "O arquivo PDF não pode ser maior que 10MB.",
+                        path: ["pdf_file"],
+                    });
+                }
+                if (!ACCEPTED_PDF_TYPES.includes(f.type)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "O formato do arquivo deve ser PDF.",
+                        path: ["pdf_file"],
+                    });
+                }
+            }
+        }
+
+        if (hasWord) {
+            const f = data.word_file[0];
+            if (f instanceof File) {
+                if (f.size > MAX_FILE_SIZE) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "O arquivo Word não pode ser maior que 10MB.",
+                        path: ["word_file"],
+                    });
+                }
+                if (!ACCEPTED_WORD_TYPES.includes(f.type)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: "O formato do arquivo deve ser DOC ou DOCX.",
+                        path: ["word_file"],
+                    });
+                }
+            }
+        }
+    });
+
+type UpdateReportFileFormData = z.infer<typeof updateReportFileFormSchema>;
+
 type ReportsSearchTabProps = {
     currentUserRole: Role;
 };
@@ -56,6 +128,10 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         currentUserRole === Role.FMI ||
         currentUserRole === Role.FME ||
         currentUserRole === Role.C;
+    const canUpdate =
+        currentUserRole === Role.GP ||
+        currentUserRole === Role.FMI ||
+        currentUserRole === Role.FME;
     const searchParams = useSearchParams();
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -91,9 +167,22 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         ...appliedFilters,
     });
 
+    const [updateReportId, setUpdateReportId] = useState<number | null>(null);
+    const [updateOpen, setUpdateOpen] = useState(false);
+
     const [softDeleteReport, { isLoading: isSoftDeleting }] = useSoftDeleteReportMutation();
     const [hardDeleteReport, { isLoading: isHardDeleting }] = useHardDeleteReportMutation();
     const [restoreReport, { isLoading: isRestoring }] = useRestoreReportMutation();
+    const [updateReportFile, { isLoading: isUpdating }] = useUpdateReportFileMutation();
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting },
+    } = useForm<UpdateReportFileFormData>({
+        resolver: zodResolver(updateReportFileFormSchema),
+    });
 
     const reports = data?.results || [];
     const totalCount = data?.count || 0;
@@ -250,6 +339,37 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         }
     }
 
+    function handleCloseUpdateModal() {
+        reset();
+        setUpdateOpen(false);
+        setUpdateReportId(null);
+    }
+
+    const onUpdateSubmit: SubmitHandler<UpdateReportFileFormData> = async (data) => {
+        if (updateReportId === null) return;
+        const pdfFile =
+            data.pdf_file instanceof FileList && data.pdf_file.length > 0
+                ? data.pdf_file[0]
+                : undefined;
+        const wordFile =
+            data.word_file instanceof FileList && data.word_file.length > 0
+                ? data.word_file[0]
+                : undefined;
+        try {
+            await updateReportFile({
+                id: updateReportId,
+                pdf_file: pdfFile,
+                word_file: wordFile,
+            }).unwrap();
+            toast.success("Arquivos do relatório atualizados com sucesso.");
+            log.info({ reportId: updateReportId }, "Report files updated successfully");
+            handleCloseUpdateModal();
+        } catch (err) {
+            log.error({ reportId: updateReportId, error: err }, "Update report files failed");
+            toast.error("Não foi possível atualizar os arquivos do relatório.");
+        }
+    };
+
     if (error) {
         return (
             <ErrorDisplay
@@ -340,6 +460,19 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
             width: "8rem",
             cell: (report: ReportSearchDTO) => (
                 <div className="flex flex-col gap-2 items-stretch">
+                    {canUpdate && !report.is_deleted && (
+                        <Button
+                            variant="primary"
+                            onClick={() => {
+                                setUpdateReportId(report.id);
+                                setUpdateOpen(true);
+                            }}
+                            className="w-full text-xs"
+                            dataCy={`report-update-${report.id}`}
+                        >
+                            Atualizar
+                        </Button>
+                    )}
                     {isGP && !report.is_deleted && (
                         <Button
                             variant="danger"
@@ -573,6 +706,19 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                                             </a>
                                                         )}
                                                     </div>
+                                                    {canUpdate && !report.is_deleted && (
+                                                        <Button
+                                                            variant="primary"
+                                                            onClick={() => {
+                                                                setUpdateReportId(report.id);
+                                                                setUpdateOpen(true);
+                                                            }}
+                                                            className="w-full text-xs"
+                                                            dataCy={`report-update-mobile-${report.id}`}
+                                                        >
+                                                            Atualizar
+                                                        </Button>
+                                                    )}
                                                     {isGP && !report.is_deleted && (
                                                         <Button
                                                             variant="danger"
@@ -771,6 +917,54 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                         </Button>
                     </div>
                 </div>
+            </Modal>
+
+            {/* Update Report Files Modal */}
+            <Modal
+                isOpen={updateOpen}
+                onClose={handleCloseUpdateModal}
+                className="max-w-md px-2 py-4 sm:px-6"
+            >
+                <Form onSubmit={handleSubmit(onUpdateSubmit)}>
+                    <div className="flex flex-col gap-4">
+                        <Typography element="h3" size="lg">
+                            Atualizar relatório
+                        </Typography>
+                        <Input
+                            {...register("pdf_file")}
+                            type="file"
+                            accept="application/pdf"
+                            errorMessage={errors.pdf_file?.message}
+                            label="Arquivo PDF (opcional, substitui o arquivo atual)"
+                            data-testid="report-search-pdf-file-input"
+                        />
+                        <Input
+                            {...register("word_file")}
+                            type="file"
+                            accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            errorMessage={errors.word_file?.message}
+                            label="Arquivo Word (opcional, substitui o arquivo atual)"
+                            data-testid="report-search-word-file-input"
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={handleCloseUpdateModal}
+                                disabled={isUpdating || isSubmitting}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={isUpdating || isSubmitting}
+                                data-testid="btn-report-search-update-submit"
+                            >
+                                {isUpdating || isSubmitting ? "Enviando..." : "Salvar"}
+                            </Button>
+                        </div>
+                    </div>
+                </Form>
             </Modal>
         </div>
     );
