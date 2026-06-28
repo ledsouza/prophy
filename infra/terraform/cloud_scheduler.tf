@@ -25,7 +25,7 @@ resource "google_cloud_scheduler_job" "overdue_appointments" {
   schedule         = "0 7 * * *"
   time_zone        = "America/Sao_Paulo"
   attempt_deadline = "30s"
-  paused           = true
+  paused           = false
 
   http_target {
     http_method = "POST"
