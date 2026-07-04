@@ -1,23 +1,25 @@
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from rest_framework import viewsets
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
+import logging
 
-from drf_yasg.utils import swagger_auto_schema
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, viewsets
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from clients_management.models import Proposal
-from users.models import UserAccount
+from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from requisitions.serializers import (
     ClientOperationSerializer,
-    UnitOperationSerializer,
-    UnitOperationDeleteSerializer,
-    EquipmentOperationSerializer,
     EquipmentOperationDeleteSerializer,
+    EquipmentOperationSerializer,
+    UnitOperationDeleteSerializer,
+    UnitOperationSerializer,
 )
-from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
+from users.models import UserAccount
+
+logger = logging.getLogger(__name__)
 
 
 class ClientOperationViewSet(viewsets.ViewSet):
@@ -171,8 +173,7 @@ class ClientOperationViewSet(viewsets.ViewSet):
             return Response(
                 {
                     "detail": (
-                        "Only PROPHY_MANAGER can create "
-                        "accepted client operations."
+                        "Only PROPHY_MANAGER can create accepted client operations."
                     )
                 },
                 status=status.HTTP_403_FORBIDDEN,
@@ -626,7 +627,7 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         },
     )
     def create(self, request):
-        data = request.data
+        data = request.data.copy()
         data["created_by"] = request.user.id
 
         if data["operation_type"] == EquipmentOperation.OperationType.DELETE:
@@ -641,6 +642,9 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
                 return Response(
                     {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
                 )
+            except Exception:
+                logger.exception("Unexpected error creating equipment operation")
+                raise
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

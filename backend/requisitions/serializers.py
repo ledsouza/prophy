@@ -8,22 +8,27 @@ class ClientOperationSerializer(serializers.ModelSerializer):
         model = ClientOperation
         exclude = ["is_active"]
 
-    def validate_cnpj(self, value: str) -> str:
-        operation_type = self.initial_data.get("operation_type")
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
 
-        if operation_type != ClientOperation.OperationType.ADD:
-            return value
+        if attrs.get("operation_type") != ClientOperation.OperationType.ADD:
+            return attrs
 
-        existing_client = Client.objects.filter(cnpj=value, is_active=True).exists()
+        cnpj = attrs.get("cnpj")
+        existing_client = Client.objects.filter(
+            cnpj=cnpj, is_active=True
+        ).exists()
         existing_operation = ClientOperation.objects.filter(
-            cnpj=value,
+            cnpj=cnpj,
             operation_status=ClientOperation.OperationStatus.REVIEW,
         ).exists()
 
         if existing_client or existing_operation:
-            raise serializers.ValidationError("Este CNPJ já está cadastrado.")
+            raise serializers.ValidationError(
+                {"cnpj": "Este CNPJ já está cadastrado."}
+            )
 
-        return value
+        return attrs
 
 
 class ClientOperationUpdateStatusSerializer(serializers.ModelSerializer):
@@ -67,6 +72,43 @@ class EquipmentOperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EquipmentOperation
         fields = "__all__"
+        extra_kwargs = {
+            "equipment_photo": {"required": False},
+            "label_photo": {"required": False},
+        }
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if self.instance is not None:
+            return attrs
+
+        operation_type = attrs.get("operation_type")
+        is_edit = operation_type == EquipmentOperation.OperationType.EDIT
+
+        if not is_edit:
+            if not attrs.get("equipment_photo"):
+                raise serializers.ValidationError(
+                    {"equipment_photo": "Este campo é obrigatório."}
+                )
+            if not attrs.get("label_photo"):
+                raise serializers.ValidationError(
+                    {"label_photo": "Este campo é obrigatório."}
+                )
+
+        return attrs
+
+    def create(self, validated_data):
+        original_equipment = validated_data.get("original_equipment")
+        if original_equipment is not None:
+            if not validated_data.get("equipment_photo"):
+                validated_data["equipment_photo"] = (
+                    original_equipment.equipment_photo
+                )
+            if not validated_data.get("label_photo"):
+                validated_data["label_photo"] = (
+                    original_equipment.label_photo
+                )
+        return super().create(validated_data)
 
     def to_representation(self, instance: EquipmentOperation):
         representation = super().to_representation(instance)

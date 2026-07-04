@@ -18,6 +18,8 @@ import { useAppDispatch } from "@/redux/hooks";
 
 import { displaySingularAccessoryType } from "@/utils/format";
 import { useModality } from "@/hooks/use-modality";
+import useRequireAuth from "@/hooks/use-require-auth";
+import Role from "@/enums/Role";
 
 import { Button, Spinner } from "@/components/common";
 import { Form, Input, Select } from "@/components/forms";
@@ -78,6 +80,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     } = useModality(setValue);
 
     const { needReview } = useNeedReview();
+    const { userData } = useRequireAuth();
     const [createAddEquipmentOperation] = useCreateAddEquipmentOperationMutation();
 
     const [createAccessory] = useCreateAccessoryMutation();
@@ -144,6 +147,28 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
         // Handle file fields
         formData.append("equipment_photo", data.equipment_photo[0]);
         formData.append("label_photo", data.label_photo[0]);
+
+        if (userData?.role === Role.FMI || userData?.role === Role.GP) {
+            if (data.channels) formData.append("channels", data.channels);
+            if (data.official_max_load)
+                formData.append("official_max_load", data.official_max_load.toString());
+            if (data.usual_max_load)
+                formData.append("usual_max_load", data.usual_max_load.toString());
+            if (data.purchase_installation_date)
+                formData.append("purchase_installation_date", data.purchase_installation_date);
+            if (data.maintenance_responsable)
+                formData.append("maintenance_responsable", data.maintenance_responsable);
+            if (data.email_maintenance_responsable)
+                formData.append(
+                    "email_maintenance_responsable",
+                    data.email_maintenance_responsable,
+                );
+            if (data.phone_maintenance_responsable)
+                formData.append(
+                    "phone_maintenance_responsable",
+                    data.phone_maintenance_responsable,
+                );
+        }
 
         try {
             const equipmentResponse = await createAddEquipmentOperation(formData);
@@ -263,6 +288,79 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
                     label="Foto do rótulo do equipamento"
                     data-testid="equipment-label-input"
                 ></Input>
+
+                {(userData?.role === Role.FMI || userData?.role === Role.GP) && (
+                    <div
+                        className="flex flex-col gap-2 mt-6 border-t pt-4"
+                        data-cy="equipment-additional-info-section"
+                    >
+                        <Typography element="h3" size="title3" className="font-semibold mb-4">
+                            Informações adicionais do equipamento
+                        </Typography>
+
+                        <Input
+                            {...register("channels")}
+                            type="text"
+                            errorMessage={errors.channels?.message}
+                            placeholder="Digite o número de canais"
+                            data-testid="equipment-channels-input"
+                            label="Canais"
+                        />
+
+                        <Input
+                            {...register("official_max_load")}
+                            type="number"
+                            errorMessage={errors.official_max_load?.message}
+                            placeholder="Digite a carga máxima oficial"
+                            data-testid="equipment-official-max-load-input"
+                            label="Carga máxima oficial"
+                        />
+
+                        <Input
+                            {...register("usual_max_load")}
+                            type="number"
+                            errorMessage={errors.usual_max_load?.message}
+                            placeholder="Digite a carga máxima usual"
+                            data-testid="equipment-usual-max-load-input"
+                            label="Carga máxima usual"
+                        />
+
+                        <Input
+                            {...register("purchase_installation_date")}
+                            type="date"
+                            errorMessage={errors.purchase_installation_date?.message}
+                            data-testid="equipment-purchase-installation-date-input"
+                            label="Data de instalação da compra"
+                        />
+
+                        <Input
+                            {...register("maintenance_responsable")}
+                            type="text"
+                            errorMessage={errors.maintenance_responsable?.message}
+                            placeholder="Digite o nome do responsável pela manutenção"
+                            data-testid="equipment-maintenance-responsable-input"
+                            label="Responsável pela manutenção"
+                        />
+
+                        <Input
+                            {...register("email_maintenance_responsable")}
+                            type="email"
+                            errorMessage={errors.email_maintenance_responsable?.message}
+                            placeholder="Digite o e-mail do responsável pela manutenção"
+                            data-testid="equipment-email-maintenance-responsable-input"
+                            label="E-mail do responsável pela manutenção"
+                        />
+
+                        <Input
+                            {...register("phone_maintenance_responsable")}
+                            type="text"
+                            errorMessage={errors.phone_maintenance_responsable?.message}
+                            placeholder="Digite o telefone do responsável pela manutenção"
+                            data-testid="equipment-phone-maintenance-responsable-input"
+                            label="Telefone do responsável pela manutenção"
+                        />
+                    </div>
+                )}
             </>
         );
     };

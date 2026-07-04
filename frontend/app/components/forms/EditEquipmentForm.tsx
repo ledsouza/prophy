@@ -32,7 +32,6 @@ import { useNeedReview } from "@/hooks";
 import { useModality } from "@/hooks/use-modality";
 import useRequireAuth from "@/hooks/use-require-auth";
 import { displaySingularAccessoryType } from "@/utils/format";
-import { fetchPhoto } from "@/utils/media";
 import { resolveMediaPath } from "@/utils/url";
 
 import { Button, Modal, Spinner } from "@/components/common";
@@ -87,6 +86,7 @@ type ViewImageButtonProps = {
     imageEndpoint: string;
     imageTitle: string;
     className?: string;
+    dataCy?: string;
 };
 
 type EditEquipmentFormProps = {
@@ -110,8 +110,6 @@ const EditEquipmentForm = ({
 
     const { userData } = useRequireAuth();
 
-    const [equipmentPhotoFile, setEquipmentPhotoFile] = useState<File | null>(null);
-    const [equipmentLabelPhotoFile, setEquipmentLabelPhotoFile] = useState<File | null>(null);
     const [removedAccessoryIds, setRemovedAccessoryIds] = useState<number[]>([]);
 
     // Image modal state
@@ -175,20 +173,6 @@ const EditEquipmentForm = ({
     const [createAccessory] = useCreateAccessoryMutation();
     const [updateAccessory] = useUpdateAccessoryMutation();
     const [deleteAccessory] = useDeleteAccessoryMutation();
-
-    const handleAccessoryPhoto = async (endpoint: string) => {
-        const accessoryPhoto = await fetchPhoto(endpoint);
-        return accessoryPhoto;
-    };
-
-    const handleEquipmentPhotoFetch = async (endpoint: string, isLabelPhoto: boolean = false) => {
-        const photo = await fetchPhoto(endpoint);
-        if (isLabelPhoto) {
-            setEquipmentLabelPhotoFile(photo);
-        } else {
-            setEquipmentPhotoFile(photo);
-        }
-    };
 
     const handleAddAccessory = () => {
         setEditAccessories(true);
@@ -367,17 +351,12 @@ const EditEquipmentForm = ({
             equipmentFormData.append("note", data.note);
         }
 
-        // Handle file uploads - check if files exist before appending
         if (data.equipment_photo?.[0]) {
             equipmentFormData.append("equipment_photo", data.equipment_photo[0]);
-        } else if (equipmentPhotoFile) {
-            equipmentFormData.append("equipment_photo", equipmentPhotoFile);
         }
 
         if (data.label_photo?.[0]) {
             equipmentFormData.append("label_photo", data.label_photo[0]);
-        } else if (equipmentLabelPhotoFile) {
-            equipmentFormData.append("label_photo", equipmentLabelPhotoFile);
         }
 
         if (!needReview) {
@@ -400,20 +379,10 @@ const EditEquipmentForm = ({
 
             if (accessory.equipment_photo?.[0]) {
                 accessoryFormData.append("equipment_photo", accessory.equipment_photo[0]);
-            } else if (filteredAccessories[index]?.equipment_photo) {
-                const equipmentPhotoFile = await handleAccessoryPhoto(
-                    filteredAccessories[index].equipment_photo,
-                );
-                accessoryFormData.append("equipment_photo", equipmentPhotoFile);
             }
 
             if (accessory.label_photo?.[0]) {
                 accessoryFormData.append("label_photo", accessory.label_photo[0]);
-            } else if (filteredAccessories[index]?.label_photo) {
-                const equipmentLabelPhotoFile = await handleAccessoryPhoto(
-                    filteredAccessories[index].label_photo,
-                );
-                accessoryFormData.append("label_photo", equipmentLabelPhotoFile);
             }
 
             return accessoryFormData;
@@ -486,18 +455,17 @@ const EditEquipmentForm = ({
         return results;
     };
 
-    const ViewImageButton = ({ imageEndpoint, imageTitle, className }: ViewImageButtonProps) => {
+    const ViewImageButton = ({ imageEndpoint, imageTitle, className, dataCy }: ViewImageButtonProps) => {
         return (
-            (reviewMode || disabled) && (
-                <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => handleViewImage(imageEndpoint, imageTitle)}
-                    className={`whitespace-nowrap ${className || ""}`}
-                >
-                    Ver imagem
-                </Button>
-            )
+            <Button
+                type="button"
+                variant="secondary"
+                onClick={() => handleViewImage(imageEndpoint, imageTitle)}
+                className={`whitespace-nowrap ${className || ""}`}
+                dataCy={dataCy}
+            >
+                Ver imagem atual
+            </Button>
         );
     };
 
@@ -593,10 +561,17 @@ const EditEquipmentForm = ({
                         />
                     )}
 
+                    {!disabled && !reviewMode && (
+                        <Typography element="p" size="xs" className="text-gray-500">
+                            Deixe em branco para manter a foto atual.
+                        </Typography>
+                    )}
+
                     {equipment.equipment_photo && (
                         <ViewImageButton
                             imageEndpoint={equipment.equipment_photo}
                             imageTitle="Foto do equipamento"
+                            dataCy="equipment-photo-view-btn"
                         />
                     )}
                 </div>
@@ -617,10 +592,17 @@ const EditEquipmentForm = ({
                         />
                     )}
 
+                    {!disabled && !reviewMode && (
+                        <Typography element="p" size="xs" className="text-gray-500">
+                            Deixe em branco para manter a foto atual.
+                        </Typography>
+                    )}
+
                     {equipment.label_photo && (
                         <ViewImageButton
                             imageEndpoint={equipment.label_photo}
                             imageTitle="Foto do rótulo do equipamento"
+                            dataCy="equipment-label-view-btn"
                         />
                     )}
                 </div>
@@ -629,7 +611,7 @@ const EditEquipmentForm = ({
                     !disabled &&
                     !needReview &&
                     (userData?.role === Role.FMI || userData?.role === Role.GP) && (
-                        <div className="flex flex-col gap-2 mt-6 border-t pt-4">
+                        <div className="flex flex-col gap-2 mt-6 border-t pt-4" data-cy="equipment-additional-info-section">
                             <Typography element="h3" size="title3" className="font-semibold mb-4">
                                 Informações adicionais do equipamento
                             </Typography>
@@ -929,6 +911,11 @@ const EditEquipmentForm = ({
                     width={800}
                     height={600}
                     className="w-full h-full object-contain"
+                    unoptimized={
+                        currentImageUrl.startsWith("http://") ||
+                        currentImageUrl.startsWith("https://") ||
+                        currentImageUrl.startsWith("/media/")
+                    }
                 />
             </div>
         </Modal>
@@ -976,8 +963,8 @@ const EditEquipmentForm = ({
                 );
             }
 
-            // The backend will handle accessories when reviewMode is true
-            if (!reviewMode) {
+            // The backend handles accessories when an operation goes for review
+            if (!reviewMode && !needReview) {
                 await handleAccessories(accessoriesFormData, equipmentResponse.data);
             }
 
@@ -1036,25 +1023,6 @@ const EditEquipmentForm = ({
             accessories.filter((accessory) => accessory.equipment === equipment.id),
         );
     }, [accessories, isLoadingAccessories, equipment.id]);
-
-    // Fetch equipment photos from the server
-    useEffect(() => {
-        if (equipment.equipment_photo) {
-            try {
-                handleEquipmentPhotoFetch(equipment.equipment_photo, false);
-            } catch (error) {
-                toast.error("Erro ao carregar a foto do equipamento.");
-            }
-        }
-
-        if (equipment.label_photo) {
-            try {
-                handleEquipmentPhotoFetch(equipment.label_photo, true);
-            } catch (error) {
-                toast.error("Erro ao carregar a foto do rótulo do equipamento.");
-            }
-        }
-    }, [equipment]);
 
     if (isErrorModalities || isErrorAccessories) {
         toast.error("Algo deu errado. Tente novamente mais tarde.");

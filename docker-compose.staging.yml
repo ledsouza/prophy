@@ -37,10 +37,10 @@ services:
           "CMD",
           "python",
           "-c",
-          "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/docs/').read()",
+          "import django; django.setup(); from django.db import connection; c = connection.cursor(); c.execute('SELECT 1'); c.close()",
         ]
       interval: 5s
-      timeout: 5s
+      timeout: 10s
       retries: 12
     command: ["/app/scripts/staging-entrypoint.sh"]
 
