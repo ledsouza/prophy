@@ -3,6 +3,7 @@ from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 from rest_framework import serializers
 from users.models import UserAccount
@@ -109,6 +110,15 @@ class EquipmentSerializer(serializers.ModelSerializer):
             if instance.unit.client:
                 representation["client_name"] = instance.unit.client.name
 
+        if instance.equipment_photo:
+            representation["equipment_photo"] = reverse(
+                "equipment-photo", kwargs={"pk": instance.pk}
+            )
+        if instance.label_photo:
+            representation["label_photo"] = reverse(
+                "equipment-label", kwargs={"pk": instance.pk}
+            )
+
         return representation
 
 
@@ -122,6 +132,20 @@ class AccessorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Accessory
         fields = "__all__"
+
+    def to_representation(self, instance: Accessory):
+        representation = super().to_representation(instance)
+
+        if instance.equipment_photo:
+            representation["equipment_photo"] = reverse(
+                "accessory-photo", kwargs={"pk": instance.pk}
+            )
+        if instance.label_photo:
+            representation["label_photo"] = reverse(
+                "accessory-label", kwargs={"pk": instance.pk}
+            )
+
+        return representation
 
 
 class ServiceOrderSerializer(serializers.ModelSerializer):

@@ -17,13 +17,14 @@ from django.db.models import (
     Value,
     When,
 )
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -63,6 +64,21 @@ from clients_management.serializers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class EquipmentMediaView(APIView):
+    permission_classes = [IsAuthenticated]
+    model = None
+    field_name = None
+
+    def get(self, request: Request, pk: int) -> HttpResponseRedirect:
+        obj = get_object_or_404(self.model, pk=pk)
+        field = getattr(obj, self.field_name)
+        if not field:
+            raise Http404
+        return HttpResponseRedirect(
+            request.build_absolute_uri(field.url)
+        )
 
 
 class LatestProposalStatusView(APIView):

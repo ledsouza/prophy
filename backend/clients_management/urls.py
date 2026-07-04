@@ -1,14 +1,17 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from clients_management.models import Accessory, Equipment
 from clients_management.views import (
     AccessoryViewSet,
     AppointmentViewSet,
     ClientStatusView,
     ClientViewSet,
+    EquipmentMediaView,
     EquipmentViewSet,
     LatestProposalStatusView,
     ModalityViewSet,
+    ProposalFileDownloadView,
     ProposalViewSet,
     ReportFileDownloadView,
     ReportViewSet,
@@ -18,7 +21,6 @@ from clients_management.views import (
     TriggerReportNotificationView,
     TriggerUpdateAppointmentsView,
     UnitViewSet,
-    ProposalFileDownloadView,
 )
 
 router = DefaultRouter()
@@ -33,6 +35,34 @@ router.register("service-orders", ServiceOrderViewSet, basename="service-orders"
 router.register("reports", ReportViewSet, basename="reports")
 
 urlpatterns = [
+    path(
+        "equipments/<int:pk>/photo/",
+        EquipmentMediaView.as_view(
+            model=Equipment, field_name="equipment_photo"
+        ),
+        name="equipment-photo",
+    ),
+    path(
+        "equipments/<int:pk>/label/",
+        EquipmentMediaView.as_view(
+            model=Equipment, field_name="label_photo"
+        ),
+        name="equipment-label",
+    ),
+    path(
+        "accessories/<int:pk>/photo/",
+        EquipmentMediaView.as_view(
+            model=Accessory, field_name="equipment_photo"
+        ),
+        name="accessory-photo",
+    ),
+    path(
+        "accessories/<int:pk>/label/",
+        EquipmentMediaView.as_view(
+            model=Accessory, field_name="label_photo"
+        ),
+        name="accessory-label",
+    ),
     path("proposals/status/", LatestProposalStatusView.as_view()),
     path("clients/status/", ClientStatusView.as_view()),
     path("service-orders/<int:order_id>/pdf/", ServiceOrderPDFView.as_view()),
