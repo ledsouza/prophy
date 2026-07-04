@@ -17,7 +17,6 @@ import {
     useListAllUnitsOperationsQuery,
     useListAllUnitsQuery,
 } from "@/redux/features/unitApiSlice";
-import { apiSlice } from "@/redux/services/apiSlice";
 import {
     getEquipmentOperation,
     getUnitOperation,
@@ -26,6 +25,7 @@ import {
 } from "@/redux/services/helpers";
 
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useUnitPageRefresh } from "@/hooks";
 import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
@@ -100,17 +100,7 @@ function UnitPage() {
     const [deleteEquipmentOperation, { isLoading: isLoadingDeleteEquipmentOperation }] =
         useDeleteEquipmentOperationMutation();
 
-    const handleUpdateData = () => {
-        dispatch(
-            apiSlice.util.invalidateTags([
-                { type: "Unit", id: "LIST" },
-                { type: "UnitOperation", id: "LIST" },
-                { type: "Equipment", id: "LIST" },
-                { type: "EquipmentOperation", id: "LIST" },
-                { type: "Appointment", id: "LIST" },
-            ]),
-        );
-    };
+    const handleUpdateData = useUnitPageRefresh();
 
     const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
         const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
@@ -280,6 +270,7 @@ function UnitPage() {
                     className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
                     disabled={isLoadingUnitOperations}
                     onClick={handleUpdateData}
+                    dataCy="unit-page-refresh-btn"
                 >
                     <div className="flex items-center gap-2">
                         <ArrowClockwise size="24" />

@@ -12,3 +12,4 @@ export { usePageNavigation } from "./use-page-navigation";
 export { useFilterApplication } from "./use-filter-application";
 export { useFilterClear } from "./use-filter-clear";
 export { useFilterRestoration } from "./use-filter-restoration";
+export { useUnitPageRefresh } from "./use-unit-page-refresh";
