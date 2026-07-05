@@ -12,9 +12,11 @@ import { Button, ErrorDisplay, Modal, Spinner } from "@/components/common";
 import { getAppointmentStatusClasses } from "@/constants/appointmentStatus";
 import AppointmentStatus from "@/enums/AppointmentStatus";
 import { appointmentStatusLabel } from "@/enums/AppointmentStatus";
+import type Role from "@/enums/Role";
 import { useListAppointmentsQuery } from "@/redux/features/appointmentApiSlice";
 import type { AppointmentDTO, AppointmentResponsible } from "@/types/appointment";
 import { formatDateTime, formatPhoneNumber } from "@/utils/format";
+import { roleLabel } from "@/utils/roles";
 
 type AppointmentsCalendarFilters = {
     status: string;
@@ -117,19 +119,6 @@ function formatCalendarTimeLabel(dateIso: string): string {
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${hours}:${minutes}h`;
-}
-
-function getResponsibleRoleLabel(role: string): string {
-    switch (role) {
-        case "FMI":
-            return "Físico Interno";
-        case "FME":
-            return "Físico Externo";
-        case "GP":
-            return "Prophy Manager";
-        default:
-            return role;
-    }
 }
 
 function formatResponsibleContact(responsible: AppointmentResponsible): string {
@@ -362,7 +351,7 @@ export default function AppointmentsCalendar({ dataCyPrefix, filters }: Appointm
                                                 className="rounded-lg border border-gray-200 bg-white px-3 py-2"
                                             >
                                                 <p className="text-xs uppercase text-gray-400">
-                                                    {getResponsibleRoleLabel(responsible.role)}
+                                                    {roleLabel(responsible.role as Role)}
                                                 </p>
                                                 <p className="text-sm font-semibold text-gray-900">
                                                     {responsible.name}
