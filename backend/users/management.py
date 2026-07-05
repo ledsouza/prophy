@@ -74,7 +74,9 @@ class UserManagementViewSet(
                     UserAccount.Role.UNIT_MANAGER,
                 ]
             ).order_by("id")
-        return super().get_queryset()
+        return super().get_queryset().exclude(
+            role=UserAccount.Role.SERVICE_ACCOUNT
+        )
 
     def _ensure_commercial_allowed_role(self, role: str | None) -> Response | None:
         if self.request.user.role != UserAccount.Role.COMMERCIAL:

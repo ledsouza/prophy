@@ -54,6 +54,21 @@ def test_commercial_list_manage_only_returns_allowed_roles():
 
 
 @pytest.mark.django_db
+def test_list_manage_excludes_service_account_users():
+    client = APIClient()
+    gp = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    UserFactory(role=UserAccount.Role.SERVICE_ACCOUNT, name="Cloud Scheduler")
+    UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST, name="FMI")
+
+    client.force_authenticate(user=gp)
+    response = client.get("/api/users/manage/")
+
+    assert response.status_code == status.HTTP_200_OK
+    roles = {item["role"] for item in response.data["results"]}
+    assert UserAccount.Role.SERVICE_ACCOUNT not in roles
+
+
+@pytest.mark.django_db
 def test_create_managed_user_sends_reset_email_and_sets_unusable_password(mocker):
     client = APIClient()
     gp = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
