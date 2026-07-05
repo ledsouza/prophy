@@ -1,3 +1,5 @@
+import { parseISO } from "date-fns";
+
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 import { ContractType, ProposalStatus } from "@/enums";
 
@@ -86,7 +88,7 @@ export const formatCurrency = (value: string): string => {
 
 export const formatDate = (dateString: string): string => {
     try {
-        const date = new Date(dateString);
+        const date = parseISO(dateString);
         return date.toLocaleDateString("pt-BR", {
             day: "2-digit",
             month: "2-digit",

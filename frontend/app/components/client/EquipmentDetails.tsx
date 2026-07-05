@@ -7,7 +7,7 @@ import {
     TabPanel,
     TabPanels,
 } from "@headlessui/react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { EquipmentDTO } from "@/redux/features/equipmentApiSlice";
 import { useGetAccessoriesQuery } from "@/redux/features/accessoryApiSlice";
@@ -52,7 +52,7 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
     const { data: reports = [] } = useListReportsQuery({ equipment: equipment.id });
 
     const formattedDate = equipment.purchase_installation_date
-        ? format(new Date(equipment.purchase_installation_date), "dd/MM/yyyy", { locale: ptBR })
+        ? format(parseISO(equipment.purchase_installation_date), "dd/MM/yyyy", { locale: ptBR })
         : "Não informado";
 
     const equipmentPhotoSrc = equipment.equipment_photo

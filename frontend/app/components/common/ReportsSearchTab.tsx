@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -400,13 +400,13 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
             header: "Data de Conclusão",
             cell: (report: ReportSearchDTO) =>
                 report.completion_date
-                    ? format(new Date(report.completion_date), "dd/MM/yyyy")
+                    ? format(parseISO(report.completion_date), "dd/MM/yyyy")
                     : "—",
         },
         {
             header: "Data de Vencimento",
             cell: (report: ReportSearchDTO) =>
-                report.due_date ? format(new Date(report.due_date), "dd/MM/yyyy") : "—",
+                report.due_date ? format(parseISO(report.due_date), "dd/MM/yyyy") : "—",
         },
         {
             header: "Situação",
@@ -657,7 +657,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                                     label: "Conclusão",
                                                     value: report.completion_date
                                                         ? format(
-                                                              new Date(report.completion_date),
+                                                              parseISO(report.completion_date),
                                                               "dd/MM/yyyy",
                                                           )
                                                         : "—",
@@ -666,7 +666,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                                     label: "Vencimento",
                                                     value: report.due_date
                                                         ? format(
-                                                              new Date(report.due_date),
+                                                              parseISO(report.due_date),
                                                               "dd/MM/yyyy",
                                                           )
                                                         : "—",
