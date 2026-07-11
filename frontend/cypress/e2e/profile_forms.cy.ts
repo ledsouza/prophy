@@ -14,8 +14,15 @@ const NEW_PASSWORD = "ProfileTest@123";
 
 describe("profile forms", () => {
     describeForViewports([DESKTOP_VIEWPORT, MOBILE_VIEWPORT], (viewport) => {
-        beforeEach(() => {
+        // Tests 3 and 5 mutate profile fields and the password, and
+        // later tests/assertions in this file depend on that mutated
+        // (or original) state, so the reseed must stay scoped per
+        // viewport rather than hoisted to the outer describe.
+        before(() => {
             cy.setupDB();
+        });
+
+        beforeEach(() => {
             cy.loginAs("admin_user");
             cy.intercept("GET", "**/api/users/me/").as("getOwnProfile");
             cy.intercept("PATCH", "**/api/users/me/").as("updateOwnProfile");

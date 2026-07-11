@@ -1,5 +1,5 @@
 describe("register", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

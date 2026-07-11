@@ -19,7 +19,7 @@ describe("prophy manager - user associations", () => {
         user: number | null;
     };
 
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

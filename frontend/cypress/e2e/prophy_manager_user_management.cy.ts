@@ -6,7 +6,7 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("prophy manager - user management", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

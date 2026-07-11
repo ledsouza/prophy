@@ -6,7 +6,7 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("commercial - clients toggle status", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

@@ -6,7 +6,7 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("reports - file download links", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

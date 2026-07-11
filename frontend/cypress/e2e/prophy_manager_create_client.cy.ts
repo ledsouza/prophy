@@ -1,8 +1,11 @@
 import { fake } from "validation-br/dist/cnpj";
 
 describe("prophy manager - create client", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
+    });
+
+    beforeEach(() => {
         cy.loginAs("admin_user");
     });
 

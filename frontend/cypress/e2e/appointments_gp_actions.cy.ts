@@ -68,6 +68,9 @@ function confirmAppointment(appointmentId: string, viewport: ViewportConfig): vo
 }
 
 describe("appointments - GP actions", () => {
+    // Only 2 pending appointments exist in seed data and both tests
+    // each consume one, so even a per-viewport reseed leaves the
+    // second test with none left - each test needs its own fresh seed.
     beforeEach(() => {
         cy.setupDB();
         cy.loginAs("admin_user");

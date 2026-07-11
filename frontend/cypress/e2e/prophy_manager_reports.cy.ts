@@ -6,7 +6,7 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("prophy manager - reports", () => {
-    beforeEach(() => {
+    before(() => {
         cy.setupDB();
     });
 

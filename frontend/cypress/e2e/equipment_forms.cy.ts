@@ -5,6 +5,9 @@ import {
 } from "../support/e2eTestUtils";
 
 describe("equipment forms", () => {
+    // Submitting an edit/add operation leaves a pending
+    // EquipmentOperation, which hides that equipment's edit button for
+    // subsequent tests - each test needs its own fresh seed.
     beforeEach(() => {
         cy.setupDB();
     });
