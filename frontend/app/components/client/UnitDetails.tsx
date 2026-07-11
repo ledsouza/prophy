@@ -160,6 +160,8 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
                 <Typography element="p" size="md" dataTestId="unit-details">
                     <b>Nome:</b> {unit.name}
                     <br />
+                    <b>Razão Social:</b> {unit.razao_social}
+                    <br />
                     <b>CNPJ:</b> {cnpjMask(unit.cnpj)}
                     <br />
                     <b>Telefone:</b> {formatPhoneNumber(unit.phone)}

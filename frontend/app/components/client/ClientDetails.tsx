@@ -273,6 +273,8 @@ function ClientDetails({
                     dataCy="client-options"
                 />
                 <Typography element="p" size="md" dataTestId="client-details">
+                    <b>Razão Social:</b> {filteredClient?.razao_social}
+                    <br />
                     <b>CNPJ:</b> {cnpjMask(filteredClient?.cnpj)}
                     <br />
                     <b>Telefone:</b> {formatPhoneNumber(filteredClient?.phone)}
