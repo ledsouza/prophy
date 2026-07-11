@@ -178,7 +178,16 @@ class ClientOperation(BaseOperation, Client):
                 "Não foi encontrado o cliente associado para atualizar."
             )
 
-        update_fields = ["name", "email", "phone", "address", "state", "city", "cnpj"]
+        update_fields = [
+            "name",
+            "razao_social",
+            "email",
+            "phone",
+            "address",
+            "state",
+            "city",
+            "cnpj",
+        ]
 
         for field in update_fields:
             setattr(self.original_client, field, getattr(self.client_ptr, field))
@@ -264,7 +273,16 @@ class UnitOperation(BaseOperation, Unit):
                 "Não foi encontrada a unidade associada para atualizar."
             )
 
-        update_fields = ["cnpj", "name", "email", "phone", "address", "state", "city"]
+        update_fields = [
+            "cnpj",
+            "name",
+            "razao_social",
+            "email",
+            "phone",
+            "address",
+            "state",
+            "city",
+        ]
 
         for field in update_fields:
             setattr(self.original_unit, field, getattr(self.unit_ptr, field))

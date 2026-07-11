@@ -53,6 +53,7 @@ class ClientSerializer(serializers.ModelSerializer):
             "id",
             "cnpj",
             "name",
+            "razao_social",
             "email",
             "phone",
             "address",

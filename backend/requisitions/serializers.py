@@ -57,6 +57,7 @@ class UnitOperationDeleteSerializer(serializers.ModelSerializer):
             original_unit=validated_data["original_unit"],
             client=unit.client,
             name=unit.name,
+            razao_social=unit.razao_social,
             cnpj=unit.cnpj,
             email=unit.email,
             phone=unit.phone,
