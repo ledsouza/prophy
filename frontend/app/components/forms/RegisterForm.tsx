@@ -84,6 +84,15 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 label="Nome"
             />
             <Input
+                {...register("institutionRazaoSocial")}
+                type="text"
+                errorMessage={errors.institutionRazaoSocial?.message}
+                placeholder="Digite a razão social da instituição"
+                data-cy="register-institution-razao-social-input"
+                data-testid="institution-razao-social-input"
+                label="Razão Social"
+            />
+            <Input
                 {...register("institutionEmail")}
                 type="text"
                 errorMessage={errors.institutionEmail?.message}

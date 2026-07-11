@@ -34,6 +34,7 @@ const useRegistrationForm = ({ validatedCNPJ, setIsModalOpen }: RegisterFormProp
                 password,
                 rePassword,
                 institutionName,
+                institutionRazaoSocial,
                 contactName,
                 contactEmail,
                 contactPhone,
@@ -59,6 +60,7 @@ const useRegistrationForm = ({ validatedCNPJ, setIsModalOpen }: RegisterFormProp
             const clientData = await createClient({
                 cnpj: validatedCNPJ,
                 name: institutionName,
+                razao_social: institutionRazaoSocial,
                 email: institutionEmail,
                 phone: institutionPhone,
                 address,
@@ -69,6 +71,7 @@ const useRegistrationForm = ({ validatedCNPJ, setIsModalOpen }: RegisterFormProp
             await createUnit({
                 cnpj: validatedCNPJ,
                 name: institutionName,
+                razao_social: institutionRazaoSocial,
                 email: institutionEmail,
                 phone: institutionPhone,
                 address,

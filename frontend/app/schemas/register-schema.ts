@@ -29,6 +29,12 @@ const registerSchema = z
             .max(50, {
                 message: "Nome da instituição não pode exceder 50 caracteres.",
             }),
+        institutionRazaoSocial: z
+            .string()
+            .min(1, { message: "Razão Social é obrigatória." })
+            .max(150, {
+                message: "Razão Social não pode exceder 150 caracteres.",
+            }),
         contactName: z.string().min(1, { message: "Nome do contato é obrigatório." }).max(50, {
             message: "Nome do contato não pode exceder 50 caracteres.",
         }),
