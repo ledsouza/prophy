@@ -5,7 +5,6 @@ import { format, parseISO } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { z } from "zod";
 
 import {
     Button,
@@ -21,6 +20,9 @@ import Select, { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
 import Role from "@/enums/Role";
+import updateReportFileFormSchema, {
+    type UpdateReportFileFormData,
+} from "@/schemas/update-report-file-schema";
 import {
     useFilterApplication,
     useFilterClear,
@@ -48,74 +50,6 @@ import { child } from "@/utils/logger";
 import { toast } from "react-toastify";
 
 const log = child({ component: "ReportsSearchTab" });
-
-const MAX_FILE_SIZE = 10_000_000;
-const ACCEPTED_PDF_TYPES = ["application/pdf"];
-const ACCEPTED_WORD_TYPES = [
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-];
-
-const updateReportFileFormSchema = z
-    .object({
-        pdf_file: z.custom<FileList>(),
-        word_file: z.custom<FileList>(),
-    })
-    .superRefine((data, ctx) => {
-        const hasPdf = data.pdf_file instanceof FileList && data.pdf_file.length > 0;
-        const hasWord = data.word_file instanceof FileList && data.word_file.length > 0;
-
-        if (!hasPdf && !hasWord) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Selecione ao menos um arquivo.",
-                path: ["pdf_file"],
-            });
-            return;
-        }
-
-        if (hasPdf) {
-            const f = data.pdf_file[0];
-            if (f instanceof File) {
-                if (f.size > MAX_FILE_SIZE) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "O arquivo PDF não pode ser maior que 10MB.",
-                        path: ["pdf_file"],
-                    });
-                }
-                if (!ACCEPTED_PDF_TYPES.includes(f.type)) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "O formato do arquivo deve ser PDF.",
-                        path: ["pdf_file"],
-                    });
-                }
-            }
-        }
-
-        if (hasWord) {
-            const f = data.word_file[0];
-            if (f instanceof File) {
-                if (f.size > MAX_FILE_SIZE) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "O arquivo Word não pode ser maior que 10MB.",
-                        path: ["word_file"],
-                    });
-                }
-                if (!ACCEPTED_WORD_TYPES.includes(f.type)) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: "O formato do arquivo deve ser DOC ou DOCX.",
-                        path: ["word_file"],
-                    });
-                }
-            }
-        }
-    });
-
-type UpdateReportFileFormData = z.infer<typeof updateReportFileFormSchema>;
 
 type ReportsSearchTabProps = {
     currentUserRole: Role;

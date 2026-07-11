@@ -14,7 +14,7 @@ import {
 } from "@/redux/features/proposalApiSlice";
 import { useAppDispatch } from "@/redux/hooks";
 import { handleApiError } from "@/redux/services/errorHandling";
-import { proposalPdfFileSchema, proposalSchema, proposalWordFileSchema } from "@/schemas";
+import { pdfFileSchema, proposalSchema, wordFileSchema } from "@/schemas";
 
 import { Button, Spinner } from "@/components/common";
 import { ComboBox, Form, Input, Select } from "@/components/forms";
@@ -22,8 +22,8 @@ import type { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
 
 const createProposalSchema = proposalSchema.extend({
-    pdf_version: proposalPdfFileSchema,
-    word_version: proposalWordFileSchema,
+    pdf_version: pdfFileSchema,
+    word_version: wordFileSchema,
 });
 
 export type CreateProposalFields = z.infer<typeof createProposalSchema>;

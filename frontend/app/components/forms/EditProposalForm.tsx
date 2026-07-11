@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 
 import { ProposalStatus } from "@/enums";
-import { proposalPdfFileSchema, proposalSchema, proposalWordFileSchema } from "@/schemas";
+import { pdfFileSchema, proposalSchema, wordFileSchema } from "@/schemas";
 
 import type { ProposalDTO } from "@/redux/features/proposalApiSlice";
 import { useUpdateProposalMutation } from "@/redux/features/proposalApiSlice";
@@ -31,11 +31,11 @@ const editProposalSchema = proposalSchema
         }),
         pdf_version: z.preprocess(
             (v) => (v instanceof FileList && v.length === 0 ? undefined : v),
-            proposalPdfFileSchema.optional(),
+            pdfFileSchema.optional(),
         ),
         word_version: z.preprocess(
             (v) => (v instanceof FileList && v.length === 0 ? undefined : v),
-            proposalWordFileSchema.optional(),
+            wordFileSchema.optional(),
         ),
     })
     .partial({

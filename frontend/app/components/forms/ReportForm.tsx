@@ -11,7 +11,7 @@ import { Typography } from "@/components/foundation";
 
 import { useCreateReportMutation } from "@/redux/features/reportApiSlice";
 import { useReportTypeSelect } from "@/hooks";
-import { reportPdfFileSchema, reportWordFileSchema } from "@/schemas";
+import { pdfFileSchema, wordFileSchema } from "@/schemas";
 
 type ReportFormProps = {
     isUnit: boolean;
@@ -27,8 +27,8 @@ const reportFormSchema = z.object({
         .string()
         .min(1, { message: "Data de conclusão é obrigatória." })
         .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data inválida." }),
-    pdf_file: reportPdfFileSchema,
-    word_file: reportWordFileSchema,
+    pdf_file: pdfFileSchema,
+    word_file: wordFileSchema,
 });
 
 type ReportFormFields = z.infer<typeof reportFormSchema>;

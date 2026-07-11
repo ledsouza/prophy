@@ -12,10 +12,12 @@ export {
     makeAppointmentScheduleSchema,
 } from "./appointment-schedule-schema";
 export { default as reportFileSchema } from "./report-file-schema";
-export { default as reportPdfFileSchema } from "./report-pdf-schema";
-export { default as reportWordFileSchema } from "./report-word-schema";
+export { default as pdfFileSchema } from "./pdf-file-schema";
+export { default as wordFileSchema } from "./word-file-schema";
 export { default as proposalSchema } from "./proposal-schema";
 export { default as materialUpdateSchema } from "./material-update-schema";
-export { default as proposalPdfFileSchema } from "./proposal-pdf-schema";
-export { default as proposalWordFileSchema } from "./proposal-word-schema";
+export {
+    default as updateReportFileFormSchema,
+    type UpdateReportFileFormData,
+} from "./update-report-file-schema";
 export { default as managedUserSchema, type ManagedUserFormFields } from "./managed-user-schema";
