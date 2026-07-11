@@ -33,6 +33,7 @@ describe("Unit add review flow", () => {
 
         cy.get('[data-testid="btn-add-unit"]', { timeout: 10000 }).click();
         cy.get('[data-testid="unit-name-input"]', { timeout: 10000 }).type(unitName);
+        cy.get('[data-testid="unit-razao-social-input"]').type(unitName);
         cy.get('[data-testid="unit-cnpj-input"]').type(cnpjValue);
         cy.get('[data-testid="unit-email-input"]').type(
             `unit-${cnpjValue}@example.com`

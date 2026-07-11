@@ -9,11 +9,13 @@ describe("prophy manager - user associations", () => {
     type ClientFixture = {
         id: number;
         name: string;
+        razao_social: string;
     };
 
     type UnitFixture = {
         client: number;
         name: string;
+        razao_social: string;
         user: number | null;
     };
 

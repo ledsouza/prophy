@@ -16,6 +16,7 @@ describe("prophy manager - create client", () => {
 
         cy.getByCy("create-client-cnpj").type(cnpjValue);
         cy.getByCy("create-client-name").type("Novo Cliente");
+        cy.getByCy("create-client-razao-social").type("Novo Cliente Ltda");
         cy.getByCy("create-client-email").type("cliente@novo.com");
         cy.getByCy("create-client-phone").type("11999999999");
         cy.getByCy("create-client-state-input").click().type("São Paulo{enter}");
