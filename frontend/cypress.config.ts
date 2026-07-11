@@ -7,9 +7,11 @@ export default defineConfig({
             bundler: "webpack",
         },
     },
-    defaultCommandTimeout: 12000,
+    defaultCommandTimeout: 8000,
     pageLoadTimeout: 120000,
     responseTimeout: 30000,
+
+    video: false,
 
     allowCypressEnv: false,
 
