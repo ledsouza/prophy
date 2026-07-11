@@ -99,6 +99,7 @@ class Client(models.Model):
         users (ManyToManyField): Multiple UserAccount objects linked to this client as responsibles
         cnpj (CharField): Brazilian company registration number (14 digits)
         name (CharField): Institution/company name (max 50 characters)
+        razao_social (CharField): Institution's legal/registered company name (max 150 characters)
         email (EmailField): Institution's contact email
         phone (CharField): Institution's contact phone number (max 13 characters)
         address (CharField): Institution's physical address (max 150 characters)
@@ -121,6 +122,7 @@ class Client(models.Model):
     )
     cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
     name = models.CharField("Nome da instituição", max_length=50)
+    razao_social = models.CharField("Razão Social", max_length=150)
     email = models.EmailField("E-mail da instituição")
     phone = models.CharField("Telefone da instituição", max_length=13)
     address = models.CharField("Endereço da instituição", max_length=150)
@@ -161,6 +163,7 @@ class Unit(models.Model):
         user (UserAccount): The unit manager, can be null.
         client (Client): The client this unit belongs to.
         name (str): Name of the unit, max 50 characters.
+        razao_social (str): Legal/registered company name, max 150 characters.
         cnpj (str): Brazilian company registration number (CNPJ), must be 14 digits.
         email (str): Contact email address for the unit.
         phone (str): Contact phone number, max 13 characters.
@@ -194,6 +197,7 @@ class Unit(models.Model):
         verbose_name="Cliente",
     )
     name = models.CharField("Nome", max_length=50)
+    razao_social = models.CharField("Razão Social", max_length=150)
     cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
     email = models.EmailField("E-mail")
     phone = models.CharField("Telefone", max_length=13)
