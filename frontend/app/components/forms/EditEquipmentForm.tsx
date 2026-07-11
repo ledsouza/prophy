@@ -57,7 +57,7 @@ const editAccessorySchema = accessorySchema
         const hasNewPhoto = accessory.equipment_photo && accessory.equipment_photo.length > 0;
         if (!accessory.original_equipment_photo && !hasNewPhoto) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 message: "O arquivo é obrigatório para novos acessórios.",
                 path: ["equipment_photo"],
             });
@@ -66,7 +66,7 @@ const editAccessorySchema = accessorySchema
         const hasNewLabelPhoto = accessory.label_photo && accessory.label_photo.length > 0;
         if (!accessory.original_label_photo && !hasNewLabelPhoto) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 message: "O arquivo é obrigatório para novos acessórios.",
                 path: ["label_photo"],
             });

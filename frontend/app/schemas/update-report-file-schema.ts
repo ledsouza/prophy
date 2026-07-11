@@ -34,7 +34,7 @@ const updateReportFileFormSchema = z
 
         if (!hasPdf && !hasWord) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 message: "Selecione ao menos um arquivo.",
                 path: ["pdf_file"],
             });

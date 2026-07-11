@@ -28,7 +28,7 @@ function createFileSchema<T extends FileList | null = FileList>({
         if (!file || file.length === 0) {
             if (required) {
                 ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
+                    code: "custom",
                     message: requiredMessage,
                 });
             }
@@ -39,7 +39,7 @@ function createFileSchema<T extends FileList | null = FileList>({
 
         if (!(uploadedFile instanceof File)) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 message: invalidFormatMessage,
             });
             return;
@@ -47,14 +47,14 @@ function createFileSchema<T extends FileList | null = FileList>({
 
         if (uploadedFile.size > maxSizeBytes) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 message: sizeMessage,
             });
         }
 
         if (!acceptedTypes.includes(uploadedFile.type)) {
             ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 message: typeMessage,
             });
         }
