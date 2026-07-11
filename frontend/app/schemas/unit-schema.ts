@@ -8,6 +8,11 @@ const unitSchema = z.object({
         .nonempty({ message: "Nome é obrigatório." })
         .max(50, { message: "Nome deve ter no máximo 50 caracteres." })
         .transform((value) => value?.trim()),
+    razao_social: z
+        .string()
+        .nonempty({ message: "Razão Social é obrigatória." })
+        .max(150, { message: "Razão Social deve ter no máximo 150 caracteres." })
+        .transform((value) => value?.trim()),
     cnpj: z
         .string()
         .nonempty({ message: "CNPJ é obrigatório." })

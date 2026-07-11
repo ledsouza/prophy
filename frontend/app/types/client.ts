@@ -15,6 +15,7 @@ export type ClientDTO = {
     id: number;
     cnpj: string;
     name: string;
+    razao_social: string;
     email: string;
     phone: string;
     address: string;
@@ -67,6 +68,7 @@ export type Status = {
 export type ClientBase = {
     cnpj: string;
     name: string;
+    razao_social: string;
     email: string;
     phone: string;
     address: string;

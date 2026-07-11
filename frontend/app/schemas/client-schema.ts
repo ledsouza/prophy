@@ -9,6 +9,13 @@ const clientSchema = z.object({
             message: "Nome da instituição não pode exceder 50 caracteres.",
         })
         .transform((value) => value?.trim()),
+    razao_social: z
+        .string()
+        .min(1, { message: "Razão Social é obrigatória." })
+        .max(150, {
+            message: "Razão Social não pode exceder 150 caracteres.",
+        })
+        .transform((value) => value?.trim()),
     email: z.string().email({ message: "E-mail da instituição inválido." }),
     phone: z.string().refine((value) => isValidPhonePTBR(value), {
         message: "Telefone inválido.",

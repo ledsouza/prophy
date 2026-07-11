@@ -11,6 +11,7 @@ import {
 export type UnitDTO = {
     id: number;
     name: string;
+    razao_social: string;
     cnpj: string;
     email: string;
     phone: string;
