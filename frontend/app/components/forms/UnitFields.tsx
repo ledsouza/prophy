@@ -48,6 +48,15 @@ const UnitFields = <TFieldValues extends FieldValues>({
                 label="Nome"
             />
             <Input
+                {...register("razao_social" as Path<TFieldValues>)}
+                type="text"
+                errorMessage={errors.razao_social?.message?.toString()}
+                placeholder="Digite a razão social da unidade"
+                disabled={disabled}
+                data-testid="unit-razao-social-input"
+                label="Razão Social"
+            />
+            <Input
                 {...register("cnpj" as Path<TFieldValues>)}
                 type="text"
                 errorMessage={errors.cnpj?.message?.toString()}

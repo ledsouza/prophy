@@ -58,6 +58,7 @@ const EditUnitForm = ({
         resolver: zodResolver(unitSchema),
         defaultValues: {
             name: unit.name,
+            razao_social: unit.razao_social,
             cnpj: unit.cnpj,
             email: unit.email,
             phone: unit.phone,

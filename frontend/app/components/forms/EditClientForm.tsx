@@ -61,6 +61,7 @@ const EditClientForm = ({
         resolver: zodResolver(editClientSchema),
         defaultValues: {
             name: client.name,
+            razao_social: client.razao_social,
             email: client.email,
             phone: client.phone,
             address: client.address,
@@ -213,6 +214,15 @@ const EditClientForm = ({
                     disabled={disabled}
                     data-testid="institution-name-input"
                     label="Nome"
+                />
+                <Input
+                    {...register("razao_social")}
+                    type="text"
+                    errorMessage={errors.razao_social?.message}
+                    placeholder="Digite a razão social da instituição"
+                    disabled={disabled}
+                    data-testid="institution-razao-social-input"
+                    label="Razão Social"
                 />
                 <Input
                     {...register("email")}

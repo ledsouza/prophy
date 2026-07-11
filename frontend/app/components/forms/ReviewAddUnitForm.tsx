@@ -49,6 +49,7 @@ const ReviewAddUnitForm = ({
         resolver: zodResolver(unitSchema),
         defaultValues: {
             name: unitOperation.name,
+            razao_social: unitOperation.razao_social,
             cnpj: unitOperation.cnpj,
             email: unitOperation.email,
             phone: unitOperation.phone,

@@ -67,6 +67,11 @@ const TypographyLabel = ({ children }: { children: ReactNode }) => (
 
 const clientFieldConfigs: DiffFieldConfig<ClientDTO>[] = [
     { id: "name", label: "Nome", getValue: (client) => client.name },
+    {
+        id: "razao_social",
+        label: "Razão Social",
+        getValue: (client) => client.razao_social,
+    },
     { id: "email", label: "E-mail", getValue: (client) => client.email },
     { id: "phone", label: "Telefone", getValue: (client) => client.phone },
     { id: "state", label: "Estado", getValue: (client) => client.state },
@@ -81,6 +86,11 @@ const clientFieldConfigs: DiffFieldConfig<ClientDTO>[] = [
 
 const unitFieldConfigs: DiffFieldConfig<UnitDTO>[] = [
     { id: "name", label: "Nome", getValue: (unit) => unit.name },
+    {
+        id: "razao_social",
+        label: "Razão Social",
+        getValue: (unit) => unit.razao_social,
+    },
     { id: "cnpj", label: "CNPJ", getValue: (unit) => unit.cnpj },
     { id: "email", label: "E-mail", getValue: (unit) => unit.email },
     { id: "phone", label: "Telefone", getValue: (unit) => unit.phone },

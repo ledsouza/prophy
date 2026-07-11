@@ -231,6 +231,15 @@ const CreateClientForm = ({ title, description }: CreateClientFormProps) => {
                     />
 
                     <Input
+                        {...register("razao_social")}
+                        type="text"
+                        errorMessage={errors.razao_social?.message}
+                        placeholder="Digite a razão social da instituição"
+                        label="Razão Social"
+                        dataCy="create-client-razao-social"
+                    />
+
+                    <Input
                         {...register("email")}
                         type="email"
                         errorMessage={errors.email?.message}
