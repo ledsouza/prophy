@@ -18,6 +18,7 @@ def test_non_gp_cannot_create_accepted_client_operation(
     payload = {
         "cnpj": CNPJ().generate(),
         "name": "Client",
+        "razao_social": "Client Ltda",
         "email": "client@example.com",
         "phone": "11999999999",
         "address": "Street",
@@ -43,6 +44,7 @@ def test_add_operation_does_not_require_original_client(
     payload = {
         "cnpj": CNPJ().generate(),
         "name": "Client",
+        "razao_social": "Client Ltda",
         "email": "client@example.com",
         "phone": "11999999999",
         "address": "Street",
@@ -73,6 +75,7 @@ def test_add_operation_rejects_duplicate_cnpj(
     payload = {
         "cnpj": existing.cnpj,
         "name": "Client",
+        "razao_social": "Client Ltda",
         "email": "client@example.com",
         "phone": "11999999999",
         "address": "Street",
@@ -99,6 +102,7 @@ def test_edit_operation_requires_original_client(
     payload = {
         "cnpj": CNPJ().generate(),
         "name": "Client",
+        "razao_social": "Client Ltda",
         "email": "client@example.com",
         "phone": "11999999999",
         "address": "Street",
@@ -130,6 +134,7 @@ def test_edit_operation_copies_users_from_original_client(
     payload = {
         "cnpj": original.cnpj,
         "name": "Client",
+        "razao_social": "Client Ltda",
         "email": "client@example.com",
         "phone": "11999999999",
         "address": "Street",
@@ -157,6 +162,7 @@ def test_self_registration_associates_user_with_client(
     payload = {
         "cnpj": proposal.cnpj,
         "name": "Client",
+        "razao_social": "Client Ltda",
         "email": "client@example.com",
         "phone": "11999999999",
         "address": "Street",
@@ -183,6 +189,7 @@ def test_ggc_without_accepted_proposal_cannot_create_accepted_operation(
     payload = {
         "cnpj": CNPJ().generate(),
         "name": "Client",
+        "razao_social": "Client Ltda",
         "email": "client@example.com",
         "phone": "11999999999",
         "address": "Street",

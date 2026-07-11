@@ -131,6 +131,7 @@ def test_client_operation_review_add_is_inactive():
         created_by=user,
         cnpj=CNPJ().generate(),
         name="Client",
+        razao_social="Client Ltda",
         email="client@example.com",
         phone="11999999999",
         address="Address",

@@ -22,6 +22,7 @@ class ClientTest(TestCase):
         self.client = Client.objects.create(
             cnpj="12345678901234",
             name="Test Client",
+            razao_social="Test Client Ltda",
             email="client@test.com",
             phone="1234567890",
             address="Test Address",
@@ -44,6 +45,7 @@ class UnitTest(TestCase):
         self.client = Client.objects.create(
             cnpj="12345678901234",
             name="Test Client",
+            razao_social="Test Client Ltda",
             email="client@test.com",
             phone="1234567890",
             address="Test Address",
@@ -53,6 +55,7 @@ class UnitTest(TestCase):
         self.unit = Unit.objects.create(
             client=self.client,
             name="Test Unit",
+            razao_social="Test Unit Ltda",
             cnpj="12345678901234",
             email="unit@test.com",
             phone="1234567890",
@@ -85,6 +88,7 @@ class EquipmentTest(TestCase):
         self.client = Client.objects.create(
             cnpj="12345678901234",
             name="Test Client",
+            razao_social="Test Client Ltda",
             email="client@test.com",
             phone="1234567890",
             address="Test Address",
@@ -94,6 +98,7 @@ class EquipmentTest(TestCase):
         self.unit = Unit.objects.create(
             client=self.client,
             name="Test Unit",
+            razao_social="Test Unit Ltda",
             cnpj="12345678901234",
             email="unit@test.com",
             phone="1234567890",

@@ -24,6 +24,7 @@ class ClientFactory(factory.django.DjangoModelFactory):
 
     cnpj = factory.LazyFunction(lambda: CNPJ().generate())
     name = factory.Faker("company")
+    razao_social = factory.Faker("company")
     email = factory.Sequence(lambda n: f"client{n}@example.com")
     phone = "11999999999"
     address = factory.Faker("street_address")
@@ -55,6 +56,7 @@ class UnitFactory(factory.django.DjangoModelFactory):
 
     cnpj = factory.LazyFunction(lambda: CNPJ().generate())
     name = factory.Faker("company")
+    razao_social = factory.Faker("company")
     email = factory.Sequence(lambda n: f"unit{n}@example.com")
     phone = "11999999999"
     address = factory.Faker("street_address")
