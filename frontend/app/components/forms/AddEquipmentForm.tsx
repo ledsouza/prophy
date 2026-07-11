@@ -15,6 +15,7 @@ import { useCreateAccessoryMutation } from "@/redux/features/accessoryApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useAppDispatch } from "@/redux/hooks";
+import { handleApiError } from "@/redux/services/errorHandling";
 
 import { displaySingularAccessoryType } from "@/utils/format";
 import { useModality } from "@/hooks/use-modality";
@@ -174,7 +175,8 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             const equipmentResponse = await createAddEquipmentOperation(formData);
 
             if (equipmentResponse.error) {
-                throw new Error(`Error creating equipment: ${equipmentResponse.error}`);
+                handleApiError(equipmentResponse.error, "Failed to create equipment");
+                return;
             }
 
             await handleCreateAccessories(data.accessories, equipmentResponse.data.id);
@@ -189,12 +191,8 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             if (error instanceof AccessoryCreationError) {
                 console.error("Accessory creation error:", error.message);
                 toast.error("Erro ao criar acessório. Verifique os dados e tente novamente.");
-            } else if (error instanceof Error) {
-                console.error("Failed to create equipment:", error.message);
-                toast.error("Algo deu errado. Tente novamente mais tarde.");
             } else {
-                console.error("Failed to create equipment:", error);
-                toast.error("Algo deu errado. Tente novamente mais tarde.");
+                handleApiError(error, "Failed to create equipment");
             }
         }
     };

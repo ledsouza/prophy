@@ -27,6 +27,7 @@ import {
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 import { closeModal } from "@/redux/features/modalSlice";
 import { useAppDispatch } from "@/redux/hooks";
+import { handleApiError } from "@/redux/services/errorHandling";
 
 import { useNeedReview } from "@/hooks";
 import { useModality } from "@/hooks/use-modality";
@@ -220,9 +221,8 @@ const EditEquipmentForm = ({
             });
 
             if (response.error) {
-                throw new Error(
-                    `Error updating equipment review: ${JSON.stringify(response.error)}`,
-                );
+                handleApiError(response.error, "Failed to update equipment review");
+                return;
             }
 
             const successMessage =
@@ -233,13 +233,7 @@ const EditEquipmentForm = ({
             toast.success(successMessage);
             dispatch(closeModal());
         } catch (error) {
-            if (error instanceof Error) {
-                console.error("Failed to update equipment review:", error.message);
-            } else {
-                console.error("Failed to update equipment review:", error);
-            }
-
-            toast.error("Algo deu errado. Tente novamente mais tarde.");
+            handleApiError(error, "Failed to update equipment review");
         }
     };
 
@@ -958,9 +952,8 @@ const EditEquipmentForm = ({
                   });
 
             if (equipmentResponse.error) {
-                throw new Error(
-                    `Error creating equipment: ${JSON.stringify(equipmentResponse.error)}`,
-                );
+                handleApiError(equipmentResponse.error, "Failed to create equipment");
+                return;
             }
 
             // The backend handles accessories when an operation goes for review
@@ -983,12 +976,8 @@ const EditEquipmentForm = ({
             if (error instanceof AccessoryCreationError) {
                 console.error("Accessory creation error:", error.message);
                 toast.error("Erro ao criar acessório. Verifique os dados e tente novamente.");
-            } else if (error instanceof Error) {
-                console.error("Failed to create equipment:", error.message);
-                toast.error("Algo deu errado. Tente novamente mais tarde.");
             } else {
-                console.error("Failed to create equipment:", error);
-                toast.error("Algo deu errado. Tente novamente mais tarde.");
+                handleApiError(error, "Failed to create equipment");
             }
         }
     };
