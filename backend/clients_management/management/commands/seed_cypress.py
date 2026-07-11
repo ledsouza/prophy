@@ -1037,4 +1037,10 @@ class Command(BaseCommand):
 
         for data, filename in fixture_data_map:
             file_path = create_fixture_path(filename)
+            # Seed data is fully deterministic (fixed IDs/CNPJs), so an
+            # existing fixture file already has the content this call
+            # would produce. Skip the rewrite to avoid redundant I/O on
+            # every db:seed call within the same container lifetime.
+            if os.path.exists(file_path):
+                continue
             write_json_file(data=data, file_path=file_path)
