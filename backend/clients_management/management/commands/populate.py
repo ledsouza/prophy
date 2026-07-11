@@ -1437,6 +1437,7 @@ class Command(BaseCommand):
             client=pending_client.client_ptr,
             defaults={
                 "name": "Unidade E2E - pendente",
+                "razao_social": "Unidade E2E - pendente",
                 "cnpj": fake_cnpj(),
                 "email": fake.email(),
                 "phone": fake_phone_number(),
@@ -1453,6 +1454,7 @@ class Command(BaseCommand):
             client=compliant_client.client_ptr,
             defaults={
                 "name": "Unidade E2E - em dia",
+                "razao_social": "Unidade E2E - em dia",
                 "cnpj": fake_cnpj(),
                 "email": fake.email(),
                 "phone": fake_phone_number(),
