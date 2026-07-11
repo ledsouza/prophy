@@ -48,8 +48,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.cpf?.message}
                 placeholder="Digite o seu CPF (apenas dígitos)"
-                data-cy="register-cpf-input"
-                data-testid="cpf-input"
+                dataCy="register-cpf-input"
+                dataTestId="cpf-input"
                 label="CPF"
             />
             <Input
@@ -57,8 +57,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="password"
                 errorMessage={errors.password?.message}
                 placeholder="Crie uma senha forte"
-                data-cy="register-password-input"
-                data-testid="password-input"
+                dataCy="register-password-input"
+                dataTestId="password-input"
                 label="Senha"
             />
             <Input
@@ -66,8 +66,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="password"
                 errorMessage={errors.rePassword?.message}
                 placeholder="Digite a senha novamente"
-                data-cy="register-password-confirm-input"
-                data-testid="repassword-input"
+                dataCy="register-password-confirm-input"
+                dataTestId="repassword-input"
                 label="Confirmação de senha"
             />
 
@@ -79,8 +79,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.institutionName?.message}
                 placeholder="Digite o nome completo da instituição"
-                data-cy="register-institution-name-input"
-                data-testid="institution-name-input"
+                dataCy="register-institution-name-input"
+                dataTestId="institution-name-input"
                 label="Nome"
             />
             <Input
@@ -88,8 +88,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.institutionRazaoSocial?.message}
                 placeholder="Digite a razão social da instituição"
-                data-cy="register-institution-razao-social-input"
-                data-testid="institution-razao-social-input"
+                dataCy="register-institution-razao-social-input"
+                dataTestId="institution-razao-social-input"
                 label="Razão Social"
             />
             <Input
@@ -97,8 +97,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.institutionEmail?.message}
                 placeholder="nome@email.com"
-                data-cy="register-institution-email-input"
-                data-testid="institution-email-input"
+                dataCy="register-institution-email-input"
+                dataTestId="institution-email-input"
                 label="E-mail"
             />
             <Input
@@ -106,8 +106,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.institutionPhone?.message}
                 placeholder="DD9XXXXXXXX"
-                data-cy="register-institution-phone-input"
-                data-testid="institution-phone-input"
+                dataCy="register-institution-phone-input"
+                dataTestId="institution-phone-input"
                 label="Telefone"
             />
             {isEstadosSuccess && estados ? (
@@ -121,7 +121,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     placeholder="Digite o estado e selecione"
                     selectedValue={selectedEstado}
                     onChange={handleEstadoChange}
-                    data-cy="register-institution-state-input"
+                    dataCy="register-institution-state"
                     data-testid="institution-state-input"
                 >
                     Estado
@@ -142,7 +142,7 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     placeholder="Digite a cidade e selecione"
                     selectedValue={selectedMunicipio}
                     onChange={handleMunicipioChange}
-                    data-cy="register-institution-city-input"
+                    dataCy="register-institution-city"
                     data-testid="institution-city-input"
                 >
                     Cidade
@@ -152,8 +152,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     disabled
                     errorMessage={errors.city ? "Cidade da instituição é obrigatório." : ""}
                     placeholder="Selecione um estado"
-                    data-cy="register-institution-city-input"
-                    data-testid="institution-city-input"
+                    dataCy="register-institution-city-input"
+                    dataTestId="institution-city-input"
                     label="Cidade"
                 />
             )}
@@ -162,8 +162,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.address?.message}
                 placeholder="Rua, número, bairro"
-                data-cy="register-institution-address-input"
-                data-testid="institution-address-input"
+                dataCy="register-institution-address-input"
+                dataTestId="institution-address-input"
                 label="Endereço"
             />
 
@@ -175,8 +175,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.contactName?.message}
                 placeholder="Digite seu nome completo"
-                data-cy="register-contact-name-input"
-                data-testid="name-input"
+                dataCy="register-contact-name-input"
+                dataTestId="name-input"
                 label="Nome"
             />
             <Input
@@ -184,8 +184,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.contactEmail?.message}
                 placeholder="nome@email.com"
-                data-cy="register-contact-email-input"
-                data-testid="email-input"
+                dataCy="register-contact-email-input"
+                dataTestId="email-input"
                 label="E-mail"
             />
             <Input
@@ -193,8 +193,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 type="text"
                 errorMessage={errors.contactPhone?.message}
                 placeholder="DD9XXXXXXXX"
-                data-cy="register-contact-phone-input"
-                data-testid="contact-phone-input"
+                dataCy="register-contact-phone-input"
+                dataTestId="contact-phone-input"
                 label="Celular"
             />
             <div className="flex gap-2 py-4">
@@ -203,8 +203,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                     disabled={isSubmitting}
                     onClick={() => setIsModalOpen(false)}
                     variant="secondary"
-                    data-cy="register-cancel-btn"
-                    data-testid="cancel-btn"
+                    dataCy="register-cancel-btn"
+                    dataTestId="cancel-btn"
                     className="w-full"
                 >
                     Cancelar
@@ -212,8 +212,8 @@ const RegisterForm = ({ onSubmit, setIsModalOpen }: RegisterFormProps) => {
                 <Button
                     type="submit"
                     disabled={isSubmitting}
-                    data-cy="register-submit-btn"
-                    data-testid="submit-btn"
+                    dataCy="register-submit-btn"
+                    dataTestId="submit-btn"
                     className="w-full"
                 >
                     Cadastrar
