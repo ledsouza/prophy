@@ -147,7 +147,6 @@ class ClientOperationViewSet(viewsets.ViewSet):
     @transaction.atomic
     def create(self, request):
         data = request.data
-        data["created_by"] = request.user.id
 
         user: UserAccount = request.user
         operation_status = data.get("operation_status")
@@ -190,7 +189,7 @@ class ClientOperationViewSet(viewsets.ViewSet):
         serializer = ClientOperationSerializer(data=data)
         if serializer.is_valid():
             try:
-                new_client = serializer.save()
+                new_client = serializer.save(created_by=user)
             except ValidationError as error:
                 return Response(
                     {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
@@ -414,7 +413,6 @@ class UnitOperationViewSet(viewsets.ViewSet):
     )
     def create(self, request):
         data = request.data
-        data["created_by"] = request.user.id
 
         if data["operation_type"] == UnitOperation.OperationType.DELETE:
             serializer = UnitOperationDeleteSerializer(data=data)
@@ -423,7 +421,7 @@ class UnitOperationViewSet(viewsets.ViewSet):
 
         if serializer.is_valid():
             try:
-                serializer.save()
+                serializer.save(created_by=request.user)
             except ValidationError as error:
                 return Response(
                     {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
@@ -627,8 +625,7 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         },
     )
     def create(self, request):
-        data = request.data.copy()
-        data["created_by"] = request.user.id
+        data = request.data
 
         if data["operation_type"] == EquipmentOperation.OperationType.DELETE:
             serializer = EquipmentOperationDeleteSerializer(data=data)
@@ -637,7 +634,7 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
 
         if serializer.is_valid():
             try:
-                serializer.save()
+                serializer.save(created_by=request.user)
             except ValidationError as error:
                 return Response(
                     {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST

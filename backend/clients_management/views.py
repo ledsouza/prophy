@@ -1440,7 +1440,7 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        data = request.data.copy()
+        data = request.data
         serializer = AppointmentSerializer(
             appointment,
             data=data,
@@ -2073,7 +2073,7 @@ class ServiceOrderViewSet(viewsets.ViewSet):
             )
 
         if user.role == UserAccount.Role.PROPHY_MANAGER:
-            data = request.data.copy()
+            data = request.data
             error_resp = self._validate_equipments(order, data)
             if error_resp:
                 return error_resp

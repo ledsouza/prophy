@@ -7,6 +7,9 @@ class ClientOperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientOperation
         exclude = ["is_active"]
+        extra_kwargs = {
+            "created_by": {"read_only": True},
+        }
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -41,12 +44,18 @@ class UnitOperationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnitOperation
         fields = "__all__"
+        extra_kwargs = {
+            "created_by": {"read_only": True},
+        }
 
 
 class UnitOperationDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnitOperation
         fields = ["operation_type", "original_unit", "created_by", "id"]
+        extra_kwargs = {
+            "created_by": {"read_only": True},
+        }
 
     def create(self, validated_data):
         unit = Unit.objects.get(id=validated_data["original_unit"].id)
@@ -76,6 +85,7 @@ class EquipmentOperationSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "equipment_photo": {"required": False},
             "label_photo": {"required": False},
+            "created_by": {"read_only": True},
         }
 
     def validate(self, attrs):
@@ -125,6 +135,9 @@ class EquipmentOperationDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = EquipmentOperation
         fields = ["operation_type", "original_equipment", "created_by", "id"]
+        extra_kwargs = {
+            "created_by": {"read_only": True},
+        }
 
     def create(self, validated_data):
         equipment = Equipment.objects.get(id=validated_data["original_equipment"].id)
