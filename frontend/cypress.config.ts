@@ -74,9 +74,7 @@ export default defineConfig({
                         }
                     };
 
-                    await manage("flush", ["--no-input"]);
-                    await manage("clean_local_media", ["--force"]);
-                    await manage("seed_cypress", []);
+                    await manage("reset_and_seed_cypress", []);
 
                     return null;
                 },
