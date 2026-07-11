@@ -62,8 +62,6 @@ Cypress.Commands.add("loginAs", (user: UserFixtureKey) => {
     const loginUrl = `${base}/jwt/create/`;
     const verifyUrl = `${base}/jwt/verify/`;
 
-    cy.visit("/");
-
     cy.fixture("users.json").then((users: UsersFixture) => {
         const creds = users[user];
         if (!creds) {
