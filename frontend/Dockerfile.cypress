@@ -1,10 +1,13 @@
+# syntax=docker/dockerfile:1
+
 FROM cypress/included:15.17.0
 
 WORKDIR /app/frontend
 
 COPY frontend/package.json frontend/package-lock.json ./
 
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 COPY frontend/cypress ./cypress
 COPY frontend/cypress.config.ts ./cypress.config.ts
