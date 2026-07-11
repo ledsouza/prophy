@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 from django.conf import settings
@@ -30,28 +31,19 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("MEDIA_ROOT does not exist."))
             return
 
-        deleted = 0
-        for entry in media_root.iterdir():
-            if entry.is_dir():
-                for child in entry.rglob("*"):
-                    if child.is_file():
-                        child.unlink()
-                        deleted += 1
-
-                # Reverse sorting helps remove deeper paths first,
-                # avoiding “directory not empty” errors.
-                for child in sorted(entry.rglob("*"), reverse=True):
-                    if child.is_dir():
-                        child.rmdir()
-                entry.rmdir()
-                continue
-
-            if entry.is_file():
+        # MEDIA_ROOT itself is a Docker volume mount point in staging, so
+        # it can't be removed and recreated with shutil.rmtree(media_root)
+        # (that raises "Device or resource busy"). Clear its contents
+        # instead, leaving the mount point in place.
+        entries = list(media_root.iterdir())
+        for entry in entries:
+            if entry.is_dir() and not entry.is_symlink():
+                shutil.rmtree(entry)
+            else:
                 entry.unlink()
-                deleted += 1
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Deleted {deleted} local media file(s) from {media_root}."
+                f"Removed {len(entries)} top-level entries from {media_root}."
             )
         )
