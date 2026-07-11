@@ -15,6 +15,8 @@ from localflavor.br.br_states import STATE_CHOICES
 from users.models import UserAccount
 
 from clients_management.validators import CNPJValidator
+from core.constants import MAX_DOCUMENT_FILE_SIZE_MB, MAX_IMAGE_FILE_SIZE_MB
+from core.validators import MaxFileSize
 
 if TYPE_CHECKING:
     from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
@@ -80,9 +82,15 @@ class BaseEquipment(models.Model):
         "Número de Série", max_length=30, blank=True, null=True
     )
     equipment_photo = models.ImageField(
-        "Foto do equipamento", upload_to="equipments/photos"
+        "Foto do equipamento",
+        upload_to="equipments/photos",
+        validators=[MaxFileSize(MAX_IMAGE_FILE_SIZE_MB)],
     )
-    label_photo = models.ImageField("Foto da etiqueta", upload_to="equipments/labels")
+    label_photo = models.ImageField(
+        "Foto da etiqueta",
+        upload_to="equipments/labels",
+        validators=[MaxFileSize(MAX_IMAGE_FILE_SIZE_MB)],
+    )
 
     class Meta:
         abstract = True
@@ -445,9 +453,11 @@ class Proposal(models.Model):
     )
     pdf_version = models.FileField(
         upload_to="proposals/pdfs/",
+        validators=[MaxFileSize(MAX_DOCUMENT_FILE_SIZE_MB)],
     )
     word_version = models.FileField(
         upload_to="proposals/words/",
+        validators=[MaxFileSize(MAX_DOCUMENT_FILE_SIZE_MB)],
     )
     status = models.CharField(
         max_length=1,
@@ -765,11 +775,16 @@ class Report(models.Model):
 
     completion_date = models.DateField("Data realizado")
     due_date = models.DateField("Data de vencimento", blank=True, null=True)
-    pdf_file = models.FileField("Arquivo PDF", upload_to="reports/pdfs/")
+    pdf_file = models.FileField(
+        "Arquivo PDF",
+        upload_to="reports/pdfs/",
+        validators=[MaxFileSize(MAX_DOCUMENT_FILE_SIZE_MB)],
+    )
     word_file = models.FileField(
         "Arquivo Word",
         upload_to="reports/words/",
         blank=True,
+        validators=[MaxFileSize(MAX_DOCUMENT_FILE_SIZE_MB)],
     )
     unit = models.ForeignKey(
         Unit,

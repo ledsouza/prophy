@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from core.constants import MAX_DOCUMENT_FILE_SIZE_MB
+from core.validators import MaxFileSize
 from users.models import UserAccount
 
 
@@ -45,7 +47,11 @@ class InstitutionalMaterial(models.Model):
         max_length=4,
         choices=ALL_CATEGORY_CHOICES,
     )
-    file = models.FileField("Arquivo", upload_to="materials/")
+    file = models.FileField(
+        "Arquivo",
+        upload_to="materials/",
+        validators=[MaxFileSize(MAX_DOCUMENT_FILE_SIZE_MB)],
+    )
     allowed_external_users = models.ManyToManyField(
         UserAccount,
         related_name="institutional_materials_allowed",
