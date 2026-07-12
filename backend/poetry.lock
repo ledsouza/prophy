@@ -260,7 +260,7 @@ files = [
     {file = "cffi-2.0.0-cp39-cp39-win_amd64.whl", hash = "sha256:b882b3df248017dba09d6b16defe9b5c407fe32fc7c65a9c69798e6175601be9"},
     {file = "cffi-2.0.0.tar.gz", hash = "sha256:44d1b5909021139fe36001ae048dbdde8214afa20200eda0f64c068cac5d5529"},
 ]
-markers = {main = "platform_python_implementation != \"PyPy\"", dev = "implementation_name == \"pypy\""}
+markers = {main = "platform_python_implementation != \"PyPy\"", dev = "platform_python_implementation != \"PyPy\" or implementation_name == \"pypy\""}
 
 [package.dependencies]
 pycparser = {version = "*", markers = "implementation_name != \"PyPy\""}
@@ -271,7 +271,7 @@ version = "3.4.7"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 optional = false
 python-versions = ">=3.7"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "charset_normalizer-3.4.7-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:cdd68a1fb318e290a2077696b7eb7a21a49163c455979c639bf5a5dcdc46617d"},
     {file = "charset_normalizer-3.4.7-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:e17b8d5d6a8c47c85e68ca8379def1303fd360c3e22093a807cd34a71cd082b8"},
@@ -557,7 +557,7 @@ version = "49.0.0"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
 optional = false
 python-versions = "!=3.9.0,!=3.9.1,>=3.9"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "cryptography-49.0.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:966fe0e9c67490071f14c0d2b1cb2dfb3023c5ce39457343931415f08382f2db"},
     {file = "cryptography-49.0.0-cp311-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:36d1709f992593689b45bda411498d62c6e365f2ca00b84657d4dadd24de16db"},
@@ -1575,6 +1575,42 @@ qa = ["flake8 (==5.0.4)", "types-setuptools (==67.2.0.1)", "zuban (==0.5.1)"]
 testing = ["docopt", "pytest"]
 
 [[package]]
+name = "pdfminer-six"
+version = "20260107"
+description = "PDF parser and analyzer"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "pdfminer_six-20260107-py3-none-any.whl", hash = "sha256:366585ba97e80dffa8f00cebe303d2f381884d8637af4ce422f1df3ef38111a9"},
+    {file = "pdfminer_six-20260107.tar.gz", hash = "sha256:96bfd431e3577a55a0efd25676968ca4ce8fd5b53f14565f85716ff363889602"},
+]
+
+[package.dependencies]
+charset-normalizer = ">=2.0.0"
+cryptography = ">=36.0.0"
+
+[package.extras]
+image = ["Pillow"]
+
+[[package]]
+name = "pdfplumber"
+version = "0.11.10"
+description = "Plumb a PDF for detailed information about each char, rectangle, and line."
+optional = false
+python-versions = ">=3.8"
+groups = ["dev"]
+files = [
+    {file = "pdfplumber-0.11.10-py3-none-any.whl", hash = "sha256:7741ea81bf165b474b153e6789d10d18e06b6ddcf3ec84289c3ef2fed6802580"},
+    {file = "pdfplumber-0.11.10.tar.gz", hash = "sha256:b95b2d28c66efb0a794a83b88c6c6aea5987532a445d20a1cbcfa657022e6e57"},
+]
+
+[package.dependencies]
+"pdfminer.six" = "20260107"
+Pillow = ">=12.2.0"
+pypdfium2 = ">=5.9.0"
+
+[[package]]
 name = "pexpect"
 version = "4.9.0"
 description = "Pexpect allows easy control of interactive console applications."
@@ -1608,7 +1644,7 @@ version = "12.2.0"
 description = "Python Imaging Library (fork)"
 optional = false
 python-versions = ">=3.10"
-groups = ["main"]
+groups = ["main", "dev"]
 files = [
     {file = "pillow-12.2.0-cp310-cp310-macosx_10_10_x86_64.whl", hash = "sha256:a4e8f36e677d3336f35089648c8955c51c6d386a13cf6ee9c189c5f5bd713a9f"},
     {file = "pillow-12.2.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2e589959f10d9824d39b350472b92f0ce3b443c0a3442ebf41c40cb8361c5b97"},
@@ -1982,7 +2018,7 @@ files = [
     {file = "pycparser-3.0-py3-none-any.whl", hash = "sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992"},
     {file = "pycparser-3.0.tar.gz", hash = "sha256:600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29"},
 ]
-markers = {main = "platform_python_implementation != \"PyPy\" and implementation_name != \"PyPy\"", dev = "implementation_name == \"pypy\""}
+markers = {main = "platform_python_implementation != \"PyPy\" and implementation_name != \"PyPy\"", dev = "(platform_python_implementation != \"PyPy\" or implementation_name == \"pypy\") and implementation_name != \"PyPy\""}
 
 [[package]]
 name = "pydantic"
@@ -2171,6 +2207,38 @@ cryptography = {version = ">=3.4.0", optional = true, markers = "extra == \"cryp
 
 [package.extras]
 crypto = ["cryptography (>=3.4.0)"]
+
+[[package]]
+name = "pypdfium2"
+version = "5.11.0"
+description = "Python bindings to PDFium"
+optional = false
+python-versions = ">=3.6"
+groups = ["dev"]
+files = [
+    {file = "pypdfium2-5.11.0-py3-none-android_23_arm64_v8a.whl", hash = "sha256:115bc68ab2e85c9ee46f97a4c1794f1d7205c8b763fc5c16d9893eaa54608627"},
+    {file = "pypdfium2-5.11.0-py3-none-android_23_armeabi_v7a.whl", hash = "sha256:4396d0848b79134fcdf141a4e3dfe6719efe1162309a02876b440025cfd80720"},
+    {file = "pypdfium2-5.11.0-py3-none-macosx_12_0_arm64.whl", hash = "sha256:73fe55dd258f02332bc0a34128ddc2994fd610e664d1f2f7d78dd9e2570f15ee"},
+    {file = "pypdfium2-5.11.0-py3-none-macosx_12_0_x86_64.whl", hash = "sha256:badb4f4df98e25fb1b58301911c98fa18da60de98b0223a6ffa91717be068b96"},
+    {file = "pypdfium2-5.11.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1fbff7c3e3141f24f3a25cedddbb6c6d17baa95f83c7b7ea40d6866956df3a43"},
+    {file = "pypdfium2-5.11.0-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:faeda49c171be254b5028b7d17e54306c585374210d3e7ea4962a36774d5b76a"},
+    {file = "pypdfium2-5.11.0-py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b63f6f1e67d05d2bc36f55c35ede5cd18ded8886a2fcf68f320d188ee7934348"},
+    {file = "pypdfium2-5.11.0-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:44f96d8459b4ba9d1330ab44a8dde836b361cb00027830eaab710080888cf44a"},
+    {file = "pypdfium2-5.11.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ba8a78329c10f01c80b1f6e9aa33cac13665c198d056a007827b703958bd986d"},
+    {file = "pypdfium2-5.11.0-py3-none-manylinux_2_27_s390x.manylinux_2_28_s390x.whl", hash = "sha256:e7a60197c5d18b0ec77a695e4a1082f89f323c13063cecf4446f1297ed632a36"},
+    {file = "pypdfium2-5.11.0-py3-none-manylinux_2_34_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:53d167456433d565398a5c9f1efad23dfa6dfadc1a201ec687594fec645d843e"},
+    {file = "pypdfium2-5.11.0-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:953f5bcb6a65067381f0a38c50ffaed864fac6f20b0fa2c14ffb15a52bda8943"},
+    {file = "pypdfium2-5.11.0-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:479b081423b2c16de44ddb6e25826d665298e1ee7cf09d802b656716dd930201"},
+    {file = "pypdfium2-5.11.0-py3-none-musllinux_1_2_i686.whl", hash = "sha256:81356f0503356d6f21629fcd47bbfffcfe26487f47a7989a56c02bd4e39b4c55"},
+    {file = "pypdfium2-5.11.0-py3-none-musllinux_1_2_ppc64le.whl", hash = "sha256:25be9d70f5776c68fa28b92ec42a7be91de5d6c4085ed5c6c89e1bfa373ae918"},
+    {file = "pypdfium2-5.11.0-py3-none-musllinux_1_2_riscv64.whl", hash = "sha256:8edec20239f77d4dea2eeee5d29ebd83e77e1e2900691b77387fead76f81bc4a"},
+    {file = "pypdfium2-5.11.0-py3-none-musllinux_1_2_s390x.whl", hash = "sha256:2560db37ce77a6caf651dc129bc44ee610a5fbb0050ec70f5a643f76bf241173"},
+    {file = "pypdfium2-5.11.0-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:34086bc1fcb964bb8104889d941ba9c8a35a75866250bb81d2f2bb2791bb42af"},
+    {file = "pypdfium2-5.11.0-py3-none-win32.whl", hash = "sha256:324054f36acf6bea42a9d2534eb407da2e312dba746d955c9fd7e324bc160898"},
+    {file = "pypdfium2-5.11.0-py3-none-win_amd64.whl", hash = "sha256:d3b698e7b51bdf2d633cc834395677319e1d66757896b30c632dfac7d7236c81"},
+    {file = "pypdfium2-5.11.0-py3-none-win_arm64.whl", hash = "sha256:897788d71b740752e29875856c369fdb52283f609aecf2355f0473db05dfc1b6"},
+    {file = "pypdfium2-5.11.0.tar.gz", hash = "sha256:0733749ac253c615953a5e75d4322b9f1de8c0d90137ec8dbcef403f3e57b5d9"},
+]
 
 [[package]]
 name = "pytest"
@@ -2877,4 +2945,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "3c5d59e8c1b70529d9f6726d023edc165b3f3a8b2143775a8283aab99034542c"
+content-hash = "39fb8bf723c55d4de4dce3b9cede3d9266f6a71e5f91a387558c4096bd78a4a4"

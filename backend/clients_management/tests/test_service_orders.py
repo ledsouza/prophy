@@ -1,3 +1,6 @@
+import io
+
+import pdfplumber
 import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -343,3 +346,42 @@ def test_service_order_pdf_download_access_matrix():
     client.force_authenticate(user=outsider)
     denied = client.get(url)
     assert denied.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_service_order_pdf_shows_scheduling_contact_and_responsible_prophy():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    responsible_prophy = UserFactory(
+        role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
+        name="Responsible Physicist",
+    )
+
+    appointment = AppointmentFactory(contact_name="Scheduling Contact")
+    order = ServiceOrderFactory(responsible_prophy=responsible_prophy)
+    appointment.service_order = order
+    appointment.save(update_fields=["service_order"])
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.get(f"/api/service-orders/{order.id}/pdf/")
+
+    assert response.status_code == status.HTTP_200_OK
+    with pdfplumber.open(io.BytesIO(response.content)) as pdf:
+        text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+
+    contato_line = next(
+        line for line in text.splitlines() if "Contato:" in line
+    )
+    atendente_line = next(
+        line for line in text.splitlines() if "Atendente:" in line
+    )
+    # The "Responsável Prophy:" label wraps across two lines in the
+    # PDF table ("Responsável" / "Prophy:"); since cells are
+    # top-aligned, the value renders next to the first label line.
+    responsavel_line = next(
+        line for line in text.splitlines() if "Responsável" in line
+    )
+
+    assert "Scheduling Contact" in contato_line
+    assert "Responsible Physicist" in atendente_line
+    assert "Responsible Physicist" in responsavel_line

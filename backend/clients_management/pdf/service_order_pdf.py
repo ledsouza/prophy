@@ -217,12 +217,12 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
     # Info sections
     left_info: list[InfoItem] = [
         InfoItem(label="Unidade:", value=unit.name),
-        InfoItem(label="Contato:", value=unit.user.name if unit.user else "-"),
+        InfoItem(label="Contato:", value=appointment.contact_name),
         InfoItem(label="Endereço:", value=unit.address),
         InfoItem(label="Cidade:", value=f"{unit.city} / {unit.state}"),
     ]
     right_info: list[InfoItem] = [
-        InfoItem(label="Atendente:", value=appointment.contact_name),
+        InfoItem(label="Atendente:", value=order.responsible_prophy.name),
         InfoItem(
             label="Atendimento:",
             value=(
