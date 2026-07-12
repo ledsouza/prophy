@@ -1,28 +1,16 @@
 import { visitDashboardAs } from "../support/e2eTestUtils";
 
-describe("unit page - Atualizar button refreshes reports", () => {
+describe("client page - Atualizar button", () => {
+    const registeredClientCnpj = "78187773000116";
+
     beforeEach(() => {
         cy.setupDB();
     });
 
-    it("re-fetches reports list when Atualizar is clicked", () => {
-        cy.intercept("GET", "**/api/reports/**").as("listReports");
-
-        visitDashboardAs("admin_user");
-        cy.visit("/dashboard/unit/1000");
-
-        cy.getByCy("tab-reports").click();
-        cy.wait("@listReports");
-
-        cy.getByCy("unit-page-refresh-btn").click();
-        cy.wait("@listReports");
-    });
-
     it("shows an info toast when there is nothing new to refresh", () => {
-        visitDashboardAs("admin_user");
-        cy.visit("/dashboard/unit/1000");
+        visitDashboardAs("admin_user", `/dashboard/client/${registeredClientCnpj}`);
 
-        cy.getByCy("unit-page-refresh-btn", { timeout: 10000 })
+        cy.getByCy("gp-update-data-btn", { timeout: 10000 })
             .should("not.be.disabled")
             .click();
 
@@ -30,26 +18,25 @@ describe("unit page - Atualizar button refreshes reports", () => {
     });
 
     it("shows an error toast when the refresh request fails", () => {
-        visitDashboardAs("admin_user");
-        cy.visit("/dashboard/unit/1000");
+        visitDashboardAs("admin_user", `/dashboard/client/${registeredClientCnpj}`);
 
-        cy.getByCy("unit-page-refresh-btn", { timeout: 10000 }).should("not.be.disabled");
+        cy.getByCy("gp-update-data-btn", { timeout: 10000 }).should("not.be.disabled");
         cy.intercept("GET", "**/api/units/**", { statusCode: 500 }).as("failedRefresh");
 
-        cy.getByCy("unit-page-refresh-btn").click();
+        cy.getByCy("gp-update-data-btn").click();
 
         cy.contains("Erro no servidor. Tente novamente mais tarde.").should("be.visible");
     });
 
     it("shows a success toast when new data is found on the server", () => {
-        cy.loginAs("unit_manager_user");
-        cy.visit("/dashboard/unit/1000");
+        cy.loginAs("admin_user");
+        cy.visit(`/dashboard/client/${registeredClientCnpj}`);
 
-        cy.get('[data-testid^="equipment-card-"]', { timeout: 10000 })
+        cy.get('[data-testid^="unit-card-"]', { timeout: 10000 })
             .first()
             .invoke("attr", "data-testid")
             .then((testId) => {
-                const equipmentId = Number((testId as string).replace("equipment-card-", ""));
+                const unitId = Number((testId as string).replace("unit-card-", ""));
                 const apiUrl =
                     (Cypress.expose("apiUrl") as string | undefined) ||
                     "http://localhost:8000/api";
@@ -60,15 +47,15 @@ describe("unit page - Atualizar button refreshes reports", () => {
                 // leave nothing "new" for the refresh button to find).
                 cy.request({
                     method: "POST",
-                    url: `${base}/equipments/operations/`,
+                    url: `${base}/units/operations/`,
                     body: {
-                        original_equipment: equipmentId,
+                        original_unit: unitId,
                         operation_type: "D",
                     },
                 });
             });
 
-        cy.getByCy("unit-page-refresh-btn", { timeout: 10000 })
+        cy.getByCy("gp-update-data-btn", { timeout: 10000 })
             .should("not.be.disabled")
             .click();
 
