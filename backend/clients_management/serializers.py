@@ -408,9 +408,4 @@ class ReportSerializer(serializers.ModelSerializer):
         if not responsibles:
             return "—"
 
-        parts = []
-        for user in responsibles:
-            role_display = UserAccount.Role(user["role"]).label
-            parts.append(f"{role_display}: {user['name']}")
-
-        return "; ".join(parts)
+        return "; ".join(user["name"] for user in responsibles)

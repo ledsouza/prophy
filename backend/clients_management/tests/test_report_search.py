@@ -535,9 +535,12 @@ class TestReportResponsibles:
         api_client,
         prophy_manager,
         client_with_reports,
+        internal_physicist,
+        external_physicist,
     ):
         """
-        Test responsibles_display field formatting.
+        Test responsibles_display shows only user names, without a
+        role prefix.
         """
         api_client.force_authenticate(user=prophy_manager)
         url = reverse("reports-list")
@@ -548,8 +551,10 @@ class TestReportResponsibles:
 
         report = response.data["results"][0]
         assert "responsibles_display" in report
-        assert "Físico Médico Interno" in report["responsibles_display"]
-        assert "Físico Médico Externo" in report["responsibles_display"]
+        display = report["responsibles_display"]
+        assert internal_physicist.name in display
+        assert external_physicist.name in display
+        assert ":" not in display
 
 
 @pytest.mark.django_db
