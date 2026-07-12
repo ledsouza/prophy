@@ -3,7 +3,7 @@ import { Spinner } from "@/components/common";
 import cn from "classnames";
 import Link, { LinkProps } from "next/link";
 
-type ButtonVariant = "primary" | "secondary" | "danger" | "success";
+export type ButtonVariant = "primary" | "secondary" | "danger" | "success";
 
 type CommonButtonProps = {
     children?: ReactNode;

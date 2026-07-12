@@ -1,6 +1,6 @@
 "use client";
 
-import { PencilSimpleIcon, WarningIcon } from "@phosphor-icons/react";
+import { WarningIcon } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { mask as cnpjMask } from "validation-br/dist/cnpj";
@@ -22,6 +22,8 @@ import {
     ErrorDisplay,
     MobileResultCard,
     Pagination,
+    RowAction,
+    RowActions,
     Spinner,
     Table,
 } from "@/components/common";
@@ -193,6 +195,19 @@ export function ProposalsSearchSection() {
             },
         },
     });
+
+    const buildProposalActions = (proposal: ProposalDTO): RowAction[] => [
+        {
+            key: "edit",
+            label: "Editar",
+            onClick: () => {
+                dispatch(setProposal(proposal));
+                dispatch(openModal(Modals.EDIT_PROPOSAL));
+            },
+            dataTestId: `edit-proposal-${proposal.id}`,
+            dataCy: `proposal-edit-${proposal.id}`,
+        },
+    ];
 
     return (
         <>
@@ -414,22 +429,9 @@ export function ProposalsSearchSection() {
                                     },
                                     {
                                         header: "Ações",
+                                        width: "10rem",
                                         cell: (proposal: ProposalDTO) => (
-                                            <div className="flex flex-col gap-2">
-                                                <Button
-                                                    variant="primary"
-                                                    onClick={() => {
-                                                        dispatch(setProposal(proposal));
-                                                        dispatch(openModal(Modals.EDIT_PROPOSAL));
-                                                    }}
-                                                    className="flex items-center gap-2 text-xs"
-                                                    data-testid={`edit-proposal-${proposal.id}`}
-                                                    dataCy={`proposal-edit-${proposal.id}`}
-                                                >
-                                                    <PencilSimpleIcon size={16} />
-                                                    Editar
-                                                </Button>
-                                            </div>
+                                            <RowActions actions={buildProposalActions(proposal)} />
                                         ),
                                     },
                                 ]}
@@ -518,21 +520,9 @@ export function ProposalsSearchSection() {
                                                             Word
                                                         </a>
                                                     </div>
-                                                    <Button
-                                                        variant="primary"
-                                                        onClick={() => {
-                                                            dispatch(setProposal(proposal));
-                                                            dispatch(
-                                                                openModal(Modals.EDIT_PROPOSAL),
-                                                            );
-                                                        }}
-                                                        className="flex items-center gap-2 text-xs"
-                                                        data-testid={`edit-proposal-${proposal.id}`}
-                                                        dataCy={`proposal-edit-${proposal.id}`}
-                                                    >
-                                                        <PencilSimpleIcon size={16} />
-                                                        Editar
-                                                    </Button>
+                                                    <RowActions
+                                                        actions={buildProposalActions(proposal)}
+                                                    />
                                                 </div>
                                             }
                                         />

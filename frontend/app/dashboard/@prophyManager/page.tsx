@@ -32,6 +32,8 @@ import {
     Pagination,
     ResourcePanelShell,
     ReportsSearchTab,
+    RowAction,
+    RowActions,
     Spinner,
     Tab,
     TabList,
@@ -353,6 +355,58 @@ function SearchPage() {
             setTogglingClientId(null);
         }
     };
+
+    const buildClientActions = (client: ClientDTO): RowAction[] => [
+        {
+            key: "details",
+            label: "Detalhes",
+            onClick: () => handleViewDetails(client.cnpj),
+            dataCy: `client-details-${client.id}`,
+        },
+        {
+            key: "proposals",
+            label: "Propostas",
+            onClick: () => handleViewProposals(client.cnpj),
+            dataCy: `client-proposals-${client.id}`,
+        },
+        {
+            key: "toggle-status",
+            label: client.is_active ? "Desativar" : "Ativar",
+            variant: client.is_active ? "danger" : "success",
+            onClick: () => handleToggleClientStatus(client),
+            disabled: togglingClientId === client.id || isUpdatingClient,
+            isLoading: togglingClientId === client.id,
+            dataCy: `client-toggle-${client.id}`,
+        },
+    ];
+
+    const buildEquipmentActions = (equipment: EquipmentDTO): RowAction[] => [
+        {
+            key: "details",
+            label: "Detalhes",
+            onClick: () =>
+                router.push(
+                    `/dashboard/unit/${equipment.unit}?model=${encodeURIComponent(
+                        equipment.model,
+                    )}`,
+                ),
+            dataCy: `equipment-details-${equipment.id}`,
+        },
+    ];
+
+    const clientPendingAppointmentBadge = (client: ClientDTO) =>
+        client.needs_appointment && (
+            <span
+                data-cy="pending-appointment-badge"
+                className={clsx(
+                    "inline-flex w-full justify-center px-2.5 py-0.5",
+                    "rounded-full text-xs font-medium text-center",
+                    "bg-red-100 text-red-800 mb-1",
+                )}
+            >
+                Agendamento pendente
+            </span>
+        );
 
     useFilterRestoration({
         searchParams,
@@ -710,78 +764,16 @@ function SearchPage() {
                                                     },
                                                     {
                                                         header: "Ações",
+                                                        width: "10rem",
                                                         cell: (client: ClientDTO) => (
-                                                            <div className="flex flex-col gap-2">
-                                                                {client.needs_appointment && (
-                                                                    <span
-                                                                        data-cy={
-                                                                            "pending-appointment-badge"
-                                                                        }
-                                                                        className={clsx(
-                                                                            "inline-flex w-full justify-center px-2.5 py-0.5",
-                                                                            "rounded-full text-xs font-medium text-center",
-                                                                            "bg-red-100 text-red-800 mb-1",
-                                                                        )}
-                                                                    >
-                                                                        Agendamento pendente
-                                                                    </span>
+                                                            <RowActions
+                                                                actions={buildClientActions(
+                                                                    client,
                                                                 )}
-
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        handleViewDetails(
-                                                                            client.cnpj,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                    dataCy={`client-details-${client.id}`}
-                                                                >
-                                                                    Detalhes
-                                                                </Button>
-
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        handleViewProposals(
-                                                                            client.cnpj,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 px-2 py-1 text-xs"
-                                                                    dataCy={`client-proposals-${client.id}`}
-                                                                >
-                                                                    Propostas
-                                                                </Button>
-
-                                                                <Button
-                                                                    variant={
-                                                                        client.is_active
-                                                                            ? "danger"
-                                                                            : "success"
-                                                                    }
-                                                                    onClick={() =>
-                                                                        handleToggleClientStatus(
-                                                                            client,
-                                                                        )
-                                                                    }
-                                                                    disabled={
-                                                                        togglingClientId ===
-                                                                            client.id ||
-                                                                        isUpdatingClient
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                    dataCy={`client-toggle-${client.id}`}
-                                                                >
-                                                                    {togglingClientId ===
-                                                                    client.id ? (
-                                                                        <Spinner />
-                                                                    ) : client.is_active ? (
-                                                                        <>Desativar</>
-                                                                    ) : (
-                                                                        <>Ativar</>
-                                                                    )}
-                                                                </Button>
-                                                            </div>
+                                                                before={clientPendingAppointmentBadge(
+                                                                    client,
+                                                                )}
+                                                            />
                                                         ),
                                                     },
                                                 ]}
@@ -867,77 +859,14 @@ function SearchPage() {
                                                                 },
                                                             ]}
                                                             actions={
-                                                                <div className="flex flex-col gap-2">
-                                                                    {client.needs_appointment && (
-                                                                        <span
-                                                                            data-cy={
-                                                                                "pending-appointment-badge"
-                                                                            }
-                                                                            className={clsx(
-                                                                                "inline-flex w-full justify-center px-2.5 py-0.5",
-                                                                                "rounded-full text-xs font-medium text-center",
-                                                                                "bg-red-100 text-red-800",
-                                                                            )}
-                                                                        >
-                                                                            Agendamento pendente
-                                                                        </span>
+                                                                <RowActions
+                                                                    actions={buildClientActions(
+                                                                        client,
                                                                     )}
-
-                                                                    <Button
-                                                                        variant="primary"
-                                                                        onClick={() =>
-                                                                            handleViewDetails(
-                                                                                client.cnpj,
-                                                                            )
-                                                                        }
-                                                                        className="flex items-center gap-2 text-xs"
-                                                                        dataCy={`client-details-${client.id}`}
-                                                                    >
-                                                                        Detalhes
-                                                                    </Button>
-
-                                                                    <Button
-                                                                        variant="primary"
-                                                                        onClick={() =>
-                                                                            handleViewProposals(
-                                                                                client.cnpj,
-                                                                            )
-                                                                        }
-                                                                        className="flex items-center gap-2 px-2 py-1 text-xs"
-                                                                        dataCy={`client-proposals-${client.id}`}
-                                                                    >
-                                                                        Propostas
-                                                                    </Button>
-
-                                                                    <Button
-                                                                        variant={
-                                                                            client.is_active
-                                                                                ? "danger"
-                                                                                : "success"
-                                                                        }
-                                                                        onClick={() =>
-                                                                            handleToggleClientStatus(
-                                                                                client,
-                                                                            )
-                                                                        }
-                                                                        disabled={
-                                                                            togglingClientId ===
-                                                                                client.id ||
-                                                                            isUpdatingClient
-                                                                        }
-                                                                        className="flex items-center gap-2 text-xs"
-                                                                        dataCy={`client-toggle-${client.id}`}
-                                                                    >
-                                                                        {togglingClientId ===
-                                                                        client.id ? (
-                                                                            <Spinner />
-                                                                        ) : client.is_active ? (
-                                                                            <>Desativar</>
-                                                                        ) : (
-                                                                            <>Ativar</>
-                                                                        )}
-                                                                    </Button>
-                                                                </div>
+                                                                    before={clientPendingAppointmentBadge(
+                                                                        client,
+                                                                    )}
+                                                                />
                                                             }
                                                         />
                                                     );
@@ -1124,27 +1053,13 @@ function SearchPage() {
                                                     },
                                                     {
                                                         header: "Ações",
+                                                        width: "10rem",
                                                         cell: (equipment: EquipmentDTO) => (
-                                                            <div className="flex flex-col gap-2">
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        router.push(
-                                                                            `/dashboard/unit/${
-                                                                                equipment.unit
-                                                                            }?model=${encodeURIComponent(
-                                                                                equipment.model,
-                                                                            )}`,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                    dataCy={`equipment-details-${
-                                                                        equipment.id
-                                                                    }`}
-                                                                >
-                                                                    Detalhes
-                                                                </Button>
-                                                            </div>
+                                                            <RowActions
+                                                                actions={buildEquipmentActions(
+                                                                    equipment,
+                                                                )}
+                                                            />
                                                         ),
                                                     },
                                                 ]}
@@ -1174,20 +1089,11 @@ function SearchPage() {
                                                             },
                                                         ]}
                                                         actions={
-                                                            <Button
-                                                                variant="primary"
-                                                                onClick={() =>
-                                                                    router.push(
-                                                                        `/dashboard/unit/${equipment.unit}?model=${encodeURIComponent(
-                                                                            equipment.model,
-                                                                        )}`,
-                                                                    )
-                                                                }
-                                                                className="flex items-center gap-2 text-xs"
-                                                                dataCy={`equipment-details-${equipment.id}`}
-                                                            >
-                                                                Detalhes
-                                                            </Button>
+                                                            <RowActions
+                                                                actions={buildEquipmentActions(
+                                                                    equipment,
+                                                                )}
+                                                            />
                                                         }
                                                     />
                                                 )}

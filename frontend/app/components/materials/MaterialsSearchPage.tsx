@@ -10,6 +10,8 @@ import {
     MobileResultCard,
     Modal,
     Pagination,
+    RowAction,
+    RowActions,
     Spinner,
     Table,
 } from "@/components/common";
@@ -336,6 +338,55 @@ const MaterialsSearchPage = () => {
         setIsPermissionsOpen(true);
     };
 
+    const buildMaterialActions = (row: MaterialDTO): RowAction[] => [
+        {
+            key: "download",
+            label: "Baixar",
+            onClick: () => handleDownload(row),
+            dataCy: `material-download-${row.id}`,
+        },
+        ...(isProphyManager
+            ? [
+                  {
+                      key: "edit",
+                      label: "Editar",
+                      variant: "secondary" as const,
+                      onClick: () => {
+                          setMaterialToEdit(row);
+                          setIsUpdateOpen(true);
+                      },
+                      dataCy: `material-edit-${row.id}`,
+                  },
+              ]
+            : []),
+        ...(isProphyManager && row.visibility === "INT"
+            ? [
+                  {
+                      key: "permissions",
+                      label: "Permissões",
+                      variant: "secondary" as const,
+                      onClick: () => openPermissions(row),
+                      dataTestId: "btn-open-permissions-modal",
+                      dataCy: `material-permissions-${row.id}`,
+                  },
+              ]
+            : []),
+        ...(isProphyManager
+            ? [
+                  {
+                      key: "delete",
+                      label: "Excluir",
+                      variant: "danger" as const,
+                      onClick: () => {
+                          setMaterialToDelete(row);
+                          setIsDeleteOpen(true);
+                      },
+                      dataCy: `material-delete-${row.id}`,
+                  },
+              ]
+            : []),
+    ];
+
     const addUserId = (id: number) => {
         setSelectedUserIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
     };
@@ -490,54 +541,9 @@ const MaterialsSearchPage = () => {
                                                 },
                                             ]}
                                             actions={
-                                                <>
-                                                    <Button
-                                                        variant="primary"
-                                                        onClick={() => handleDownload(row)}
-                                                        className="w-full text-xs"
-                                                        dataCy={`material-download-${row.id}`}
-                                                    >
-                                                        Baixar
-                                                    </Button>
-                                                    {isProphyManager && (
-                                                        <>
-                                                            <Button
-                                                                variant="secondary"
-                                                                onClick={() => {
-                                                                    setMaterialToEdit(row);
-                                                                    setIsUpdateOpen(true);
-                                                                }}
-                                                                className="w-full text-xs"
-                                                                dataCy={`material-edit-${row.id}`}
-                                                            >
-                                                                Editar
-                                                            </Button>
-                                                            {row.visibility === "INT" && (
-                                                                <Button
-                                                                    variant="secondary"
-                                                                    onClick={() =>
-                                                                        openPermissions(row)
-                                                                    }
-                                                                    className="w-full text-xs"
-                                                                    dataCy={`material-permissions-${row.id}`}
-                                                                >
-                                                                    Permissões
-                                                                </Button>
-                                                            )}
-                                                            <Button
-                                                                variant="danger"
-                                                                onClick={() => {
-                                                                    setMaterialToDelete(row);
-                                                                    setIsDeleteOpen(true);
-                                                                }}
-                                                                className="w-full text-xs"
-                                                                dataCy={`material-delete-${row.id}`}
-                                                            >
-                                                                Excluir
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </>
+                                                <RowActions
+                                                    actions={buildMaterialActions(row)}
+                                                />
                                             }
                                         />
                                     )}
@@ -576,57 +582,9 @@ const MaterialsSearchPage = () => {
                                         },
                                         {
                                             header: "Ações",
-                                            width: "8rem",
+                                            width: "10rem",
                                             cell: (row: MaterialDTO) => (
-                                                <div className="flex flex-col gap-2 items-stretch">
-                                                    <Button
-                                                        variant="primary"
-                                                        onClick={() => handleDownload(row)}
-                                                        className="w-full text-xs"
-                                                        dataCy={`material-download-${row.id}`}
-                                                    >
-                                                        Baixar
-                                                    </Button>
-                                                    {isProphyManager && (
-                                                        <>
-                                                            <Button
-                                                                variant="secondary"
-                                                                onClick={() => {
-                                                                    setMaterialToEdit(row);
-                                                                    setIsUpdateOpen(true);
-                                                                }}
-                                                                className="w-full text-xs"
-                                                                dataCy={`material-edit-${row.id}`}
-                                                            >
-                                                                Editar
-                                                            </Button>
-                                                            {row.visibility === "INT" && (
-                                                                <Button
-                                                                    variant="secondary"
-                                                                    onClick={() =>
-                                                                        openPermissions(row)
-                                                                    }
-                                                                    className="w-full text-xs"
-                                                                    data-testid="btn-open-permissions-modal"
-                                                                    dataCy={`material-permissions-${row.id}`}
-                                                                >
-                                                                    Permissões
-                                                                </Button>
-                                                            )}
-                                                            <Button
-                                                                variant="danger"
-                                                                onClick={() => {
-                                                                    setMaterialToDelete(row);
-                                                                    setIsDeleteOpen(true);
-                                                                }}
-                                                                className="w-full text-xs"
-                                                                dataCy={`material-delete-${row.id}`}
-                                                            >
-                                                                Excluir
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </div>
+                                                <RowActions actions={buildMaterialActions(row)} />
                                             ),
                                         },
                                     ]}

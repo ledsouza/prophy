@@ -14,6 +14,8 @@ import {
     ErrorDisplay,
     MobileResultCard,
     Pagination,
+    RowAction,
+    RowActions,
     Spinner,
     Table,
 } from "@/components/common";
@@ -223,6 +225,15 @@ export default function AppointmentSearchTab({
     const handleViewUnitDetails = (unitId: number) => {
         router.push(`/dashboard/unit/${unitId}?tab=appointments`);
     };
+
+    const buildAppointmentActions = (appointment: AppointmentDTO): RowAction[] => [
+        {
+            key: "details",
+            label: "Detalhes",
+            onClick: () => handleViewUnitDetails(appointment.unit),
+            dataCy: `${dataCyPrefix}-appointment-details-${appointment.id}`,
+        },
+    ];
 
     const handleSetViewMode = (nextViewMode: ViewMode) => {
         setViewMode(nextViewMode);
@@ -447,19 +458,11 @@ export default function AppointmentSearchTab({
                                     },
                                     {
                                         header: "Ações",
+                                        width: "10rem",
                                         cell: (appointment: AppointmentDTO) => (
-                                            <div className="flex flex-col gap-2">
-                                                <Button
-                                                    variant="primary"
-                                                    onClick={() =>
-                                                        handleViewUnitDetails(appointment.unit)
-                                                    }
-                                                    className="flex items-center gap-2 text-xs"
-                                                    dataCy={`${dataCyPrefix}-appointment-details-${appointment.id}`}
-                                                >
-                                                    Detalhes
-                                                </Button>
-                                            </div>
+                                            <RowActions
+                                                actions={buildAppointmentActions(appointment)}
+                                            />
                                         ),
                                     },
                                 ]}
@@ -502,16 +505,9 @@ export default function AppointmentSearchTab({
                                                 },
                                             ]}
                                             actions={
-                                                <Button
-                                                    variant="primary"
-                                                    onClick={() =>
-                                                        handleViewUnitDetails(appointment.unit)
-                                                    }
-                                                    className="flex items-center gap-2 text-xs"
-                                                    dataCy={`${dataCyPrefix}-appointment-details-${appointment.id}`}
-                                                >
-                                                    Detalhes
-                                                </Button>
+                                                <RowActions
+                                                    actions={buildAppointmentActions(appointment)}
+                                                />
                                             }
                                         />
                                     );

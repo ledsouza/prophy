@@ -12,6 +12,8 @@ import {
     MobileResultCard,
     Modal,
     Pagination,
+    RowAction,
+    RowActions,
     Spinner,
     Table,
     Tooltip,
@@ -315,9 +317,69 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         );
     }
 
+    const buildReportActions = (report: ReportSearchDTO): RowAction[] => [
+        ...(canUpdate && !report.is_deleted
+            ? [
+                  {
+                      key: "update",
+                      label: "Atualizar",
+                      onClick: () => {
+                          setUpdateReportId(report.id);
+                          reset({ description: report.description });
+                          setUpdateOpen(true);
+                      },
+                      dataCy: `report-update-${report.id}`,
+                  },
+              ]
+            : []),
+        ...(isGP && !report.is_deleted
+            ? [
+                  {
+                      key: "soft-delete",
+                      label: "Arquivar",
+                      variant: "danger" as const,
+                      onClick: () => {
+                          setSelectedReportId(report.id);
+                          setSoftDeleteConfirmOpen(true);
+                      },
+                      dataTestId: `btn-soft-delete-${report.id}`,
+                      dataCy: `report-soft-delete-${report.id}`,
+                  },
+              ]
+            : []),
+        ...(isGP && report.is_deleted
+            ? [
+                  {
+                      key: "restore",
+                      label: "Desarquivar",
+                      variant: "secondary" as const,
+                      onClick: () => {
+                          setSelectedReportId(report.id);
+                          setRestoreConfirmOpen(true);
+                      },
+                      dataTestId: `btn-restore-${report.id}`,
+                      dataCy: `report-restore-${report.id}`,
+                  },
+                  {
+                      key: "hard-delete",
+                      label: "Excluir",
+                      variant: "danger" as const,
+                      onClick: () => {
+                          setSelectedReportId(report.id);
+                          setHardDeleteConfirmOpen(true);
+                      },
+                      dataTestId: `btn-hard-delete-${report.id}`,
+                      dataCy: `report-hard-delete-${report.id}`,
+                  },
+              ]
+            : []),
+    ];
+
     const columns = [
         {
             header: "Tipo",
+            width: "10rem",
+            multiLine: true,
             cell: (report: ReportSearchDTO) => (
                 <div className="flex items-center gap-2">
                     <span>{reportTypeLabel[report.report_type] || report.report_type}</span>
@@ -341,10 +403,14 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         },
         {
             header: "Cliente",
+            width: "12rem",
+            multiLine: true,
             cell: (report: ReportSearchDTO) => report.client_name || "—",
         },
         {
             header: "Unidade",
+            width: "9rem",
+            multiLine: true,
             cell: (report: ReportSearchDTO) => report.unit_name || "—",
         },
         {
@@ -361,6 +427,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         },
         {
             header: "Situação",
+            width: "10rem",
             cell: (report: ReportSearchDTO) => {
                 const statusInfo = getReportStatusDisplay(report.status);
                 return (
@@ -376,6 +443,8 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
             ? [
                   {
                       header: "Responsável",
+                      width: "14rem",
+                      multiLine: true,
                       cell: (report: ReportSearchDTO) => report.responsibles_display || "—",
                   },
               ]
@@ -408,66 +477,9 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         },
         {
             header: "Ações",
-            width: "8rem",
+            width: "10rem",
             cell: (report: ReportSearchDTO) => (
-                <div className="flex flex-col gap-2 items-stretch">
-                    {canUpdate && !report.is_deleted && (
-                        <Button
-                            variant="primary"
-                            onClick={() => {
-                                setUpdateReportId(report.id);
-                                reset({ description: report.description });
-                                setUpdateOpen(true);
-                            }}
-                            className="w-full text-xs"
-                            dataCy={`report-update-${report.id}`}
-                        >
-                            Atualizar
-                        </Button>
-                    )}
-                    {isGP && !report.is_deleted && (
-                        <Button
-                            variant="danger"
-                            onClick={() => {
-                                setSelectedReportId(report.id);
-                                setSoftDeleteConfirmOpen(true);
-                            }}
-                            className="w-full text-xs"
-                            data-testid={`btn-soft-delete-${report.id}`}
-                            dataCy={`report-soft-delete-${report.id}`}
-                        >
-                            Arquivar
-                        </Button>
-                    )}
-                    {isGP && report.is_deleted && (
-                        <>
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    setSelectedReportId(report.id);
-                                    setRestoreConfirmOpen(true);
-                                }}
-                                className="w-full text-xs"
-                                data-testid={`btn-restore-${report.id}`}
-                                dataCy={`report-restore-${report.id}`}
-                            >
-                                Desarquivar
-                            </Button>
-                            <Button
-                                variant="danger"
-                                onClick={() => {
-                                    setSelectedReportId(report.id);
-                                    setHardDeleteConfirmOpen(true);
-                                }}
-                                className="w-full text-xs"
-                                data-testid={`btn-hard-delete-${report.id}`}
-                                dataCy={`report-hard-delete-${report.id}`}
-                            >
-                                Excluir
-                            </Button>
-                        </>
-                    )}
-                </div>
+                <RowActions actions={buildReportActions(report)} />
             ),
         },
     ];
@@ -639,7 +651,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                                     : []),
                                             ]}
                                             actions={
-                                                <div className="flex flex-col gap-2">
+                                                <>
                                                     <div className="flex gap-3">
                                                         <a
                                                             href={resolveApiPath(
@@ -662,63 +674,10 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                                             </a>
                                                         )}
                                                     </div>
-                                                    {canUpdate && !report.is_deleted && (
-                                                        <Button
-                                                            variant="primary"
-                                                            onClick={() => {
-                                                                setUpdateReportId(report.id);
-                                                                reset({
-                                                                    description:
-                                                                        report.description,
-                                                                });
-                                                                setUpdateOpen(true);
-                                                            }}
-                                                            className="w-full text-xs"
-                                                            dataCy={`report-update-mobile-${report.id}`}
-                                                        >
-                                                            Atualizar
-                                                        </Button>
-                                                    )}
-                                                    {isGP && !report.is_deleted && (
-                                                        <Button
-                                                            variant="danger"
-                                                            onClick={() => {
-                                                                setSelectedReportId(report.id);
-                                                                setSoftDeleteConfirmOpen(true);
-                                                            }}
-                                                            className="w-full text-xs"
-                                                            dataCy={`report-soft-delete-${report.id}`}
-                                                        >
-                                                            Arquivar
-                                                        </Button>
-                                                    )}
-                                                    {isGP && report.is_deleted && (
-                                                        <>
-                                                            <Button
-                                                                variant="secondary"
-                                                                onClick={() => {
-                                                                    setSelectedReportId(report.id);
-                                                                    setRestoreConfirmOpen(true);
-                                                                }}
-                                                                className="w-full text-xs"
-                                                                dataCy={`report-restore-${report.id}`}
-                                                            >
-                                                                Desarquivar
-                                                            </Button>
-                                                            <Button
-                                                                variant="danger"
-                                                                onClick={() => {
-                                                                    setSelectedReportId(report.id);
-                                                                    setHardDeleteConfirmOpen(true);
-                                                                }}
-                                                                className="w-full text-xs"
-                                                                dataCy={`report-hard-delete-${report.id}`}
-                                                            >
-                                                                Excluir
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </div>
+                                                    <RowActions
+                                                        actions={buildReportActions(report)}
+                                                    />
+                                                </>
                                             }
                                         />
                                     );

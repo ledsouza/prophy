@@ -1,7 +1,6 @@
 "use client";
 
 import { TabGroup, TabPanel, TabPanels } from "@headlessui/react";
-import { FileTextIcon } from "@phosphor-icons/react";
 import clsx from "clsx";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -30,6 +29,8 @@ import {
     Modal,
     Pagination,
     ResourcePanelShell,
+    RowAction,
+    RowActions,
     Spinner,
     Tab,
     TabList,
@@ -419,6 +420,52 @@ function SearchPage() {
         }
     };
 
+    const buildClientActions = (client: ClientDTO): RowAction[] => [
+        {
+            key: "details",
+            label: "Detalhes",
+            onClick: () => handleViewDetails(client.cnpj),
+        },
+        {
+            key: "proposals",
+            label: "Propostas",
+            onClick: () => handleViewProposals(client.cnpj),
+        },
+        {
+            key: "toggle-status",
+            label: client.is_active ? "Desativar" : "Ativar",
+            variant: client.is_active ? "danger" : "success",
+            onClick: () => handleToggleClientStatus(client),
+            disabled: togglingClientId === client.id,
+            isLoading: togglingClientId === client.id,
+            dataTestId: `toggle-client-${client.id}`,
+            dataCy: `commercial-toggle-client-${client.id}`,
+        },
+    ];
+
+    const buildAppointmentActions = (appointment: AppointmentDTO): RowAction[] => [
+        {
+            key: "details",
+            label: "Detalhes",
+            onClick: () => handleViewUnitDetails(appointment.unit),
+            dataTestId: `view-unit-${appointment.id}`,
+        },
+    ];
+
+    const clientPendingAppointmentBadge = (client: ClientDTO) =>
+        client.needs_appointment && (
+            <span
+                data-cy="pending-appointment-badge"
+                className={clsx(
+                    "inline-flex w-full justify-center px-2.5 py-0.5",
+                    "rounded-full text-xs font-medium text-center",
+                    "bg-red-100 text-red-800 mb-1",
+                )}
+            >
+                Agendamento pendente
+            </span>
+        );
+
     useFilterRestoration({
         searchParams,
         setSelectedTabIndex,
@@ -706,74 +753,16 @@ function SearchPage() {
                                                     },
                                                     {
                                                         header: "Ações",
+                                                        width: "10rem",
                                                         cell: (client: ClientDTO) => (
-                                                            <div className="flex flex-col gap-2">
-                                                                {client.needs_appointment && (
-                                                                    <span
-                                                                        className={clsx(
-                                                                            "inline-flex w-full justify-center px-2.5 py-0.5",
-                                                                            "rounded-full text-xs font-medium text-center",
-                                                                            "bg-red-100 text-red-800 mb-1",
-                                                                        )}
-                                                                    >
-                                                                        Agendamento pendente
-                                                                    </span>
+                                                            <RowActions
+                                                                actions={buildClientActions(
+                                                                    client,
                                                                 )}
-
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        handleViewDetails(
-                                                                            client.cnpj,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                >
-                                                                    Detalhes
-                                                                </Button>
-
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        handleViewProposals(
-                                                                            client.cnpj,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 px-2 py-1 text-xs"
-                                                                >
-                                                                    <FileTextIcon size={16} />
-                                                                    Propostas
-                                                                </Button>
-
-                                                                <Button
-                                                                    variant={
-                                                                        client.is_active
-                                                                            ? "danger"
-                                                                            : "success"
-                                                                    }
-                                                                    onClick={() =>
-                                                                        handleToggleClientStatus(
-                                                                            client,
-                                                                        )
-                                                                    }
-                                                                    disabled={
-                                                                        togglingClientId ===
-                                                                        client.id
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                    data-testid={`toggle-client-${client.id}`}
-                                                                    dataCy={`commercial-toggle-client-${client.id}`}
-                                                                >
-                                                                    {togglingClientId ===
-                                                                    client.id ? (
-                                                                        <Spinner />
-                                                                    ) : client.is_active ? (
-                                                                        <>Desativar</>
-                                                                    ) : (
-                                                                        <>Ativar</>
-                                                                    )}
-                                                                </Button>
-                                                            </div>
+                                                                before={clientPendingAppointmentBadge(
+                                                                    client,
+                                                                )}
+                                                            />
                                                         ),
                                                     },
                                                 ]}
@@ -810,70 +799,14 @@ function SearchPage() {
                                                             },
                                                         ]}
                                                         actions={
-                                                            <div className="flex flex-col gap-2">
-                                                                {client.needs_appointment && (
-                                                                    <span
-                                                                        className={clsx(
-                                                                            "inline-flex w-full justify-center px-2.5 py-0.5",
-                                                                            "rounded-full text-xs font-medium text-center",
-                                                                            "bg-red-100 text-red-800",
-                                                                        )}
-                                                                    >
-                                                                        Agendamento pendente
-                                                                    </span>
+                                                            <RowActions
+                                                                actions={buildClientActions(
+                                                                    client,
                                                                 )}
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        handleViewDetails(
-                                                                            client.cnpj,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                >
-                                                                    Detalhes
-                                                                </Button>
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        handleViewProposals(
-                                                                            client.cnpj,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 px-2 py-1 text-xs"
-                                                                >
-                                                                    <FileTextIcon size={16} />
-                                                                    Propostas
-                                                                </Button>
-                                                                <Button
-                                                                    variant={
-                                                                        client.is_active
-                                                                            ? "danger"
-                                                                            : "success"
-                                                                    }
-                                                                    onClick={() =>
-                                                                        handleToggleClientStatus(
-                                                                            client,
-                                                                        )
-                                                                    }
-                                                                    disabled={
-                                                                        togglingClientId ===
-                                                                        client.id
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                    data-testid={`toggle-client-${client.id}`}
-                                                                    dataCy={`commercial-toggle-client-${client.id}`}
-                                                                >
-                                                                    {togglingClientId ===
-                                                                    client.id ? (
-                                                                        <Spinner />
-                                                                    ) : client.is_active ? (
-                                                                        <>Desativar</>
-                                                                    ) : (
-                                                                        <>Ativar</>
-                                                                    )}
-                                                                </Button>
-                                                            </div>
+                                                                before={clientPendingAppointmentBadge(
+                                                                    client,
+                                                                )}
+                                                            />
                                                         }
                                                     />
                                                 )}
@@ -1110,21 +1043,13 @@ function SearchPage() {
                                                     },
                                                     {
                                                         header: "Ações",
+                                                        width: "10rem",
                                                         cell: (appointment: AppointmentDTO) => (
-                                                            <div className="flex flex-col gap-2">
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        handleViewUnitDetails(
-                                                                            appointment.unit,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                    data-testid={`view-unit-${appointment.id}`}
-                                                                >
-                                                                    Detalhes
-                                                                </Button>
-                                                            </div>
+                                                            <RowActions
+                                                                actions={buildAppointmentActions(
+                                                                    appointment,
+                                                                )}
+                                                            />
                                                         ),
                                                     },
                                                 ]}
@@ -1188,18 +1113,11 @@ function SearchPage() {
                                                                 },
                                                             ]}
                                                             actions={
-                                                                <Button
-                                                                    variant="primary"
-                                                                    onClick={() =>
-                                                                        handleViewUnitDetails(
-                                                                            appointment.unit,
-                                                                        )
-                                                                    }
-                                                                    className="flex items-center gap-2 text-xs"
-                                                                    data-testid={`view-unit-${appointment.id}`}
-                                                                >
-                                                                    Detalhes
-                                                                </Button>
+                                                                <RowActions
+                                                                    actions={buildAppointmentActions(
+                                                                        appointment,
+                                                                    )}
+                                                                />
                                                             }
                                                         />
                                                     );

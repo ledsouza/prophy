@@ -9,6 +9,8 @@ import {
     MobileResultCard,
     Modal,
     Pagination,
+    RowAction,
+    RowActions,
     Spinner,
     Table,
 } from "@/components/common";
@@ -81,6 +83,39 @@ const UsersPage = () => {
         setAssociationsUser(user);
         setAssociationsOpen(true);
     }
+
+    const buildUserActions = (u: UserDTO): RowAction[] => [
+        ...(!isCommercial
+            ? [
+                  {
+                      key: "edit",
+                      label: "Editar",
+                      onClick: () => openEdit(u),
+                      dataCy: `gp-users-edit-${u.id}`,
+                  },
+              ]
+            : []),
+        {
+            key: "associations",
+            label: "Associações",
+            variant: "secondary" as const,
+            onClick: () => openAssociations(u),
+            dataCy: `gp-users-associations-${u.id}`,
+        },
+        ...(!isCommercial
+            ? [
+                  {
+                      key: "toggle-active",
+                      label: u.is_active ? "Inativar" : "Ativar",
+                      variant: u.is_active ? ("danger" as const) : ("success" as const),
+                      onClick: () => openToggleActive(u, !u.is_active),
+                      dataCy: u.is_active
+                          ? `gp-users-deactivate-${u.id}`
+                          : `gp-users-activate-${u.id}`,
+                  },
+              ]
+            : []),
+    ];
 
     async function confirmToggleActive() {
         if (!toggleActiveUser) {
@@ -243,49 +278,9 @@ const UsersPage = () => {
                                 },
                                 {
                                     header: "Ações",
+                                    width: "10rem",
                                     cell: (u: UserDTO) => (
-                                        <div className="flex flex-col gap-2 items-stretch">
-                                            {!isCommercial && (
-                                                <Button
-                                                    variant="primary"
-                                                    onClick={() => openEdit(u)}
-                                                    className="w-full text-xs"
-                                                    dataCy={`gp-users-edit-${u.id}`}
-                                                >
-                                                    Editar
-                                                </Button>
-                                            )}
-
-                                            <Button
-                                                variant="secondary"
-                                                onClick={() => openAssociations(u)}
-                                                className="w-full text-xs"
-                                                dataCy={`gp-users-associations-${u.id}`}
-                                            >
-                                                Associações
-                                            </Button>
-
-                                            {!isCommercial &&
-                                                (u.is_active ? (
-                                                    <Button
-                                                        variant="danger"
-                                                        onClick={() => openToggleActive(u, false)}
-                                                        className="w-full text-xs"
-                                                        dataCy={`gp-users-deactivate-${u.id}`}
-                                                    >
-                                                        Inativar
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        variant="secondary"
-                                                        onClick={() => openToggleActive(u, true)}
-                                                        className="w-full text-xs"
-                                                        dataCy={`gp-users-activate-${u.id}`}
-                                                    >
-                                                        Ativar
-                                                    </Button>
-                                                ))}
-                                        </div>
+                                        <RowActions actions={buildUserActions(u)} />
                                     ),
                                 },
                             ]}
@@ -311,50 +306,7 @@ const UsersPage = () => {
                                         { label: "Celular", value: u.phone },
                                         { label: "Perfil", value: roleLabel(u.role) },
                                     ]}
-                                    actions={
-                                        <div className="flex flex-col gap-2">
-                                            {!isCommercial && (
-                                                <Button
-                                                    variant="primary"
-                                                    onClick={() => openEdit(u)}
-                                                    className="w-full text-xs"
-                                                    dataCy={`gp-users-edit-${u.id}`}
-                                                >
-                                                    Editar
-                                                </Button>
-                                            )}
-
-                                            <Button
-                                                variant="secondary"
-                                                onClick={() => openAssociations(u)}
-                                                className="w-full text-xs"
-                                                dataCy={`gp-users-associations-${u.id}`}
-                                            >
-                                                Associações
-                                            </Button>
-
-                                            {!isCommercial &&
-                                                (u.is_active ? (
-                                                    <Button
-                                                        variant="danger"
-                                                        onClick={() => openToggleActive(u, false)}
-                                                        className="w-full text-xs"
-                                                        dataCy={`gp-users-deactivate-${u.id}`}
-                                                    >
-                                                        Inativar
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        variant="secondary"
-                                                        onClick={() => openToggleActive(u, true)}
-                                                        className="w-full text-xs"
-                                                        dataCy={`gp-users-activate-${u.id}`}
-                                                    >
-                                                        Ativar
-                                                    </Button>
-                                                ))}
-                                        </div>
-                                    }
+                                    actions={<RowActions actions={buildUserActions(u)} />}
                                 />
                             )}
                             rowProps={(u: UserDTO) => ({

@@ -20,6 +20,8 @@ import {
     ErrorDisplay,
     MobileResultCard,
     Pagination,
+    RowAction,
+    RowActions,
     Spinner,
     Table,
 } from "@/components/common";
@@ -155,6 +157,15 @@ export default function MedicalPhysicistClientSearchSection({
         );
     }
 
+    const buildClientActions = (client: ClientDTO, isMobile = false): RowAction[] => [
+        {
+            key: "details",
+            label: "Detalhes",
+            onClick: () => router.push(`/dashboard/client/${client.cnpj}`),
+            dataCy: `${dataCyPrefix}-client-details-${isMobile ? "mobile-" : ""}${client.id}`,
+        },
+    ];
+
     return (
         <div>
             <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3">
@@ -242,17 +253,9 @@ export default function MedicalPhysicistClientSearchSection({
                                     },
                                     {
                                         header: "Ações",
+                                        width: "10rem",
                                         cell: (client: ClientDTO) => (
-                                            <Button
-                                                variant="primary"
-                                                onClick={() =>
-                                                    router.push(`/dashboard/client/${client.cnpj}`)
-                                                }
-                                                className="flex items-center gap-2 text-xs"
-                                                dataCy={`${dataCyPrefix}-client-details-${client.id}`}
-                                            >
-                                                Detalhes
-                                            </Button>
+                                            <RowActions actions={buildClientActions(client)} />
                                         ),
                                     },
                                 ]}
@@ -272,16 +275,9 @@ export default function MedicalPhysicistClientSearchSection({
                                             },
                                         ]}
                                         actions={
-                                            <Button
-                                                variant="primary"
-                                                onClick={() =>
-                                                    router.push(`/dashboard/client/${client.cnpj}`)
-                                                }
-                                                className="flex items-center gap-2 text-xs"
-                                                dataCy={`${dataCyPrefix}-client-details-mobile-${client.id}`}
-                                            >
-                                                Detalhes
-                                            </Button>
+                                            <RowActions
+                                                actions={buildClientActions(client, true)}
+                                            />
                                         }
                                     />
                                 )}

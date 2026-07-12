@@ -10,6 +10,8 @@ export { default as Tooltip } from "./Tooltip";
 export { default as ErrorDisplay } from "./ErrorDisplay";
 export { default as Pagination } from "./Pagination";
 export { default as MobileResultCard } from "./MobileResultCard";
+export { default as RowActions } from "./RowActions";
+export type { RowAction } from "./RowActions";
 export { default as Tab } from "./Tab";
 export { default as TabList } from "./TabList";
 export { default as TabbedResourcePanel } from "./TabbedResourcePanel";
