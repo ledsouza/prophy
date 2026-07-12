@@ -722,6 +722,7 @@ class Report(models.Model):
         pdf_file (FileField): The report PDF document
         word_file (FileField): The report Word document (optional for legacy
             reports; new reports require both pdf_file and word_file)
+        description (TextField): Free-text description of the report
         unit (ForeignKey): Reference to Unit (optional, depends on report type)
         equipment (ForeignKey): Reference to Equipment (optional, depends on
             report type)
@@ -785,6 +786,9 @@ class Report(models.Model):
         upload_to="reports/words/",
         blank=True,
         validators=[MaxFileSize(MAX_DOCUMENT_FILE_SIZE_MB)],
+    )
+    description = models.TextField(
+        "Descrição",
     )
     unit = models.ForeignKey(
         Unit,

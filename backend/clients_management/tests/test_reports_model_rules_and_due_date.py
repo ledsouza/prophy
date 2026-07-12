@@ -26,6 +26,7 @@ def test_report_clean_equipment_only_requires_equipment_and_forbids_unit():
         completion_date=date.today(),
         report_type=Report.ReportType.QUALITY_CONTROL,
         pdf_file=_pdf_file(),
+        description="Descrição de teste.",
     )
 
     with pytest.raises(ValidationError):
@@ -37,6 +38,7 @@ def test_report_clean_equipment_only_requires_equipment_and_forbids_unit():
         completion_date=date.today(),
         report_type=Report.ReportType.QUALITY_CONTROL,
         pdf_file=_pdf_file(),
+        description="Descrição de teste.",
     )
 
     with pytest.raises(ValidationError):
@@ -53,6 +55,7 @@ def test_report_clean_unit_only_requires_unit_and_forbids_equipment():
         completion_date=date.today(),
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file(),
+        description="Descrição de teste.",
     )
 
     with pytest.raises(ValidationError):
@@ -64,6 +67,7 @@ def test_report_clean_unit_only_requires_unit_and_forbids_equipment():
         completion_date=date.today(),
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file(),
+        description="Descrição de teste.",
     )
 
     with pytest.raises(ValidationError):
@@ -81,6 +85,7 @@ def test_report_save_due_date_is_4_years_for_radiometric_survey():
         completion_date=completion_date,
         report_type=Report.ReportType.RADIOMETRIC_SURVEY,
         pdf_file=_pdf_file(),
+        description="Descrição de teste.",
     )
 
     assert report.due_date == completion_date + timedelta(days=4 * 365)
@@ -96,6 +101,7 @@ def test_report_save_due_date_is_1_year_for_other_types():
         completion_date=completion_date,
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file(),
+        description="Descrição de teste.",
     )
 
     assert report.due_date == completion_date + timedelta(days=365)
@@ -120,6 +126,7 @@ def test_report_save_no_due_date_for_exception_types(report_type):
         completion_date=completion_date,
         report_type=report_type,
         pdf_file=_pdf_file(),
+        description="Descrição de teste.",
     )
 
     assert report.due_date is None

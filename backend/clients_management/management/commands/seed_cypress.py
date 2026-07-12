@@ -482,6 +482,7 @@ class Command(BaseCommand):
             word_file=make_report_word_file(rtype, "Unit 1000"),
             unit=unit1000,
             report_type=rtype,
+            description=rtype.label,
         )
 
         due_type = (
@@ -494,6 +495,7 @@ class Command(BaseCommand):
             word_file=make_report_word_file(due_type, "Unit 1000 - due soon"),
             unit=unit1000,
             report_type=due_type,
+            description=due_type.label,
         )
 
         eq_type = Report.EQUIPMENT_ONLY_TYPES[0]
@@ -503,6 +505,7 @@ class Command(BaseCommand):
             word_file=make_report_word_file(eq_type, "Siemens-MAMMOMAT-100"),
             equipment=eq1000,
             report_type=eq_type,
+            description=eq_type.label,
         )
         Report.objects.create(
             completion_date=date.today() - timedelta(days=120),
@@ -510,6 +513,7 @@ class Command(BaseCommand):
             word_file=make_report_word_file(eq_type, "GE-SENOGRAPHE-200"),
             equipment=eq1001,
             report_type=eq_type,
+            description=eq_type.label,
         )
 
     # --------------------------------------------------------- service orders

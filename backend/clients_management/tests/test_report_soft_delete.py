@@ -134,6 +134,7 @@ def report_for_unit(client_with_unit_and_equipment):
         report_type=Report.ReportType.MEMORIAL,
         completion_date=date.today(),
         pdf_file=report_file,
+        description="Descrição de teste.",
     )
 
 
@@ -153,6 +154,7 @@ def report_for_equipment(client_with_unit_and_equipment):
         report_type=Report.ReportType.QUALITY_CONTROL,
         completion_date=date.today(),
         pdf_file=report_file,
+        description="Descrição de teste.",
     )
 
 

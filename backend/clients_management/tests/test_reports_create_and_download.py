@@ -47,6 +47,7 @@ def test_report_create_enforces_equipment_only_and_sets_due_date():
             "equipment": equipment.id,
             "pdf_file": _pdf_file_payload(),
             "word_file": _docx_file_payload(),
+            "description": "Descrição de teste.",
         },
         format="multipart",
     )
@@ -76,6 +77,7 @@ def test_report_create_rejects_missing_word_file():
             "report_type": Report.ReportType.RADIOMETRIC_SURVEY,
             "equipment": equipment.id,
             "pdf_file": _pdf_file_payload(),
+            "description": "Descrição de teste.",
         },
         format="multipart",
     )
@@ -98,12 +100,36 @@ def test_report_create_rejects_missing_pdf_file():
             "report_type": Report.ReportType.MEMORIAL,
             "unit": unit.id,
             "word_file": _docx_file_payload(),
+            "description": "Descrição de teste.",
         },
         format="multipart",
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "pdf_file" in response.data
+
+
+@pytest.mark.django_db
+def test_report_create_rejects_missing_description():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    unit = UnitFactory()
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.post(
+        "/api/reports/",
+        {
+            "completion_date": date.today().isoformat(),
+            "report_type": Report.ReportType.MEMORIAL,
+            "unit": unit.id,
+            "pdf_file": _pdf_file_payload(),
+            "word_file": _docx_file_payload(),
+        },
+        format="multipart",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "description" in response.data
 
 
 @pytest.mark.django_db
@@ -119,6 +145,7 @@ def test_report_create_rejects_missing_equipment_for_equipment_only_type():
             "report_type": Report.ReportType.QUALITY_CONTROL,
             "pdf_file": _pdf_file_payload(),
             "word_file": _docx_file_payload(),
+            "description": "Descrição de teste.",
         },
         format="multipart",
     )
@@ -140,6 +167,7 @@ def test_report_create_rejects_missing_unit_for_unit_only_type():
             "report_type": Report.ReportType.MEMORIAL,
             "pdf_file": _pdf_file_payload(),
             "word_file": _docx_file_payload(),
+            "description": "Descrição de teste.",
         },
         format="multipart",
     )
@@ -162,6 +190,7 @@ def test_report_pdf_download_sets_content_type_and_filename():
         completion_date=date(2020, 1, 1),
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
 
     client.force_authenticate(user=prophy_manager)
@@ -186,6 +215,7 @@ def test_report_pdf_download_accessible_to_unit_manager():
         completion_date=date(2020, 1, 1),
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
 
     client.force_authenticate(user=unit_manager)
@@ -206,6 +236,7 @@ def test_report_pdf_download_accessible_to_client_general_manager():
         completion_date=date(2020, 1, 1),
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
 
     client_api.force_authenticate(user=ggc)
@@ -239,6 +270,7 @@ def test_report_word_download_allowed_for_privileged_roles(role):
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
         word_file=_docx_file_payload(),
+        description="Descrição de teste.",
     )
 
     api_client.force_authenticate(user=user)
@@ -275,6 +307,7 @@ def test_report_word_download_forbidden_for_client_roles(role):
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
         word_file=_docx_file_payload(),
+        description="Descrição de teste.",
     )
 
     api_client.force_authenticate(user=user)
@@ -294,6 +327,7 @@ def test_report_download_returns_404_for_missing_word_file():
         completion_date=date(2020, 1, 1),
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
 
     api_client.force_authenticate(user=prophy_manager)
@@ -313,6 +347,7 @@ def test_report_download_returns_400_for_invalid_file_type():
         completion_date=date(2020, 1, 1),
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
 
     api_client.force_authenticate(user=prophy_manager)
@@ -337,6 +372,7 @@ def test_report_serializer_hides_word_file_for_client_roles():
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
         word_file=_docx_file_payload(),
+        description="Descrição de teste.",
     )
 
     api_client.force_authenticate(user=ggc)
@@ -358,6 +394,7 @@ def test_report_serializer_exposes_word_file_for_prophy_manager():
         report_type=Report.ReportType.MEMORIAL,
         pdf_file=_pdf_file_payload(),
         word_file=_docx_file_payload(),
+        description="Descrição de teste.",
     )
 
     api_client.force_authenticate(user=prophy_manager)

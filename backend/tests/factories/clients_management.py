@@ -172,6 +172,7 @@ class ReportFactory(factory.django.DjangoModelFactory):
 
     completion_date = factory.Faker("date_this_year")
     report_type = Report.ReportType.QUALITY_CONTROL
+    description = factory.Faker("sentence")
 
     pdf_file = SimpleUploadedFile(
         "report.pdf",

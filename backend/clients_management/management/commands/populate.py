@@ -694,6 +694,7 @@ class Command(BaseCommand):
             word_file=make_report_word_file(rtype, "Unit 1000"),
             unit=Unit.objects.get(id=1000),
             report_type=rtype,
+            description=rtype.label,
         )
 
         # Deterministic report for testing due-report notifications.
@@ -709,6 +710,7 @@ class Command(BaseCommand):
             word_file=make_report_word_file(due_report_type, "Unit 1000 - due soon"),
             unit=Unit.objects.get(id=1000),
             report_type=due_report_type,
+            description=due_report_type.label,
         )
 
         # Equipment-only reports
@@ -723,6 +725,7 @@ class Command(BaseCommand):
                     word_file=make_report_word_file(rtype, entity),
                     equipment=equipment,
                     report_type=rtype,
+                    description=rtype.label,
                 )
 
         # Unit-only reports
@@ -736,6 +739,7 @@ class Command(BaseCommand):
                     word_file=make_report_word_file(rtype, unit.name),
                     unit=unit,
                     report_type=rtype,
+                    description=rtype.label,
                 )
 
     def make_material_file(self, title: str) -> ContentFile:

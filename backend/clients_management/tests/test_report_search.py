@@ -57,6 +57,7 @@ def client_with_reports(
         report_type=Report.ReportType.MEMORIAL,
         pdf_file="reports/overdue.pdf",
         due_date=today - timedelta(days=10),
+        description="Descrição de teste.",
     )
 
     # Due soon report (today <= due_date <= today+30)
@@ -66,6 +67,7 @@ def client_with_reports(
         report_type=Report.ReportType.MEMORIAL,
         pdf_file="reports/due_soon.pdf",
         due_date=today + timedelta(days=15),
+        description="Descrição de teste.",
     )
 
     # OK report (due_date > today+30)
@@ -75,6 +77,7 @@ def client_with_reports(
         report_type=Report.ReportType.MEMORIAL,
         pdf_file="reports/ok.pdf",
         due_date=today + timedelta(days=60),
+        description="Descrição de teste.",
     )
 
     return client
@@ -108,6 +111,7 @@ def another_client_with_reports(db, another_physicist):
         report_type=Report.ReportType.MEMORIAL,
         pdf_file="reports/another.pdf",
         due_date=today + timedelta(days=5),
+        description="Descrição de teste.",
     )
 
     return client
@@ -432,6 +436,7 @@ def test_filter_by_no_due_date_status_returns_only_no_due_date_reports(
         completion_date=date.today(),
         report_type=Report.ReportType.OTHERS,
         pdf_file="reports/no_due_date.pdf",
+        description="Descrição de teste.",
     )
 
     url = reverse("reports-list")

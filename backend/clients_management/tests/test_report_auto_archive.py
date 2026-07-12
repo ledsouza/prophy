@@ -39,6 +39,7 @@ def test_report_create_auto_archives_existing_active_report_for_same_unit_and_ty
         report_type=Report.ReportType.MEMORIAL,
         completion_date=date(2020, 1, 1),
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
     assert report_a.is_deleted is False
 
@@ -51,6 +52,7 @@ def test_report_create_auto_archives_existing_active_report_for_same_unit_and_ty
             "unit": unit.id,
             "pdf_file": _pdf_file_payload(),
             "word_file": _docx_file_payload(),
+            "description": "Descrição de teste.",
         },
         format="multipart",
     )
@@ -77,12 +79,14 @@ def test_report_create_auto_archives_only_matching_entity_and_type():
         report_type=Report.ReportType.MEMORIAL,
         completion_date=date(2020, 1, 1),
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
     report_other_unit = Report.objects.create(
         unit=unit_b,
         report_type=Report.ReportType.MEMORIAL,
         completion_date=date(2020, 1, 1),
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
 
     client.force_authenticate(user=prophy_manager)
@@ -94,6 +98,7 @@ def test_report_create_auto_archives_only_matching_entity_and_type():
             "unit": unit_a.id,
             "pdf_file": _pdf_file_payload(),
             "word_file": _docx_file_payload(),
+            "description": "Descrição de teste.",
         },
         format="multipart",
     )
@@ -118,6 +123,7 @@ def test_report_create_does_not_auto_archive_for_no_due_date_types():
         report_type=Report.ReportType.OTHERS,
         completion_date=date(2020, 1, 1),
         pdf_file=_pdf_file_payload(),
+        description="Descrição de teste.",
     )
 
     client.force_authenticate(user=prophy_manager)
@@ -129,6 +135,7 @@ def test_report_create_does_not_auto_archive_for_no_due_date_types():
             "unit": unit.id,
             "pdf_file": _pdf_file_payload(),
             "word_file": _docx_file_payload(),
+            "description": "Descrição de teste.",
         },
         format="multipart",
     )
