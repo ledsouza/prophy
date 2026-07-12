@@ -26,6 +26,8 @@ type TableProps<T> = {
     rowProps?: (row: T) => React.HTMLAttributes<HTMLTableRowElement> & Record<string, unknown>;
 };
 
+const AUTO_COLUMN_MIN_WIDTH = "6rem";
+
 const Table = <T extends {}>({
     data,
     columns,
@@ -36,6 +38,17 @@ const Table = <T extends {}>({
     rowProps,
 }: TableProps<T>) => {
     const hasCustomWidths = columns.some((column) => column.width);
+
+    // table-layout: fixed only honors per-column widths when the <table>
+    // itself has a definite width; a plain min-w-full (min-width only)
+    // leaves the browser free to shrink specified columns and grow
+    // unspecified ones based on content, defeating the fixed widths.
+    const fixedTableWidth = hasCustomWidths
+        ? `max(100%, ${columns
+              .map((column) => column.width ?? AUTO_COLUMN_MIN_WIDTH)
+              .join(" + ")})`
+        : undefined;
+
     const [scrollState, setScrollState] = useState({
         isScrollable: false,
         canScrollLeft: false,
@@ -148,16 +161,14 @@ const Table = <T extends {}>({
             >
                 <table
                     className={clsx("min-w-full", hasCustomWidths ? "table-fixed" : "table-auto")}
+                    style={fixedTableWidth ? { width: fixedTableWidth } : undefined}
                 >
                     <thead>
                         <tr className="bg-white">
                             {columns.map((column) => (
                                 <th
                                     key={column.header}
-                                    className={clsx(
-                                        "px-4 py-3 text-left text-xs sm:text-sm font-bold text-gray-700",
-                                        column.width && "truncate",
-                                    )}
+                                    className="px-4 py-3 text-center text-xs sm:text-sm font-bold text-gray-700"
                                     style={column.width ? { width: column.width } : undefined}
                                 >
                                     {column.header}
