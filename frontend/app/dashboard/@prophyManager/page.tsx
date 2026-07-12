@@ -399,8 +399,8 @@ function SearchPage() {
             <span
                 data-cy="pending-appointment-badge"
                 className={clsx(
-                    "inline-flex w-full justify-center px-2.5 py-0.5",
-                    "rounded-full text-xs font-medium text-center",
+                    "inline-flex w-full justify-center px-2.5 py-1",
+                    "rounded-md text-xs font-medium text-center whitespace-normal",
                     "bg-red-100 text-red-800 mb-1",
                 )}
             >
