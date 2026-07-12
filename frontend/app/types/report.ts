@@ -45,6 +45,7 @@ export type ReportDTO = {
     equipment: number | null;
     pdf_file: string;
     word_file: string | null;
+    description: string;
     is_deleted: boolean;
 };
 

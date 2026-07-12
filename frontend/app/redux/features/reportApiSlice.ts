@@ -24,10 +24,19 @@ const reportApiSlice = apiSlice.injectEndpoints({
             providesTags: [{ type: "Report", id: "LIST" }],
         }),
         createReport: builder.mutation<ReportDTO, CreateReportArgs>({
-            query: ({ completion_date, report_type, pdf_file, word_file, unit, equipment }) => {
+            query: ({
+                completion_date,
+                report_type,
+                description,
+                pdf_file,
+                word_file,
+                unit,
+                equipment,
+            }) => {
                 const formData = new FormData();
                 formData.append("completion_date", completion_date);
                 formData.append("report_type", report_type);
+                formData.append("description", description);
                 formData.append("pdf_file", pdf_file);
                 formData.append("word_file", word_file);
                 if (typeof unit === "number") formData.append("unit", String(unit));
@@ -41,10 +50,11 @@ const reportApiSlice = apiSlice.injectEndpoints({
             invalidatesTags: [{ type: "Report", id: "LIST" }],
         }),
         updateReportFile: builder.mutation<ReportDTO, UpdateReportFileArgs>({
-            query: ({ id, pdf_file, word_file }) => {
+            query: ({ id, pdf_file, word_file, description }) => {
                 const formData = new FormData();
                 if (pdf_file) formData.append("pdf_file", pdf_file);
                 if (word_file) formData.append("word_file", word_file);
+                if (description) formData.append("description", description);
                 return {
                     url: `reports/${id}/`,
                     method: "PATCH",

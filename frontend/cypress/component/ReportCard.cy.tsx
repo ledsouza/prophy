@@ -10,6 +10,7 @@ const baseReport: ReportDTO = {
     unit: 1,
     equipment: null,
     file: "https://example.com/report.pdf",
+    description: "Relatório de teste.",
     is_deleted: false,
 };
 

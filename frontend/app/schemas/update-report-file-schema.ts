@@ -27,15 +27,17 @@ const updateReportFileFormSchema = z
     .object({
         pdf_file: z.custom<FileList>(),
         word_file: z.custom<FileList>(),
+        description: z.string().transform((value) => value?.trim()),
     })
     .superRefine((data, ctx) => {
         const hasPdf = data.pdf_file instanceof FileList && data.pdf_file.length > 0;
         const hasWord = data.word_file instanceof FileList && data.word_file.length > 0;
+        const hasDescription = data.description.length > 0;
 
-        if (!hasPdf && !hasWord) {
+        if (!hasPdf && !hasWord && !hasDescription) {
             ctx.addIssue({
                 code: "custom",
-                message: "Selecione ao menos um arquivo.",
+                message: "Selecione ao menos um arquivo ou informe uma descrição.",
                 path: ["pdf_file"],
             });
             return;

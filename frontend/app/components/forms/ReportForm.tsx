@@ -3,15 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { z } from "zod";
 
 import { Button } from "@/components/common";
-import { Form, Input, Select } from "@/components/forms";
+import { Form, Input, Select, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 
 import { useCreateReportMutation } from "@/redux/features/reportApiSlice";
 import { useReportTypeSelect } from "@/hooks";
-import { pdfFileSchema, wordFileSchema } from "@/schemas";
+import { createReportSchema, type CreateReportFormData } from "@/schemas";
 
 type ReportFormProps = {
     isUnit: boolean;
@@ -22,16 +21,7 @@ type ReportFormProps = {
     submitTestId?: string;
 };
 
-const reportFormSchema = z.object({
-    completion_date: z
-        .string()
-        .min(1, { message: "Data de conclusão é obrigatória." })
-        .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Data inválida." }),
-    pdf_file: pdfFileSchema,
-    word_file: wordFileSchema,
-});
-
-type ReportFormFields = z.infer<typeof reportFormSchema>;
+type ReportFormFields = CreateReportFormData;
 
 function formatDateLocalYYYYMMDD(d: Date): string {
     const year = d.getFullYear();
@@ -53,7 +43,7 @@ const ReportForm = ({
         handleSubmit,
         formState: { errors, isSubmitting },
     } = useForm<ReportFormFields>({
-        resolver: zodResolver(reportFormSchema),
+        resolver: zodResolver(createReportSchema),
         defaultValues: {
             completion_date: formatDateLocalYYYYMMDD(new Date()),
         },
@@ -82,6 +72,7 @@ const ReportForm = ({
             await createReport({
                 completion_date: data.completion_date,
                 report_type: selectedReportTypeCode,
+                description: data.description,
                 pdf_file: data.pdf_file[0],
                 word_file: data.word_file[0],
                 unit: isUnit ? unitId : undefined,
@@ -113,6 +104,15 @@ const ReportForm = ({
                     label="Data de conclusão"
                     data-testid="report-completion-date-input"
                 ></Input>
+
+                <Textarea
+                    {...register("description")}
+                    rows={4}
+                    errorMessage={errors.description?.message}
+                    label="Descrição"
+                    dataTestId="report-description-textarea"
+                    dataCy="report-description-textarea"
+                />
 
                 <Select
                     options={options}

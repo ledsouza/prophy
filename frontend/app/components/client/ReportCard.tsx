@@ -6,8 +6,8 @@ import { format, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 
-import { Button, Modal } from "@/components/common";
-import { Form, Input } from "@/components/forms";
+import { Button, Modal, Tooltip } from "@/components/common";
+import { Form, Input, Textarea } from "@/components/forms";
 import { Typography } from "@/components/foundation";
 import Role from "@/enums/Role";
 import updateReportFileFormSchema, {
@@ -30,8 +30,8 @@ import { child } from "@/utils/logger";
 import {
     ArchiveIcon,
     ArrowCounterClockwiseIcon,
+    PencilLineIcon,
     TrashIcon,
-    UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
 
@@ -66,6 +66,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
         formState: { errors, isSubmitting },
     } = useForm<UpdateReportFileFormData>({
         resolver: zodResolver(updateReportFileFormSchema),
+        defaultValues: { description: report.description },
     });
 
     const completionDateLabel = useMemo(() => {
@@ -108,22 +109,23 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                 id: report.id,
                 pdf_file: pdfFile,
                 word_file: wordFile,
+                description: data.description,
             }).unwrap();
-            toast.success("Arquivo do relatório atualizado com sucesso.");
-            reset();
+            toast.success("Relatório atualizado com sucesso.");
+            reset({ description: data.description });
             setUpdateOpen(false);
         } catch (err) {
             log.error(
                 { reportId: report.id, error: (err as { message?: string })?.message },
-                "Update report file failed",
+                "Update report failed",
             );
-            toast.error("Não foi possível atualizar o arquivo do relatório.");
+            toast.error("Não foi possível atualizar o relatório.");
         }
     };
 
     function handleCloseModal() {
         if (!isUpdating && !isSubmitting) {
-            reset();
+            reset({ description: report.description });
             setUpdateOpen(false);
         }
     }
@@ -195,7 +197,7 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
 
             {/* Body + Actions */}
             <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 min-w-0">
                     <Typography element="p" size="sm" className="sm:text-base">
                         Data de conclusão:{" "}
                         <Typography element="span" className="font-semibold">
@@ -208,6 +210,22 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                             {dueDateLabel}
                         </Typography>
                     </Typography>
+                    <div>
+                        <Typography element="p" size="sm" className="sm:text-base">
+                            Descrição:
+                        </Typography>
+                        <Tooltip content={report.description}>
+                            <Typography
+                                element="p"
+                                size="xs"
+                                variant="secondary"
+                                className="line-clamp-2 break-words cursor-help"
+                                data-testid="report-description"
+                            >
+                                {report.description}
+                            </Typography>
+                        </Tooltip>
+                    </div>
                 </div>
 
                 <div className="flex flex-row flex-wrap items-center gap-3 sm:flex-nowrap">
@@ -235,14 +253,14 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
 
                     {canUpdate && !report.is_deleted && (
                         <Button
-                            variant="primary"
+                            variant="secondary"
                             onClick={() => setUpdateOpen(true)}
                             className="flex-1 sm:w-auto"
                             data-testid="btn-report-update"
-                            aria-label="Atualizar arquivo do relatório"
-                            title="Atualizar arquivo do relatório"
+                            aria-label="Atualizar relatório"
+                            title="Atualizar relatório"
                         >
-                            <UploadSimpleIcon size={20} />
+                            <PencilLineIcon size={20} />
                         </Button>
                     )}
 
@@ -295,6 +313,15 @@ function ReportCard({ report, dataTestId }: ReportCardProps) {
                     <Typography element="h3" size="lg">
                         Atualizar relatório
                     </Typography>
+
+                    <Textarea
+                        {...register("description")}
+                        rows={4}
+                        errorMessage={errors.description?.message}
+                        label="Descrição"
+                        dataTestId="report-update-description-textarea"
+                        dataCy="report-update-description-textarea"
+                    />
 
                     <Input
                         {...register("pdf_file")}

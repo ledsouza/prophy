@@ -20,4 +20,5 @@ export {
     default as updateReportFileFormSchema,
     type UpdateReportFileFormData,
 } from "./update-report-file-schema";
+export { default as createReportSchema, type CreateReportFormData } from "./create-report-schema";
 export { default as managedUserSchema, type ManagedUserFormFields } from "./managed-user-schema";

@@ -14,8 +14,9 @@ import {
     Pagination,
     Spinner,
     Table,
+    Tooltip,
 } from "@/components/common";
-import { Form, Input } from "@/components/forms";
+import { Form, Input, Textarea } from "@/components/forms";
 import Select, { SelectData } from "@/components/forms/Select";
 import { Typography } from "@/components/foundation";
 import { ITEMS_PER_PAGE } from "@/constants/pagination";
@@ -294,13 +295,14 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                 id: updateReportId,
                 pdf_file: pdfFile,
                 word_file: wordFile,
+                description: data.description,
             }).unwrap();
-            toast.success("Arquivos do relatório atualizados com sucesso.");
-            log.info({ reportId: updateReportId }, "Report files updated successfully");
+            toast.success("Relatório atualizado com sucesso.");
+            log.info({ reportId: updateReportId }, "Report updated successfully");
             handleCloseUpdateModal();
         } catch (err) {
-            log.error({ reportId: updateReportId, error: err }, "Update report files failed");
-            toast.error("Não foi possível atualizar os arquivos do relatório.");
+            log.error({ reportId: updateReportId, error: err }, "Update report failed");
+            toast.error("Não foi possível atualizar o relatório.");
         }
     };
 
@@ -320,6 +322,21 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                 <div className="flex items-center gap-2">
                     <span>{reportTypeLabel[report.report_type] || report.report_type}</span>
                 </div>
+            ),
+        },
+        {
+            header: "Descrição",
+            width: "12rem",
+            multiLine: true,
+            cell: (report: ReportSearchDTO) => (
+                <Tooltip content={report.description} className="max-w-48">
+                    <span
+                        className="line-clamp-2 whitespace-normal break-words"
+                        data-testid="report-search-description"
+                    >
+                        {report.description}
+                    </span>
+                </Tooltip>
             ),
         },
         {
@@ -399,6 +416,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                             variant="primary"
                             onClick={() => {
                                 setUpdateReportId(report.id);
+                                reset({ description: report.description });
                                 setUpdateOpen(true);
                             }}
                             className="w-full text-xs"
@@ -580,6 +598,10 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                             }
                                             fields={[
                                                 {
+                                                    label: "Descrição",
+                                                    value: report.description,
+                                                },
+                                                {
                                                     label: "Cliente",
                                                     value: report.client_name || "—",
                                                 },
@@ -645,6 +667,10 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                                                             variant="primary"
                                                             onClick={() => {
                                                                 setUpdateReportId(report.id);
+                                                                reset({
+                                                                    description:
+                                                                        report.description,
+                                                                });
                                                                 setUpdateOpen(true);
                                                             }}
                                                             className="w-full text-xs"
@@ -864,6 +890,14 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
                         <Typography element="h3" size="lg">
                             Atualizar relatório
                         </Typography>
+                        <Textarea
+                            {...register("description")}
+                            rows={4}
+                            errorMessage={errors.description?.message}
+                            label="Descrição"
+                            dataTestId="report-search-update-description-textarea"
+                            dataCy="report-search-update-description-textarea"
+                        />
                         <Input
                             {...register("pdf_file")}
                             type="file"
