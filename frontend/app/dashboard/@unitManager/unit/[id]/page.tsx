@@ -25,7 +25,7 @@ import {
 } from "@/redux/services/helpers";
 
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { useUnitPageRefresh } from "@/hooks";
+import { usePageDataRefresh } from "@/hooks";
 import { getIdFromUrl } from "@/utils/url";
 import { ArrowClockwise } from "@phosphor-icons/react";
 import { toast } from "react-toastify";
@@ -100,7 +100,14 @@ function UnitPage() {
     const [deleteEquipmentOperation, { isLoading: isLoadingDeleteEquipmentOperation }] =
         useDeleteEquipmentOperationMutation();
 
-    const handleUpdateData = useUnitPageRefresh();
+    const { handleUpdateData, isRefreshing } = usePageDataRefresh([
+        { type: "Unit", id: "LIST" },
+        { type: "UnitOperation", id: "LIST" },
+        { type: "Equipment", id: "LIST" },
+        { type: "EquipmentOperation", id: "LIST" },
+        { type: "Appointment", id: "LIST" },
+        { type: "Report", id: "LIST" },
+    ]);
 
     const handleConfirmRejectUnit = async (selectedUnit: UnitDTO) => {
         const unitOperation = getUnitOperation(selectedUnit, unitsOperations);
@@ -268,7 +275,7 @@ function UnitPage() {
                 <Button
                     variant="secondary"
                     className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
-                    disabled={isLoadingUnitOperations}
+                    disabled={isLoadingUnitOperations || isRefreshing}
                     onClick={handleUpdateData}
                     dataCy="unit-page-refresh-btn"
                 >

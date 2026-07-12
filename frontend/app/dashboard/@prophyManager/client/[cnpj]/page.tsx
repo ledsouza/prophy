@@ -5,12 +5,11 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 import { UnitDTO, useDeleteUnitOperationMutation } from "@/redux/features/unitApiSlice";
-import { apiSlice } from "@/redux/services/apiSlice";
 import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 import type { ClientOperationDTO } from "@/types/client";
 
 import { OperationType } from "@/enums";
-import { useSingleClientLoading } from "@/hooks";
+import { usePageDataRefresh, useSingleClientLoading } from "@/hooks";
 import { closeModal, Modals, openModal } from "@/redux/features/modalSlice";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
@@ -96,18 +95,14 @@ function ClientDetailPage() {
         dispatch(closeModal());
     };
 
-    const handleUpdateData = () => {
-        dispatch(
-            apiSlice.util.invalidateTags([
-                { type: "Client", id: "LIST" },
-                { type: "ClientOperation", id: "LIST" },
-                { type: "Unit", id: "LIST" },
-                { type: "UnitOperation", id: "LIST" },
-                { type: "Equipment", id: "LIST" },
-                { type: "EquipmentOperation", id: "LIST" },
-            ]),
-        );
-    };
+    const { handleUpdateData, isRefreshing } = usePageDataRefresh([
+        { type: "Client", id: "LIST" },
+        { type: "ClientOperation", id: "LIST" },
+        { type: "Unit", id: "LIST" },
+        { type: "UnitOperation", id: "LIST" },
+        { type: "Equipment", id: "LIST" },
+        { type: "EquipmentOperation", id: "LIST" },
+    ]);
 
     // Filter units by search term
     useEffect(() => {
@@ -201,7 +196,7 @@ function ClientDetailPage() {
                 <Button
                     variant="secondary"
                     className="fixed bottom-4 right-4 z-10 shadow-lg px-4 py-2"
-                    disabled={isLoadingClientData}
+                    disabled={isLoadingClientData || isRefreshing}
                     onClick={handleUpdateData}
                     dataTestId="update-data-btn"
                     data-cy="gp-update-data-btn"

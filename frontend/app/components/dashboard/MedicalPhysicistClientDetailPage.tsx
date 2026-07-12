@@ -6,8 +6,7 @@ import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 
 import { OperationType } from "@/enums";
 import Role from "@/enums/Role";
-import { useSingleClientLoading } from "@/hooks";
-import { apiSlice } from "@/redux/services/apiSlice";
+import { usePageDataRefresh, useSingleClientLoading } from "@/hooks";
 import { getUnitOperation, isResponseError } from "@/redux/services/helpers";
 import {
     UnitDTO,
@@ -68,18 +67,14 @@ export default function MedicalPhysicistClientDetailPage({
         (state) => state.modal,
     );
 
-    const handleUpdateData = () => {
-        dispatch(
-            apiSlice.util.invalidateTags([
-                { type: "Client", id: "LIST" },
-                { type: "ClientOperation", id: "LIST" },
-                { type: "Unit", id: "LIST" },
-                { type: "UnitOperation", id: "LIST" },
-                { type: "Equipment", id: "LIST" },
-                { type: "EquipmentOperation", id: "LIST" },
-            ]),
-        );
-    };
+    const { handleUpdateData, isRefreshing } = usePageDataRefresh([
+        { type: "Client", id: "LIST" },
+        { type: "ClientOperation", id: "LIST" },
+        { type: "Unit", id: "LIST" },
+        { type: "UnitOperation", id: "LIST" },
+        { type: "Equipment", id: "LIST" },
+        { type: "EquipmentOperation", id: "LIST" },
+    ]);
 
     const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(event.target.value);
@@ -230,7 +225,7 @@ export default function MedicalPhysicistClientDetailPage({
                 <Button
                     variant="secondary"
                     className="fixed bottom-4 right-4 z-10 px-4 py-2 shadow-lg"
-                    disabled={isLoadingClientData}
+                    disabled={isLoadingClientData || isRefreshing}
                     onClick={handleUpdateData}
                     dataTestId="update-data-btn"
                 >
