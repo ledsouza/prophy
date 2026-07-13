@@ -1,8 +1,13 @@
 import pytest
 from django.urls import reverse
-from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from rest_framework import status
 from rest_framework.test import APIClient
+
+from requisitions.models import (
+    ClientOperation,
+    EquipmentOperation,
+    UnitOperation,
+)
 from tests.factories import (
     ClientFactory,
     ClientOperationFactory,
@@ -53,7 +58,9 @@ def test_deactivating_client_deletes_pending_operations():
         unit=unit,
         operation_status=EquipmentOperation.OperationStatus.REVIEW,
     )
-    pending_equipment_op.original_equipment = pending_equipment_op.equipment_ptr
+    pending_equipment_op.original_equipment = (
+        pending_equipment_op.equipment_ptr
+    )
     pending_equipment_op.save()
 
     accepted_equipment_op = EquipmentOperationFactory(
@@ -73,11 +80,17 @@ def test_deactivating_client_deletes_pending_operations():
     assert base_client.is_active is False
 
     assert not ClientOperation.objects.filter(pk=pending_client_op.pk).exists()
-    assert not ClientOperation.objects.filter(pk=pending_client_op_rejected.pk).exists()
+    assert not ClientOperation.objects.filter(
+        pk=pending_client_op_rejected.pk
+    ).exists()
     assert ClientOperation.objects.filter(pk=accepted_client_op.pk).exists()
 
     assert not UnitOperation.objects.filter(pk=pending_unit_op.pk).exists()
     assert UnitOperation.objects.filter(pk=accepted_unit_op.pk).exists()
 
-    assert not EquipmentOperation.objects.filter(pk=pending_equipment_op.pk).exists()
-    assert EquipmentOperation.objects.filter(pk=accepted_equipment_op.pk).exists()
+    assert not EquipmentOperation.objects.filter(
+        pk=pending_equipment_op.pk
+    ).exists()
+    assert EquipmentOperation.objects.filter(
+        pk=accepted_equipment_op.pk
+    ).exists()

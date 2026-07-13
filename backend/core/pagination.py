@@ -3,27 +3,25 @@ from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer
+from rest_framework.serializers import BaseSerializer
 
 
 class PaginationMixin:
-    """
-    Lightweight mixin providing pagination helper via _paginate_response.
-    """
+    """Mixin providing a pagination helper via _paginate_response."""
 
     def _paginate_response(
         self,
         queryset: QuerySet,
         request: Request,
-        serializer_class: type[Serializer],
+        serializer_class: type[BaseSerializer],
     ) -> Response:
-        """
-        Handle pagination and serialization of the queryset.
+        """Handle pagination and serialization of the queryset.
 
         Args:
             queryset: The Django queryset to paginate.
             request: The HTTP request object.
-            serializer_class: The serializer class to use for serialization.
+            serializer_class: The serializer class to use for
+                serialization.
 
         Returns:
             Response: Paginated response if pagination is applicable,

@@ -2,14 +2,16 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from users.models import UserAccount
 from tests.factories import UserFactory
+from users.models import UserAccount
 
 
 @pytest.mark.django_db
 def test_list_as_prophy_manager_returns_all_users():
     client = APIClient()
-    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER, is_staff=True)
+    prophy_manager = UserFactory(
+        role=UserAccount.Role.PROPHY_MANAGER, is_staff=True
+    )
     UserFactory(role=UserAccount.Role.UNIT_MANAGER)
     UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
 
@@ -35,7 +37,9 @@ def test_list_as_client_general_manager_returns_only_unit_managers():
     assert response.status_code == status.HTTP_200_OK
     assert (
         response.data["count"]
-        == UserAccount.objects.filter(role=UserAccount.Role.UNIT_MANAGER).count()
+        == UserAccount.objects.filter(
+            role=UserAccount.Role.UNIT_MANAGER
+        ).count()
     )
     assert all(
         item["role"] == UserAccount.Role.UNIT_MANAGER

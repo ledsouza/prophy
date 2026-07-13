@@ -7,7 +7,6 @@ from PIL import Image
 from rest_framework import status
 
 from requisitions.models import EquipmentOperation
-
 from tests.factories import ModalityFactory, UnitFactory
 
 # Django's default FILE_UPLOAD_MAX_MEMORY_SIZE: above this, uploaded
@@ -66,9 +65,7 @@ def test_create_equipment_operation_rejects_oversized_image(
     modality = ModalityFactory()
     url = reverse("equipments-operations-list")
 
-    oversized_image = make_image_file(
-        "equipment.jpg", 5 * 1024 * 1024 + 1024
-    )
+    oversized_image = make_image_file("equipment.jpg", 5 * 1024 * 1024 + 1024)
     payload = build_add_operation_payload(unit, modality, oversized_image)
 
     response = api_client.post(url, payload, format="multipart")

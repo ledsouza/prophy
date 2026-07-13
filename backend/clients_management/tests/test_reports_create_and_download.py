@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from clients_management.models import Report
-from users.models import UserAccount
 from tests.factories import EquipmentFactory, UnitFactory, UserFactory
+from users.models import UserAccount
 
 
 def _pdf_file_payload() -> SimpleUploadedFile:
@@ -28,7 +28,7 @@ def _docx_file_payload() -> SimpleUploadedFile:
     )
 
 
-# ── Create ────────────────────────────────────────────────────────────────────
+# ── Create ────────────────────────────────────────────────────────────
 
 
 @pytest.mark.django_db
@@ -176,7 +176,7 @@ def test_report_create_rejects_missing_unit_for_unit_only_type():
     assert "unit" in response.data
 
 
-# ── PDF download ───────────────────────────────────────────────────────────────
+# ── PDF download ──────────────────────────────────────────────────────
 
 
 @pytest.mark.django_db
@@ -245,7 +245,7 @@ def test_report_pdf_download_accessible_to_client_general_manager():
     assert response.status_code == status.HTTP_200_OK
 
 
-# ── Word download ──────────────────────────────────────────────────────────────
+# ── Word download ─────────────────────────────────────────────────────
 
 
 @pytest.mark.django_db
@@ -356,7 +356,7 @@ def test_report_download_returns_400_for_invalid_file_type():
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-# ── Serializer word_file visibility ───────────────────────────────────────────
+# ── Serializer word_file visibility ───────────────────────────────────
 
 
 @pytest.mark.django_db

@@ -9,71 +9,86 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import TextChoices
 from django.utils import timezone
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
+from django.utils.safestring import SafeString
 from django.utils.translation import gettext as _
 from localflavor.br.br_states import STATE_CHOICES
-from users.models import UserAccount
 
 from clients_management.validators import CNPJValidator
 from core.constants import MAX_DOCUMENT_FILE_SIZE_MB, MAX_IMAGE_FILE_SIZE_MB
 from core.validators import MaxFileSize
+from users.models import UserAccount
 
 if TYPE_CHECKING:
-    from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
+    from requisitions.models import (
+        ClientOperation,
+        EquipmentOperation,
+        UnitOperation,
+    )
 
 
 def get_status(
     operation: ClientOperation | UnitOperation | EquipmentOperation,
-) -> str | format_html:
-    """
-    Returns the formatted status of a client, unit, or equipment operation.
+) -> str | SafeString | None:
+    """Return the status of a client, unit, or equipment operation.
 
-    This function takes an operation object and returns either a plain string status
-    or an HTML-formatted status message depending on the operation's type and status.
+    Returns a plain string for approved operations, or an
+    HTML-formatted status message for pending add/edit/delete
+    operations.
 
     Args:
-        operation (ClientOperation | UnitOperation | EquipmentOperation):
-            The operation object to get status for. Can be any of the operation types.
+        operation: The client, unit, or equipment operation to get
+            the status for.
 
     Returns:
-        str | format_html: Either a plain string status for approved operations,
-        or an HTML-formatted status message for pending add/edit/delete operations.
-        The HTML includes the status and type of request in a fixed-width div.
+        A plain string for approved operations, or an HTML-formatted
+        status message including the status and request type for
+        pending operations.
     """
     if operation.operation_status == "A":
         return operation.get_operation_status_display()
     if operation.operation_type == "A":
         return format_html(
-            f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para adicionar</div>"
+            "<div style='width: 90px'><b>{}:</b><br>Requisição para "
+            "adicionar</div>",
+            operation.get_operation_status_display(),
         )
     if operation.operation_type == "E":
         return format_html(
-            f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para editar</div>"
+            "<div style='width: 90px'><b>{}:</b><br>Requisição para "
+            "editar</div>",
+            operation.get_operation_status_display(),
         )
     if operation.operation_type == "D":
         return format_html(
-            f"<div style='width: 90px'><b>{operation.get_operation_status_display()}:</b><br>Requisição para deletar</div>"
+            "<div style='width: 90px'><b>{}:</b><br>Requisição para "
+            "deletar</div>",
+            operation.get_operation_status_display(),
         )
+    return None
 
 
 class BaseEquipment(models.Model):
-    """
-    A base abstract model representing common equipment attributes.
+    """A base abstract model representing common equipment attributes.
 
-    This model serves as a base class for various equipment types, providing standard
-    fields for tracking equipment information such as manufacturer, model, series number,
-    and associated photos.
+    This model serves as a base class for various equipment types,
+    providing standard fields for tracking equipment information such as
+    manufacturer, model, series number, and associated photos.
 
     Attributes:
-        manufacturer (CharField): The equipment manufacturer name (max 30 characters)
+        manufacturer (CharField): The equipment manufacturer name (max
+            30 characters)
         model (CharField): The equipment model name (max 30 characters)
-        series_number (CharField): Optional equipment serial number (max 30 characters)
-        equipment_photo (ImageField): Photo of the equipment, stored in 'equipments/photos'
-        label_photo (ImageField): Photo of the equipment label, stored in 'equipments/labels'
+        series_number (CharField): Optional equipment serial number (max
+            30 characters)
+        equipment_photo (ImageField): Photo of the equipment, stored in
+            'equipments/photos'
+        label_photo (ImageField): Photo of the equipment label, stored
+            in 'equipments/labels'
 
     Note:
-        This is an abstract base class and cannot be instantiated directly.
-        It should be inherited by concrete equipment models.
+    This is an abstract base class and cannot be instantiated directly.
+    It should be inherited by concrete equipment models.
     """
 
     manufacturer = models.CharField("Fabricante", max_length=30)
@@ -97,26 +112,34 @@ class BaseEquipment(models.Model):
 
 
 class Client(models.Model):
-    """
-    A Django model class representing a client in the system.
+    """A Django model class representing a client in the system.
 
-    This model stores essential information about clients, including their identification,
-    contact details, location, and associated users.
+    This model stores essential information about clients, including
+    their identification, contact details, location, and associated
+    users.
 
     Attributes:
-        users (ManyToManyField): Multiple UserAccount objects linked to this client as responsibles
-        cnpj (CharField): Brazilian company registration number (14 digits)
+        users (ManyToManyField): Multiple UserAccount objects linked to
+            this client as responsibles
+        cnpj (CharField): Brazilian company registration number (14
+            digits)
         name (CharField): Institution/company name (max 50 characters)
-        razao_social (CharField): Institution's legal/registered company name (max 150 characters)
+        razao_social (CharField): Institution's legal/registered company
+            name (max 150 characters)
         email (EmailField): Institution's contact email
-        phone (CharField): Institution's contact phone number (max 13 characters)
-        address (CharField): Institution's physical address (max 150 characters)
-        state (CharField): Institution's state, using 2-letter codes from STATE_CHOICES
+        phone (CharField): Institution's contact phone number (max 13
+            characters)
+        address (CharField): Institution's physical address (max 150
+            characters)
+        state (CharField): Institution's state, using 2-letter codes
+            from STATE_CHOICES
         city (CharField): Institution's city (max 50 characters)
-        active (BooleanField): Flag indicating if the client is currently active
+        active (BooleanField): Flag indicating if the client is
+            currently active
 
     Methods:
-        responsables(): Returns formatted HTML string of associated users and their roles
+        responsables(): Returns formatted HTML string of associated
+            users and their roles
         status(): Returns the operational status of the client
         __str__(): Returns string representation of the client (name)
 
@@ -126,9 +149,14 @@ class Client(models.Model):
     """
 
     users = models.ManyToManyField(
-        UserAccount, related_name="clients", blank=True, verbose_name="Responsáveis"
+        UserAccount,
+        related_name="clients",
+        blank=True,
+        verbose_name="Responsáveis",
     )
-    cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
+    cnpj = models.CharField(
+        "CNPJ", max_length=14, validators=[CNPJValidator()]
+    )
     name = models.CharField("Nome da instituição", max_length=50)
     razao_social = models.CharField("Razão Social", max_length=150)
     email = models.EmailField("E-mail da instituição")
@@ -143,11 +171,14 @@ class Client(models.Model):
     @admin.display(description="Responsáveis")
     def responsables(self):
         associated_users = self.users.all()
-        associated_users = [
-            f"<strong>{user.get_role_display()}:</strong> {user.name}"
-            for user in associated_users
-        ]
-        return format_html("<br>".join(associated_users))
+        return format_html_join(
+            "<br>",
+            "<strong>{}:</strong> {}",
+            (
+                (user.get_role_display(), user.name)
+                for user in associated_users
+            ),
+        )
 
     @admin.display(description="Status")
     def status(self):
@@ -163,16 +194,19 @@ class Client(models.Model):
 
 
 class Unit(models.Model):
-    """
-    This class represents a business unit belonging to a client in the system. It stores
-    information about the unit's management, location, and contact details.
+    """Represents a business unit belonging to a client.
+
+    Stores information about the unit's management, location, and
+    contact details.
 
     Attributes:
         user (UserAccount): The unit manager, can be null.
         client (Client): The client this unit belongs to.
         name (str): Name of the unit, max 50 characters.
-        razao_social (str): Legal/registered company name, max 150 characters.
-        cnpj (str): Brazilian company registration number (CNPJ), must be 14 digits.
+        razao_social (str): Legal/registered company name, max 150
+            characters.
+        cnpj (str): Brazilian company registration number (CNPJ), must
+            be 14 digits.
         email (str): Contact email address for the unit.
         phone (str): Contact phone number, max 13 characters.
         address (str): Physical address of the unit, max 150 characters.
@@ -206,11 +240,15 @@ class Unit(models.Model):
     )
     name = models.CharField("Nome", max_length=50)
     razao_social = models.CharField("Razão Social", max_length=150)
-    cnpj = models.CharField("CNPJ", max_length=14, validators=[CNPJValidator()])
+    cnpj = models.CharField(
+        "CNPJ", max_length=14, validators=[CNPJValidator()]
+    )
     email = models.EmailField("E-mail")
     phone = models.CharField("Telefone", max_length=13)
     address = models.CharField("Endereço", max_length=150)
-    state = models.CharField("Estado", max_length=2, choices=STATE_CHOICES, blank=True)
+    state = models.CharField(
+        "Estado", max_length=2, choices=STATE_CHOICES, blank=True
+    )
     city = models.CharField("Cidade", max_length=50, blank=True)
 
     @admin.display(description="Status")
@@ -227,23 +265,18 @@ class Unit(models.Model):
 
 
 class Modality(models.Model):
-    """
-    A Django model representing different imaging modalities in medical equipment.
-
-    This class defines various imaging modalities and their associated accessories
-    commonly used in medical diagnostics and treatments.
+    """Represents an imaging modality and its associated accessories.
 
     Attributes:
-        name (CharField): The name of the modality, limited to 50 characters.
-        accessory (CharField): The type of accessory used with the modality.
-            Can be one of the following:
-            - D: Detector
-            - C: Coil (Bobina)
-            - T: Transducer (Transdutor)
-            - N: Not applicable (Não se aplica)
+        name (CharField): The name of the modality, limited to 50
+            characters.
+        accessory_type (CharField): The type of accessory used with
+            the modality. One of Detector, Coil, Transducer, or Not
+            applicable.
 
-        Accessory (TextChoices): An inner class defining the available accessory types
-            as choices for the accessory field.
+    AccessoryType (TextChoices): An inner class defining the
+        available accessory types as choices for the accessory_type
+        field.
     """
 
     class AccessoryType(TextChoices):
@@ -272,35 +305,49 @@ class Modality(models.Model):
 
 
 class Equipment(BaseEquipment, models.Model):
-    """
-    A Django model representing medical equipment.
-    This class models medical equipment with various attributes including manufacturer details,
-    technical specifications, installation information, and maintenance contact details.
+    """A Django model representing medical equipment.
+
+    This class models medical equipment with various attributes
+    including manufacturer details, technical specifications,
+    installation information, and maintenance contact details.
+
     Attributes:
-        unit (ForeignKey): Reference to the Unit where the equipment is located
+        unit (ForeignKey): Reference to the Unit where the equipment is
+            located
         manufacturer (str): Equipment manufacturer name
         model (str): Equipment model name
         series_number (str): Equipment serial number
-        anvisa_registry (str): ANVISA (Brazilian Health Regulatory Agency) registration number
-        modality (ForeignKey): Reference to the Modality of the equipment
+        anvisa_registry (str): ANVISA (Brazilian Health Regulatory
+            Agency) registration number
+        modality (ForeignKey): Reference to the Modality of the
+            equipment
         channels (str): Number of channels
         official_max_load (int): Official maximum load capacity
         usual_max_load (int): Usual maximum load capacity
-        purchase_installation_date (Date): Date when equipment was purchased/installed
+        purchase_installation_date (Date): Date when equipment was
+            purchased/installed
         equipment_photo (ImageField): Photo of the equipment
         label_photo (ImageField): Photo of the equipment label
-        maintenance_responsable (str): Name of maintenance responsible person
-        email_maintenance_responsable (EmailField): Email of maintenance contact
-        phone_maintenance_responsable (str): Phone number of maintenance contact
+        maintenance_responsable (str): Name of maintenance responsible
+            person
+        email_maintenance_responsable (EmailField): Email of maintenance
+            contact
+        phone_maintenance_responsable (str): Phone number of maintenance
+            contact
     Methods:
-        client(): Returns the client associated with the equipment's unit
-        __str__(): Returns string representation of equipment (manufacturer - model)
+        client(): Returns the client associated with the equipment's
+            unit
+        __str__(): Returns string representation of equipment
+            (manufacturer - model)
     Meta:
         verbose_name (str): Human-readable singular name for the model
-        verbose_name_plural (str): Human-readable plural name for the model
+        verbose_name_plural (str): Human-readable plural name for the
+            model
     """
 
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name="equipments")
+    unit = models.ForeignKey(
+        Unit, on_delete=models.CASCADE, related_name="equipments"
+    )
     modality = models.ForeignKey(
         Modality, on_delete=models.CASCADE, related_name="equipments"
     )
@@ -311,7 +358,9 @@ class Equipment(BaseEquipment, models.Model):
     official_max_load = models.IntegerField(
         "Carga máxima oficial", blank=True, null=True
     )
-    usual_max_load = models.IntegerField("Carga máxima usual", blank=True, null=True)
+    usual_max_load = models.IntegerField(
+        "Carga máxima usual", blank=True, null=True
+    )
     purchase_installation_date = models.DateField(
         "Data de instalação da compra", blank=True, null=True
     )
@@ -322,13 +371,16 @@ class Equipment(BaseEquipment, models.Model):
         "E-mail do responsável pela manutenção", blank=True, null=True
     )
     phone_maintenance_responsable = models.CharField(
-        "Telefone do responsável pela manutenção", max_length=13, blank=True, null=True
+        "Telefone do responsável pela manutenção",
+        max_length=13,
+        blank=True,
+        null=True,
     )
 
     @admin.display(description="Cliente")
-    def client(self):
+    def client(self) -> Client | str | None:
         try:
-            client_display = self.unit.client
+            client_display: Client | str | None = self.unit.client
         except AttributeError:
             client_display = "-"
         return client_display
@@ -342,17 +394,21 @@ class Equipment(BaseEquipment, models.Model):
 
 
 class Accessory(BaseEquipment, models.Model):
-    """
-    A class representing an accessory equipment that can be attached to a main equipment.
-    This model inherits from BaseEquipment and represents additional accessories or attachments
-    that can be associated with a main equipment piece. Each accessory has a category and is
+    """Represents an accessory that can be attached to an equipment.
+
+    Inherits from BaseEquipment. Each accessory has a category and is
     linked to a specific equipment.
+
     Attributes:
-        equipment (ForeignKey): Reference to the main Equipment this accessory belongs to
-        category (CharField): Category of the accessory, chosen from Modality.AccessoryType choices
+        equipment (ForeignKey): Reference to the main Equipment this
+            accessory belongs to
+        category (CharField): Category of the accessory, chosen from
+            Modality.AccessoryType choices
     Meta:
-        verbose_name (str): Display name for a single instance ("Acessório")
-        verbose_name_plural (str): Display name for multiple instances ("Acessórios")
+        verbose_name (str): Display name for a single instance
+            ("Acessório")
+        verbose_name_plural (str): Display name for multiple instances
+            ("Acessórios")
     """
 
     equipment = models.ForeignKey(
@@ -368,12 +424,15 @@ class Accessory(BaseEquipment, models.Model):
 
 
 class Proposal(models.Model):
-    """
-    A model representing client proposals in the system.
-    This model stores information about business proposals including client details,
-    contact information, financial terms, and proposal status.
+    """A model representing client proposals in the system.
+
+    This model stores information about business proposals including
+    client details, contact information, financial terms, and proposal
+    status.
+
     Attributes:
-        cnpj (CharField): Brazilian company registration number (14 digits)
+        cnpj (CharField): Brazilian company registration number (14
+            digits)
         state (CharField): State where the institution is located
         city (CharField): City where the institution is located
         contact_name (CharField): Name of the contact person
@@ -384,8 +443,10 @@ class Proposal(models.Model):
         contract_type (CharField): Type of contract
         status (CharField): Current status of the proposal
     Methods:
-        approved_client(): Returns True if proposal status is Accepted, False otherwise
-        proposal_month(): Returns the month name when proposal was created
+        approved_client(): Returns True if proposal status is Accepted,
+            False otherwise
+        proposal_month(): Returns the month name when proposal was
+            created
     Meta:
         ordering: Orders by date in descending order
         verbose_name: "Proposta"
@@ -468,14 +529,12 @@ class Proposal(models.Model):
     )
 
     def approved_client(self):
-        if self.status == "A":
-            return True
-        return False
+        return self.status == "A"
 
     @admin.display(description="Mês da Proposta")
     def proposal_month(self):
         month_num = self.date.month
-        return _(calendar.month_name[month_num])
+        return _(str(calendar.month_name[month_num]))
 
     class Meta:
         ordering = ["-date"]
@@ -487,20 +546,24 @@ class Proposal(models.Model):
 
 
 class ServiceOrder(models.Model):
-    """
-    A Django model representing a service order issued for a client's unit.
+    """Represents a service order issued for a client's unit.
 
-    Stores the scope to be executed during an on-site visit, including the
-    subject, detailed description of the requested work, the involved
-    equipments, and the final conclusion.
+    Stores the scope to be executed during an on-site visit, including
+    the subject, detailed description of the requested work, the
+    involved equipments, and the final conclusion.
 
     Attributes:
-        subject (CharField): Short, clear summary of the service order's purpose.
+        subject (CharField): Short, clear summary of the service order's
+            purpose.
         equipments (ManyToManyField): Equipments related to this order.
-        description (TextField): Detailed description of the requested work.
-        conclusion (TextField): Summary of the work performed and resolution.
-        updates (TextField): A running log of updates and notes for the service order.
-        responsible_prophy (ForeignKey): The Prophy user who created this order.
+        description (TextField): Detailed description of the requested
+            work.
+        conclusion (TextField): Summary of the work performed and
+            resolution.
+        updates (TextField): A running log of updates and notes for the
+            service order.
+        responsible_prophy (ForeignKey): The Prophy user who created
+            this order.
     """
 
     subject = models.CharField(
@@ -534,28 +597,35 @@ class ServiceOrder(models.Model):
 
 
 class Appointment(models.Model):
-    """
-    A Django model representing an appointment that generates a ServiceOrder.
+    """Represents an appointment that generates a ServiceOrder.
 
-    Records scheduling and execution details for a specific client unit, including
-    status, type (in-person or online), and contact information. Each Appointment
-    is linked one-to-one with a ServiceOrder.
+    Records scheduling and execution details for a specific client unit,
+    including status, type (in-person or online), and contact
+    information. Each Appointment is linked one-to-one with a
+    ServiceOrder.
 
     Attributes:
         date (DateTimeField): Scheduled datetime of the appointment.
-        type (CharField): Appointment type. One of I (Presencial), O (Online).
-        status (CharField): Appointment status. One of P (Pendente), C (Confirmado),
-            F (Realizado), U (Não realizado), R (Reagendada).
-        justification (TextField): Optional justification for status changes.
-        contact_phone (CharField): Contact phone for the attendant at the unit.
-        contact_name (CharField): Contact name for the attendant at the unit.
-        service_order (OneToOneField): The associated ServiceOrder to be generated.
-        unit (ForeignKey): The client Unit where the appointment will occur.
+        type (CharField): Appointment type. One of I (Presencial), O
+            (Online).
+        status (CharField): Appointment status. One of P (Pendente), C
+            (Confirmado), F (Realizado), U (Não realizado), R
+            (Reagendada).
+        justification (TextField): Optional justification for status
+            changes.
+        contact_phone (CharField): Contact phone for the attendant at
+            the unit.
+        contact_name (CharField): Contact name for the attendant at the
+            unit.
+        service_order (OneToOneField): The associated ServiceOrder to be
+            generated.
+        unit (ForeignKey): The client Unit where the appointment will
+            occur.
 
     Properties:
-        periodicity (str | None): Contract periodicity derived from the most recent
-            approved Proposal for the associated Client. Returns one of the values from
-            Proposal.ContractType or None if unavailable.
+    periodicity (str | None): Contract periodicity derived from the most
+        recent approved Proposal for the associated Client. Returns one
+        of the values from Proposal.ContractType or None if unavailable.
     """
 
     class Type(TextChoices):
@@ -635,20 +705,20 @@ class Appointment(models.Model):
 
     @property
     def periodicity(self) -> str | None:
-        """
-        Calculates the contract periodicity for this appointment.
+        """Calculates the contract periodicity for this appointment.
 
         It finds the most recent, approved proposal for the client
-        associated with this appointment's unit and returns its contract type.
-        Returns None if no such proposal or client is found.
+        associated with this appointment's unit and returns its contract
+        type. Returns None if no such proposal or client is found.
         """
-        try:
-            client_cnpj = self.unit.client.cnpj
-        except AttributeError:
+        if self.unit is None or self.unit.client is None:
             return None
+        client_cnpj = self.unit.client.cnpj
 
         latest_approved_proposal = (
-            Proposal.objects.filter(cnpj=client_cnpj, status=Proposal.Status.ACCEPTED)
+            Proposal.objects.filter(
+                cnpj=client_cnpj, status=Proposal.Status.ACCEPTED
+            )
             .order_by("-date")
             .first()
         )
@@ -663,7 +733,10 @@ class Appointment(models.Model):
         verbose_name_plural = "Agendamentos"
 
     def __str__(self) -> str:
-        return f"Agendamento {self.unit.client.name if self.unit and self.unit.client else 'N/A'} - {self.date.day}"
+        client_name = (
+            self.unit.client.name if self.unit and self.unit.client else "N/A"
+        )
+        return f"Agendamento {client_name} - {self.date.day}"
 
 
 class ReportQuerySet(models.QuerySet):
@@ -678,8 +751,7 @@ class ReportQuerySet(models.QuerySet):
         return self.filter(deleted_at__isnull=False)
 
     def soft_delete(self, deleted_by: UserAccount):
-        """
-        Soft delete all reports in the queryset.
+        """Soft delete all reports in the queryset.
 
         Args:
             deleted_by: The user performing the soft delete. Required.
@@ -688,19 +760,25 @@ class ReportQuerySet(models.QuerySet):
             ValueError: If deleted_by is None.
         """
         if deleted_by is None:
-            raise ValueError("deleted_by is required for soft delete operations")
+            raise ValueError(
+                "deleted_by is required for soft delete operations"
+            )
 
         return self.update(deleted_at=timezone.now(), deleted_by=deleted_by)
 
 
-class ReportManager(models.Manager.from_queryset(ReportQuerySet)):
-    """Manager that returns only active (non-deleted) reports by default."""
+class ReportManager(
+    models.Manager.from_queryset(ReportQuerySet)  # type: ignore[misc]
+):
+    """Manager returning only active, non-deleted reports."""
 
     def get_queryset(self):
         return super().get_queryset().active()
 
 
-class ReportAllManager(models.Manager.from_queryset(ReportQuerySet)):
+class ReportAllManager(
+    models.Manager.from_queryset(ReportQuerySet)  # type: ignore[misc]
+):
     """Manager that returns all reports including soft-deleted ones."""
 
     def get_queryset(self):
@@ -708,26 +786,30 @@ class ReportAllManager(models.Manager.from_queryset(ReportQuerySet)):
 
 
 class Report(models.Model):
-    """
-    A Django model representing reports in the system.
+    """A Django model representing reports in the system.
 
-    This model stores information about various types of reports including quality control,
-    training, and safety reports. Each report has specific validation rules based on its type
-    and automatic due date calculation.
+    This model stores information about various types of reports
+    including quality control, training, and safety reports. Each report
+    has specific validation rules based on its type and automatic due
+    date calculation.
 
     Attributes:
         completion_date (DateField): Date when the report was completed
-        due_date (DateField): Due date calculated based on report type and
-            completion date
+        due_date (DateField): Due date calculated based on report type
+            and completion date
         pdf_file (FileField): The report PDF document
-        word_file (FileField): The report Word document (optional for legacy
-            reports; new reports require both pdf_file and word_file)
+        word_file (FileField): The report Word document (optional for
+            legacy reports; new reports require both pdf_file and
+            word_file)
         description (TextField): Free-text description of the report
-        unit (ForeignKey): Reference to Unit (optional, depends on report type)
-        equipment (ForeignKey): Reference to Equipment (optional, depends on
+        unit (ForeignKey): Reference to Unit (optional, depends on
             report type)
-        report_type (CharField): Type of report, chosen from ReportType choices
-        deleted_at (DateTimeField): Timestamp when report was soft-deleted
+        equipment (ForeignKey): Reference to Equipment (optional,
+            depends on report type)
+        report_type (CharField): Type of report, chosen from ReportType
+            choices
+        deleted_at (DateTimeField): Timestamp when report was
+            soft-deleted
         deleted_by (ForeignKey): User who soft-deleted the report
     """
 
@@ -735,13 +817,19 @@ class Report(models.Model):
         QUALITY_CONTROL = "CQ", "Controle de Qualidade"
         MONITOR_QUALITY_CONTROL = "CQM", "Controle de Qualidade de Monitores"
         EPI_TEST = "TE", "Teste de EPI"
-        RADIOMETRIC_SURVEY = "LR", "Levantamento Radiométrico e Fuga de Cabeçote"
+        RADIOMETRIC_SURVEY = (
+            "LR",
+            "Levantamento Radiométrico e Fuga de Cabeçote",
+        )
         MEMORIAL = "M", "Memorial"
         MEMORIAL_CDI = "MCDI", "Memorial CDI"
         MEMORIAL_US = "MUS", "Memorial US"
         MEMORIAL_RM = "MRM", "Memorial RM"
         RADIOPROTECTION_TRAINING = "TR", "Treinamento de Radioproteção"
-        MRI_SAFETY_TRAINING = "TSR", "Treinamento de Segurança em Ressonância Magnética"
+        MRI_SAFETY_TRAINING = (
+            "TSR",
+            "Treinamento de Segurança em Ressonância Magnética",
+        )
         DESIGNATION_ACT = "AD", "Ato de designação"
         DOSE_INVESTIGATION = "ID", "Investigação de dose"
         POP = "POP", "POP"
@@ -829,11 +917,11 @@ class Report(models.Model):
     all_objects = ReportAllManager()
 
     def clean(self):
-        """
-        Validates the Unit/Equipment association based on report type.
+        """Validate the Unit/Equipment association for the report type.
 
         Raises:
-            ValidationError: If the wrong association is provided for the report type
+            ValidationError: If the wrong association is provided for
+                the report type
         """
         super().clean()
 
@@ -874,9 +962,9 @@ class Report(models.Model):
                 )
 
     def save(self, *args, **kwargs):
-        """
-        Calculates the due date automatically before saving based on completion date
-        and report type.
+        """Calculate the due date before saving.
+
+        Based on the completion date and report type.
         """
         if self.report_type in self.NO_DUE_DATE_TYPES:
             self.due_date = None
@@ -886,7 +974,8 @@ class Report(models.Model):
             else:
                 self.due_date = self.completion_date + timedelta(days=365)
 
-        # Exclude deleted_by from validation if it's None (not being soft-deleted)
+        # Exclude deleted_by from validation if it's None (not being
+        # soft-deleted)
         exclude = set()
         if self.deleted_by is None:
             exclude.add("deleted_by")
@@ -895,8 +984,7 @@ class Report(models.Model):
         super().save(*args, **kwargs)
 
     def soft_delete(self, deleted_by: UserAccount) -> None:
-        """
-        Soft delete this report by setting deleted_at timestamp.
+        """Soft delete this report by setting deleted_at timestamp.
 
         Args:
             deleted_by: The user performing the soft delete. Required.
@@ -905,16 +993,16 @@ class Report(models.Model):
             ValueError: If deleted_by is None.
         """
         if deleted_by is None:
-            raise ValueError("deleted_by is required for soft delete operations")
+            raise ValueError(
+                "deleted_by is required for soft delete operations"
+            )
 
         self.deleted_at = timezone.now()
         self.deleted_by = deleted_by
         self.save(update_fields=["deleted_at", "deleted_by"])
 
     def restore(self) -> None:
-        """
-        Restore a soft-deleted report.
-        """
+        """Restore a soft-deleted report."""
         self.deleted_at = None
         self.deleted_by = None
         self.save(update_fields=["deleted_at", "deleted_by"])
@@ -931,7 +1019,8 @@ class Report(models.Model):
         elif self.equipment:
             entity_name = f" - {self.equipment}"
 
-        return f"{self.get_report_type_display()}{entity_name} ({self.completion_date})"
+        report_type_display = self.get_report_type_display()
+        return f"{report_type_display}{entity_name} ({self.completion_date})"
 
     class Meta:
         verbose_name = "Relatório"

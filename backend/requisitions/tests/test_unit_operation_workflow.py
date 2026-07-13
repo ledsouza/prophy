@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from validate_docbr import CNPJ
 
 from requisitions.models import UnitOperation
-
 from tests.factories import ClientFactory, UnitFactory, UnitOperationFactory
 
 

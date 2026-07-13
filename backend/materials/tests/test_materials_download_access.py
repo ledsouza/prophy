@@ -46,7 +46,9 @@ def test_any_authenticated_user_can_download_public_material(api_client, role):
 
 
 @pytest.mark.django_db
-def test_prophy_manager_can_download_internal_material(api_client, prophy_manager):
+def test_prophy_manager_can_download_internal_material(
+    api_client, prophy_manager
+):
     api_client.force_authenticate(user=prophy_manager)
 
     material = InstitutionalMaterialFactory(

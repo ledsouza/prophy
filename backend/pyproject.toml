@@ -16,7 +16,6 @@ python-dotenv = "^1.2.2"
 djangorestframework-simplejwt = "^5.5.1"
 djoser = "^2.3.0"
 pillow = "^12.2.0"
-django-stubs = "^5.0.4"
 localflavor = "^1.9"
 faker = "^40.0.0"
 validate-docbr = "^2.0.0"
@@ -45,6 +44,12 @@ pytest-mock = "^3.15.1"
 factory-boy = "^3.3.1"
 django-cypress = "^1.0.1"
 pdfplumber = "^0.11.10"
+django-stubs = "^6.0.6"
+mypy = "^2.2.0"
+djangorestframework-stubs = "^3.17.0"
+ruff = "^0.15.21"
+docformatter = "^1.7.8"
+pyright = "^1.1.411"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings.test"
@@ -58,6 +63,109 @@ source = ["."]
 [tool.coverage.report]
 fail_under = 0
 show_missing = true
+
+[tool.ruff]
+line-length = 79
+target-version = "py312"
+exclude = ["*/migrations/*"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.ruff.lint]
+select = [
+    "E",       # pycodestyle errors
+    "W",       # pycodestyle warnings
+    "F",       # pyflakes (unused imports/vars, undefined names)
+    "I",       # isort (import grouping/order)
+    "UP",      # pyupgrade (builtin generics, `X | None` over Optional[X])
+    "B",       # bugbear (common bug patterns, mutable defaults)
+    "C4",      # flake8-comprehensions
+    "SIM",     # flake8-simplify
+    "N",       # pep8-naming (snake_case/PascalCase/UPPER_CASE)
+    "D",       # pydocstyle
+    "PLW0603", # no `global` statement
+    "PLR0913", # too many function arguments
+    "PLR2004", # magic value comparison
+]
+ignore = [
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 72
+
+[tool.ruff.lint.pylint]
+max-args = 3
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "users", "clients_management", "requisitions", "materials"]
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+python_version = "3.12"
+files = ["."]
+exclude = [
+    "/migrations/",
+    "^\\.venv/",
+    "^media/",
+    "^static/",
+    "^templates/",
+]
+
+check_untyped_defs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+no_implicit_optional = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unused_configs = true
+show_error_codes = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = [
+    "anymail.*",
+    "localflavor.*",
+    "validate_docbr.*",
+    "phonenumbers.*",
+    "factory.*",
+    "djoser.*",
+    "drf_yasg.*",
+    "reportlab.*",
+    "dateutil.*",
+    "django_filters.*",
+]
+ignore_missing_imports = true
+
+# factory_boy ships no type stubs: calling a DjangoModelFactory
+# subclass is statically typed as returning the factory class itself,
+# not the model instance it produces at runtime. This makes every
+# attribute/kwarg on a factory-built object look wrong to mypy across
+# the whole test suite. Narrowly disabling the two error classes this
+# causes (instead of excluding tests from checking altogether) keeps
+# real logic bugs in test files visible.
+[[tool.mypy.overrides]]
+module = [
+    "conftest",
+    "*.tests.*",
+    "tests.*",
+]
+disable_error_code = [
+    "attr-defined",
+    "arg-type",
+    "comparison-overlap",
+    "misc",
+    "assignment",
+    "operator",
+]
+
+[tool.django-stubs]
+django_settings_module = "core.settings.base"
 
 [build-system]
 requires = ["poetry-core"]

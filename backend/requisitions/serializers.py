@@ -1,6 +1,11 @@
 from rest_framework import serializers
-from requisitions.models import ClientOperation, UnitOperation, EquipmentOperation
-from clients_management.models import Client, Unit, Equipment
+
+from clients_management.models import Client, Equipment, Unit
+from requisitions.models import (
+    ClientOperation,
+    EquipmentOperation,
+    UnitOperation,
+)
 
 
 class ClientOperationSerializer(serializers.ModelSerializer):
@@ -116,9 +121,7 @@ class EquipmentOperationSerializer(serializers.ModelSerializer):
                     original_equipment.equipment_photo
                 )
             if not validated_data.get("label_photo"):
-                validated_data["label_photo"] = (
-                    original_equipment.label_photo
-                )
+                validated_data["label_photo"] = original_equipment.label_photo
         return super().create(validated_data)
 
     def to_representation(self, instance: EquipmentOperation):
@@ -140,7 +143,9 @@ class EquipmentOperationDeleteSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        equipment = Equipment.objects.get(id=validated_data["original_equipment"].id)
+        equipment = Equipment.objects.get(
+            id=validated_data["original_equipment"].id
+        )
 
         equipment_operation = EquipmentOperation.objects.create(
             operation_type=validated_data["operation_type"],

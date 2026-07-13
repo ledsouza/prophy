@@ -1,15 +1,17 @@
+from typing import Any
+
 from django.core.exceptions import ValidationError
 
 
 class FixedLength:
-    """
-    Validator to ensure a field has an exact length.
+    """Validator to ensure a field has an exact length.
 
     Args:
         length (int): The required length of the field.
 
     Raises:
-        ValidationError: If the provided value's length doesn't match the specified length.
+        ValidationError: If the provided value's length doesn't match
+            the specified length.
 
     Example:
         To use this validator in a Django model field:
@@ -18,10 +20,13 @@ class FixedLength:
         from django.db import models
 
         class MyModel(models.Model):
-            my_field = models.CharField(max_length=10, validators=[FixedLength(10)])
+            my_field = models.CharField(
+                max_length=10, validators=[FixedLength(10)]
+            )
         ```
 
-        This will ensure that `my_field` always has exactly 10 characters.
+        This will ensure that `my_field` always has exactly 10
+        characters.
     """
 
     def __init__(self, length: int):
@@ -33,21 +38,19 @@ class FixedLength:
             raise ValidationError(message)
 
     def deconstruct(self):
-        """
-        Tells Django how to deconstruct this validator for migrations.
-        """
+        """Tells Django how to deconstruct this field validator."""
         path = "core.validators.FixedLength"
         args = (self.length,)
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         return (path, args, kwargs)
 
 
 class AlphaOnly:
-    """
-    Validator to ensure a field contains only alphabetic characters.
+    """Validator to ensure a field contains only alphabetic characters.
 
     Raises:
-        ValidationError: If the provided value contains non-alphabetic characters.
+        ValidationError: If the provided value contains non-alphabetic
+            characters.
 
     Example:
         To use this validator in a Django model field:
@@ -56,10 +59,13 @@ class AlphaOnly:
         from django.db import models
 
         class MyModel(models.Model):
-            my_field = models.CharField(max_length=50, validators=[AlphaOnly()])
+            my_field = models.CharField(
+                max_length=50, validators=[AlphaOnly()]
+            )
         ```
 
-        This will ensure that `my_field` only contains alphabetic characters.
+        This will ensure that `my_field` only contains alphabetic
+        characters.
     """
 
     def __call__(self, value: str):
@@ -68,18 +74,15 @@ class AlphaOnly:
             raise ValidationError(message)
 
     def deconstruct(self):
-        """
-        Tells Django how to deconstruct this validator for migrations.
-        """
+        """Tells Django how to deconstruct this field validator."""
         path = "core.validators.AlphaOnly"
         args = ()
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         return (path, args, kwargs)
 
 
 class MaxFileSize:
-    """
-    Validator to ensure an uploaded file does not exceed a maximum size.
+    """Validator to ensure an uploaded file doesn't exceed a max size.
 
     Args:
         max_size_mb (int): The maximum allowed file size, in megabytes.
@@ -120,10 +123,8 @@ class MaxFileSize:
             raise ValidationError(message)
 
     def deconstruct(self):
-        """
-        Tells Django how to deconstruct this validator for migrations.
-        """
+        """Tells Django how to deconstruct this field validator."""
         path = "core.validators.MaxFileSize"
         args = (self.max_size_mb,)
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         return (path, args, kwargs)

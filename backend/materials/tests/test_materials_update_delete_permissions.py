@@ -17,7 +17,9 @@ def pdf_file() -> SimpleUploadedFile:
 
 
 @pytest.mark.django_db
-def test_prophy_manager_can_update_material(api_client, prophy_manager, pdf_file):
+def test_prophy_manager_can_update_material(
+    api_client, prophy_manager, pdf_file
+):
     api_client.force_authenticate(user=prophy_manager)
     material = InstitutionalMaterialFactory(
         visibility=InstitutionalMaterial.Visibility.PUBLIC,

@@ -1,9 +1,10 @@
 import pytest
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
-from users.models import UserAccount
 
 from materials.models import InstitutionalMaterial
+from users.models import UserAccount
 
 
 @pytest.fixture
@@ -71,7 +72,9 @@ def test_internal_mp_can_create_public_material(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data["title"] == "Test Public Material"
-    assert response.data["visibility"] == InstitutionalMaterial.Visibility.PUBLIC
+    assert (
+        response.data["visibility"] == InstitutionalMaterial.Visibility.PUBLIC
+    )
 
 
 @pytest.mark.django_db
@@ -132,11 +135,16 @@ def test_prophy_manager_can_create_internal_material(
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data["title"] == "Test Internal Material"
-    assert response.data["visibility"] == InstitutionalMaterial.Visibility.INTERNAL
+    assert (
+        response.data["visibility"]
+        == InstitutionalMaterial.Visibility.INTERNAL
+    )
 
 
 @pytest.mark.django_db
-def test_client_manager_cannot_create_material(api_client, client_manager, pdf_file):
+def test_client_manager_cannot_create_material(
+    api_client, client_manager, pdf_file
+):
     api_client.force_authenticate(user=client_manager)
 
     data = {
@@ -193,5 +201,5 @@ def test_internal_material_cannot_set_allowed_external_users(db):
 
     material.allowed_external_users.add(external)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         material.full_clean()

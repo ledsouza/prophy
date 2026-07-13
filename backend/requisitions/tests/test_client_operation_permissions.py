@@ -1,6 +1,6 @@
 import pytest
-from rest_framework import status
 from django.urls import reverse
+from rest_framework import status
 from validate_docbr import CNPJ
 
 from requisitions.models import ClientOperation

@@ -1,10 +1,10 @@
 import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
-from tests.factories import ReportFactory, UnitFactory, UserFactory
-from users.models import UserAccount
 
 from clients_management.models import Report
+from tests.factories import ReportFactory, UnitFactory, UserFactory
+from users.models import UserAccount
 
 
 @pytest.mark.django_db

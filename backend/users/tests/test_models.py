@@ -143,4 +143,6 @@ def test_user_added_to_group_matching_role():
         role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
     )
 
-    assert user.groups.filter(name=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST).exists()
+    assert user.groups.filter(
+        name=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST
+    ).exists()

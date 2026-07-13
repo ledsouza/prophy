@@ -1,7 +1,3 @@
-from .users import UserFactory
-
-from .materials import InstitutionalMaterialFactory
-
 from .clients_management import (
     AccessoryFactory,
     AppointmentFactory,
@@ -13,11 +9,13 @@ from .clients_management import (
     ServiceOrderFactory,
     UnitFactory,
 )
+from .materials import InstitutionalMaterialFactory
 from .requisitions import (
     ClientOperationFactory,
     EquipmentOperationFactory,
     UnitOperationFactory,
 )
+from .users import UserFactory
 
 __all__ = [
     "UserFactory",

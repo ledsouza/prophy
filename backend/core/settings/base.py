@@ -3,12 +3,12 @@ from __future__ import annotations
 from datetime import timedelta
 from os import getenv, path
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlparse
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from dotenv import load_dotenv
-
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -19,7 +19,9 @@ if path.isfile(dotenv_file):
 SECRET_KEY = getenv("DJANGO_SECRET_KEY", get_random_secret_key())
 DEBUG = getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+ALLOWED_HOSTS = getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(
+    ","
+)
 
 FRONTEND_URL = getenv("FRONTEND_URL", "http://localhost:3000")
 
@@ -88,14 +90,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-def _get_default_sqlite_database() -> dict[str, str | Path]:
+
+def _get_default_sqlite_database() -> dict[str, str | int | Path]:
     return {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 
 
-def _get_postgresql_database() -> dict[str, str | int]:
+def _get_postgresql_database() -> dict[str, str | int | Path]:
     database_url = getenv("DATABASE_URL")
 
     if database_url:
@@ -134,16 +137,25 @@ DATABASES = _get_database_settings()
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.MinimumLengthValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.CommonPasswordValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.NumericPasswordValidator"
+        ),
     },
 ]
 
@@ -194,7 +206,7 @@ AUTH_COOKIE_MAX_AGE = 60 * 60 * 24
 AUTH_COOKIE_SECURE = getenv("AUTH_COOKIE_SECURE", "True") == "True"
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = "/"
-AUTH_COOKIE_SAMESITE = "Lax"
+AUTH_COOKIE_SAMESITE: Literal["Lax", "Strict", "None"] = "Lax"
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
@@ -220,7 +232,9 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
     "PAGE_SIZE": 10,
 }
 
@@ -239,14 +253,16 @@ AUTH_USER_MODEL = "users.UserAccount"
 
 
 def build_production_storages() -> dict[str, dict]:
-    """STORAGES config for real production: media on GCS via ADC, static via WhiteNoise.
+    """Production STORAGES config: GCS media, WhiteNoise static.
 
-    Uses Application Default Credentials — the attached Cloud Run service
-    account is picked up automatically by django-storages at runtime.
-    GCS_PROJECT_ID and GOOGLE_APPLICATION_CREDENTIALS are not required.
+    Uses Application Default Credentials — the attached Cloud Run
+    service account is picked up automatically by django-storages at
+    runtime. GCS_PROJECT_ID and GOOGLE_APPLICATION_CREDENTIALS are not
+    required.
 
     Raises ImproperlyConfigured if GCS_BUCKET_NAME is unset so the
-    container fails fast instead of silently writing to ephemeral local disk.
+    container fails fast instead of silently writing to ephemeral
+    local disk.
     """
     gcs_bucket_name = getenv("GCS_BUCKET_NAME")
     if not gcs_bucket_name:

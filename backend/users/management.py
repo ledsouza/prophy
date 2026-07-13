@@ -1,10 +1,11 @@
-from django.contrib.auth import get_user_model
-from django.db import transaction
 import logging
 import smtplib
+from typing import cast
 
 from anymail.exceptions import AnymailError
+from django.contrib.auth import get_user_model
 from django.core.mail import BadHeaderError
+from django.db import transaction
 from django_filters import rest_framework as filters
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.response import Response
@@ -66,7 +67,7 @@ class UserManagementViewSet(
         return UserManagementListSerializer
 
     def get_queryset(self):
-        user: UserAccount = self.request.user
+        user: UserAccount = cast(UserAccount, self.request.user)
         if user.role == UserAccount.Role.COMMERCIAL:
             return UserAccount.objects.filter(
                 role__in=[
@@ -74,12 +75,17 @@ class UserManagementViewSet(
                     UserAccount.Role.UNIT_MANAGER,
                 ]
             ).order_by("id")
-        return super().get_queryset().exclude(
-            role=UserAccount.Role.SERVICE_ACCOUNT
+        return (
+            super()
+            .get_queryset()
+            .exclude(role=UserAccount.Role.SERVICE_ACCOUNT)
         )
 
-    def _ensure_commercial_allowed_role(self, role: str | None) -> Response | None:
-        if self.request.user.role != UserAccount.Role.COMMERCIAL:
+    def _ensure_commercial_allowed_role(
+        self, role: str | None
+    ) -> Response | None:
+        user: UserAccount = cast(UserAccount, self.request.user)
+        if user.role != UserAccount.Role.COMMERCIAL:
             return None
         if role not in [
             UserAccount.Role.CLIENT_GENERAL_MANAGER,
@@ -126,8 +132,9 @@ class UserManagementViewSet(
             return Response(
                 {
                     "detail": (
-                        "Não foi possível enviar o e-mail para definir a senha. "
-                        "Verifique o e-mail informado e tente novamente."
+                        "Não foi possível enviar o e-mail para "
+                        "definir a senha. Verifique o e-mail "
+                        "informado e tente novamente."
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
@@ -143,7 +150,9 @@ class UserManagementViewSet(
                 status=status.HTTP_403_FORBIDDEN,
             )
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         updated_user = serializer.save()
 

@@ -7,7 +7,9 @@ from users.models import UserAccount
 
 
 @pytest.mark.django_db
-def test_non_prophy_manager_cannot_set_permissions(api_client, internal_physicist):
+def test_non_prophy_manager_cannot_set_permissions(
+    api_client, internal_physicist
+):
     api_client.force_authenticate(user=internal_physicist)
 
     material = InstitutionalMaterialFactory(
@@ -68,7 +70,9 @@ def test_prophy_manager_can_set_permissions_and_clear_them(
 
     assert response.status_code == status.HTTP_200_OK
     material.refresh_from_db()
-    assert set(material.allowed_external_users.values_list("id", flat=True)) == {
+    assert set(
+        material.allowed_external_users.values_list("id", flat=True)
+    ) == {
         ext_1.id,
         ext_2.id,
     }
@@ -85,7 +89,9 @@ def test_prophy_manager_can_set_permissions_and_clear_them(
 
 
 @pytest.mark.django_db
-def test_set_permissions_ignores_non_external_users(api_client, prophy_manager):
+def test_set_permissions_ignores_non_external_users(
+    api_client, prophy_manager
+):
     api_client.force_authenticate(user=prophy_manager)
 
     external = UserFactory(role=UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST)
@@ -104,6 +110,6 @@ def test_set_permissions_ignores_non_external_users(api_client, prophy_manager):
 
     assert response.status_code == status.HTTP_200_OK
     material.refresh_from_db()
-    assert list(material.allowed_external_users.values_list("id", flat=True)) == [
-        external.id
-    ]
+    assert list(
+        material.allowed_external_users.values_list("id", flat=True)
+    ) == [external.id]

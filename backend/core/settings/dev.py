@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from . import base as base_settings
 
-
 for _name in dir(base_settings):
     if not _name.isupper():
         continue

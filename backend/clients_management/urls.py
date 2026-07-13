@@ -31,7 +31,9 @@ router.register("appointments", AppointmentViewSet, basename="appointments")
 router.register("modalities", ModalityViewSet, basename="modality")
 router.register("accessories", AccessoryViewSet, basename="accessory")
 router.register("proposals", ProposalViewSet, basename="proposals")
-router.register("service-orders", ServiceOrderViewSet, basename="service-orders")
+router.register(
+    "service-orders", ServiceOrderViewSet, basename="service-orders"
+)
 router.register("reports", ReportViewSet, basename="reports")
 
 urlpatterns = [
@@ -44,9 +46,7 @@ urlpatterns = [
     ),
     path(
         "equipments/<int:pk>/label/",
-        EquipmentMediaView.as_view(
-            model=Equipment, field_name="label_photo"
-        ),
+        EquipmentMediaView.as_view(model=Equipment, field_name="label_photo"),
         name="equipment-label",
     ),
     path(
@@ -58,9 +58,7 @@ urlpatterns = [
     ),
     path(
         "accessories/<int:pk>/label/",
-        EquipmentMediaView.as_view(
-            model=Accessory, field_name="label_photo"
-        ),
+        EquipmentMediaView.as_view(model=Accessory, field_name="label_photo"),
         name="accessory-label",
     ),
     path("proposals/status/", LatestProposalStatusView.as_view()),

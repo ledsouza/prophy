@@ -2,7 +2,6 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from requisitions.models import EquipmentOperation
-
 from tests.factories import (
     AccessoryFactory,
     EquipmentFactory,
@@ -12,7 +11,7 @@ from tests.factories import (
 
 
 @pytest.mark.django_db
-def test_equipment_operation_accept_edit_updates_original_equipment_fields_and_migrates_accessories():
+def test_equipment_operation_accept_edit_updates_original_equipment_fields_and_migrates_accessories():  # noqa: E501
     original = EquipmentFactory(
         manufacturer="OldManufacturer",
         model="OldModel",
@@ -87,7 +86,7 @@ def test_equipment_operation_accept_delete_deletes_original_equipment():
 
 
 @pytest.mark.django_db
-def test_equipment_operation_accept_edit_without_original_raises_validation_error():
+def test_equipment_operation_accept_edit_without_original_raises_validation_error():  # noqa: E501
     staged = EquipmentOperationFactory(
         operation_type=EquipmentOperation.OperationType.EDIT,
         operation_status=EquipmentOperation.OperationStatus.REVIEW,

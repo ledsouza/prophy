@@ -1,11 +1,18 @@
-from django.test import TestCase
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.exceptions import ValidationError
+import calendar
 from datetime import date
 from decimal import Decimal
-import calendar
+
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase
 from django.utils.translation import gettext as _
-from clients_management.models import Client, Unit, Modality, Equipment, Proposal
+
+from clients_management.models import (
+    Client,
+    Equipment,
+    Modality,
+    Proposal,
+    Unit,
+)
 from users.models import UserAccount
 
 
@@ -19,7 +26,7 @@ class ClientTest(TestCase):
             role=UserAccount.Role.CLIENT_GENERAL_MANAGER,
             password="testpass123",
         )
-        self.client = Client.objects.create(
+        self.test_client = Client.objects.create(
             cnpj="12345678901234",
             name="Test Client",
             razao_social="Test Client Ltda",
@@ -29,20 +36,20 @@ class ClientTest(TestCase):
             state="SP",
             city="Test City",
         )
-        self.client.users.add(self.user)
+        self.test_client.users.add(self.user)
 
     def test_client_creation(self):
-        self.assertEqual(self.client.name, "Test Client")
-        self.assertEqual(self.client.users.first(), self.user)
-        self.assertFalse(self.client.is_active)
+        self.assertEqual(self.test_client.name, "Test Client")
+        self.assertEqual(self.test_client.users.first(), self.user)
+        self.assertFalse(self.test_client.is_active)
 
     def test_client_str(self):
-        self.assertEqual(str(self.client), "Test Client")
+        self.assertEqual(str(self.test_client), "Test Client")
 
 
 class UnitTest(TestCase):
     def setUp(self):
-        self.client = Client.objects.create(
+        self.test_client = Client.objects.create(
             cnpj="12345678901234",
             name="Test Client",
             razao_social="Test Client Ltda",
@@ -53,7 +60,7 @@ class UnitTest(TestCase):
             city="Test City",
         )
         self.unit = Unit.objects.create(
-            client=self.client,
+            client=self.test_client,
             name="Test Unit",
             razao_social="Test Unit Ltda",
             cnpj="12345678901234",
@@ -66,7 +73,7 @@ class UnitTest(TestCase):
 
     def test_unit_creation(self):
         self.assertEqual(self.unit.name, "Test Unit")
-        self.assertEqual(self.unit.client, self.client)
+        self.assertEqual(self.unit.client, self.test_client)
 
     def test_unit_str(self):
         self.assertEqual(str(self.unit), "Test Unit")
@@ -85,7 +92,7 @@ class ModalityTest(TestCase):
 
 class EquipmentTest(TestCase):
     def setUp(self):
-        self.client = Client.objects.create(
+        self.test_client = Client.objects.create(
             cnpj="12345678901234",
             name="Test Client",
             razao_social="Test Client Ltda",
@@ -96,7 +103,7 @@ class EquipmentTest(TestCase):
             city="Test City",
         )
         self.unit = Unit.objects.create(
-            client=self.client,
+            client=self.test_client,
             name="Test Unit",
             razao_social="Test Unit Ltda",
             cnpj="12345678901234",
@@ -133,7 +140,7 @@ class EquipmentTest(TestCase):
         self.assertEqual(str(self.equipment), "Test Manufacturer - Test Model")
 
     def test_client_method(self):
-        self.assertEqual(self.equipment.client(), self.client)
+        self.assertEqual(self.equipment.client(), self.test_client)
 
 
 class ProposalTest(TestCase):
@@ -162,10 +169,13 @@ class ProposalTest(TestCase):
         self.assertTrue(self.proposal.approved_client())
 
     def test_proposal_str(self):
-        expected = f"Proposta {self.proposal.cnpj} - {self.proposal.contact_name}"
+        expected = (
+            f"Proposta {self.proposal.cnpj} - {self.proposal.contact_name}"
+        )
         self.assertEqual(str(self.proposal), expected)
 
     def test_proposal_month(self):
         self.assertEqual(
-            self.proposal.proposal_month(), _(calendar.month_name[date.today().month])
+            self.proposal.proposal_month(),
+            _(calendar.month_name[date.today().month]),
         )

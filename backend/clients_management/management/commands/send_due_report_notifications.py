@@ -2,7 +2,6 @@ import logging
 from datetime import date, timedelta
 
 from anymail.message import AnymailMessage
-from clients_management.models import Client, Proposal, Report
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import OuterRef, Subquery
@@ -10,6 +9,8 @@ from django.db.models.query import QuerySet
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
+
+from clients_management.models import Client, Proposal, Report
 from users.models import UserAccount
 
 logger = logging.getLogger(__name__)
@@ -21,28 +22,41 @@ class Command(BaseCommand):
     def handle(self, *args, **options) -> None:
         self.stdout.write("Starting check for reports nearing due date...")
 
-        # We want to notify exactly one month in advance.
-        # Let's run this command daily and catch anything due in 30-31 days.
+        # We want to notify exactly one month in advance. Run this
+        # command daily and catch anything due in 30-31 days.
         today = timezone.localdate()
         target_date_start = today + timedelta(days=30)
         target_date_end = today + timedelta(days=31)
 
-        reports_to_notify = self._query_due_reports(target_date_start, target_date_end)
+        reports_to_notify = self._query_due_reports(
+            target_date_start, target_date_end
+        )
         if not reports_to_notify:
             self.stdout.write(
-                self.style.SUCCESS("No reports are due for notification today.")
+                self.style.SUCCESS(
+                    "No reports are due for notification today."
+                )
             )
             return
 
-        self.stdout.write(f"Found {reports_to_notify.count()} reports to notify.")
+        self.stdout.write(
+            f"Found {reports_to_notify.count()} reports to notify."
+        )
 
-        is_annual_by_client_id = self._get_is_annual_by_client_id(reports_to_notify)
+        is_annual_by_client_id = self._get_is_annual_by_client_id(
+            reports_to_notify
+        )
 
         sent_count = 0
         for report in reports_to_notify:
-            if not (recipients := self._get_recipients(report, is_annual_by_client_id)):
+            if not (
+                recipients := self._get_recipients(
+                    report, is_annual_by_client_id
+                )
+            ):
                 self.stdout.write(
-                    f"  - No valid email recipients for Report ID {report.id}, skipping."
+                    f"  - No valid email recipients for Report ID "
+                    f"{report.id}, skipping."
                 )
                 continue
             client, recipient_emails = recipients
@@ -52,19 +66,26 @@ class Command(BaseCommand):
             )
             if settings.DEBUG and override_recipients_raw:
                 override_emails = [
-                    e.strip() for e in override_recipients_raw.split(",") if e.strip()
+                    e.strip()
+                    for e in override_recipients_raw.split(",")
+                    if e.strip()
                 ]
                 if override_emails:
                     recipient_emails = override_emails
 
+            report_type_display = report.get_report_type_display()
             subject = (
-                f"Aviso de Vencimento de Relatório: {report.get_report_type_display()}"
+                f"Aviso de Vencimento de Relatório: {report_type_display}"
             )
 
             try:
                 dashboard_url = (
-                    settings.FRONTEND_URL or "https://medphyshub.prophy.com/dashboard"
+                    settings.FRONTEND_URL
+                    or "https://medphyshub.prophy.com/dashboard"
                 )
+                # due_date is guaranteed non-null by the queryset's
+                # due_date__gte/__lt filters above.
+                assert report.due_date is not None
                 context = {
                     "report_type": report.get_report_type_display(),
                     "related_entity": report.unit or report.equipment,
@@ -86,10 +107,13 @@ class Command(BaseCommand):
                 message.send()
                 sent_count += 1
                 self.stdout.write(
-                    f"  - Sent notification for Report ID {report.id} to {', '.join(recipient_emails)}"
+                    f"  - Sent notification for Report ID "
+                    f"{report.id} to {', '.join(recipient_emails)}"
                 )
             except Exception:
-                logger.exception("Failed to send email for Report ID %s", report.id)
+                logger.exception(
+                    "Failed to send email for Report ID %s", report.id
+                )
 
         self.stdout.write(
             self.style.SUCCESS(f"Finished. Sent {sent_count} notification(s).")
@@ -100,9 +124,13 @@ class Command(BaseCommand):
     ) -> QuerySet[Report]:
         return Report.objects.filter(
             due_date__gte=target_date_start, due_date__lt=target_date_end
-        ).prefetch_related("unit__client__users", "equipment__unit__client__users")
+        ).prefetch_related(
+            "unit__client__users", "equipment__unit__client__users"
+        )
 
-    def _get_is_annual_by_client_id(self, reports: QuerySet[Report]) -> dict[int, bool]:
+    def _get_is_annual_by_client_id(
+        self, reports: QuerySet[Report]
+    ) -> dict[int, bool]:
         client_ids = set()
         for report in reports:
             if report.unit_id and report.unit and report.unit.client_id:
@@ -137,7 +165,8 @@ class Command(BaseCommand):
         is_annual_by_client_id = {}
         for item in latest_contract_type_by_client:
             is_annual_by_client_id[item["id"]] = (
-                item["latest_accepted_contract_type"] == Proposal.ContractType.ANNUAL
+                item["latest_accepted_contract_type"]
+                == Proposal.ContractType.ANNUAL
             )
 
         return is_annual_by_client_id
@@ -179,7 +208,8 @@ class Command(BaseCommand):
 
         if not eligible_users.exists():
             logger.error(
-                "No responsible physicist users found for Client '%s' (ID: %s).",
+                "No responsible physicist users found for Client "
+                "'%s' (ID: %s).",
                 client.name,
                 client.id,
                 extra={"report_id": report.id, "client_id": client.id},
@@ -194,7 +224,8 @@ class Command(BaseCommand):
 
         if not recipient_emails:
             logger.error(
-                "Responsible physicist users have no email addresses for Client '%s' (ID: %s).",
+                "Responsible physicist users have no email "
+                "addresses for Client '%s' (ID: %s).",
                 client.name,
                 client.id,
                 extra={"report_id": report.id, "client_id": client.id},

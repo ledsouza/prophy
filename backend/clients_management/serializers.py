@@ -1,12 +1,11 @@
 from datetime import date, timedelta
-from typing import Any
+from typing import Any, TypedDict
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import serializers
-from users.models import UserAccount
 
 from clients_management.models import (
     Accessory,
@@ -19,6 +18,13 @@ from clients_management.models import (
     ServiceOrder,
     Unit,
 )
+from users.models import UserAccount
+
+
+class ResponsibleDict(TypedDict):
+    id: int
+    name: str
+    role: str
 
 
 class ProposalSerializer(serializers.ModelSerializer):
@@ -176,10 +182,17 @@ class ServiceOrderCreateSerializer(serializers.ModelSerializer):
         appointment_id = attrs.get("appointment")
         equipments: list[Equipment] = attrs.get("equipments", [])
 
+        if appointment_id is None:
+            raise serializers.ValidationError(
+                {"appointment": "Appointment not found."}
+            )
+
         try:
             appointment = Appointment.objects.get(pk=appointment_id)
-        except Appointment.DoesNotExist:
-            raise serializers.ValidationError({"appointment": "Appointment not found."})
+        except Appointment.DoesNotExist as exc:
+            raise serializers.ValidationError(
+                {"appointment": "Appointment not found."}
+            ) from exc
 
         if appointment.service_order_id:
             raise serializers.ValidationError(
@@ -187,13 +200,14 @@ class ServiceOrderCreateSerializer(serializers.ModelSerializer):
             )
 
         if equipments and appointment.unit_id:
-            invalid = [e.id for e in equipments if e.unit_id != appointment.unit_id]
+            invalid = [
+                e.id for e in equipments if e.unit_id != appointment.unit_id
+            ]
             if invalid:
                 raise serializers.ValidationError(
                     {
-                        "equipments": """
-                        Equipments must belong to the appointment's unit.
-                        """
+                        "equipments": """Equipments must belong to the
+                                      appointment's unit."""
                     }
                 )
 
@@ -262,7 +276,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
                     UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
                     UserAccount.Role.PROPHY_MANAGER,
                 ]
-                responsibles = client.users.filter(role__in=physicist_roles).values(
+                responsibles = client.users.filter(
+                    role__in=physicist_roles
+                ).values(
                     "id",
                     "name",
                     "role",
@@ -290,11 +306,12 @@ class ReportSerializer(serializers.ModelSerializer):
     responsibles_display = serializers.SerializerMethodField()
     is_deleted = serializers.BooleanField(read_only=True)
 
-    # word_file is blank=True on the model so that legacy reports can be
-    # re-saved without a Word file. We declare it required=True here so the
-    # serializer enforces "both files on create". partial_update passes
-    # partial=True which makes this field optional, preserving the optional
-    # "replace one file" update behaviour.
+    # word_file is blank=True on the model so that legacy reports can
+    # be re-saved without a Word file. We declare it required=True
+    # here so the serializer enforces "both files on create".
+    # partial_update passes partial=True which makes this field
+    # optional, preserving the optional "replace one file" update
+    # behaviour.
     word_file = serializers.FileField(required=True)
 
     class Meta:
@@ -318,7 +335,9 @@ class ReportSerializer(serializers.ModelSerializer):
                     if unit is not None:
                         existing_reports = existing_reports.filter(unit=unit)
                     if equipment is not None:
-                        existing_reports = existing_reports.filter(equipment=equipment)
+                        existing_reports = existing_reports.filter(
+                            equipment=equipment
+                        )
 
                     if deleted_by is not None:
                         existing_reports.soft_delete(deleted_by=deleted_by)
@@ -330,9 +349,9 @@ class ReportSerializer(serializers.ModelSerializer):
     def to_representation(self, instance: Report):
         representation = super().to_representation(instance)
 
-        # Strip the Word file URL for roles that are not allowed to download
-        # the Word version. This is defence-in-depth; the download endpoint
-        # also enforces the same role check.
+        # Strip the Word file URL for roles that are not allowed to
+        # download the Word version. This is defence-in-depth; the
+        # download endpoint also enforces the same role check.
         word_allowed_roles = [
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
@@ -351,7 +370,9 @@ class ReportSerializer(serializers.ModelSerializer):
         if instance.equipment:
             representation["equipment_name"] = str(instance.equipment)
             if instance.equipment.unit and instance.equipment.unit.client:
-                representation["client_name"] = instance.equipment.unit.client.name
+                representation["client_name"] = (
+                    instance.equipment.unit.client.name
+                )
 
         return representation
 
@@ -374,15 +395,14 @@ class ReportSerializer(serializers.ModelSerializer):
         else:
             return "ok"
 
-    def get_responsibles(self, obj: Report) -> list[dict]:
-        """
-        Return list of responsible users (FMI, FME, GP) from the
-        associated client.
-        """
+    def get_responsibles(self, obj: Report) -> list[ResponsibleDict]:
+        """Returns responsible users (FMI, FME, GP) for the client."""
         client = None
         if obj.unit and obj.unit.client:
             client = obj.unit.client
-        elif obj.equipment and obj.equipment.unit and obj.equipment.unit.client:
+        elif (
+            obj.equipment and obj.equipment.unit and obj.equipment.unit.client
+        ):
             client = obj.equipment.unit.client
 
         if not client:
@@ -400,10 +420,7 @@ class ReportSerializer(serializers.ModelSerializer):
         return list(responsibles)
 
     def get_responsibles_display(self, obj: Report) -> str:
-        """
-        Return a formatted string of responsible users for display in
-        tables.
-        """
+        """Returns responsible users formatted for display."""
         responsibles = self.get_responsibles(obj)
         if not responsibles:
             return "—"

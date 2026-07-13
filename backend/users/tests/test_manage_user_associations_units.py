@@ -1,9 +1,9 @@
 import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
+
 from tests.factories.clients_management import UnitFactory
 from tests.factories.users import UserFactory
-
 from users.models import UserAccount
 
 
@@ -81,7 +81,9 @@ def test_gp_cannot_override_existing_unit_manager():
 
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.data["current_unit_manager"]["id"] == current_manager.id
-    assert response.data["current_unit_manager"]["name"] == current_manager.name
+    assert (
+        response.data["current_unit_manager"]["name"] == current_manager.name
+    )
     unit.refresh_from_db()
     assert unit.user_id == current_manager.id
 

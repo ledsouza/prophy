@@ -4,7 +4,6 @@ from collections.abc import Callable
 
 from django.http import HttpRequest, HttpResponse
 
-
 HEALTH_CHECK_PATH = "/api/health/"
 
 

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from clients_management.models import Client, Unit, Equipment, Proposal
+
+from clients_management.models import Client, Equipment, Proposal, Unit
 
 
 class UnitInline(admin.TabularInline):
@@ -67,13 +68,25 @@ class EquipmentAdmin(admin.ModelAdmin):
     )
     list_display_links = ("series_number",)
     autocomplete_fields = ("unit",)
-    search_fields = ("manufacturer", "model", "series_number", "unit__nome", "modality")
+    search_fields = (
+        "manufacturer",
+        "model",
+        "series_number",
+        "unit__nome",
+        "modality",
+    )
     list_filter = ("manufacturer", "modality", "unit", "unit__client")
 
 
 @admin.register(Proposal)
 class ProposalAdmin(admin.ModelAdmin):
-    list_display = ("cnpj", "contact_name", "proposal_month", "value", "status")
+    list_display = (
+        "cnpj",
+        "contact_name",
+        "proposal_month",
+        "value",
+        "status",
+    )
     radio_fields = {"status": admin.HORIZONTAL}
     search_fields = ("cnpj", "contact_name", "value")
     list_filter = ("status", "date")

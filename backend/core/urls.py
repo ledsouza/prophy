@@ -1,10 +1,10 @@
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from rest_framework import permissions
-from drf_yasg.views import get_schema_view
+from django.contrib import admin
+from django.urls import include, path
 from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 
 from core.views import HealthCheckView
 
@@ -12,9 +12,14 @@ schema_view = get_schema_view(
     openapi.Info(
         title="Prophy Medical Physics Management System API",
         default_version="v1",
-        description="API documentation for Prophy's comprehensive medical physics management system.",
+        description=(
+            "API documentation for Prophy's comprehensive medical "
+            "physics management system."
+        ),
         terms_of_service="https://www.prophy.med.com/terms/",  # Placeholder
-        contact=openapi.Contact(email="leandro.souza.159@gmail.com"),  # Placeholder
+        contact=openapi.Contact(
+            email="leandro.souza.159@gmail.com"
+        ),  # Placeholder
         license=openapi.License(name="GPL-3.0 License"),
     ),
     public=True,
@@ -42,4 +47,6 @@ if settings.ENABLE_CYPRESS_ROUTES:
     ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(
+        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
+    )

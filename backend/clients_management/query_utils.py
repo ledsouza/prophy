@@ -8,15 +8,14 @@ from clients_management.models import Proposal
 def annotate_latest_annual_accepted_proposal_date(
     queryset: QuerySet, cnpj_field: str = "cnpj"
 ) -> QuerySet:
-    """
-    Annotate a queryset with the date of the latest accepted annual proposal per CNPJ.
+    """Annotates a queryset with the latest accepted proposal date.
 
-    The queryset must contain a field identified by ``cnpj_field`` that stores the
-    client's CNPJ. The annotation will be added under the name
-    ``latest_annual_accepted_proposal_date``.
+    The queryset must contain a field identified by ``cnpj_field``
+    that stores the client's CNPJ. The annotation will be added
+    under the name ``latest_annual_accepted_proposal_date``.
 
-    This is intended to be reused wherever we need to reason about the most
-    recent annual contract per client, such as:
+    This is intended to be reused wherever we need to reason about
+    the most recent annual contract per client, such as:
       - determining if a client needs a new appointment
       - identifying proposals close to renewal windows
     """

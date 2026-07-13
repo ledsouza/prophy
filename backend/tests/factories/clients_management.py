@@ -157,7 +157,9 @@ class AppointmentFactory(factory.django.DjangoModelFactory):
         skip_postgeneration_save = True
 
     unit = factory.SubFactory(UnitFactory)
-    date = factory.Faker("date_time_this_year", tzinfo=timezone.get_current_timezone())
+    date = factory.Faker(
+        "date_time_this_year", tzinfo=timezone.get_current_timezone()
+    )
     type = Appointment.Type.IN_PERSON
     status = Appointment.Status.PENDING
 

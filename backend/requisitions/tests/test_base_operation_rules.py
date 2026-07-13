@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from validate_docbr import CNPJ
 
 from requisitions.models import ClientOperation
-
 from tests.factories import ClientOperationFactory
 
 
@@ -16,7 +15,9 @@ def test_only_one_review_operation_per_entity_is_allowed():
         cnpj=cnpj,
     )
 
-    with pytest.raises(ValidationError, match="Já existe uma operação em análise"):
+    with pytest.raises(
+        ValidationError, match="Já existe uma operação em análise"
+    ):
         ClientOperationFactory(
             operation_status=ClientOperation.OperationStatus.REVIEW,
             operation_type=ClientOperation.OperationType.EDIT,

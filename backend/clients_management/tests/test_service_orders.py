@@ -6,7 +6,6 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from clients_management.models import Appointment
-from users.models import UserAccount
 from tests.factories import (
     AppointmentFactory,
     ClientFactory,
@@ -15,6 +14,7 @@ from tests.factories import (
     UnitFactory,
     UserFactory,
 )
+from users.models import UserAccount
 
 
 @pytest.mark.django_db
@@ -60,14 +60,16 @@ def test_service_order_create_requires_appointment_access_for_physicist():
 
 
 @pytest.mark.django_db
-def test_service_order_create_sets_appointment_service_order_and_status_fulfilled():
+def test_service_order_create_sets_appointment_service_order_and_status_fulfilled():  # noqa: E501
     client = APIClient()
     internal = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
 
     client_model = ClientFactory()
     client_model.users.add(internal)
     unit = UnitFactory(client=client_model)
-    appointment = AppointmentFactory(unit=unit, status=Appointment.Status.PENDING)
+    appointment = AppointmentFactory(
+        unit=unit, status=Appointment.Status.PENDING
+    )
 
     client.force_authenticate(user=internal)
     response = client.post(

@@ -31,10 +31,11 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("MEDIA_ROOT does not exist."))
             return
 
-        # MEDIA_ROOT itself is a Docker volume mount point in staging, so
-        # it can't be removed and recreated with shutil.rmtree(media_root)
-        # (that raises "Device or resource busy"). Clear its contents
-        # instead, leaving the mount point in place.
+        # MEDIA_ROOT itself is a Docker volume mount point in
+        # staging, so it can't be removed and recreated with
+        # shutil.rmtree(media_root) (that raises "Device or resource
+        # busy"). Clear its contents instead, leaving the mount
+        # point in place.
         entries = list(media_root.iterdir())
         for entry in entries:
             if entry.is_dir() and not entry.is_symlink():

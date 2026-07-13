@@ -11,7 +11,9 @@ from tests.factories import AppointmentFactory
 
 
 @pytest.mark.django_db
-def test_update_appointments__updates_overdue_pending_confirmed_rescheduled() -> None:
+def test_update_appointments__updates_overdue_pending_confirmed_rescheduled() -> (  # noqa: E501
+    None
+):
     now = timezone.now()
     yesterday = now - timedelta(days=1)
     tomorrow = now + timedelta(days=1)

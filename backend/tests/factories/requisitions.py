@@ -1,7 +1,11 @@
 import factory
 from validate_docbr import CNPJ
 
-from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
+from requisitions.models import (
+    ClientOperation,
+    EquipmentOperation,
+    UnitOperation,
+)
 
 from .clients_management import ClientFactory, EquipmentFactory, UnitFactory
 from .users import UserFactory
@@ -67,11 +71,15 @@ class EquipmentOperationFactory(factory.django.DjangoModelFactory):
     created_by = factory.SubFactory(UserFactory)
 
     unit = factory.SubFactory(UnitFactory)
-    modality = factory.SubFactory("tests.factories.clients_management.ModalityFactory")
+    modality = factory.SubFactory(
+        "tests.factories.clients_management.ModalityFactory"
+    )
     manufacturer = factory.Faker("company")
     model = factory.Faker("word")
     series_number = factory.Sequence(lambda n: f"SNOP-{n}")
-    equipment_photo = factory.LazyFunction(lambda: EquipmentFactory().equipment_photo)
+    equipment_photo = factory.LazyFunction(
+        lambda: EquipmentFactory().equipment_photo
+    )
     label_photo = factory.LazyFunction(lambda: EquipmentFactory().label_photo)
 
     original_equipment = None

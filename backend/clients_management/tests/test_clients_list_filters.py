@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from requisitions.models import ClientOperation, UnitOperation
-from users.models import UserAccount
 from tests.factories import (
     AppointmentFactory,
     ClientOperationFactory,
@@ -13,6 +12,7 @@ from tests.factories import (
     UnitOperationFactory,
     UserFactory,
 )
+from users.models import UserAccount
 
 
 @pytest.mark.django_db
@@ -101,7 +101,7 @@ def test_clients_list_as_client_user_returns_only_clients_associated_to_user():
 
 
 @pytest.mark.django_db
-def test_clients_list_filter_contract_type_uses_most_recent_accepted_proposal():
+def test_clients_list_filter_contract_type_uses_recent_accepted_proposal():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
 
@@ -138,7 +138,7 @@ def test_clients_list_filter_contract_type_uses_most_recent_accepted_proposal():
 
 
 @pytest.mark.django_db
-def test_clients_list_filter_operation_status_pending_detects_review_ops_for_client_unit_or_equipment():
+def test_clients_list_filter_operation_status_pending_detects_review_ops():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
 
@@ -195,7 +195,7 @@ def test_clients_list_filter_is_active_false_filters_inactive_clients():
 
 
 @pytest.mark.django_db
-def test_clients_list_needs_appointment_true_when_annual_accepted_proposal_has_no_future_appointment():
+def test_clients_list_needs_appointment_true_when_no_future_appointment():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
 
@@ -216,21 +216,32 @@ def test_clients_list_needs_appointment_true_when_annual_accepted_proposal_has_n
 
     client.force_authenticate(user=prophy_manager)
 
-    response_no_appointment = client.get(f"/api/clients/?cnpj={client_op.cnpj}")
+    response_no_appointment = client.get(
+        f"/api/clients/?cnpj={client_op.cnpj}"
+    )
     assert response_no_appointment.status_code == status.HTTP_200_OK
     assert response_no_appointment.data["count"] == 1
-    assert response_no_appointment.data["results"][0]["needs_appointment"] is True
+    assert (
+        response_no_appointment.data["results"][0]["needs_appointment"] is True
+    )
 
-    AppointmentFactory(unit=unit, date=timezone.now() + timezone.timedelta(days=1))
+    AppointmentFactory(
+        unit=unit, date=timezone.now() + timezone.timedelta(days=1)
+    )
 
-    response_with_appointment = client.get(f"/api/clients/?cnpj={client_op.cnpj}")
+    response_with_appointment = client.get(
+        f"/api/clients/?cnpj={client_op.cnpj}"
+    )
     assert response_with_appointment.status_code == status.HTTP_200_OK
     assert response_with_appointment.data["count"] == 1
-    assert response_with_appointment.data["results"][0]["needs_appointment"] is False
+    assert (
+        response_with_appointment.data["results"][0]["needs_appointment"]
+        is False
+    )
 
 
 @pytest.mark.django_db
-def test_clients_list_filter_responsible_cpf_returns_only_clients_linked_to_physicist():
+def test_clients_list_filter_responsible_cpf_returns_linked_clients():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     physicist = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
@@ -262,7 +273,7 @@ def test_clients_list_filter_responsible_cpf_returns_only_clients_linked_to_phys
 
 
 @pytest.mark.django_db
-def test_clients_list_filter_responsible_cpf_returns_empty_when_user_exists_but_not_linked():
+def test_clients_list_filter_responsible_cpf_empty_when_not_linked():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     physicist = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
@@ -281,7 +292,7 @@ def test_clients_list_filter_responsible_cpf_returns_empty_when_user_exists_but_
 
 
 @pytest.mark.django_db
-def test_clients_list_filter_responsible_cpf_returns_empty_when_role_is_not_physicist():
+def test_clients_list_filter_responsible_cpf_empty_for_non_physicist():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     unit_manager = UserFactory(role=UserAccount.Role.UNIT_MANAGER)

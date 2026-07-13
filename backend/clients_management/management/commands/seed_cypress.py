@@ -1,6 +1,13 @@
 import uuid
 from datetime import date, timedelta
 
+from django.conf import settings
+from django.core.files import File
+from django.core.files.base import ContentFile
+from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.utils import timezone
+
 from clients_management.models import (
     Accessory,
     Appointment,
@@ -11,14 +18,12 @@ from clients_management.models import (
     ServiceOrder,
     Unit,
 )
-from django.conf import settings
-from django.core.files import File
-from django.core.files.base import ContentFile
-from django.core.management.base import BaseCommand
-from django.db import transaction
-from django.utils import timezone
 from materials.models import InstitutionalMaterial
-from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
+from requisitions.models import (
+    ClientOperation,
+    EquipmentOperation,
+    UnitOperation,
+)
 from users.models import UserAccount
 
 from ._seed_common import (
@@ -67,7 +72,10 @@ PHONE_E2E_COMPLIANT = "51991000111"
 
 
 class Command(BaseCommand):
-    help = "Seed the database with deterministic, curated data for Cypress E2E tests."
+    help = (
+        "Seed the database with deterministic, curated data for "
+        "Cypress E2E tests."
+    )
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -87,17 +95,17 @@ class Command(BaseCommand):
         self._seed_materials()
 
         self._write_fixtures(
-            approved_cnpjs,
-            users,
-            default_clients,
-            default_units,
-            default_equipments,
+            {
+                "approved_cnpjs": approved_cnpjs,
+                "users": users,
+                "default_clients": default_clients,
+                "default_units": default_units,
+                "default_equipments": default_equipments,
+            }
         )
-        self.stdout.write(
-            self.style.SUCCESS("Cypress seed complete.")
-        )
+        self.stdout.write(self.style.SUCCESS("Cypress seed complete."))
 
-    # ------------------------------------------------------------------ users
+    # ------------------------------------------------------------ users
 
     def _seed_users(self) -> dict:
         def _fixture(ua):
@@ -174,7 +182,7 @@ class Command(BaseCommand):
             "internal_physicist_user": _fixture(internal_physicist),
         }
 
-    # ---------------------------------------------------------------- clients
+    # ---------------------------------------------------------- clients
 
     def _seed_clients(self) -> dict:
         def _fixture(c):
@@ -194,8 +202,12 @@ class Command(BaseCommand):
         admin = UserAccount.objects.get(cpf=CPF_ADMIN)
         client_manager = UserAccount.objects.get(cpf=CPF_CLIENT_MANAGER)
         comercial = UserAccount.objects.get(cpf=CPF_COMERCIAL)
-        external_physicist = UserAccount.objects.get(cpf=CPF_EXTERNAL_PHYSICIST)
-        internal_physicist = UserAccount.objects.get(cpf=CPF_INTERNAL_PHYSICIST)
+        external_physicist = UserAccount.objects.get(
+            cpf=CPF_EXTERNAL_PHYSICIST
+        )
+        internal_physicist = UserAccount.objects.get(
+            cpf=CPF_INTERNAL_PHYSICIST
+        )
 
         client1 = ClientOperation.objects.create(
             id=1000,
@@ -281,7 +293,7 @@ class Command(BaseCommand):
             "client_with_comercial": _fixture(client_with_comercial),
         }
 
-    # ------------------------------------------------------------------ units
+    # ------------------------------------------------------------ units
 
     def _seed_units(self) -> dict:
         def _fixture(u):
@@ -373,7 +385,7 @@ class Command(BaseCommand):
             "unit4": _fixture(unit4),
         }
 
-    # --------------------------------------------------------------- equipment
+    # -------------------------------------------------------- equipment
 
     def _seed_equipments(self) -> dict:
         def _fixture(eq):
@@ -438,7 +450,7 @@ class Command(BaseCommand):
             "equipment2": _fixture(eq2),
         }
 
-    # ------------------------------------------------------------ accessories
+    # ------------------------------------------------------ accessories
 
     def _seed_accessories(self) -> None:
         accessories_to_create = []
@@ -468,7 +480,7 @@ class Command(BaseCommand):
             if accessories_to_create:
                 Accessory.objects.bulk_create(accessories_to_create)
 
-    # --------------------------------------------------------------- reports
+    # ---------------------------------------------------------- reports
 
     def _seed_reports(self) -> None:
         unit1000 = Unit.objects.get(id=1000)
@@ -486,7 +498,9 @@ class Command(BaseCommand):
         )
 
         due_type = (
-            Report.UNIT_ONLY_TYPES[1] if len(Report.UNIT_ONLY_TYPES) > 1 else rtype
+            Report.UNIT_ONLY_TYPES[1]
+            if len(Report.UNIT_ONLY_TYPES) > 1
+            else rtype
         )
         Report.objects.create(
             completion_date=date.today() - timedelta(days=365 - 30),
@@ -516,19 +530,22 @@ class Command(BaseCommand):
             description=eq_type.label,
         )
 
-    # --------------------------------------------------------- service orders
+    # --------------------------------------------------- service orders
 
     def _seed_service_orders(self) -> None:
         admin = UserAccount.objects.get(cpf=CPF_ADMIN)
         unit1000 = Unit.objects.get(id=1000)
-        eq_list = list(Equipment.objects.filter(id__in=[1000, 1001]).order_by("id"))
+        eq_list = list(
+            Equipment.objects.filter(id__in=[1000, 1001]).order_by("id")
+        )
 
         so1 = ServiceOrder.objects.create(
             id=1000,
             subject="Calibração de Mamógrafo",
             description=(
-                "Equipamento apresentando imagens com qualidade inferior ao padrão "
-                "esperado. Necessária calibração completa do sistema de aquisição."
+                "Equipamento apresentando imagens com qualidade "
+                "inferior ao padrão esperado. Necessária calibração "
+                "completa do sistema de aquisição."
             ),
             conclusion=(
                 "Equipamento calibrado e testado com sucesso. "
@@ -615,7 +632,7 @@ class Command(BaseCommand):
             unit=unit1000,
         )
 
-    # --------------------------------------------------------------- proposals
+    # -------------------------------------------------------- proposals
 
     def _seed_proposals(self) -> list[str]:
         threshold_date = date.today() - timedelta(days=365 - 30)
@@ -712,7 +729,8 @@ class Command(BaseCommand):
                 word_version=word_file,
             )
 
-            # One ACCEPTED proposal per named registered client (for their fixture data).
+            # One ACCEPTED proposal per named registered client (for
+            # their fixture data).
             statuses = [
                 Proposal.Status.ACCEPTED,
                 Proposal.Status.REJECTED,
@@ -766,7 +784,7 @@ class Command(BaseCommand):
 
         return approved_cnpjs
 
-    # ---------------------------------------- pending-appointment scenarios
+    # ------------------------------------ pending-appointment scenarios
 
     def _seed_pending_appointment_scenarios(self) -> None:
         admin = UserAccount.objects.get(cpf=CPF_ADMIN)
@@ -887,14 +905,15 @@ class Command(BaseCommand):
             },
         )
 
-    # --------------------------------------------------------------- materials
+    # -------------------------------------------------------- materials
 
     def _seed_materials(self) -> None:
         public_defs = [
             (
                 InstitutionalMaterial.PublicCategory.SIGNS,
                 "Sinalizações de Segurança – Porto Alegre",
-                "Procedimentos de sinalização de áreas de risco em instalações médicas.",
+                "Procedimentos de sinalização de áreas de risco em "
+                "instalações médicas.",
             ),
             (
                 InstitutionalMaterial.PublicCategory.TEAM_IO,
@@ -909,12 +928,14 @@ class Command(BaseCommand):
             (
                 InstitutionalMaterial.PublicCategory.POPS,
                 "POP – Controle de Qualidade",
-                "Procedimentos operacionais padrão para controle de qualidade.",
+                "Procedimentos operacionais padrão para controle de "
+                "qualidade.",
             ),
             (
                 InstitutionalMaterial.PublicCategory.LAW,
                 "Legislação Vigente – RS",
-                "Compilação das normas regulatórias aplicáveis às instalações.",
+                "Compilação das normas regulatórias aplicáveis às "
+                "instalações.",
             ),
             (
                 InstitutionalMaterial.PublicCategory.GUIDES,
@@ -951,7 +972,8 @@ class Command(BaseCommand):
             (
                 InstitutionalMaterial.InternalCategory.POPS,
                 "POP – Verificações Internas",
-                "Procedimentos operacionais para verificações internas de qualidade.",
+                "Procedimentos operacionais para verificações internas "
+                "de qualidade.",
             ),
             (
                 InstitutionalMaterial.InternalCategory.GUIDES,
@@ -975,13 +997,17 @@ class Command(BaseCommand):
             ),
         ]
 
-        for cat, title, description in internal_defs:
+        for (
+            internal_cat,
+            internal_title,
+            internal_description,
+        ) in internal_defs:
             InstitutionalMaterial.objects.create(
-                title=title,
-                description=description,
+                title=internal_title,
+                description=internal_description,
                 visibility=InstitutionalMaterial.Visibility.INTERNAL,
-                category=cat,
-                file=self._make_material_file(title),
+                category=internal_cat,
+                file=self._make_material_file(internal_title),
             )
 
     def _make_material_file(self, title: str) -> ContentFile:
@@ -995,15 +1021,11 @@ class Command(BaseCommand):
         )
         return ContentFile(content, name=filename)
 
-    # --------------------------------------------------------------- fixtures
+    # --------------------------------------------------------- fixtures
 
     def _write_fixtures(
         self,
-        approved_cnpjs: list[str],
-        users: dict,
-        default_clients: dict,
-        default_units: dict,
-        default_equipments: dict,
+        fixture_inputs: dict,
     ) -> None:
         if not settings.EXPORT_CYPRESS_FIXTURES:
             return
@@ -1015,21 +1037,24 @@ class Command(BaseCommand):
         fixture_data_map = [
             (
                 {
-                    "approved_cnpjs": approved_cnpjs,
+                    "approved_cnpjs": fixture_inputs["approved_cnpjs"],
                     "rejected_cnpj": REJECTED_PROPOSAL_CNPJ,
                 },
                 "proposals.json",
             ),
-            (users, "users.json"),
+            (fixture_inputs["users"], "users.json"),
             ({"registered_cnpj": REGISTERED_CNPJ}, "registered-client.json"),
             (
                 {"eligible_registration_cnpj": ELIGIBLE_REGISTRATION_CNPJ},
                 "eligible-registration.json",
             ),
             ({"no_proposal_cnpj": NO_PROPOSAL_CNPJ}, "no-proposal.json"),
-            (default_clients, "default-clients.json"),
-            (default_units, "default-units.json"),
-            (default_equipments, "default-equipments.json"),
+            (fixture_inputs["default_clients"], "default-clients.json"),
+            (fixture_inputs["default_units"], "default-units.json"),
+            (
+                fixture_inputs["default_equipments"],
+                "default-equipments.json",
+            ),
             (
                 {
                     "pending_cnpj": PENDING_APPOINTMENT_CNPJ,

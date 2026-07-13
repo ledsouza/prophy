@@ -2,7 +2,10 @@ import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from clients_management.serializers import AccessorySerializer, EquipmentSerializer
+from clients_management.serializers import (
+    AccessorySerializer,
+    EquipmentSerializer,
+)
 from tests.factories import AccessoryFactory, EquipmentFactory, UserFactory
 
 
@@ -99,6 +102,4 @@ def test_accessory_serializer_returns_proxy_photo_urls():
     assert data["equipment_photo"] == (
         f"/api/accessories/{accessory.pk}/photo/"
     )
-    assert data["label_photo"] == (
-        f"/api/accessories/{accessory.pk}/label/"
-    )
+    assert data["label_photo"] == (f"/api/accessories/{accessory.pk}/label/")

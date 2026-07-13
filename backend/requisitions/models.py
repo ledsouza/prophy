@@ -1,17 +1,15 @@
-from django.db import models
-from django.db.models import TextChoices
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models import TextChoices
 
-from clients_management.models import Client, Unit, Equipment, Accessory
+from clients_management.models import Accessory, Client, Equipment, Unit
 
 User = get_user_model()
 
 
 class BaseOperation(models.Model):
-    """
-    Abstract base model providing a standardized operation workflow.
-    """
+    """Abstract base model for a standardized operation workflow."""
 
     class OperationType(TextChoices):
         ADD = "A", "Adicionar"
@@ -43,7 +41,10 @@ class BaseOperation(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     note = models.TextField(
-        "Nota", blank=True, null=True, help_text="Anotações para descrever a operação."
+        "Nota",
+        blank=True,
+        null=True,
+        help_text="Anotações para descrever a operação.",
     )
 
     class Meta:
@@ -51,13 +52,16 @@ class BaseOperation(models.Model):
         ordering = ["operation_status", "-created_at"]
 
     def clean(self):
-        """
-        Validate that only one operation is in analysis status for a specific entity
-        """
+        """Validate only one operation is in analysis per entity."""
         if self.operation_status == self.OperationStatus.REVIEW:
-            # Check for existing operations in analysis for the same entity,
-            # excluding the current instance to avoid self-collision on updates.
-            existing_operations = self.__class__.objects.filter(
+            # Check for existing operations in analysis for the same
+            # entity, excluding this instance to avoid self-collision
+            # on updates.
+            # `self.__class__` is statically typed as the abstract
+            # `BaseOperation`, which django-stubs does not give a
+            # manager; at runtime it is always a concrete subclass.
+            manager = self.__class__.objects  # type: ignore[attr-defined]
+            existing_operations = manager.filter(
                 operation_status=self.OperationStatus.REVIEW,
                 **self.get_entity_filter(),
             ).exclude(pk=self.pk)
@@ -66,15 +70,11 @@ class BaseOperation(models.Model):
                 raise ValidationError("Já existe uma operação em análise.")
 
     def get_entity_filter(self):
-        """
-        Override in subclasses to provide entity-specific filtering
-        """
+        """Override in subclasses for entity-specific filtering."""
         raise NotImplementedError("Subclasses must implement this method")
 
-    def save(self, *args, **kwargs):
-        """
-        Custom save method to handle operation logic
-        """
+    def save(self, *args, **kwargs) -> None:
+        """Custom save method to handle operation logic."""
         self.full_clean()
 
         is_accepted_add = (
@@ -86,7 +86,8 @@ class BaseOperation(models.Model):
             or self.operation_type == self.OperationType.DELETE
         ) and self.operation_status == self.OperationStatus.ACCEPTED
 
-        # The first operation will always be ADD. Set them to closed after accepted.
+        # The first operation will always be ADD. Set them to closed
+        # after accepted.
         if is_accepted_add:
             self.operation_type = self.OperationType.CLOSED
 
@@ -94,15 +95,14 @@ class BaseOperation(models.Model):
         # Those ones are needed only to temporary hold records.
         # Delete them after accepted.
         if is_accepted_edit_or_delete:
-            return self.delete()
+            self.delete()
+            return
 
         super().save(*args, **kwargs)
 
 
 class ClientOperation(BaseOperation, Client):
-    """
-    Model representing an operation on client data.
-    """
+    """Model representing an operation on client data."""
 
     client_ptr = models.OneToOneField(
         Client,
@@ -151,7 +151,8 @@ class ClientOperation(BaseOperation, Client):
         if is_review_add:
             self.is_active = False
 
-        # Activate client when an ADD (or CLOSED after acceptance) is finalized
+        # Activate client when an ADD (or CLOSED after acceptance) is
+        # finalized
         if is_accepted_add_or_closed:
             self.is_active = True
 
@@ -162,17 +163,13 @@ class ClientOperation(BaseOperation, Client):
             self._delete_client()
 
     def get_entity_filter(self):
-        """
-        Provide filtering for existing operations in analysis
-        """
+        """Provide filtering for existing operations in analysis."""
         if self.original_client:
             return {"original_client": self.original_client}
         return {"cnpj": self.cnpj}
 
     def _update_client(self) -> None:
-        """
-        Update the original client with new information.
-        """
+        """Update the original client with new information."""
         if not self.original_client:
             raise ValidationError(
                 "Não foi encontrado o cliente associado para atualizar."
@@ -190,14 +187,14 @@ class ClientOperation(BaseOperation, Client):
         ]
 
         for field in update_fields:
-            setattr(self.original_client, field, getattr(self.client_ptr, field))
+            setattr(
+                self.original_client, field, getattr(self.client_ptr, field)
+            )
 
         self.original_client.save()
 
     def _delete_client(self) -> None:
-        """
-        Mark the original client as inactive.
-        """
+        """Mark the original client as inactive."""
         if not self.original_client:
             raise ValidationError(
                 "Não foi encontrado o cliente associado para remover."
@@ -215,9 +212,7 @@ class ClientOperation(BaseOperation, Client):
 
 
 class UnitOperation(BaseOperation, Unit):
-    """
-    Model representing an operation on unit data.
-    """
+    """Model representing an operation on unit data."""
 
     unit_ptr = models.OneToOneField(
         Unit,
@@ -257,17 +252,13 @@ class UnitOperation(BaseOperation, Unit):
             self._delete_unit()
 
     def get_entity_filter(self):
-        """
-        Provide filtering for existing operations in analysis
-        """
+        """Provide filtering for existing operations in analysis."""
         if self.original_unit:
             return {"original_unit": self.original_unit}
         return {"cnpj": self.cnpj}
 
     def _update_unit(self) -> None:
-        """
-        Update the original unit with new information.
-        """
+        """Update the original unit with new information."""
         if not self.original_unit:
             raise ValidationError(
                 "Não foi encontrada a unidade associada para atualizar."
@@ -290,9 +281,7 @@ class UnitOperation(BaseOperation, Unit):
         self.original_unit.save()
 
     def _delete_unit(self) -> None:
-        """
-        Handle unit deletion process.
-        """
+        """Handle unit deletion process."""
         if not self.original_unit:
             raise ValidationError(
                 "Não foi encontrada a unidade associada para deletar."
@@ -309,9 +298,7 @@ class UnitOperation(BaseOperation, Unit):
 
 
 class EquipmentOperation(BaseOperation, Equipment):
-    """
-    Model representing an operation on equipment data.
-    """
+    """Model representing an operation on equipment data."""
 
     equipment_ptr = models.OneToOneField(
         Equipment,
@@ -351,17 +338,18 @@ class EquipmentOperation(BaseOperation, Equipment):
             self._delete_equipment()
 
     def get_entity_filter(self):
-        """
-        Provide filtering for existing operations in analysis
-        """
+        """Provide filtering for existing operations in analysis."""
         if self.original_equipment:
             return {"original_equipment": self.original_equipment}
         return {"series_number": self.series_number}
 
     def _update_accessories(self) -> None:
-        """
-        Update the original equipment accessories.
-        """
+        """Update the original equipment accessories."""
+        if not self.original_equipment:
+            raise ValidationError(
+                "Não foi encontrado o equipamento associado para atualizar."
+            )
+
         original_accessories = Accessory.objects.filter(
             equipment=self.original_equipment
         )
@@ -373,9 +361,7 @@ class EquipmentOperation(BaseOperation, Equipment):
             accessory.save()
 
     def _update_equipment(self) -> None:
-        """
-        Update the original equipment with new information.
-        """
+        """Update the original equipment with new information."""
         if not self.original_equipment:
             raise ValidationError(
                 "Não foi encontrado o equipamento associado para atualizar."
@@ -392,16 +378,18 @@ class EquipmentOperation(BaseOperation, Equipment):
         ]
 
         for field in update_fields:
-            setattr(self.original_equipment, field, getattr(self.equipment_ptr, field))
+            setattr(
+                self.original_equipment,
+                field,
+                getattr(self.equipment_ptr, field),
+            )
 
         self._update_accessories()
 
         self.original_equipment.save()
 
     def _delete_equipment(self) -> None:
-        """
-        Handle equipment deletion process.
-        """
+        """Handle equipment deletion process."""
         if not self.original_equipment:
             raise ValidationError(
                 "Não foi encontrado o equipamento associado para deletar."

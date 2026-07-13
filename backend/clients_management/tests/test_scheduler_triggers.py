@@ -14,8 +14,17 @@ def _mock_valid_oidc_claims(email: str) -> dict[str, Any]:
     }
 
 
+def _write_ok_to_stdout(*args: Any, stdout: Any = None, **kwargs: Any) -> None:
+    """Fake call_command side effect writing to the given stdout.
+
+    Mirrors real call_command invocations in views.py, which always
+    pass a stdout kwarg.
+    """
+    stdout.write("OK")
+
+
 @pytest.mark.django_db
-def test_trigger_report_notifications__unauthenticated__401_and_does_not_call_command(
+def test_trigger_report_notifications__unauthenticated__401_and_does_not_call_command(  # noqa: E501
     api_client,
     mocker,
 ) -> None:
@@ -74,9 +83,7 @@ def test_trigger_update_appointments__valid_oidc__calls_command(
         return_value=_mock_valid_oidc_claims("scheduler@prophy.com"),
     )
     call_command = mocker.patch("clients_management.views.call_command")
-    call_command.side_effect = lambda name, *args, stdout=None, **kwargs: stdout.write(
-        "OK"  # type: ignore[union-attr]
-    )
+    call_command.side_effect = _write_ok_to_stdout
 
     response = api_client.post(
         "/api/appointments/tasks/update-overdue/",
@@ -101,9 +108,7 @@ def test_trigger_contract_notifications__valid_oidc__calls_command(
         return_value=_mock_valid_oidc_claims("scheduler@prophy.com"),
     )
     call_command = mocker.patch("clients_management.views.call_command")
-    call_command.side_effect = lambda name, *args, stdout=None, **kwargs: stdout.write(
-        "OK"  # type: ignore[union-attr]
-    )
+    call_command.side_effect = _write_ok_to_stdout
 
     response = api_client.post(
         "/api/proposals/tasks/run-contract-notifications/",

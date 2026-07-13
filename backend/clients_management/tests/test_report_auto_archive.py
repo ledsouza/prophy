@@ -4,10 +4,10 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APIClient
-from tests.factories import UnitFactory, UserFactory
-from users.models import UserAccount
 
 from clients_management.models import Report
+from tests.factories import UnitFactory, UserFactory
+from users.models import UserAccount
 
 
 def _pdf_file_payload() -> SimpleUploadedFile:
@@ -29,7 +29,7 @@ def _docx_file_payload() -> SimpleUploadedFile:
 
 
 @pytest.mark.django_db
-def test_report_create_auto_archives_existing_active_report_for_same_unit_and_type():
+def test_report_create_auto_archives_existing_report_same_unit_and_type():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     unit = UnitFactory()

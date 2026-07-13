@@ -1,9 +1,9 @@
 import pytest
 from django.core.exceptions import ValidationError
-from tests.factories import ClientFactory, ClientOperationFactory, UserFactory
 from validate_docbr import CNPJ
 
 from requisitions.models import ClientOperation
+from tests.factories import ClientFactory, ClientOperationFactory, UserFactory
 
 
 @pytest.mark.django_db
@@ -68,7 +68,7 @@ def test_client_operation_accept_delete_marks_original_client_inactive():
 
 
 @pytest.mark.django_db
-def test_client_operation_accept_edit_without_original_raises_validation_error():
+def test_client_operation_accept_edit_without_original_raises_validation_error():  # noqa: E501
     staged = ClientOperationFactory(
         operation_type=ClientOperation.OperationType.EDIT,
         operation_status=ClientOperation.OperationStatus.REVIEW,
@@ -81,7 +81,7 @@ def test_client_operation_accept_edit_without_original_raises_validation_error()
 
 
 @pytest.mark.django_db
-def test_client_operation_accept_delete_without_original_raises_validation_error():
+def test_client_operation_accept_delete_without_original_raises_validation_error():  # noqa: E501
     staged = ClientOperationFactory(
         operation_type=ClientOperation.OperationType.DELETE,
         operation_status=ClientOperation.OperationStatus.REVIEW,
@@ -94,7 +94,7 @@ def test_client_operation_accept_delete_without_original_raises_validation_error
 
 
 @pytest.mark.django_db
-def test_client_operation_accept_add_marks_staged_client_active_and_closes_operation_type():
+def test_client_operation_accept_add_marks_staged_client_active_and_closes_operation_type():  # noqa: E501
     staged = ClientOperationFactory(
         operation_type=ClientOperation.OperationType.ADD,
         operation_status=ClientOperation.OperationStatus.REVIEW,
@@ -117,7 +117,7 @@ def test_client_operation_factory_users_post_generation_sets_m2m():
 
     op = ClientOperationFactory(users=[u1, u2])
 
-    assert op.users.count() == 2
+    assert op.users.count() == 2  # noqa: PLR2004
     assert op.users.filter(pk=u1.pk).exists()
     assert op.users.filter(pk=u2.pk).exists()
 

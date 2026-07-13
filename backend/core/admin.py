@@ -1,5 +1,5 @@
-from django.contrib import admin
 from django.conf import settings
+from django.contrib import admin
 
 
 class ProphyAdminSite(admin.AdminSite):
@@ -7,17 +7,18 @@ class ProphyAdminSite(admin.AdminSite):
     site_title = "Administração Prophy"
     site_url = settings.FRONTEND_URL
 
-    def get_app_list(self, request):
-        """
-        Customizes the app list in the admin interface.
-        """
-        app_list = super().get_app_list(request)
+    def get_app_list(self, request, app_label=None):
+        """Customizes the app list in the admin interface."""
+        app_list = super().get_app_list(request, app_label)
 
         # Remove the "Autenticação e Autorização" app
-        app_list = [app for app in app_list if app['name']
-                    != 'Autenticação e Autorização']
+        app_list = [
+            app
+            for app in app_list
+            if app["name"] != "Autenticação e Autorização"
+        ]
 
         return app_list
 
 
-admin_site = ProphyAdminSite(name='prophy_admin')
+admin_site = ProphyAdminSite(name="prophy_admin")

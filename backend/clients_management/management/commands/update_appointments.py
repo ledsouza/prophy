@@ -1,15 +1,15 @@
-from clients_management.models import Appointment
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from clients_management.models import Appointment
+
 
 class Command(BaseCommand):
-    """
-    A Django management command to find and update overdue appointments.
+    """Finds and updates overdue appointments.
 
-    This command identifies appointments that are still in 'Pending', 'Confirmed'
-    or 'Rescheduled' status but whose scheduled date has passed, and updates
-    their status to 'Unfulfilled'.
+    Identifies appointments that are still in 'Pending', 'Confirmed'
+    or 'Rescheduled' status but whose scheduled date has passed, and
+    updates their status to 'Unfulfilled'.
     """
 
     help = "Updates the status of overdue appointments to 'Unfulfilled'."
@@ -17,7 +17,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         today = timezone.now().date()
         self.stdout.write(
-            f"[{timezone.now()}] Running update_appointments command for dates before {today}..."
+            f"[{timezone.now()}] Running update_appointments command "
+            f"for dates before {today}..."
         )
 
         overdue_appointments = Appointment.objects.filter(
@@ -35,7 +36,8 @@ class Command(BaseCommand):
             overdue_appointments.update(status=Appointment.Status.UNFULFILLED)
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Successfully updated {count} overdue appointment(s) to 'Unfulfilled'."
+                    f"Successfully updated {count} overdue "
+                    "appointment(s) to 'Unfulfilled'."
                 )
             )
         else:

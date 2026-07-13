@@ -1,5 +1,4 @@
-"""
-Tests for Report soft delete functionality.
+"""Tests for Report soft delete functionality.
 
 This module tests:
 - Soft delete behavior for different user roles
@@ -18,9 +17,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from users.models import UserAccount
 
 from clients_management.models import Client, Equipment, Modality, Report, Unit
+from users.models import UserAccount
 
 
 @pytest.fixture
@@ -162,7 +161,9 @@ def report_for_equipment(client_with_unit_and_equipment):
 class TestReportSoftDeleteModel:
     """Test soft delete functionality at the model level."""
 
-    def test_soft_delete_sets_deleted_at(self, report_for_unit, prophy_manager):
+    def test_soft_delete_sets_deleted_at(
+        self, report_for_unit, prophy_manager
+    ):
         """Soft deleting a report should set deleted_at timestamp."""
         assert report_for_unit.deleted_at is None
         assert not report_for_unit.is_deleted
@@ -194,7 +195,7 @@ class TestReportSoftDeleteModel:
         report_for_unit,
         prophy_manager,
     ):
-        """Default manager (objects) should exclude soft-deleted reports."""
+        """Default manager (objects) excludes soft-deleted reports."""
         report_id = report_for_unit.id
 
         assert Report.objects.filter(id=report_id).exists()
@@ -208,7 +209,7 @@ class TestReportSoftDeleteModel:
         report_for_unit,
         prophy_manager,
     ):
-        """all_objects manager should include soft-deleted reports."""
+        """all_objects manager includes soft-deleted reports."""
         report_id = report_for_unit.id
 
         assert Report.objects.filter(id=report_id).exists()
@@ -219,7 +220,7 @@ class TestReportSoftDeleteModel:
         assert Report.all_objects.filter(id=report_id).exists()
 
     def test_queryset_active_method(self, report_for_unit, prophy_manager):
-        """QuerySet active() method should filter out deleted reports."""
+        """QuerySet active() filters out deleted reports."""
         report_id = report_for_unit.id
 
         assert Report.all_objects.active().filter(id=report_id).exists()
@@ -228,7 +229,7 @@ class TestReportSoftDeleteModel:
         assert not Report.all_objects.active().filter(id=report_id).exists()
 
     def test_queryset_deleted_method(self, report_for_unit, prophy_manager):
-        """QuerySet deleted() method should return only deleted reports."""
+        """QuerySet deleted() returns only deleted reports."""
         report_id = report_for_unit.id
 
         assert not Report.all_objects.deleted().filter(id=report_id).exists()
@@ -242,12 +243,13 @@ class TestReportSoftDeleteModel:
         report_for_equipment,
         prophy_manager,
     ):
-        """QuerySet soft_delete() should soft delete multiple reports."""
-        assert Report.objects.count() == 2
+        """QuerySet soft_delete() soft-deletes multiple reports."""
+        expected_total = 2
+        assert Report.objects.count() == expected_total
 
         Report.objects.all().soft_delete(deleted_by=prophy_manager)
         assert Report.objects.count() == 0
-        assert Report.all_objects.count() == 2
+        assert Report.all_objects.count() == expected_total
 
         for report in Report.all_objects.all():
             assert report.is_deleted
@@ -354,7 +356,7 @@ class TestReportSoftDeleteAPI:
 class TestReportSoftDeleteVisibility:
     """Test visibility of soft-deleted reports for different roles."""
 
-    def test_gp_sees_soft_deleted_reports_in_list(
+    def test_gp_sees_soft_deleted_reports_in_list(  # noqa: PLR0913
         self,
         api_client,
         prophy_manager,
@@ -463,7 +465,7 @@ class TestReportSoftDeleteDownload:
 
 @pytest.mark.django_db
 class TestReportSoftDeleteVisibilityPhysicists:
-    def test_physicist_sees_soft_deleted_reports_in_list(
+    def test_physicist_sees_soft_deleted_reports_in_list(  # noqa: PLR0913
         self,
         api_client,
         internal_physicist,
@@ -481,7 +483,7 @@ class TestReportSoftDeleteVisibilityPhysicists:
         assert response.data["count"] == 1
         assert response.data["results"][0]["is_deleted"] is True
 
-    def test_physicist_can_retrieve_soft_deleted_report(
+    def test_physicist_can_retrieve_soft_deleted_report(  # noqa: PLR0913
         self,
         api_client,
         internal_physicist,
@@ -497,7 +499,7 @@ class TestReportSoftDeleteVisibilityPhysicists:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["is_deleted"] is True
 
-    def test_physicist_can_download_soft_deleted_report(
+    def test_physicist_can_download_soft_deleted_report(  # noqa: PLR0913
         self,
         api_client,
         internal_physicist,
@@ -552,9 +554,10 @@ class TestReportSoftDeleteAuditTrail:
         internal_physicist,
         report_for_unit,
     ):
-        """
-        When non-GP tries hard delete and fails.
-        the report should remain soft-deleted with original deleted_by.
+        """When a non-GP's hard delete attempt fails.
+
+        The report should remain soft-deleted with its original
+        deleted_by.
         """
         prophy_manager = UserAccount.objects.create_user(
             email="gp3@prophy.com",
@@ -593,7 +596,7 @@ class TestReportSoftDeleteEdgeCases:
         prophy_manager,
         report_for_unit,
     ):
-        """Soft deleting an already soft-deleted report should succeed."""
+        """Soft deleting an already soft-deleted report succeeds."""
         report_for_unit.soft_delete(deleted_by=prophy_manager)
 
         api_client.force_authenticate(user=prophy_manager)
@@ -619,7 +622,7 @@ class TestReportSoftDeleteEdgeCases:
         api_client,
         internal_physicist,
     ):
-        """Soft deleting a non-existent report should return 403 for non-GP."""
+        """Soft deleting a missing report returns 403 for non-GP."""
         api_client.force_authenticate(user=internal_physicist)
         url = reverse("reports-detail", kwargs={"pk": 99999})
 

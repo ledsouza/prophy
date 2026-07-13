@@ -1,10 +1,10 @@
 import secrets
 
-from clients_management.models import Unit
 from django.contrib.auth import get_user_model
 from djoser.serializers import UserDeleteSerializer
 from rest_framework import serializers
 
+from clients_management.models import Unit
 from users.models import UserAccount
 
 User = get_user_model()
@@ -13,14 +13,21 @@ User = get_user_model()
 class CurrentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "cpf", "name", "email", "phone", "role", "is_active", "is_staff"]
+        fields = [
+            "id",
+            "cpf",
+            "name",
+            "email",
+            "phone",
+            "role",
+            "is_active",
+            "is_staff",
+        ]
         read_only_fields = ["id", "cpf", "role", "is_active", "is_staff"]
 
 
 class CustomUserDeleteSerializer(UserDeleteSerializer):
-    """
-    Custom serializer for user deletion that doesn't require the current password.
-    """
+    """User deletion serializer that skips the password check."""
 
     # Remove the current_password field by setting it to None
     current_password = None
@@ -31,14 +38,14 @@ class CustomUserDeleteSerializer(UserDeleteSerializer):
 
 
 class UnitManagerUserSerializer(serializers.ModelSerializer):
-    """
-    Serializer for creating a Unit Manager user.
+    """Serializer for creating a Unit Manager user.
 
     This serializer is used to create a user with the Unit Manager role.
     The password is auto-generated using a secure token, and the user
     role is automatically set to Unit Manager.
 
-    The unit_id field is used to associate the user with a specific unit.
+    The unit_id field is used to associate the user with a specific
+    unit.
     """
 
     unit_id = serializers.IntegerField(write_only=True)
@@ -48,35 +55,40 @@ class UnitManagerUserSerializer(serializers.ModelSerializer):
         fields = ["cpf", "name", "email", "phone", "unit_id"]
 
     def validate_unit_id(self, value):
-        """
-        Validate that the unit exists.
+        """Validate that the unit exists.
 
         Args:
             value (int): The unit ID to validate.
+
         Returns:
             int: The validated unit ID.
 
         Raises:
-            serializers.ValidationError: If the unit with the given ID does not exist.
+            serializers.ValidationError: If the unit with the given
+                ID does not exist.
         """
         try:
             Unit.objects.get(pk=value)
-        except Unit.DoesNotExist:
-            raise serializers.ValidationError("Unit with this ID does not exist.")
+        except Unit.DoesNotExist as err:
+            raise serializers.ValidationError(
+                "Unit with this ID does not exist."
+            ) from err
         return value
 
     def create(self, validated_data):
-        """
-        Creates a new user with the Unit Manager role and an auto-generated password,
-        and associates it with the specified unit.
+        """Creates a Unit Manager user with an auto-generated password.
+
+        Associates the new user with the specified unit.
 
         Args:
-            validated_data (dict): The validated data containing the fields "cpf", "name",
-                                  "email", "phone", and "unit_id".
+            validated_data (dict): The validated data containing the
+                fields "cpf", "name", "email", "phone", and
+                "unit_id".
 
         Returns:
-            User: A newly created User instance with the Unit Manager role and a secure,
-                 randomly generated password, associated with the specified unit.
+            User: A newly created User instance with the Unit
+                Manager role and a secure, randomly generated
+                password, associated with the specified unit.
         """
         unit_id = validated_data.pop("unit_id")
 
@@ -124,7 +136,9 @@ class UserManagementCreateSerializer(serializers.ModelSerializer):
         if value not in UserAccount.Role.values:
             raise serializers.ValidationError("Invalid user role")
         if value == UserAccount.Role.SERVICE_ACCOUNT:
-            raise serializers.ValidationError("Service account role is not allowed")
+            raise serializers.ValidationError(
+                "Service account role is not allowed"
+            )
         return value
 
     def create(self, validated_data):
@@ -157,7 +171,9 @@ class UserManagementUpdateSerializer(serializers.ModelSerializer):
 
     def validate_role(self, value):
         if value == UserAccount.Role.SERVICE_ACCOUNT:
-            raise serializers.ValidationError("Service account role is not allowed")
+            raise serializers.ValidationError(
+                "Service account role is not allowed"
+            )
         return value
 
     def update(self, instance, validated_data):

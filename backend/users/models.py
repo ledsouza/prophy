@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any
 
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -11,17 +11,15 @@ from django.db.models import TextChoices
 
 from users.validators import CPFValidator, MobilePhoneValidator
 
-T = TypeVar("T", bound="UserAccount")
 
-
-class UserAccountManager(BaseUserManager):
-    def create_user(
+class UserAccountManager(BaseUserManager["UserAccount"]):
+    def create_user(  # noqa: PLR0913
         self,
         cpf: str,
         email: str,
-        password: str,
-        role: Optional[str] = None,
-        **kwargs: Dict[str, Any],
+        password: str | None,
+        role: str | None = None,
+        **kwargs: Any,
     ) -> "UserAccount":
         if not cpf:
             raise ValueError("Usuários devem conter um nome de usuário.")
@@ -34,7 +32,8 @@ class UserAccountManager(BaseUserManager):
         if role not in UserAccount.Role.values:
             raise ValueError(
                 f"Invalid user role. Valid roles are: {
-                    ', '.join(UserAccount.Role.values)}"
+                    ', '.join(UserAccount.Role.values)
+                }"
             )
 
         email = self.normalize_email(email)
@@ -50,13 +49,13 @@ class UserAccountManager(BaseUserManager):
 
         return user
 
-    def create_superuser(
+    def create_superuser(  # noqa: PLR0913
         self,
         cpf: str,
         email: str,
         password: str,
-        role: Optional[str] = None,
-        **kwargs: Dict[str, Any],
+        role: str | None = None,
+        **kwargs: Any,
     ) -> "UserAccount":
 
         if role is None:
@@ -105,17 +104,25 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(
         "Conta Ativa",
         default=True,
-        help_text="Indica que o usuário será tratado como ativo. Ao invés de excluir contas de usuário, desmarque isso.",
+        help_text=(
+            "Indica que o usuário será tratado como ativo. Ao invés "
+            "de excluir contas de usuário, desmarque isso."
+        ),
     )
     is_staff = models.BooleanField(
         "Acesso à Administração",
         default=False,
-        help_text="Indica que usuário consegue acessar este site de administração.",
+        help_text=(
+            "Indica que usuário consegue acessar este site de administração."
+        ),
     )
     is_superuser = models.BooleanField(
         "Superusuário",
         default=False,
-        help_text="Indica que este usuário tem todas as permissões sem atribuí-las explicitamente.",
+        help_text=(
+            "Indica que este usuário tem todas as permissões sem "
+            "atribuí-las explicitamente."
+        ),
     )
 
     objects = UserAccountManager()

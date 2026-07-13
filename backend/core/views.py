@@ -9,7 +9,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -28,14 +27,10 @@ class HealthCheckView(APIView):
             with connection.cursor() as cursor:
                 cursor.execute("SELECT 1")
         except DatabaseError:
-            logger.exception(
-                "Health check failed: database unreachable"
-            )
+            logger.exception("Health check failed: database unreachable")
             return Response(
                 {"status": "error", "database": "unreachable"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        return Response(
-            {"status": "ok"}, status=status.HTTP_200_OK
-        )
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)

@@ -2,7 +2,6 @@ import logging
 from datetime import date
 
 from anymail.message import AnymailMessage
-from clients_management.models import Client, Proposal
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -11,6 +10,8 @@ from django.db.models.query import QuerySet
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.html import strip_tags
+
+from clients_management.models import Client, Proposal
 from users.models import UserAccount
 
 logger = logging.getLogger(__name__)
@@ -41,9 +42,7 @@ class Command(BaseCommand):
         )
 
     def _send_renewal_notifications(self, threshold_date: date) -> int:
-        """
-        Send renewal notifications for annual contracts accepted 11 months ago.
-        """
+        """Sends renewal notices for contracts due in 11 months."""
         proposals_to_notify = self._query_renewal_proposals(threshold_date)
 
         if not proposals_to_notify:
@@ -51,14 +50,16 @@ class Command(BaseCommand):
             return 0
 
         self.stdout.write(
-            f"Found {proposals_to_notify.count()} annual contracts for renewal."
+            f"Found {proposals_to_notify.count()} annual contracts "
+            "for renewal."
         )
 
         sent_count = 0
         for proposal in proposals_to_notify:
             if not (recipients := self._get_renewal_recipients(proposal)):
                 self.stdout.write(
-                    f"  - No valid recipients for Proposal ID {proposal.id}, skipping."
+                    f"  - No valid recipients for Proposal ID "
+                    f"{proposal.id}, skipping."
                 )
                 continue
 
@@ -69,7 +70,9 @@ class Command(BaseCommand):
             )
             if settings.DEBUG and override_recipients_raw:
                 override_emails = [
-                    e.strip() for e in override_recipients_raw.split(",") if e.strip()
+                    e.strip()
+                    for e in override_recipients_raw.split(",")
+                    if e.strip()
                 ]
                 if override_emails:
                     recipient_emails = override_emails
@@ -78,7 +81,8 @@ class Command(BaseCommand):
 
             try:
                 dashboard_url = (
-                    settings.FRONTEND_URL or "https://medphyshub.prophy.com/dashboard"
+                    settings.FRONTEND_URL
+                    or "https://medphyshub.prophy.com/dashboard"
                 )
                 context = {
                     "client_name": client.name,
@@ -101,8 +105,8 @@ class Command(BaseCommand):
                 message.send()
                 sent_count += 1
                 self.stdout.write(
-                    f"  - Sent renewal notification for Proposal ID {proposal.id} "
-                    f"to {', '.join(recipient_emails)}"
+                    f"  - Sent renewal notification for Proposal ID "
+                    f"{proposal.id} to {', '.join(recipient_emails)}"
                 )
             except Exception:
                 logger.exception(
@@ -113,9 +117,7 @@ class Command(BaseCommand):
         return sent_count
 
     def _send_winback_notifications(self, threshold_date: date) -> int:
-        """
-        Send win-back notifications for rejected proposals after 11 months.
-        """
+        """Sends win-back notices for 11-month rejected proposals."""
         proposals_to_notify = self._query_winback_proposals(threshold_date)
 
         if not proposals_to_notify:
@@ -123,20 +125,23 @@ class Command(BaseCommand):
             return 0
 
         self.stdout.write(
-            f"Found {proposals_to_notify.count()} rejected proposals for win-back."
+            f"Found {proposals_to_notify.count()} rejected proposals "
+            "for win-back."
         )
 
         sent_count = 0
         for proposal in proposals_to_notify:
             if self._has_subsequent_active_proposal(proposal):
                 self.stdout.write(
-                    f"  - Proposal ID {proposal.id} has subsequent active/won proposal, skipping."
+                    f"  - Proposal ID {proposal.id} has subsequent "
+                    "active/won proposal, skipping."
                 )
                 continue
 
             if not (recipients := self._get_winback_recipients(proposal)):
                 self.stdout.write(
-                    f"  - No commercial users for Proposal ID {proposal.id}, skipping."
+                    f"  - No commercial users for Proposal ID "
+                    f"{proposal.id}, skipping."
                 )
                 continue
 
@@ -147,7 +152,9 @@ class Command(BaseCommand):
             )
             if settings.DEBUG and override_recipients_raw:
                 override_emails = [
-                    e.strip() for e in override_recipients_raw.split(",") if e.strip()
+                    e.strip()
+                    for e in override_recipients_raw.split(",")
+                    if e.strip()
                 ]
                 if override_emails:
                     recipient_emails = override_emails
@@ -156,7 +163,8 @@ class Command(BaseCommand):
 
             try:
                 dashboard_url = (
-                    settings.FRONTEND_URL or "https://medphyshub.prophy.com/dashboard"
+                    settings.FRONTEND_URL
+                    or "https://medphyshub.prophy.com/dashboard"
                 )
                 context = {
                     "client_name": client.name,
@@ -179,8 +187,8 @@ class Command(BaseCommand):
                 message.send()
                 sent_count += 1
                 self.stdout.write(
-                    f"  - Sent win-back notification for Proposal ID {proposal.id} "
-                    f"to {', '.join(recipient_emails)}"
+                    f"  - Sent win-back notification for Proposal ID "
+                    f"{proposal.id} to {', '.join(recipient_emails)}"
                 )
             except Exception:
                 logger.exception(
@@ -190,9 +198,11 @@ class Command(BaseCommand):
 
         return sent_count
 
-    def _query_renewal_proposals(self, threshold_date: date) -> QuerySet[Proposal]:
-        """
-        Query annual accepted proposals with date exactly 11 months ago.
+    def _query_renewal_proposals(
+        self, threshold_date: date
+    ) -> QuerySet[Proposal]:
+        """Queries annual proposals accepted exactly 11 months ago.
+
         Returns only the latest annual accepted proposal per CNPJ.
         """
         latest_annual_per_cnpj = (
@@ -205,7 +215,8 @@ class Command(BaseCommand):
         )
 
         cnpj_date_pairs = {
-            item["cnpj"]: item["latest_date"] for item in latest_annual_per_cnpj
+            item["cnpj"]: item["latest_date"]
+            for item in latest_annual_per_cnpj
         }
 
         proposals = Proposal.objects.filter(
@@ -222,10 +233,10 @@ class Command(BaseCommand):
             id__in=[p.id for p in filtered_proposals]
         ).select_related()
 
-    def _query_winback_proposals(self, threshold_date: date) -> QuerySet[Proposal]:
-        """
-        Query rejected proposals with date exactly 11 months ago.
-        """
+    def _query_winback_proposals(
+        self, threshold_date: date
+    ) -> QuerySet[Proposal]:
+        """Queries rejected proposals dated exactly 11 months ago."""
         return Proposal.objects.filter(
             status=Proposal.Status.REJECTED, date=threshold_date
         ).select_related()
@@ -233,9 +244,10 @@ class Command(BaseCommand):
     def _get_renewal_recipients(
         self, proposal: Proposal
     ) -> tuple[Client, list[str]] | None:
-        """
-        Get recipients for renewal notification:
-        PROPHY_MANAGER, COMMERCIAL, and CLIENT_GENERAL_MANAGER.
+        """Gets renewal notification recipients.
+
+        Includes PROPHY_MANAGER, COMMERCIAL, and
+        CLIENT_GENERAL_MANAGER users.
         """
         try:
             client = Client.objects.get(cnpj=proposal.cnpj)
@@ -257,7 +269,8 @@ class Command(BaseCommand):
 
         if not eligible_users.exists():
             logger.error(
-                "No eligible users (GP/C/GGC) found for Client '%s' (CNPJ: %s).",
+                "No eligible users (GP/C/GGC) found for Client '%s' "
+                "(CNPJ: %s).",
                 client.name,
                 client.cnpj,
                 extra={"proposal_id": proposal.id, "client_id": client.id},
@@ -272,7 +285,8 @@ class Command(BaseCommand):
 
         if not recipient_emails:
             logger.error(
-                "Eligible users have no email addresses for Client '%s' (CNPJ: %s).",
+                "Eligible users have no email addresses for Client "
+                "'%s' (CNPJ: %s).",
                 client.name,
                 client.cnpj,
                 extra={"proposal_id": proposal.id, "client_id": client.id},
@@ -284,9 +298,7 @@ class Command(BaseCommand):
     def _get_winback_recipients(
         self, proposal: Proposal
     ) -> tuple[Client, list[str]] | None:
-        """
-        Get recipients for win-back notification: only COMMERCIAL users.
-        """
+        """Gets win-back notification recipients (COMMERCIAL users)."""
         try:
             client = Client.objects.get(cnpj=proposal.cnpj)
         except Client.DoesNotExist:
@@ -297,7 +309,9 @@ class Command(BaseCommand):
             )
             return None
 
-        commercial_users = client.users.filter(role=UserAccount.Role.COMMERCIAL)
+        commercial_users = client.users.filter(
+            role=UserAccount.Role.COMMERCIAL
+        )
 
         if not commercial_users.exists():
             logger.error(
@@ -316,7 +330,8 @@ class Command(BaseCommand):
 
         if not recipient_emails:
             logger.error(
-                "Commercial users have no email addresses for Client '%s' (CNPJ: %s).",
+                "Commercial users have no email addresses for "
+                "Client '%s' (CNPJ: %s).",
                 client.name,
                 client.cnpj,
                 extra={"proposal_id": proposal.id, "client_id": client.id},
@@ -325,10 +340,13 @@ class Command(BaseCommand):
 
         return (client, recipient_emails)
 
-    def _has_subsequent_active_proposal(self, rejected_proposal: Proposal) -> bool:
-        """
-        Check if there's any subsequent proposal (PENDING or ACCEPTED)
-        for the same CNPJ after the rejection date.
+    def _has_subsequent_active_proposal(
+        self, rejected_proposal: Proposal
+    ) -> bool:
+        """Checks for a later proposal for the same CNPJ.
+
+        Considers PENDING or ACCEPTED proposals dated after the
+        rejection date.
         """
         return Proposal.objects.filter(
             cnpj=rejected_proposal.cnpj,

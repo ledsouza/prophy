@@ -1,9 +1,9 @@
-from clients_management.models import Client, Unit
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from clients_management.models import Client, Unit
 from users.management import IsProphyManagerOrCommercial
 from users.models import UserAccount
 from users.serializers_associations import (
@@ -41,7 +41,11 @@ class ClientUserAssociationView(APIView):
             )
         if user.role == UserAccount.Role.UNIT_MANAGER:
             return Response(
-                {"user_id": "Unit manager users cannot be assigned to clients."},
+                {
+                    "user_id": (
+                        "Unit manager users cannot be assigned to clients."
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -53,7 +57,8 @@ class ClientUserAssociationView(APIView):
                 return Response(
                     {
                         "detail": (
-                            "Client already has a client general manager assigned."
+                            "Client already has a client general "
+                            "manager assigned."
                         ),
                         "current_client_general_manager": {
                             "id": existing_manager.id,
@@ -101,19 +106,27 @@ class UnitManagerAssociationView(APIView):
             and user.role != UserAccount.Role.UNIT_MANAGER
         ):
             return Response(
-                {"user_id": ("Commercial users can only manage unit manager roles.")},
+                {
+                    "user_id": (
+                        "Commercial users can only manage unit manager roles."
+                    )
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
         if user and user.role != UserAccount.Role.UNIT_MANAGER:
             return Response(
-                {"user_id": "Only unit manager users can be assigned to units."},
+                {
+                    "user_id": (
+                        "Only unit manager users can be assigned to units."
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if user and unit.user_id == user.id:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        if user and unit.user_id and unit.user_id != user.id:
+        if user and unit.user is not None and unit.user_id != user.id:
             return Response(
                 {
                     "detail": "Unit already has a unit manager assigned.",
@@ -135,10 +148,14 @@ class UserAssociationsSummaryView(APIView):
 
     def get(self, request, user_id: int) -> Response:
         user = get_object_or_404(UserAccount, pk=user_id)
-        if request.user.role == UserAccount.Role.COMMERCIAL and user.role not in [
-            UserAccount.Role.CLIENT_GENERAL_MANAGER,
-            UserAccount.Role.UNIT_MANAGER,
-        ]:
+        if (
+            request.user.role == UserAccount.Role.COMMERCIAL
+            and user.role
+            not in [
+                UserAccount.Role.CLIENT_GENERAL_MANAGER,
+                UserAccount.Role.UNIT_MANAGER,
+            ]
+        ):
             return Response(
                 {
                     "detail": (

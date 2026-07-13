@@ -1,9 +1,9 @@
 import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
+
 from tests.factories.clients_management import ClientFactory, UnitFactory
 from tests.factories.users import UserFactory
-
 from users.models import UserAccount
 
 

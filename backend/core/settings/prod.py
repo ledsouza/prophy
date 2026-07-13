@@ -45,9 +45,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 if not OIDC_AUDIENCE:  # noqa: F405
-    raise ImproperlyConfigured(
-        "OIDC_AUDIENCE must be set in production."
-    )
+    raise ImproperlyConfigured("OIDC_AUDIENCE must be set in production.")
 
 # Cloud Run terminates TLS at the load balancer and forwards
 # requests over HTTP with X-Forwarded-Proto: https. Without this,

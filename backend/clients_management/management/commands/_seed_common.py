@@ -4,13 +4,13 @@ import re
 import uuid
 from pathlib import Path
 
-from clients_management.models import Modality
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.core.files.base import ContentFile
 from django.db import connection
-from users.models import UserAccount
 
+from clients_management.models import Modality
+from users.models import UserAccount
 
 CPF_ADMIN = "03446254005"
 CPF_CLIENT_MANAGER = "82484874073"
@@ -60,7 +60,9 @@ PROPOSAL_PDF_PATH = BASE_DIR / "static" / "placeholder.pdf"
 PROPOSAL_WORD_PATH = BASE_DIR / "static" / "Placeholder.docx"
 
 _current_dir = os.path.dirname(os.path.abspath(__file__))
-_project_root = os.path.abspath(os.path.join(_current_dir, "..", "..", "..", ".."))
+_project_root = os.path.abspath(
+    os.path.join(_current_dir, "..", "..", "..", "..")
+)
 _cypress_fixture_path = os.getenv("CYPRESS_FIXTURE_PATH")
 FIXTURE_PATH = (
     _cypress_fixture_path
@@ -111,7 +113,9 @@ def make_report_file(report_type_code: str, entity_name: str) -> ContentFile:
     return ContentFile(file_content, name=filename)
 
 
-def make_report_word_file(report_type_code: str, entity_name: str) -> ContentFile:
+def make_report_word_file(
+    report_type_code: str, entity_name: str
+) -> ContentFile:
     uid = uuid.uuid4().hex[:8]
     slug = safe_slug(entity_name)
     source_path = Path(settings.BASE_DIR) / "static" / "Placeholder.docx"
@@ -122,10 +126,10 @@ def make_report_word_file(report_type_code: str, entity_name: str) -> ContentFil
 
 
 def raise_postgres_id_floor() -> None:
-    """
-    On Postgres, advance all PK sequences past RANDOM_ID_FLOOR so
-    explicit-id seed rows (in the 1000-band) never sort after
-    auto-incremented rows. No-op on SQLite.
+    """Advances Postgres PK sequences past RANDOM_ID_FLOOR.
+
+    Ensures explicit-id seed rows (in the 1000-band) never sort
+    after auto-incremented rows. No-op on SQLite.
     """
     if connection.vendor != "postgresql":
         return
@@ -169,8 +173,7 @@ def create_groups() -> None:
     )
     perms_dict = {p.name: p for p in base_permissions}
 
-    role_permissions_map = {
-        UserAccount.Role.PROPHY_MANAGER: list(base_permissions),
+    role_permissions_map: dict[UserAccount.Role, list[str]] = {
         UserAccount.Role.CLIENT_GENERAL_MANAGER: [
             "view Cliente",
             "view Unidade",
@@ -196,7 +199,7 @@ def create_groups() -> None:
         ],
     }
 
-    for role_value in UserAccount.Role.values:
+    for role_value in UserAccount.Role:
         group, _ = Group.objects.get_or_create(name=role_value)
 
         if role_value == UserAccount.Role.PROPHY_MANAGER:
@@ -208,7 +211,11 @@ def create_groups() -> None:
         if permission_names:
             for name_substring in permission_names:
                 matched_perm = next(
-                    (p for name, p in perms_dict.items() if name_substring in name),
+                    (
+                        p
+                        for name, p in perms_dict.items()
+                        if name_substring in name
+                    ),
                     None,
                 )
                 if matched_perm:

@@ -71,20 +71,30 @@ class InstitutionalMaterial(models.Model):
                 # Guard M2M access for unsaved instances
                 if self.pk and self.allowed_external_users.exists():
                     errors["allowed_external_users"] = (
-                        "Materiais públicos não aceitam permissões específicas."
+                        "Materiais públicos não aceitam permissões "
+                        "específicas."
                     )
 
-                valid_public = {code for code, _ in self.PublicCategory.choices}
+                valid_public = {
+                    code for code, _ in self.PublicCategory.choices
+                }
                 if self.category not in valid_public:
-                    errors["category"] = "Categoria inválida para material público."
+                    errors["category"] = (
+                        "Categoria inválida para material público."
+                    )
 
             case self.Visibility.INTERNAL:
-                valid_internal = {code for code, _ in self.InternalCategory.choices}
+                valid_internal = {
+                    code for code, _ in self.InternalCategory.choices
+                }
                 if self.category not in valid_internal:
-                    errors["category"] = "Categoria inválida para material interno."
+                    errors["category"] = (
+                        "Categoria inválida para material interno."
+                    )
 
             case _:
-                # Choices already constrain values; keep as no-op fallback
+                # Choices already constrain values; keep as no-op
+                # fallback.
                 pass
 
         if errors:

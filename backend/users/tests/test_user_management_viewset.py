@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.test import APIClient
 from validate_docbr import CPF
 
-from users.models import UserAccount
 from tests.factories import UserFactory
+from users.models import UserAccount
 
 
 @pytest.mark.django_db
@@ -38,7 +38,9 @@ def test_list_manage_allows_gp_and_supports_filters():
 def test_commercial_list_manage_only_returns_allowed_roles():
     client = APIClient()
     commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
-    UserFactory(role=UserAccount.Role.CLIENT_GENERAL_MANAGER, name="Client Manager")
+    UserFactory(
+        role=UserAccount.Role.CLIENT_GENERAL_MANAGER, name="Client Manager"
+    )
     UserFactory(role=UserAccount.Role.UNIT_MANAGER, name="Unit Manager")
     UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST, name="FMI")
 
@@ -69,10 +71,14 @@ def test_list_manage_excludes_service_account_users():
 
 
 @pytest.mark.django_db
-def test_create_managed_user_sends_reset_email_and_sets_unusable_password(mocker):
+def test_create_managed_user_sends_reset_email_and_sets_unusable_password(
+    mocker,
+):
     client = APIClient()
     gp = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
-    send_mock = mocker.patch("users.management.ManagedUserPasswordResetEmail.send")
+    send_mock = mocker.patch(
+        "users.management.ManagedUserPasswordResetEmail.send"
+    )
 
     client.force_authenticate(user=gp)
     response = client.post(
@@ -99,7 +105,9 @@ def test_create_managed_user_sends_reset_email_and_sets_unusable_password(mocker
 def test_commercial_can_create_allowed_roles(mocker):
     client = APIClient()
     commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
-    send_mock = mocker.patch("users.management.ManagedUserPasswordResetEmail.send")
+    send_mock = mocker.patch(
+        "users.management.ManagedUserPasswordResetEmail.send"
+    )
 
     client.force_authenticate(user=commercial)
     response = client.post(
@@ -123,7 +131,9 @@ def test_commercial_can_create_allowed_roles(mocker):
 def test_commercial_cannot_create_disallowed_roles(mocker):
     client = APIClient()
     commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
-    send_mock = mocker.patch("users.management.ManagedUserPasswordResetEmail.send")
+    send_mock = mocker.patch(
+        "users.management.ManagedUserPasswordResetEmail.send"
+    )
 
     client.force_authenticate(user=commercial)
     response = client.post(
@@ -146,7 +156,9 @@ def test_commercial_cannot_create_disallowed_roles(mocker):
 def test_create_managed_user_rejects_service_account_role(mocker):
     client = APIClient()
     gp = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
-    send_mock = mocker.patch("users.management.ManagedUserPasswordResetEmail.send")
+    send_mock = mocker.patch(
+        "users.management.ManagedUserPasswordResetEmail.send"
+    )
 
     client.force_authenticate(user=gp)
     response = client.post(
@@ -170,7 +182,9 @@ def test_create_managed_user_rejects_duplicate_email(mocker):
     client = APIClient()
     gp = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     UserFactory(email="dup@example.com")
-    send_mock = mocker.patch("users.management.ManagedUserPasswordResetEmail.send")
+    send_mock = mocker.patch(
+        "users.management.ManagedUserPasswordResetEmail.send"
+    )
 
     client.force_authenticate(user=gp)
     response = client.post(

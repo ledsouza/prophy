@@ -4,8 +4,13 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from clients_management.models import Appointment
+from tests.factories import (
+    AppointmentFactory,
+    ClientFactory,
+    UnitFactory,
+    UserFactory,
+)
 from users.models import UserAccount
-from tests.factories import AppointmentFactory, ClientFactory, UnitFactory, UserFactory
 
 
 def _appointment_payload(*, unit_id: int) -> dict:
@@ -135,7 +140,7 @@ def test_appointments_create_as_commercial_is_global():
 
 
 @pytest.mark.django_db
-def test_appointments_update_as_internal_physicist_denied_when_not_client_user():
+def test_appointments_update_internal_physicist_denied_not_client_user():
     client = APIClient()
     internal = UserFactory(role=UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST)
 
@@ -190,7 +195,7 @@ def test_appointments_delete_only_prophy_manager():
 
 
 @pytest.mark.django_db
-def test_appointments_list_filter_responsible_cpf_returns_only_linked_appointments():
+def test_appointments_list_filter_responsible_cpf_returns_linked_only():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     internal_physicist = UserFactory(
@@ -218,7 +223,7 @@ def test_appointments_list_filter_responsible_cpf_returns_only_linked_appointmen
 
 
 @pytest.mark.django_db
-def test_appointments_list_filter_responsible_cpf_returns_empty_when_user_not_linked():
+def test_appointments_list_filter_responsible_cpf_empty_when_not_linked():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     internal_physicist = UserFactory(
@@ -240,7 +245,7 @@ def test_appointments_list_filter_responsible_cpf_returns_empty_when_user_not_li
 
 
 @pytest.mark.django_db
-def test_appointments_list_filter_responsible_cpf_returns_empty_for_invalid_role():
+def test_appointments_list_filter_responsible_cpf_empty_for_invalid_role():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     unit_manager = UserFactory(role=UserAccount.Role.UNIT_MANAGER)

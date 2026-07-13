@@ -26,7 +26,9 @@ def test_public_material_rejects_internal_category(
             "title": "Public",
             "description": "desc",
             "visibility": InstitutionalMaterial.Visibility.PUBLIC,
-            "category": InstitutionalMaterial.InternalCategory.REPORT_TEMPLATES,
+            "category": (
+                InstitutionalMaterial.InternalCategory.REPORT_TEMPLATES
+            ),
             "file": pdf_file,
         },
         format="multipart",
@@ -61,7 +63,7 @@ def test_internal_material_rejects_public_category(
 
 
 @pytest.mark.django_db
-def test_public_material_rejects_allowed_external_users(
+def test_public_material_rejects_allowed_external_users(  # noqa: PLR0913
     api_client,
     prophy_manager,
     external_physicist,

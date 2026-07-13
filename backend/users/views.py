@@ -1,39 +1,42 @@
+from typing import cast
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
-
-from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as DjoserUserViewSet
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
-from django_filters.rest_framework import DjangoFilterBackend
 
-from users.serializers import (
-    CurrentUserSerializer,
-    UnitManagerUserSerializer,
-    CustomUserDeleteSerializer,
-)
 from users.email import UnitManagerPasswordResetEmail
 from users.models import UserAccount
-
-from djoser.views import UserViewSet as DjoserUserViewSet
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from users.serializers import (
+    CurrentUserSerializer,
+    CustomUserDeleteSerializer,
+    UnitManagerUserSerializer,
+)
 
 User = get_user_model()
 
 
 class IsAdminOrClientManager(permissions.BasePermission):
-    """
-    Custom permission to allow both PROPHY_MANAGER and CLIENT_GENERAL_MANAGER users to delete users.
+    """Permission allowing certain roles to delete users.
+
+    Grants delete access to PROPHY_MANAGER and
+    CLIENT_GENERAL_MANAGER users.
     """
 
     def has_permission(self, request, view):
-        # Allow if user is staff (PROPHY_MANAGER) or has CLIENT_GENERAL_MANAGER role
+        # Allow if user is staff (PROPHY_MANAGER) or has the
+        # CLIENT_GENERAL_MANAGER role.
         return (
             request.user.is_staff
             or request.user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER
@@ -41,8 +44,7 @@ class IsAdminOrClientManager(permissions.BasePermission):
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    """
-    Provides a custom endpoint to obtain JWT access and refresh tokens.
+    """Custom endpoint to obtain JWT access and refresh tokens.
 
     Instead of sending tokens in the response body, this view sets them
     as HTTP-only cookies upon successful login.
@@ -51,7 +53,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         None
 
     Methods:
-        post(request, *args, **kwargs): Handles POST requests to obtain tokens.
+        post(request, *args, **kwargs): Handles POST requests to
+            obtain tokens.
 
     """
 
@@ -64,10 +67,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "access": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="JWT access token"
+                            type=openapi.TYPE_STRING,
+                            description="JWT access token",
                         ),
                         "refresh": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="JWT refresh token"
+                            type=openapi.TYPE_STRING,
+                            description="JWT refresh token",
                         ),
                     },
                 ),
@@ -106,13 +111,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 class CustomTokenRefreshView(TokenRefreshView):
-    """
-    Token refresh endpoint to refresh the JWT access token using the refresh token
-    stored in the cookies.
+    """Refreshes the JWT access token using the stored refresh token.
 
     ## Behavior:
 
-    - The refresh token is retrieved from the `refresh` cookie in the request.
+    - The refresh token is retrieved from the `refresh` cookie in the
+      request.
     - On successful refresh, the new access token is set as a cookie.
     """
 
@@ -160,13 +164,12 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 class CustomTokenVerifyView(TokenVerifyView):
-    """
-    Token verify endpoint to verify the validity of the access token
-    stored in the cookies.
+    """Verifies the validity of the stored access token.
 
     ## Behavior:
 
-    - The access token is retrieved from the `access` cookie in the request.
+    - The access token is retrieved from the `access` cookie in the
+      request.
     - The token is then verified.
     """
 
@@ -203,8 +206,7 @@ class CustomTokenVerifyView(TokenVerifyView):
 
 
 class LogoutView(APIView):
-    """
-    Logout view to clear the JWT access and refresh tokens stored in the cookies.
+    """Clears the stored JWT access and refresh tokens.
 
     ## Behavior:
 
@@ -235,7 +237,7 @@ class LogoutView(APIView):
 
 class ExtendedUserViewSet(DjoserUserViewSet):
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['cpf']
+    filterset_fields = ["cpf"]
 
     def get_permissions(self):
         permissions = super().get_permissions()
@@ -251,11 +253,13 @@ class ExtendedUserViewSet(DjoserUserViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        user: UserAccount = self.request.user
+        user: UserAccount = cast(UserAccount, self.request.user)
 
         if self.action == "list":
             if user.role == UserAccount.Role.CLIENT_GENERAL_MANAGER:
-                return UserAccount.objects.filter(role=UserAccount.Role.UNIT_MANAGER)
+                return UserAccount.objects.filter(
+                    role=UserAccount.Role.UNIT_MANAGER
+                )
             elif user.is_staff or user.role == UserAccount.Role.PROPHY_MANAGER:
                 return UserAccount.objects.all()
             else:
@@ -286,7 +290,10 @@ class ExtendedUserViewSet(DjoserUserViewSet):
                 ),
                 "unit_id": openapi.Schema(
                     type=openapi.TYPE_INTEGER,
-                    description="ID of the unit that the manager will be associated with",
+                    description=(
+                        "ID of the unit that the manager will be "
+                        "associated with"
+                    ),
                 ),
             },
         ),
@@ -312,30 +319,39 @@ class ExtendedUserViewSet(DjoserUserViewSet):
                 ),
             ),
             400: "Bad request: validation error",
-            403: "Forbidden: only Client Managers or Prophy Managers can create Unit Managers",
+            403: (
+                "Forbidden: only Client Managers or Prophy Managers "
+                "can create Unit Managers"
+            ),
         },
     )
     @action(["post"], detail=False, url_path="create-unit-manager")
     def create_unit_manager(self, request, *args, **kwargs):
-        """
-        Endpoint for creating a Unit Manager user.
+        """Endpoint for creating a Unit Manager user.
 
-        This endpoint allows only users with the roles Client Manager or Prophy Manager
-        to create a new Unit Manager user. A password reset email is sent to the newly created
-        user's email address upon successful creation.
+        This endpoint allows only users with the roles Client Manager
+        or Prophy Manager to create a new Unit Manager user. A
+        password reset email is sent to the newly created user's
+        email address upon successful creation.
 
         Args:
-            request: The HTTP request object, containing user data and required fields
-                    'cpf', 'email', 'name', 'phone', and 'unit_id'.
+            request: The HTTP request object, containing user data
+                and required fields 'cpf', 'email', 'name', 'phone',
+                and 'unit_id'.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
 
         Returns:
-            Response: A JSON response with a success message and the new user's email if creation
-                    is successful. If the user is created but the email fails to send, returns a
-                    partial success message.
+            Response: A JSON response with a success message and the
+                new user's email if creation is successful. If the
+                user is created but the email fails to send, returns
+                a partial success message.
 
         Raises:
-            HTTP_403_FORBIDDEN: If the request user does not have permission to create a Unit Manager.
-            ValidationError: If the unit with the given ID does not exist.
+            HTTP_403_FORBIDDEN: If the request user does not have
+                permission to create a Unit Manager.
+            ValidationError: If the unit with the given ID does not
+                exist.
         """
         if (
             request.user.role != UserAccount.Role.CLIENT_GENERAL_MANAGER
@@ -343,7 +359,10 @@ class ExtendedUserViewSet(DjoserUserViewSet):
         ):
             return Response(
                 {
-                    "detail": "Only Client Managers or Prophy Managers can create Unit Managers users"
+                    "detail": (
+                        "Only Client Managers or Prophy Managers can "
+                        "create Unit Managers users"
+                    )
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
@@ -372,7 +391,9 @@ class ExtendedUserViewSet(DjoserUserViewSet):
 
             return Response(
                 {
-                    "detail": "Unit manager user created. Password reset email sent.",
+                    "detail": (
+                        "Unit manager user created. Password reset email sent."
+                    ),
                     "email": user.email,
                     "user_id": user.id,
                 },
@@ -382,7 +403,9 @@ class ExtendedUserViewSet(DjoserUserViewSet):
         # If something goes wrong with sending reset email
         return Response(
             {
-                "detail": "User created but could not send password reset email",
+                "detail": (
+                    "User created but could not send password reset email"
+                ),
                 "email": user.email,
                 "user_id": user.id,
             },

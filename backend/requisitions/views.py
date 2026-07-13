@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -7,9 +8,14 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.serializers import ModelSerializer
 
 from clients_management.models import Proposal
-from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
+from requisitions.models import (
+    ClientOperation,
+    EquipmentOperation,
+    UnitOperation,
+)
 from requisitions.serializers import (
     ClientOperationSerializer,
     EquipmentOperationDeleteSerializer,
@@ -30,9 +36,12 @@ class ClientOperationViewSet(viewsets.ViewSet):
 
         ```json
         {
-            "count": 123,  // Total number of clients
-            "next": "http://api.example.com/clients/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
+            // Total number of clients
+            "count": 123,
+            // Link to next page (if available)
+            "next": "http://api.example.com/clients/?page=2",
+            // Link to previous page (if available)
+            "previous": null,
             "results": [
                 {
                     "id": 1,
@@ -44,7 +53,8 @@ class ClientOperationViewSet(viewsets.ViewSet):
         ```
 
         - Gerente Prophy roles: All operations are retrieved.
-        - Other roles: Only operations related to the authenticated user are retrieved.
+        - Other roles: Only operations related to the authenticated
+          user are retrieved.
         """,
         responses={
             200: openapi.Response(
@@ -56,7 +66,7 @@ class ClientOperationViewSet(viewsets.ViewSet):
         },
     )
     def list(self, request):
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = ClientOperation.objects.filter(
                 operation_status__in=[
@@ -113,7 +123,8 @@ class ClientOperationViewSet(viewsets.ViewSet):
         - D: Delete
         - C: Closed
 
-        If operation type is delete, only original_client is required in the body of the request.
+        If operation type is delete, only original_client is required
+        in the body of the request.
 
         ### Operation Status:
         - REV: In analysis
@@ -134,7 +145,9 @@ class ClientOperationViewSet(viewsets.ViewSet):
                         "cnpj": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),
-                            description="List of validation errors for the CNPJ field",
+                            description=(
+                                "List of validation errors for the CNPJ field"
+                            ),
                         )
                     },
                     example={"cnpj": ["Este campo é obrigatório."]},
@@ -148,7 +161,7 @@ class ClientOperationViewSet(viewsets.ViewSet):
     def create(self, request):
         data = request.data
 
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         operation_status = data.get("operation_status")
         operation_type = data.get("operation_type")
         cnpj = data.get("cnpj")
@@ -172,14 +185,16 @@ class ClientOperationViewSet(viewsets.ViewSet):
             return Response(
                 {
                     "detail": (
-                        "Only PROPHY_MANAGER can create accepted client operations."
+                        "Only PROPHY_MANAGER can create accepted "
+                        "client operations."
                     )
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if operation_type == ClientOperation.OperationType.EDIT and not data.get(
-            "original_client"
+        if (
+            operation_type == ClientOperation.OperationType.EDIT
+            and not data.get("original_client")
         ):
             return Response(
                 {"original_client": "Este campo é obrigatório."},
@@ -192,7 +207,8 @@ class ClientOperationViewSet(viewsets.ViewSet):
                 new_client = serializer.save(created_by=user)
             except ValidationError as error:
                 return Response(
-                    {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+                    {"message": error.messages},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             if is_self_registration:
@@ -209,7 +225,11 @@ class ClientOperationViewSet(viewsets.ViewSet):
                     new_client.users.set(original_users)
                 except ClientOperation.DoesNotExist:
                     return Response(
-                        {"original_client": "Cliente original não encontrado."},
+                        {
+                            "original_client": (
+                                "Cliente original não encontrado."
+                            )
+                        },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -220,10 +240,13 @@ class ClientOperationViewSet(viewsets.ViewSet):
         operation_description="""
         Update the details of a specific client operation.
 
-        - **Full Update**: Provide all fields in the request body. Other fields will remain unchanged.
-        - **Partial Update**: Provide only the fields to be updated in the request body. Other fields will remain unchanged.
+        - **Full Update**: Provide all fields in the request body.
+          Other fields will remain unchanged.
+        - **Partial Update**: Provide only the fields to be updated
+          in the request body. Other fields will remain unchanged.
 
-        Ensure that the client operation exists before attempting to update it.
+        Ensure that the client operation exists before attempting to
+        update it.
         """,
         request_body=ClientOperationSerializer,
         responses={
@@ -306,9 +329,12 @@ class UnitOperationViewSet(viewsets.ViewSet):
 
         ```json
         {
-            "count": 123,  // Total number of units
-            "next": "http://api.example.com/units/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
+            // Total number of units
+            "count": 123,
+            // Link to next page (if available)
+            "next": "http://api.example.com/units/?page=2",
+            // Link to previous page (if available)
+            "previous": null,
             "results": [
                 {
                     "id": 1,
@@ -320,7 +346,8 @@ class UnitOperationViewSet(viewsets.ViewSet):
         ```
 
         - Gerente Prophy role: All operations are retrieved.
-        - Other roles: Only operations related to the authenticated user's client are retrieved.
+        - Other roles: Only operations related to the authenticated
+          user's client are retrieved.
         """,
         responses={
             200: openapi.Response(
@@ -332,7 +359,7 @@ class UnitOperationViewSet(viewsets.ViewSet):
         },
     )
     def list(self, request):
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = UnitOperation.objects.filter(
                 operation_status__in=[
@@ -378,14 +405,13 @@ class UnitOperationViewSet(viewsets.ViewSet):
         - D: Delete
         - C: Closed
 
-        If operation type is delete, only original_unit is required in the body of the request.
+        If operation type is delete, only original_unit is required
+        in the body of the request.
 
         ### Operation Status:
         - REV: In analysis
         - A: Approved
         - R: Rejected
-
-
         """,
         request_body=UnitOperationSerializer,
         responses={
@@ -403,7 +429,9 @@ class UnitOperationViewSet(viewsets.ViewSet):
                         "cnpj": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             items=openapi.Schema(type=openapi.TYPE_STRING),
-                            description="List of validation errors for the CNPJ field",
+                            description=(
+                                "List of validation errors for the CNPJ field"
+                            ),
                         )
                     },
                     example={"cnpj": ["Este campo é obrigatório."]},
@@ -414,6 +442,7 @@ class UnitOperationViewSet(viewsets.ViewSet):
     def create(self, request):
         data = request.data
 
+        serializer: ModelSerializer
         if data["operation_type"] == UnitOperation.OperationType.DELETE:
             serializer = UnitOperationDeleteSerializer(data=data)
         else:
@@ -424,7 +453,8 @@ class UnitOperationViewSet(viewsets.ViewSet):
                 serializer.save(created_by=request.user)
             except ValidationError as error:
                 return Response(
-                    {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+                    {"message": error.messages},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -435,15 +465,19 @@ class UnitOperationViewSet(viewsets.ViewSet):
         operation_description="""
         Update the details of a specific unit operation.
 
-        - **Full Update**: Provide all fields in the request body. Other fields will remain unchanged.
-        - **Partial Update**: Provide only the fields to be updated in the request body. Other fields will remain unchanged.
+        - **Full Update**: Provide all fields in the request body.
+          Other fields will remain unchanged.
+        - **Partial Update**: Provide only the fields to be updated
+          in the request body. Other fields will remain unchanged.
 
-        Ensure that the client operation exists before attempting to update it.
+        Ensure that the client operation exists before attempting to
+        update it.
         """,
         request_body=UnitOperationSerializer,
         responses={
             200: openapi.Response(
-                description="Updated unit operation", schema=UnitOperationSerializer()
+                description="Updated unit operation",
+                schema=UnitOperationSerializer(),
             ),
             400: "Invalid request body provided",
             401: "Unauthorized access",
@@ -456,16 +490,20 @@ class UnitOperationViewSet(viewsets.ViewSet):
             operation = UnitOperation.objects.get(pk=pk)
         except UnitOperation.DoesNotExist:
             return Response(
-                {"detail": "Operação não encontrada."}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "Operação não encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = UnitOperationSerializer(operation, data=request.data, partial=True)
+        serializer = UnitOperationSerializer(
+            operation, data=request.data, partial=True
+        )
         if serializer.is_valid():
             try:
                 serializer.save()
             except ValidationError as error:
                 return Response(
-                    {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+                    {"message": error.messages},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -474,7 +512,9 @@ class UnitOperationViewSet(viewsets.ViewSet):
         operation_summary="Delete unit operation",
         operation_description="""
         Delete a specific unit operation by its ID.
-        Please note that each unit operation is linked to a unit. Deleting the unit operation will also result in the associated unit being removed.
+        Please note that each unit operation is linked to a unit.
+        Deleting the unit operation will also result in the
+        associated unit being removed.
         """,
         responses={
             200: openapi.Response(
@@ -520,9 +560,12 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
 
         ```json
         {
-            "count": 123,  // Total number of equipments
-            "next": "http://api.example.com/equipments/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
+            // Total number of equipments
+            "count": 123,
+            // Link to next page (if available)
+            "next": "http://api.example.com/equipments/?page=2",
+            // Link to previous page (if available)
+            "previous": null,
             "results": [
                 {
                     "id": 1,
@@ -533,9 +576,9 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         }
         ```
 
-        
         - Gerente Prophy role: All operations are retrieved.
-        - Other roles: Only operations related to the authenticated user's client are retrieved.
+        - Other roles: Only operations related to the authenticated
+          user's client are retrieved.
         """,
         responses={
             200: openapi.Response(
@@ -547,7 +590,7 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         },
     )
     def list(self, request):
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             queryset = EquipmentOperation.objects.filter(
                 operation_status__in=[
@@ -593,7 +636,8 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         - D: Delete
         - C: Closed
 
-        If operation type is delete, only original_equipment is required in the body of the request.
+        If operation type is delete, only original_equipment is
+        required in the body of the request.
 
         ### Operation Status:
         - REV: In analysis
@@ -627,6 +671,7 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
     def create(self, request):
         data = request.data
 
+        serializer: ModelSerializer
         if data["operation_type"] == EquipmentOperation.OperationType.DELETE:
             serializer = EquipmentOperationDeleteSerializer(data=data)
         else:
@@ -637,10 +682,13 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
                 serializer.save(created_by=request.user)
             except ValidationError as error:
                 return Response(
-                    {"message": error.messages}, status=status.HTTP_400_BAD_REQUEST
+                    {"message": error.messages},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             except Exception:
-                logger.exception("Unexpected error creating equipment operation")
+                logger.exception(
+                    "Unexpected error creating equipment operation"
+                )
                 raise
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -651,10 +699,13 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
         operation_description="""
         Update details of a specific equipment operation.
 
-        - **Full Update**: Provide all fields in the request body. Other fields will remain unchanged.
-        - **Partial Update**: Provide only the fields to be updated in the request body. Other fields will remain unchanged.
+        - **Full Update**: Provide all fields in the request body.
+          Other fields will remain unchanged.
+        - **Partial Update**: Provide only the fields to be updated
+          in the request body. Other fields will remain unchanged.
 
-        Ensure that the client operation exists before attempting to update it.
+        Ensure that the client operation exists before attempting to
+        update it.
         """,
         request_body=EquipmentOperationSerializer,
         responses={
@@ -690,7 +741,9 @@ class EquipmentOperationViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Delete equipment operation",
-        operation_description="Delete a specific equipment operation by its ID.",
+        operation_description=(
+            "Delete a specific equipment operation by its ID."
+        ),
         responses={
             200: openapi.Response(
                 description="Equipment operation deleted successfully",

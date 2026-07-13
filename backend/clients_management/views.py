@@ -2,8 +2,8 @@ import logging
 import os
 from datetime import date, timedelta
 from io import StringIO
+from typing import cast
 
-from core.pagination import PaginationMixin
 from dateutil.relativedelta import relativedelta
 from django.core.management import call_command
 from django.db.models import (
@@ -11,25 +11,28 @@ from django.db.models import (
     Case,
     Exists,
     F,
+    Model,
     OuterRef,
     Q,
     Subquery,
     Value,
     When,
 )
-from django.http import FileResponse, Http404, HttpResponse, HttpResponseRedirect
+from django.http import (
+    FileResponse,
+    Http404,
+    HttpResponse,
+    HttpResponseRedirect,
+)
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from requisitions.models import ClientOperation, EquipmentOperation, UnitOperation
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from users.authentication import GoogleOIDCAuthentication
-from users.models import UserAccount
 
 from clients_management.file_utils import get_content_type_from_filename
 from clients_management.models import (
@@ -62,38 +65,46 @@ from clients_management.serializers import (
     ServiceOrderSerializer,
     UnitSerializer,
 )
+from core.pagination import PaginationMixin
+from requisitions.models import (
+    ClientOperation,
+    EquipmentOperation,
+    UnitOperation,
+)
+from users.authentication import GoogleOIDCAuthentication
+from users.models import UserAccount
 
 logger = logging.getLogger(__name__)
 
 
 class EquipmentMediaView(APIView):
     permission_classes = [IsAuthenticated]
-    model = None
-    field_name = None
+    model: type[Model] | None = None
+    field_name: str | None = None
 
     def get(self, request: Request, pk: int) -> HttpResponseRedirect:
+        if self.model is None or self.field_name is None:
+            raise Http404
         obj = get_object_or_404(self.model, pk=pk)
         field = getattr(obj, self.field_name)
         if not field:
             raise Http404
-        return HttpResponseRedirect(
-            request.build_absolute_uri(field.url)
-        )
+        return HttpResponseRedirect(request.build_absolute_uri(field.url))
 
 
 class LatestProposalStatusView(APIView):
-    """
-    Check the approval status of the latest contract proposal with a given CNPJ.
-    """
+    """Check the approval status of the latest contract proposal."""
 
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        operation_summary="Retrieve approval status of the latest contract proposal",
+        operation_summary="Retrieve approval status of the latest contract "
+        "proposal",
         operation_description="""
-        This endpoint allows you to retrieve the approval status of the most recent proposal 
-        associated with a specific CNPJ. It checks if the given CNPJ exists in the database 
-        and retrieves the latest proposal's approval status.
+        Retrieve the approval status of the most recent proposal
+        associated with a specific CNPJ. Checks if the given CNPJ
+        exists in the database and retrieves the latest proposal's
+        approval status.
         """,
         request_body=CNPJSerializer,
         responses={
@@ -104,7 +115,8 @@ class LatestProposalStatusView(APIView):
                     properties={
                         "status": openapi.Schema(
                             type=openapi.TYPE_BOOLEAN,
-                            description="Approval status of the latest proposal",
+                            description="Approval status of the latest "
+                            "proposal",
                         )
                     },
                 ),
@@ -116,7 +128,8 @@ class LatestProposalStatusView(APIView):
                     properties={
                         "error": openapi.Schema(
                             type=openapi.TYPE_STRING,
-                            description="Error message indicating no proposals found",
+                            description="Error message indicating no "
+                            "proposals found",
                         )
                     },
                 ),
@@ -143,7 +156,9 @@ class LatestProposalStatusView(APIView):
             cnpj = serializer.validated_data["cnpj"]
 
             try:
-                latest_client = Proposal.objects.filter(cnpj=cnpj).latest("date")
+                latest_client = Proposal.objects.filter(cnpj=cnpj).latest(
+                    "date"
+                )
                 return Response(
                     {"status": latest_client.approved_client()},
                     status=status.HTTP_200_OK,
@@ -159,11 +174,10 @@ class LatestProposalStatusView(APIView):
 
 
 class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
-    """
-    Viewset for managing proposals.
+    """Viewset for managing proposals.
 
-    Provides actions for listing proposals with CNPJ filtering capability.
-    Only accessible by PROPHY_MANAGER users.
+    Provides actions for listing proposals with CNPJ filtering
+    capability. Only accessible by PROPHY_MANAGER users.
     """
 
     @swagger_auto_schema(
@@ -175,8 +189,8 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
         ```json
         {
             "count": 123,  // Total number of proposals
-            "next": "http://api.example.com/proposals/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
+            "next": "http://api.example.com/proposals/?page=2", // Next page
+            "previous": null, // Previous page
             "results": [
                 {
                     "id": 1,
@@ -202,26 +216,30 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
                 name="contact_name",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter proposals by contact name (case-insensitive contains).",
+                description="Filter proposals by contact name "
+                "(case-insensitive contains).",
             ),
             openapi.Parameter(
                 name="contract_type",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter by contract type. Options: A (Annual), M (Monthly), W (Weekly)",
+                description="Filter by contract type. Options: A (Annual), M "
+                "(Monthly), W (Weekly)",
             ),
             openapi.Parameter(
                 name="status",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter by proposal status. Options: A (Accepted), R (Rejected), P (Pending)",
+                description="Filter by proposal status. Options: A "
+                "(Accepted), R (Rejected), P (Pending)",
             ),
             openapi.Parameter(
                 name="expiring_annual",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_BOOLEAN,
                 description=(
-                    "When true, returns only the latest ACCEPTED annual proposal per CNPJ "
+                    "When true, returns only the latest ACCEPTED annual "
+                    "proposal per CNPJ "
                     "whose proposal date is at least 11 months old. "
                     "Useful to identify contracts close to renewal."
                 ),
@@ -233,17 +251,21 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
                 schema=ProposalSerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def list(self, request):
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role not in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.COMMERCIAL,
         ]:
             return Response(
-                {"detail": "You do not have permission to perform this action."},
+                {
+                    "detail": "You do not have permission to perform this "
+                    "action."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -254,9 +276,7 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
         )
 
     def _get_base_queryset(self):
-        """
-        Get base queryset for proposals.
-        """
+        """Get base queryset for proposals."""
         return Proposal.objects.annotate(
             is_registered_client=Exists(
                 Client.objects.filter(cnpj=OuterRef("cnpj"))
@@ -292,7 +312,7 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
         },
     )
     def create(self, request: Request) -> Response:
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role not in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.COMMERCIAL,
@@ -309,9 +329,7 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def _apply_filters(self, queryset, query_params):
-        """
-        Apply filtering based on query parameters.
-        """
+        """Apply filtering based on query parameters."""
         cnpj = query_params.get("cnpj")
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
@@ -330,7 +348,8 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
 
         expiring_annual = query_params.get("expiring_annual")
         if expiring_annual is not None and expiring_annual.lower() == "true":
-            # Annotate with latest accepted annual proposal date per CNPJ
+            # Annotate with latest accepted annual proposal date per
+            # CNPJ
             queryset = annotate_latest_annual_accepted_proposal_date(queryset)
 
             cutoff_date = date.today() - relativedelta(months=11)
@@ -374,7 +393,8 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
@@ -383,8 +403,8 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def update(self, request: Request, pk: int | None = None) -> Response:
-        user: UserAccount = request.user
+    def update(self, request: Request, pk: int) -> Response:
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role not in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.COMMERCIAL,
@@ -402,7 +422,9 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = ProposalSerializer(proposal, data=request.data, partial=False)
+        serializer = ProposalSerializer(
+            proposal, data=request.data, partial=False
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -438,7 +460,8 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
@@ -447,8 +470,8 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def partial_update(self, request: Request, pk: int | None = None) -> Response:
-        user: UserAccount = request.user
+    def partial_update(self, request: Request, pk: int) -> Response:
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role not in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.COMMERCIAL,
@@ -466,7 +489,9 @@ class ProposalViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = ProposalSerializer(proposal, data=request.data, partial=True)
+        serializer = ProposalSerializer(
+            proposal, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -479,7 +504,8 @@ class ClientStatusView(APIView):
     @swagger_auto_schema(
         operation_summary="Check client status by CNPJ",
         operation_description="""
-        This endpoint verifies whether a client exists in the system based on their CNPJ.
+        Verify whether a client exists in the system based on their
+        CNPJ.
         """,
         request_body=CNPJSerializer,
         responses={
@@ -522,10 +548,11 @@ class ClientStatusView(APIView):
             except Client.DoesNotExist:
                 return Response({"status": False}, status=status.HTTP_200_OK)
 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ClientViewSet(PaginationMixin, viewsets.ViewSet):
-    """
-    Viewset for managing clients.
+    """Viewset for managing clients.
 
     Provides actions for listing, updating clients.
     """
@@ -533,11 +560,13 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
     lookup_value_regex = r"\d+"
 
     @swagger_auto_schema(
-        operation_summary="List clients with contract and appointment indicators",
+        operation_summary="List clients with contract and appointment "
+        "indicators",
         operation_description="""
         Retrieve a paginated list of clients with optional filtering.
 
-        This endpoint also returns a derived field `needs_appointment` for each client:
+        This endpoint also returns a derived field `needs_appointment`
+        for each client:
 
         - `true` when the client has a latest **accepted annual** proposal and
           there is **no** appointment scheduled for any of its units **after**
@@ -576,7 +605,8 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
                 name="name",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter clients by name (case-insensitive contains).",
+                description="Filter clients by name (case-insensitive "
+                "contains).",
             ),
             openapi.Parameter(
                 name="city",
@@ -588,14 +618,16 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
                 name="user_role",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter clients that have users with specific roles. Options: FMI, FME, GP, GGC, GU, C",
+                description="Filter clients that have users with specific "
+                "roles. Options: FMI, FME, GP, GGC, GU, C",
             ),
             openapi.Parameter(
                 name="responsible_cpf",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 description=(
-                    "Filter clients by a responsible physicist CPF (digits only). "
+                    "Filter clients by a responsible physicist CPF (digits "
+                    "only). "
                     "Matches Client.users with role FMI/FME/GP."
                 ),
             ),
@@ -603,24 +635,30 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
                 name="contract_type",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter by contract type from most recent accepted proposal. Options: A (Annual), M (Monthly), W (Weekly)",
+                description="Filter by contract type from most recent "
+                "accepted proposal. Options: A (Annual), M (Monthly), "
+                "W (Weekly)",
             ),
             openapi.Parameter(
                 name="operation_status",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter by operation status. Options: pending (has ongoing operations), none (no ongoing operations)",
+                description="Filter by operation status. Options: "
+                "pending (has ongoing operations), none (no ongoing "
+                "operations)",
             ),
             openapi.Parameter(
                 name="is_active",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_BOOLEAN,
-                description="Filter clients by their active status. true for active clients, false for inactive clients.",
+                description="Filter clients by their active status. true for "
+                "active clients, false for inactive clients.",
             ),
         ],
         responses={
             200: openapi.Response(
-                description="Paginated list of clients with contract and appointment indicators",
+                description="Paginated list of clients with contract and "
+                "appointment indicators",
                 schema=ClientListSerializer(many=True),
             ),
             401: "Unauthorized access",
@@ -639,9 +677,7 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         return self._paginate_response(queryset, request, ClientListSerializer)
 
     def _get_base_queryset(self, user):
-        """
-        Get base queryset based on user role and permissions.
-        """
+        """Get base queryset based on user role and permissions."""
         if (
             user.role == UserAccount.Role.PROPHY_MANAGER
             or user.role == UserAccount.Role.COMMERCIAL
@@ -669,9 +705,7 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
             )
 
     def _apply_filters(self, queryset, query_params):
-        """
-        Apply filtering based on query parameters.
-        """
+        """Apply filtering based on query parameters."""
         cnpj = query_params.get("cnpj")
         if cnpj is not None:
             queryset = queryset.filter(cnpj=cnpj)
@@ -705,7 +739,9 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
 
         operation_status = query_params.get("operation_status")
         if operation_status is not None:
-            queryset = self._filter_by_operation_status(queryset, operation_status)
+            queryset = self._filter_by_operation_status(
+                queryset, operation_status
+            )
 
         is_active = query_params.get("is_active")
         if is_active is not None:
@@ -715,9 +751,7 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         return queryset
 
     def _annotate_appointment_requirements(self, queryset):
-        """
-        Annotate queryset with the 'needs_appointment' boolean field.
-        """
+        """Annotate queryset with the 'needs_appointment' field."""
         queryset = annotate_latest_annual_accepted_proposal_date(queryset)
 
         appointments_after = Appointment.objects.filter(
@@ -726,7 +760,9 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         )
 
         queryset = queryset.annotate(
-            has_appointment_after_latest_annual_proposal=Exists(appointments_after)
+            has_appointment_after_latest_annual_proposal=Exists(
+                appointments_after
+            )
         )
 
         queryset = queryset.annotate(
@@ -744,9 +780,7 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         return queryset
 
     def _filter_by_contract_type(self, queryset, contract_type):
-        """
-        Filter clients by contract type from most recent accepted proposal.
-        """
+        """Filter clients by contract type from the latest proposal."""
         most_recent_proposals = Proposal.objects.filter(
             cnpj=OuterRef("cnpj"), status=Proposal.Status.ACCEPTED
         ).order_by("-date")
@@ -760,11 +794,10 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
         return queryset.filter(cnpj__in=clients_with_contract_type)
 
     def _filter_by_operation_status(self, queryset, operation_status):
-        """
-        Filter clients by operation status (pending or none).
-        """
+        """Filter clients by operation status (pending or none)."""
         has_client_ops = ClientOperation.objects.filter(
-            Q(cnpj=OuterRef("cnpj")) | Q(original_client__cnpj=OuterRef("cnpj")),
+            Q(cnpj=OuterRef("cnpj"))
+            | Q(original_client__cnpj=OuterRef("cnpj")),
             operation_status=ClientOperation.OperationStatus.REVIEW,
         )
 
@@ -854,7 +887,8 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
@@ -863,8 +897,8 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def update(self, request: Request, pk: int | None = None) -> Response:
-        user: UserAccount = request.user
+    def update(self, request: Request, pk: int) -> Response:
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role not in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.COMMERCIAL,
@@ -921,7 +955,8 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
@@ -930,8 +965,8 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def partial_update(self, request: Request, pk: int | None = None) -> Response:
-        user: UserAccount = request.user
+    def partial_update(self, request: Request, pk: int) -> Response:
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role not in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.COMMERCIAL,
@@ -960,9 +995,7 @@ class ClientViewSet(PaginationMixin, viewsets.ViewSet):
 
 
 class UnitViewSet(PaginationMixin, viewsets.ViewSet):
-    """
-    Viewset for listing units.
-    """
+    """Viewset for listing units."""
 
     lookup_value_regex = r"\d+"
 
@@ -974,8 +1007,8 @@ class UnitViewSet(PaginationMixin, viewsets.ViewSet):
         ```json
         {
             "count": 123,  // Total number of units
-            "next": "http://api.example.com/units/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
+            "next": "http://api.example.com/units/?page=2", // Next page
+            "previous": null, // Previous page
             "results": [
                 {
                     "id": 1,
@@ -1001,9 +1034,7 @@ class UnitViewSet(PaginationMixin, viewsets.ViewSet):
         return self._paginate_response(queryset, request, UnitSerializer)
 
     def _get_base_queryset(self, user):
-        """
-        Get base queryset based on user role and permissions.
-        """
+        """Get base queryset based on user role and permissions."""
         if (
             user.role == UserAccount.Role.PROPHY_MANAGER
             or user.role == UserAccount.Role.COMMERCIAL
@@ -1026,22 +1057,21 @@ class UnitViewSet(PaginationMixin, viewsets.ViewSet):
 
 
 class EquipmentViewSet(PaginationMixin, viewsets.ViewSet):
-    """
-    Viewset for listing equipments.
-    """
+    """Viewset for listing equipments."""
 
     lookup_value_regex = r"\d+"
 
     @swagger_auto_schema(
         operation_summary="List accepted equipments",
         operation_description="""
-        Retrieve a paginated list of accepted equipments with filtering support.
+        Retrieve a paginated list of accepted equipments with
+        filtering support.
 
         ```json
         {
             "count": 123,  // Total number of equipments
-            "next": "http://api.example.com/equipments/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
+            "next": "http://api.example.com/equipments/?page=2", // Next page
+            "previous": null, // Previous page
             "results": [
                 {
                     "id": 1,
@@ -1069,13 +1099,15 @@ class EquipmentViewSet(PaginationMixin, viewsets.ViewSet):
                 name="manufacturer",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter equipments by manufacturer name (case-insensitive contains).",
+                description="Filter equipments by manufacturer name "
+                "(case-insensitive contains).",
             ),
             openapi.Parameter(
                 name="client",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_INTEGER,
-                description="Filter equipments by client ID (through unit relationship).",
+                description="Filter equipments by client ID (through unit "
+                "relationship).",
             ),
         ],
         responses={
@@ -1097,9 +1129,10 @@ class EquipmentViewSet(PaginationMixin, viewsets.ViewSet):
     @swagger_auto_schema(
         operation_summary="Get unique manufacturer names",
         operation_description="""
-        Retrieve a list of unique manufacturer names from all accessible equipments.
-        This endpoint is useful for populating dropdown filter options in the frontend.
-        
+        Retrieve a list of unique manufacturer names from all
+        accessible equipments. This endpoint is useful for populating
+        dropdown filter options in the frontend.
+
         ```json
         {
             "manufacturers": [
@@ -1132,12 +1165,12 @@ class EquipmentViewSet(PaginationMixin, viewsets.ViewSet):
     def manufacturers(self, request):
         queryset = self._get_base_queryset(request.user)
         manufacturers = self._get_unique_manufacturers(queryset)
-        return Response({"manufacturers": manufacturers}, status=status.HTTP_200_OK)
+        return Response(
+            {"manufacturers": manufacturers}, status=status.HTTP_200_OK
+        )
 
     def _get_base_queryset(self, user: UserAccount):
-        """
-        Get base queryset based on user role and permissions.
-        """
+        """Get base queryset based on user role and permissions."""
         if (
             user.role == UserAccount.Role.PROPHY_MANAGER
             or user.role == UserAccount.Role.COMMERCIAL
@@ -1159,9 +1192,7 @@ class EquipmentViewSet(PaginationMixin, viewsets.ViewSet):
             )
 
     def _apply_filters(self, queryset, query_params):
-        """
-        Apply filtering based on query parameters.
-        """
+        """Apply filtering based on query parameters."""
         modality = query_params.get("modality")
         if modality is not None:
             queryset = queryset.filter(modality=modality)
@@ -1172,23 +1203,25 @@ class EquipmentViewSet(PaginationMixin, viewsets.ViewSet):
 
         client_name = query_params.get("client_name")
         if client_name is not None:
-            queryset = queryset.filter(unit__client__name__icontains=client_name)
+            queryset = queryset.filter(
+                unit__client__name__icontains=client_name
+            )
 
         return queryset
 
     def _get_unique_manufacturers(self, queryset):
-        """
-        Extract unique manufacturer names from queryset.
-        """
-        manufacturers = queryset.values_list("manufacturer", flat=True).distinct()
-        manufacturers = [m for m in manufacturers if m]  # Filter out None/empty strings
+        """Extract unique manufacturer names from queryset."""
+        manufacturers = queryset.values_list(
+            "manufacturer", flat=True
+        ).distinct()
+        manufacturers = [
+            m for m in manufacturers if m
+        ]  # Filter out None/empty strings
         return sorted(manufacturers)  # Sort alphabetically
 
 
 class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
-    """
-    Viewset for managing appointments.
-    """
+    """Viewset for managing appointments."""
 
     @swagger_auto_schema(
         operation_summary="List appointments",
@@ -1198,8 +1231,8 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         ```json
         {
             "count": 123,  // Total number of appointments
-            "next": "http://api.example.com/appointments/?page=2", // Link to next page (if available)
-            "previous": null, // Link to previous page (if available)
+            "next": "http://api.example.com/appointments/?page=2", // Next page
+            "previous": null, // Previous page
             "results": [
                 {
                     "id": 1,
@@ -1237,39 +1270,46 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_DATE,
-                description="Filter appointments with date greater than or equal to this date (YYYY-MM-DD).",
+                description="Filter appointments with date greater than or "
+                "equal to this date (YYYY-MM-DD).",
             ),
             openapi.Parameter(
                 name="date_end",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 format=openapi.FORMAT_DATE,
-                description="Filter appointments with date less than or equal to this date (YYYY-MM-DD).",
+                description="Filter appointments with date less than or equal "
+                "to this date (YYYY-MM-DD).",
             ),
             openapi.Parameter(
                 name="status",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter appointments by status. Options: P (Pending), C (Confirmed), R (Rescheduled), F (Fulfilled), U (Unfulfilled)",
+                description="Filter appointments by status. Options: P "
+                "(Pending), C (Confirmed), R (Rescheduled), F (Fulfilled), "
+                "U (Unfulfilled)",
             ),
             openapi.Parameter(
                 name="client_name",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter appointments by client name (case-insensitive contains).",
+                description="Filter appointments by client name "
+                "(case-insensitive contains).",
             ),
             openapi.Parameter(
                 name="unit_city",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
-                description="Filter appointments by unit city (case-insensitive contains).",
+                description="Filter appointments by unit city "
+                "(case-insensitive contains).",
             ),
             openapi.Parameter(
                 name="unit_name",
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 description=(
-                    "Filter appointments by unit name " "(case-insensitive contains)."
+                    "Filter appointments by unit name "
+                    "(case-insensitive contains)."
                 ),
             ),
             openapi.Parameter(
@@ -1296,11 +1336,14 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         queryset = self._get_base_queryset(request.user)
         queryset = self._apply_filters(queryset, request.query_params)
         queryset = queryset.order_by("-date")
-        return self._paginate_response(queryset, request, AppointmentSerializer)
+        return self._paginate_response(
+            queryset, request, AppointmentSerializer
+        )
 
     @swagger_auto_schema(
         operation_summary="Create a new appointment",
-        operation_description="Create a new appointment instance with the provided data.",
+        operation_description="Create a new appointment instance with the "
+        "provided data.",
         request_body=AppointmentSerializer,
         responses={
             201: openapi.Response(
@@ -1324,10 +1367,13 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         },
     )
     def create(self, request: Request) -> Response:
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if not self._can_create_appointment(user):
             return Response(
-                {"detail": "You do not have permission to create appointments."},
+                {
+                    "detail": "You do not have permission to create "
+                    "appointments."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -1359,7 +1405,8 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
             if not has_client_access:
                 return Response(
                     {
-                        "detail": "You do not have permission to create this appointment."
+                        "detail": "You do not have permission to create this "
+                        "appointment."
                     },
                     status=status.HTTP_403_FORBIDDEN,
                 )
@@ -1375,7 +1422,8 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Update an appointment",
-        operation_description="Update an existing appointment instance with the provided data.",
+        operation_description="Update an existing appointment instance with "
+        "the provided data.",
         request_body=AppointmentSerializer,
         responses={
             200: openapi.Response(
@@ -1400,7 +1448,8 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
@@ -1409,20 +1458,24 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def update(self, request: Request, pk: int | None = None) -> Response:
+    def update(self, request: Request, pk: int) -> Response:
         return self._update_appointment(request, pk, partial=False)
 
     def _update_appointment(
-        self, request: Request, pk: int | None, *, partial: bool
+        self, request: Request, pk: int, *, partial: bool
     ) -> Response:
+        """Update an appointment with optional partial flag.
+
+        Handles permissions, object lookup, access control, validation
+        and persistence.
         """
-        Update an appointment with optional partial flag.
-        Handles permissions, object lookup, access control, validation and persistence.
-        """
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if not self._can_update_appointment(user):
             return Response(
-                {"detail": "You do not have permission to update appointments."},
+                {
+                    "detail": "You do not have permission to update "
+                    "appointments."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -1436,7 +1489,10 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
 
         if not self._has_appointment_access(user, appointment):
             return Response(
-                {"detail": "You do not have permission to update this appointment."},
+                {
+                    "detail": "You do not have permission to update this "
+                    "appointment."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -1454,7 +1510,8 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Partially update an appointment",
-        operation_description="Partially update fields of an existing appointment instance.",
+        operation_description="Partially update fields of an existing "
+        "appointment instance.",
         request_body=AppointmentSerializer,
         responses={
             200: openapi.Response(
@@ -1479,7 +1536,8 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
@@ -1488,21 +1546,25 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def partial_update(self, request: Request, pk: int | None = None) -> Response:
+    def partial_update(self, request: Request, pk: int) -> Response:
         return self._update_appointment(request, pk, partial=True)
 
     @swagger_auto_schema(
         operation_summary="Delete an appointment",
-        operation_description="Delete an existing appointment instance by its ID.",
+        operation_description="Delete an existing appointment instance by its "
+        "ID.",
         responses={
-            204: openapi.Response(description="Appointment deleted successfully"),
+            204: openapi.Response(
+                description="Appointment deleted successfully"
+            ),
             404: openapi.Response(
                 description="Appointment not found",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
@@ -1512,10 +1574,13 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         },
     )
     def destroy(self, request, pk=None):
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role != UserAccount.Role.PROPHY_MANAGER:
             return Response(
-                {"detail": "You do not have permission to delete appointments."},
+                {
+                    "detail": "You do not have permission to delete "
+                    "appointments."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -1531,9 +1596,7 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _get_base_queryset(self, user: UserAccount):
-        """
-        Get base queryset based on user role and permissions.
-        """
+        """Get base queryset based on user role and permissions."""
         if (
             user.role == UserAccount.Role.PROPHY_MANAGER
             or user.role == UserAccount.Role.COMMERCIAL
@@ -1545,9 +1608,7 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
             return Appointment.objects.filter(unit__client__users=user)
 
     def _apply_filters(self, queryset, query_params):
-        """
-        Apply filtering based on query parameters.
-        """
+        """Apply filtering based on query parameters."""
         unit = query_params.get("unit")
         if unit is not None:
             queryset = queryset.filter(unit=unit)
@@ -1566,7 +1627,9 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
 
         client_name = query_params.get("client_name")
         if client_name is not None:
-            queryset = queryset.filter(unit__client__name__icontains=client_name)
+            queryset = queryset.filter(
+                unit__client__name__icontains=client_name
+            )
 
         unit_city = query_params.get("unit_city")
         if unit_city is not None:
@@ -1590,9 +1653,7 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         return queryset
 
     def _can_create_appointment(self, user: UserAccount) -> bool:
-        """
-        Check if user can create appointments.
-        """
+        """Check if user can create appointments."""
         return user.role in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
@@ -1600,9 +1661,7 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
         ]
 
     def _can_update_appointment(self, user: UserAccount) -> bool:
-        """
-        Check if user can update appointments.
-        """
+        """Check if user can update appointments."""
         return user.role in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
@@ -1612,24 +1671,26 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
     def _has_appointment_access(
         self, user: UserAccount, appointment: Appointment
     ) -> bool:
-        """
-        Check if user has access to a specific appointment.
-        """
+        """Check if user has access to a specific appointment."""
         if (
             user.role == UserAccount.Role.PROPHY_MANAGER
             or user.role == UserAccount.Role.COMMERCIAL
         ):
             return True
-        elif user.role == UserAccount.Role.UNIT_MANAGER:
+        if appointment.unit is None:
+            return False
+        if user.role == UserAccount.Role.UNIT_MANAGER:
             return appointment.unit.user == user
-        else:
-            return appointment.unit.client.users.filter(pk=user.pk).exists()
+        if appointment.unit.client is None:
+            return False
+        return appointment.unit.client.users.filter(pk=user.pk).exists()
 
 
 class ModalityViewSet(viewsets.ViewSet):
-    """
-    A viewset for listing, creating, and destroying Modality instances.
-    The list action does not use pagination as there are only a few records.
+    """Viewset for listing, creating, and destroying Modalities.
+
+    The list action does not use pagination as there are only a few
+    records.
     """
 
     @swagger_auto_schema(
@@ -1641,24 +1702,25 @@ class ModalityViewSet(viewsets.ViewSet):
                 schema=ModalitySerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def list(self, request):
-        """
-        Return a list of all modalities.
-        """
+        """Return a list of all modalities."""
         queryset = Modality.objects.all()
         serializer = ModalitySerializer(queryset, many=True)
         return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Create a new modality",
-        operation_description="Create a new modality instance with the provided data.",
+        operation_description="Create a new modality instance with the "
+        "provided data.",
         request_body=ModalitySerializer,
         responses={
             201: openapi.Response(
-                description="Modality created successfully", schema=ModalitySerializer
+                description="Modality created successfully",
+                schema=ModalitySerializer,
             ),
             400: openapi.Response(
                 description="Invalid input data",
@@ -1673,13 +1735,12 @@ class ModalityViewSet(viewsets.ViewSet):
                 ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def create(self, request):
-        """
-        Create a new modality instance.
-        """
+        """Create a new modality instance."""
         serializer = ModalitySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1688,11 +1749,13 @@ class ModalityViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Update a modality",
-        operation_description="Update an existing modality instance with the provided data.",
+        operation_description="Update an existing modality instance with the "
+        "provided data.",
         request_body=ModalitySerializer,
         responses={
             200: openapi.Response(
-                description="Modality updated successfully", schema=ModalitySerializer
+                description="Modality updated successfully",
+                schema=ModalitySerializer,
             ),
             400: openapi.Response(
                 description="Invalid input data",
@@ -1712,19 +1775,19 @@ class ModalityViewSet(viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def update(self, request, pk=None):
-        """
-        Update an existing modality instance.
-        """
+        """Update an existing modality instance."""
         try:
             modality = Modality.objects.get(pk=pk)
         except Modality.DoesNotExist:
@@ -1733,7 +1796,9 @@ class ModalityViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = ModalitySerializer(modality, data=request.data, partial=True)
+        serializer = ModalitySerializer(
+            modality, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -1741,7 +1806,9 @@ class ModalityViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Delete a modality",
-        operation_description="Delete an existing modality instance by its ID.",
+        operation_description=(
+            "Delete an existing modality instance by its ID."
+        ),
         responses={
             204: openapi.Response(description="Modality deleted successfully"),
             404: openapi.Response(
@@ -1750,19 +1817,19 @@ class ModalityViewSet(viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "message": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
             ),
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def destroy(self, request, pk=None):
-        """
-        Delete an existing modality instance.
-        """
+        """Delete an existing modality instance."""
         try:
             modality = Modality.objects.get(pk=pk)
         except Modality.DoesNotExist:
@@ -1776,9 +1843,10 @@ class ModalityViewSet(viewsets.ViewSet):
 
 
 class AccessoryViewSet(viewsets.ViewSet):
-    """
-    A viewset for listing, creating, updating and destroying Accessory instances.
-    The list action does not use pagination as there are only a few records.
+    """Viewset for listing, creating, updating, destroying Accessories.
+
+    The list action does not use pagination as there are only a few
+    records.
     """
 
     @swagger_auto_schema(
@@ -1790,21 +1858,18 @@ class AccessoryViewSet(viewsets.ViewSet):
                 schema=AccessorySerializer(many=True),
             ),
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def list(self, request):
-        """
-        Return a list of all accessories.
-        """
+        """Return a list of all accessories."""
         queryset = self._get_base_queryset(request.user)
         serializer = AccessorySerializer(queryset, many=True)
         return Response(serializer.data)
 
     def _get_base_queryset(self, user: UserAccount):
-        """
-        Get base queryset based on user role and permissions.
-        """
+        """Get base queryset based on user role and permissions."""
         if (
             user.role == UserAccount.Role.PROPHY_MANAGER
             or user.role == UserAccount.Role.COMMERCIAL
@@ -1814,25 +1879,28 @@ class AccessoryViewSet(viewsets.ViewSet):
             units = UnitOperation.objects.filter(user=user)
             return Accessory.objects.filter(equipment__unit__in=units)
         else:
-            return Accessory.objects.filter(equipment__unit__client__users=user)
+            return Accessory.objects.filter(
+                equipment__unit__client__users=user
+            )
 
     @swagger_auto_schema(
         operation_summary="Create a new accessory",
-        operation_description="Create a new accessory instance with the provided data.",
+        operation_description="Create a new accessory instance with the "
+        "provided data.",
         request_body=AccessorySerializer,
         responses={
             201: openapi.Response(
-                description="Accessory created successfully", schema=AccessorySerializer
+                description="Accessory created successfully",
+                schema=AccessorySerializer,
             ),
             400: "Invalid input data",
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def create(self, request):
-        """
-        Create a new accessory instance.
-        """
+        """Create a new accessory instance."""
         serializer = AccessorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1841,22 +1909,23 @@ class AccessoryViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Update an accessory",
-        operation_description="Update an existing accessory instance with the provided data.",
+        operation_description="Update an existing accessory instance with the "
+        "provided data.",
         request_body=AccessorySerializer,
         responses={
             200: openapi.Response(
-                description="Accessory updated successfully", schema=AccessorySerializer
+                description="Accessory updated successfully",
+                schema=AccessorySerializer,
             ),
             400: "Invalid input data",
             404: "Accessory not found",
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def update(self, request, pk=None):
-        """
-        Update an existing accessory instance.
-        """
+        """Update an existing accessory instance."""
         try:
             accessory = Accessory.objects.get(pk=pk)
         except Accessory.DoesNotExist:
@@ -1865,7 +1934,9 @@ class AccessoryViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = AccessorySerializer(accessory, data=request.data, partial=True)
+        serializer = AccessorySerializer(
+            accessory, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -1873,18 +1944,18 @@ class AccessoryViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(
         operation_summary="Delete an accessory",
-        operation_description="Delete an existing accessory instance by its ID.",
+        operation_description="Delete an existing accessory instance by its "
+        "ID.",
         responses={
             204: "Accessory deleted successfully",
             404: "Accessory not found",
             401: "Unauthorized access",
-            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role required",
+            403: "Permission denied - PROPHY_MANAGER or COMMERCIAL role "
+            "required",
         },
     )
     def destroy(self, request, pk=None):
-        """
-        Delete an existing accessory instance.
-        """
+        """Delete an existing accessory instance."""
         try:
             accessory = Accessory.objects.get(pk=pk)
         except Accessory.DoesNotExist:
@@ -1898,9 +1969,7 @@ class AccessoryViewSet(viewsets.ViewSet):
 
 
 class ServiceOrderViewSet(viewsets.ViewSet):
-    """
-    Viewset for creating Service Orders linked to an Appointment.
-    """
+    """Viewset for creating Service Orders linked to an Appointment."""
 
     @swagger_auto_schema(
         operation_summary="Create a new Service Order",
@@ -1918,28 +1987,35 @@ class ServiceOrderViewSet(viewsets.ViewSet):
         },
     )
     def create(self, request: Request) -> Response:
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if not self._can_create_service_order(user):
             return Response(
-                {"detail": "You do not have permission to create service orders."},
+                {
+                    "detail": "You do not have permission to create service "
+                    "orders."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = ServiceOrderCreateSerializer(data=request.data)
         if serializer.is_valid():
-            appointment: Appointment = serializer.validated_data["appointment_instance"]
+            appointment: Appointment = serializer.validated_data[
+                "appointment_instance"
+            ]
             if not self._has_appointment_access(user, appointment):
                 return Response(
                     {
-                        "detail": """
-                        You do not have permission to create this service order.
-                        """
+                        "detail": (
+                            "You do not have permission to create "
+                            "this service order."
+                        )
                     },
                     status=status.HTTP_403_FORBIDDEN,
                 )
             order = serializer.save(responsible_prophy=user)
             return Response(
-                ServiceOrderSerializer(order).data, status=status.HTTP_201_CREATED
+                ServiceOrderSerializer(order).data,
+                status=status.HTTP_201_CREATED,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1956,7 +2032,9 @@ class ServiceOrderViewSet(viewsets.ViewSet):
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             return True
         elif user.role == UserAccount.Role.UNIT_MANAGER:
-            return bool(appointment.unit and appointment.unit.user_id == user.id)
+            return bool(
+                appointment.unit and appointment.unit.user_id == user.id
+            )
         else:
             return bool(
                 appointment.unit
@@ -1970,14 +2048,15 @@ class ServiceOrderViewSet(viewsets.ViewSet):
         request_body=ServiceOrderSerializer,
         responses={
             200: openapi.Response(
-                description="Service Order updated", schema=ServiceOrderSerializer
+                description="Service Order updated",
+                schema=ServiceOrderSerializer,
             ),
             400: "Invalid data",
             403: "Forbidden",
             404: "Not found",
         },
     )
-    def update(self, request: Request, pk: int | None = None) -> Response:
+    def update(self, request: Request, pk: int) -> Response:
         return self._update_order(request, pk, partial=False)
 
     @swagger_auto_schema(
@@ -1986,20 +2065,19 @@ class ServiceOrderViewSet(viewsets.ViewSet):
         request_body=ServiceOrderSerializer,
         responses={
             200: openapi.Response(
-                description="Service Order updated", schema=ServiceOrderSerializer
+                description="Service Order updated",
+                schema=ServiceOrderSerializer,
             ),
             400: "Invalid data",
             403: "Forbidden",
             404: "Not found",
         },
     )
-    def partial_update(self, request: Request, pk: int | None = None) -> Response:
+    def partial_update(self, request: Request, pk: int) -> Response:
         return self._update_order(request, pk, partial=True)
 
     def _validate_equipments(self, order: ServiceOrder, data):
-        """
-        Ensure equipments belong to the same unit as the order's appointment.
-        """
+        """Ensure equipments belong to the order's appointment unit."""
         if "equipments" not in data or not (
             order.appointment and order.appointment.unit_id
         ):
@@ -2010,7 +2088,9 @@ class ServiceOrderViewSet(viewsets.ViewSet):
         # Normalize to list of ints
         if isinstance(equipment_ids, str):
             try:
-                equipment_ids = [int(x) for x in equipment_ids.split(",") if x.strip()]
+                equipment_ids = [
+                    int(x) for x in equipment_ids.split(",") if x.strip()
+                ]
             except Exception:
                 equipment_ids = []
         elif isinstance(equipment_ids, list):
@@ -2034,31 +2114,34 @@ class ServiceOrderViewSet(viewsets.ViewSet):
 
             # check wrong unit
             wrong_unit_ids = list(
-                equipments_qs.exclude(unit_id=unit_id).values_list("id", flat=True)
+                equipments_qs.exclude(unit_id=unit_id).values_list(
+                    "id", flat=True
+                )
             )
             invalid_ids.extend(wrong_unit_ids)
 
         if invalid_ids:
             return Response(
                 {
-                    "equipments": """
-                    Equipments must belong to the service order appointment's unit.
-                    """
+                    "equipments": (
+                        "Equipments must belong to the service "
+                        "order appointment's unit."
+                    )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return None
 
     def _update_order(
-        self, request: Request, pk: int | None, partial: bool
+        self, request: Request, pk: int, partial: bool
     ) -> Response:
+        """Update a Service Order with role-aware restrictions.
+
+        PROPHY_MANAGER may update any field. Medical physicists may
+        only update the 'updates' field via PATCH, and must have
+        appointment access.
         """
-        Update a Service Order with role-aware restrictions:
-          - PROPHY_MANAGER: may update any fields
-          - INTERNAL/EXTERNAL_MEDICAL_PHYSICIST: may only update 'updates' field
-          via PATCH; must have appointment access
-        """
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
 
         try:
             order = (
@@ -2078,11 +2161,15 @@ class ServiceOrderViewSet(viewsets.ViewSet):
             if error_resp:
                 return error_resp
 
-            serializer = ServiceOrderSerializer(order, data=data, partial=partial)
+            serializer = ServiceOrderSerializer(
+                order, data=data, partial=partial
+            )
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
 
         if user.role in [
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
@@ -2093,38 +2180,49 @@ class ServiceOrderViewSet(viewsets.ViewSet):
 
             if not partial:
                 return Response(
-                    {"detail": "Only partial updates are allowed for this role."},
+                    {
+                        "detail": "Only partial updates are allowed for this "
+                        "role."
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
             if not incoming_keys or not incoming_keys.issubset(allowed_keys):
                 return Response(
                     {
-                        "detail": """
-                        Only 'updates' field can be modified by medical physicists.
-                        """
+                        "detail": (
+                            "Only 'updates' field can be modified "
+                            "by medical physicists."
+                        )
                     },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
             appointment = order.appointment
-            if not appointment or not self._has_appointment_access(user, appointment):
+            if not appointment or not self._has_appointment_access(
+                user, appointment
+            ):
                 return Response(
                     {
-                        "detail": """
-                        You do not have permission to update this service order.
-                        """
+                        "detail": (
+                            "You do not have permission to update "
+                            "this service order."
+                        )
                     },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
             serializer = ServiceOrderSerializer(
-                order, data={"updates": request.data.get("updates", None)}, partial=True
+                order,
+                data={"updates": request.data.get("updates", None)},
+                partial=True,
             )
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(
             {"detail": "You do not have permission to update service orders."},
@@ -2133,12 +2231,10 @@ class ServiceOrderViewSet(viewsets.ViewSet):
 
 
 class ServiceOrderPDFView(APIView):
-    """
-    Generate and download a PDF for a Service Order.
-    Permissions:
-      - PROPHY_MANAGER
-      - Unit Manager of the service order's unit
-      - Any user associated with the client (Client.users)
+    """Generate and download a PDF for a Service Order.
+
+    Permissions: - PROPHY_MANAGER - Unit Manager of the service order's
+        unit - Any user associated with the client (Client.users)
     """
 
     @swagger_auto_schema(
@@ -2156,31 +2252,44 @@ class ServiceOrderPDFView(APIView):
     def get(self, request: Request, order_id: int):
         try:
             order = (
-                ServiceOrder.objects.select_related("appointment__unit__client")
+                ServiceOrder.objects.select_related(
+                    "appointment__unit__client"
+                )
                 .prefetch_related("equipments")
                 .get(pk=order_id)
             )
         except ServiceOrder.DoesNotExist:
             return Response(
-                {"detail": f'ServiceOrder with ID "{order_id}" does not exist.'},
+                {
+                    "detail": (
+                        f'ServiceOrder with ID "{order_id}" does not exist.'
+                    )
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         allowed = False
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             allowed = True
         else:
             appointment = order.appointment
             unit = appointment.unit if appointment else None
-            if unit and unit.user_id == user.id:
-                allowed = True
-            elif unit and unit.client and unit.client.users.filter(pk=user.pk).exists():
+            if (
+                unit
+                and unit.user_id == user.id
+                or unit
+                and unit.client
+                and unit.client.users.filter(pk=user.pk).exists()
+            ):
                 allowed = True
 
         if not allowed:
             return Response(
-                {"detail": "You do not have permission to perform this action."},
+                {
+                    "detail": "You do not have permission to perform this "
+                    "action."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -2193,32 +2302,37 @@ class ServiceOrderPDFView(APIView):
 
 
 class ReportViewSet(PaginationMixin, viewsets.ViewSet):
-    """
-    Viewset for managing reports.
-    """
+    """Viewset for managing reports."""
 
     @swagger_auto_schema(
         operation_summary="Create a new report",
         operation_description="""
         Create a new report with file upload.
         Only PROPHY_MANAGER and medical physicists can create reports.
-        
-        The report must be associated with either a unit or equipment based on report type:
+
+        The report must be associated with either a unit or equipment
+        based on report type:
         - Equipment-only types: CQ, TE, LR
         - Unit-only types: CQM, M, TR, TSR, AD, ID, POP, O
-        
+
         The due_date is calculated automatically:
         - Radiometric Survey (LR): 4 years from completion_date
         - All other types: 1 year from completion_date
         """,
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=["completion_date", "report_type", "pdf_file", "word_file"],
+            required=[
+                "completion_date",
+                "report_type",
+                "pdf_file",
+                "word_file",
+            ],
             properties={
                 "completion_date": openapi.Schema(
                     type=openapi.TYPE_STRING,
                     format=openapi.FORMAT_DATE,
-                    description="Date when the report was completed (YYYY-MM-DD)",
+                    description="Date when the report was completed "
+                    "(YYYY-MM-DD)",
                 ),
                 "report_type": openapi.Schema(
                     type=openapi.TYPE_STRING,
@@ -2235,11 +2349,13 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 ),
                 "unit": openapi.Schema(
                     type=openapi.TYPE_INTEGER,
-                    description="Unit ID (required for unit-only report types)",
+                    description="Unit ID (required for unit-only "
+                    "report types)",
                 ),
                 "equipment": openapi.Schema(
                     type=openapi.TYPE_INTEGER,
-                    description="Equipment ID (required for equipment-only report types)",
+                    description="Equipment ID (required for equipment-only "
+                    "report types)",
                 ),
             },
         ),
@@ -2254,7 +2370,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         },
     )
     def create(self, request: Request) -> Response:
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
 
         if not self._can_create_report(user):
             return Response(
@@ -2262,7 +2378,9 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = ReportSerializer(data=request.data, context={"request": request})
+        serializer = ReportSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             report = serializer.save()
 
@@ -2328,8 +2446,10 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 description=(
-                    "Filter reports by a responsible physicist CPF (digits only). "
-                    "Matches Client.users with role FMI/FME/GP via unit or equipment."
+                    "Filter reports by a responsible physicist CPF (digits "
+                    "only). "
+                    "Matches Client.users with role FMI/FME/GP via unit or "
+                    "equipment."
                 ),
             ),
             openapi.Parameter(
@@ -2337,8 +2457,8 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 in_=openapi.IN_QUERY,
                 type=openapi.TYPE_STRING,
                 description=(
-                    "Filter by derived status. Options: overdue, due_soon, ok, "
-                    "archived, no_due_date."
+                    "Filter by derived status. Options: overdue, "
+                    "due_soon, ok, archived, no_due_date."
                 ),
             ),
         ],
@@ -2380,7 +2500,8 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "detail": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="Error message"
+                            type=openapi.TYPE_STRING,
+                            description="Error message",
                         )
                     },
                 ),
@@ -2390,7 +2511,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         },
     )
     def retrieve(self, request, pk=None):
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
 
         manager = Report.objects
         if user.role in [
@@ -2420,7 +2541,10 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
 
         if not self._has_report_access(user, report):
             return Response(
-                {"detail": "You do not have permission to access this report."},
+                {
+                    "detail": "You do not have permission to access this "
+                    "report."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -2437,13 +2561,15 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             type=openapi.TYPE_OBJECT,
             properties={
                 "file": openapi.Schema(
-                    type=openapi.TYPE_FILE, description="New report file (PDF or Word)"
+                    type=openapi.TYPE_FILE,
+                    description="New report file (PDF or Word)",
                 )
             },
         ),
         responses={
             200: openapi.Response(
-                description="Report updated successfully", schema=ReportSerializer
+                description="Report updated successfully",
+                schema=ReportSerializer,
             ),
             400: "Invalid input data",
             404: "Report not found",
@@ -2451,8 +2577,8 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             403: "Permission denied",
         },
     )
-    def partial_update(self, request: Request, pk: int | None = None) -> Response:
-        user: UserAccount = request.user
+    def partial_update(self, request: Request, pk: int) -> Response:
+        user: UserAccount = cast(UserAccount, request.user)
 
         if not self._can_update_report(user):
             return Response(
@@ -2480,7 +2606,10 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
 
         if not self._has_report_access(user, report):
             return Response(
-                {"detail": "You do not have permission to update this report."},
+                {
+                    "detail": "You do not have permission to update this "
+                    "report."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -2496,7 +2625,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def _get_base_queryset(self, user: UserAccount):
-        """Get base queryset based on user role and report access scope."""
+        """Get base queryset based on user role and report scope."""
         if user.role == UserAccount.Role.PROPHY_MANAGER:
             return Report.all_objects.all()
 
@@ -2508,7 +2637,8 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]:
             return Report.all_objects.filter(
-                Q(unit__client__users=user) | Q(equipment__unit__client__users=user)
+                Q(unit__client__users=user)
+                | Q(equipment__unit__client__users=user)
             )
 
         if user.role == UserAccount.Role.UNIT_MANAGER:
@@ -2517,7 +2647,8 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             )
 
         return Report.objects.filter(
-            Q(unit__client__users=user) | Q(equipment__unit__client__users=user)
+            Q(unit__client__users=user)
+            | Q(equipment__unit__client__users=user)
         )
 
     def _apply_filters(self, queryset, query_params):
@@ -2627,9 +2758,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         return queryset
 
     def _can_create_report(self, user: UserAccount) -> bool:
-        """
-        Check if user can create reports.
-        """
+        """Check if user can create reports."""
         return user.role in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
@@ -2637,9 +2766,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         ]
 
     def _can_update_report(self, user: UserAccount) -> bool:
-        """
-        Check if user can update reports.
-        """
+        """Check if user can update reports."""
         return user.role in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
@@ -2647,9 +2774,7 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
         ]
 
     def _can_download_report_word(self, user: UserAccount) -> bool:
-        """
-        Check if user can download the Word version of a report.
-        """
+        """Check if user can download the Word version of a report."""
         return user.role in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
@@ -2670,34 +2795,43 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
                 UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST
                 | UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST
             ):
-                return (
-                    report.unit and report.unit.client.users.filter(pk=user.pk).exists()
-                ) or (
-                    report.equipment
-                    and report.equipment.unit.client.users.filter(pk=user.pk).exists()
-                )
+                return self._report_client_users_access(user, report)
 
             case UserAccount.Role.UNIT_MANAGER:
-                return (report.unit and report.unit.user == user) or (
-                    report.equipment and report.equipment.unit.user == user
+                return (
+                    report.unit is not None and report.unit.user == user
+                ) or (
+                    report.equipment is not None
+                    and report.equipment.unit.user == user
                 )
 
             case _:
-                return (
-                    report.unit and report.unit.client.users.filter(pk=user.pk).exists()
-                ) or (
-                    report.equipment
-                    and report.equipment.unit.client.users.filter(pk=user.pk).exists()
-                )
+                return self._report_client_users_access(user, report)
+
+    def _report_client_users_access(
+        self, user: UserAccount, report: Report
+    ) -> bool:
+        """Check report access via the unit/equipment's client users."""
+        if (
+            report.unit is not None
+            and report.unit.client is not None
+            and report.unit.client.users.filter(pk=user.pk).exists()
+        ):
+            return True
+        return (
+            report.equipment is not None
+            and report.equipment.unit.client is not None
+            and report.equipment.unit.client.users.filter(pk=user.pk).exists()
+        )
 
     @swagger_auto_schema(
         operation_summary="Delete a report",
         operation_description="""
         Delete a report (soft delete by default, hard delete with ?hard=true).
-        
+
         - Default behavior: Soft delete (sets deleted_at timestamp)
         - With ?hard=true: Permanently delete (PROPHY_MANAGER only)
-        
+
         Only PROPHY_MANAGER can delete reports.
 
         Hard delete must only be used on archived reports.
@@ -2716,8 +2850,8 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             404: "Report not found",
         },
     )
-    def destroy(self, request: Request, pk: int | None = None) -> Response:
-        user: UserAccount = request.user
+    def destroy(self, request: Request, pk: int) -> Response:
+        user: UserAccount = cast(UserAccount, request.user)
 
         if user.role != UserAccount.Role.PROPHY_MANAGER:
             return Response(
@@ -2742,7 +2876,10 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
 
             if not self._has_report_access(user, report):
                 return Response(
-                    {"detail": "You do not have permission to delete this report."},
+                    {
+                        "detail": "You do not have permission to delete this "
+                        "report."
+                    },
                     status=status.HTTP_403_FORBIDDEN,
                 )
 
@@ -2765,7 +2902,10 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
 
         if not self._has_report_access(user, report):
             return Response(
-                {"detail": "You do not have permission to delete this report."},
+                {
+                    "detail": "You do not have permission to delete this "
+                    "report."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -2788,11 +2928,9 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             404: "Report not found",
         },
     )
-    def restore(self, request: Request, pk: int | None = None) -> Response:
-        """
-        Restore a soft-deleted report.
-        """
-        user: UserAccount = request.user
+    def restore(self, request: Request, pk: int) -> Response:
+        """Restore a soft-deleted report."""
+        user: UserAccount = cast(UserAccount, request.user)
 
         if user.role != UserAccount.Role.PROPHY_MANAGER:
             return Response(
@@ -2810,7 +2948,10 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
 
         if not self._has_report_access(user, report):
             return Response(
-                {"detail": "You do not have permission to restore this report."},
+                {
+                    "detail": "You do not have permission to restore this "
+                    "report."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -2820,14 +2961,14 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
 
 
 class ReportFileDownloadView(APIView):
-    """
-    Download a report file (PDF or Word) with authentication.
+    """Download a report file (PDF or Word) with authentication.
 
     Returns the file with proper Content-Disposition header to preserve
     the original filename.
 
     PDF: accessible to all roles that pass _has_report_access.
-    Word: additionally restricted to PROPHY_MANAGER, FMI, FME, COMMERCIAL.
+    Word: additionally restricted to PROPHY_MANAGER, FMI, FME,
+        COMMERCIAL.
     """
 
     @swagger_auto_schema(
@@ -2854,7 +2995,7 @@ class ReportFileDownloadView(APIView):
         },
     )
     def get(self, request: Request, report_id: int, file_type: str):
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
 
         manager = Report.objects
         if user.role in [
@@ -2877,7 +3018,10 @@ class ReportFileDownloadView(APIView):
         viewset = ReportViewSet()
         if not viewset._has_report_access(user, report):
             return Response(
-                {"detail": "You do not have permission to download this report."},
+                {
+                    "detail": "You do not have permission to download this "
+                    "report."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -2902,7 +3046,7 @@ class ReportFileDownloadView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        if not file_field:
+        if not file_field or not file_field.name:
             return Response(
                 {"detail": "Report has no file attached for this type."},
                 status=status.HTTP_404_NOT_FOUND,
@@ -2931,8 +3075,7 @@ class ReportFileDownloadView(APIView):
 
 
 class ProposalFileDownloadView(APIView):
-    """
-    Download a proposal file (PDF or Word) with authentication.
+    """Download a proposal file (PDF or Word) with authentication.
 
     Returns the file with proper Content-Disposition header to preserve
     the original filename.
@@ -2966,17 +3109,24 @@ class ProposalFileDownloadView(APIView):
             proposal: Proposal = Proposal.objects.get(pk=proposal_id)
         except Proposal.DoesNotExist:
             return Response(
-                {"detail": f'Proposal with ID "{proposal_id}" does not exist.'},
+                {
+                    "detail": (
+                        f'Proposal with ID "{proposal_id}" does not exist.'
+                    )
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        user: UserAccount = request.user
+        user: UserAccount = cast(UserAccount, request.user)
         if user.role not in [
             UserAccount.Role.PROPHY_MANAGER,
             UserAccount.Role.COMMERCIAL,
         ]:
             return Response(
-                {"detail": "You do not have permission to download this proposal."},
+                {
+                    "detail": "You do not have permission to download this "
+                    "proposal."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -2990,7 +3140,7 @@ class ProposalFileDownloadView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not file_field:
+        if not file_field or not file_field.name:
             return Response(
                 {"detail": "Proposal has no file attached for this type."},
                 status=status.HTTP_404_NOT_FOUND,
@@ -3019,8 +3169,7 @@ class ProposalFileDownloadView(APIView):
 
 
 class TriggerReportNotificationView(APIView):
-    """
-    A secure API view to be triggered by Google Cloud Scheduler.
+    """A secure API view to be triggered by Google Cloud Scheduler.
 
     This view is protected by OIDC authentication, ensuring that only
     authenticated Google services can access it. When a valid POST
@@ -3031,9 +3180,7 @@ class TriggerReportNotificationView(APIView):
     authentication_classes = [GoogleOIDCAuthentication]
 
     def post(self, request: Request, *args, **kwargs) -> Response:
-        """
-        Handles the POST request from Cloud Scheduler to run the command.
-        """
+        """Handle the POST request from Cloud Scheduler."""
         logger.info("Received request to trigger report notifications...")
         try:
             output = StringIO()
@@ -3041,7 +3188,8 @@ class TriggerReportNotificationView(APIView):
             command_output = output.getvalue()
 
             logger.info(
-                "Command 'send_due_report_notifications' executed successfully. Output: %s",
+                "Command 'send_due_report_notifications' executed "
+                "successfully. Output: %s",
                 command_output.strip(),
             )
             return Response(
@@ -3054,7 +3202,8 @@ class TriggerReportNotificationView(APIView):
             )
         except Exception as e:
             logger.error(
-                "An error occurred while running send_due_report_notifications command: %s",
+                "An error occurred while running "
+                "send_due_report_notifications command: %s",
                 e,
                 exc_info=True,
             )
@@ -3065,20 +3214,18 @@ class TriggerReportNotificationView(APIView):
 
 
 class TriggerUpdateAppointmentsView(APIView):
-    """
-    A secure API view to be triggered by Google Cloud Scheduler.
+    """A secure API view to be triggered by Google Cloud Scheduler.
 
     This view is protected by OIDC authentication, ensuring that only
     authenticated Google services can access it. When a valid POST
-    request is received, it executes the `update_appointments` management command.
+    request is received, it executes the `update_appointments`
+    management command.
     """
 
     authentication_classes = [GoogleOIDCAuthentication]
 
     def post(self, request: Request, *args, **kwargs) -> Response:
-        """
-        Handles the POST request from Cloud Scheduler to run the command.
-        """
+        """Handle the POST request from Cloud Scheduler."""
         logger.info("Received request to update appointments...")
         try:
             output = StringIO()
@@ -3086,7 +3233,8 @@ class TriggerUpdateAppointmentsView(APIView):
             command_output = output.getvalue()
 
             logger.info(
-                "Command 'update_appointments' executed successfully. Output: %s",
+                "Command 'update_appointments' executed successfully. Output: "
+                "%s",
                 command_output.strip(),
             )
             return Response(
@@ -3099,7 +3247,8 @@ class TriggerUpdateAppointmentsView(APIView):
             )
         except Exception as e:
             logger.error(
-                "An error occurred while running update_appointments command: %s",
+                "An error occurred while running update_appointments command: "
+                "%s",
                 e,
                 exc_info=True,
             )
@@ -3110,8 +3259,7 @@ class TriggerUpdateAppointmentsView(APIView):
 
 
 class TriggerContractNotificationsView(APIView):
-    """
-    A secure API view to be triggered by Google Cloud Scheduler.
+    """A secure API view to be triggered by Google Cloud Scheduler.
 
     This view is protected by OIDC authentication, ensuring that only
     authenticated Google services can access it. When a valid POST
@@ -3122,9 +3270,7 @@ class TriggerContractNotificationsView(APIView):
     authentication_classes = [GoogleOIDCAuthentication]
 
     def post(self, request: Request, *args, **kwargs) -> Response:
-        """
-        Handles the POST request from Cloud Scheduler to run the command.
-        """
+        """Handle the POST request from Cloud Scheduler."""
         logger.info("Received request to trigger contract notifications...")
         try:
             output = StringIO()
@@ -3132,7 +3278,8 @@ class TriggerContractNotificationsView(APIView):
             command_output = output.getvalue()
 
             logger.info(
-                "Command 'send_contract_notifications' executed successfully. Output: %s",
+                "Command 'send_contract_notifications' executed successfully. "
+                "Output: %s",
                 command_output.strip(),
             )
             return Response(
@@ -3145,7 +3292,8 @@ class TriggerContractNotificationsView(APIView):
             )
         except Exception as e:
             logger.error(
-                "An error occurred while running send_contract_notifications command: %s",
+                "An error occurred while running send_contract_notifications "
+                "command: %s",
                 e,
                 exc_info=True,
             )

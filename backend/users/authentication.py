@@ -14,8 +14,7 @@ from users.models import UserAccount
 
 
 def generate_unique_service_account_cpf() -> str:
-    """
-    Generates a mathematically valid and unique CPF for service accounts.
+    """Generates a mathematically valid, unique service account CPF.
 
     Loops until a CPF not present in the database is found.
     """
@@ -27,35 +26,31 @@ def generate_unique_service_account_cpf() -> str:
 
 
 class CustomJWTAuthentication(JWTAuthentication):
-    """
-    Custom JWT authentication class that allows for authentication using both
-    Authorization header (Bearer token) and cookies.
+    """Authenticates using either the Authorization header or a cookie.
 
     This class extends the default JWTAuthentication class from
     rest_framework_simplejwt and overrides the 'authenticate' method.
 
     The authentication process first checks for the JWT token in the
-    Authorization header. If not found, it attempts to retrieve the token
-    from a cookie specified by the 'AUTH_COOKIE' setting.
+    Authorization header. If not found, it attempts to retrieve the
+    token from a cookie specified by the 'AUTH_COOKIE' setting.
 
     If a token is found in either location, it is validated using the
     standard JWT validation process. If validation is successful, the
-    authenticated user and the validated token are returned. Otherwise,
-    None is returned, indicating authentication failure.
+    authenticated user and the validated token are returned.
+    Otherwise, None is returned, indicating authentication failure.
     """
 
     def authenticate(self, request: Request):
-        """
-        Authenticates the user based on a JWT token provided in the
-        Authorization header or a cookie.
+        """Authenticates a JWT token from the header or a cookie.
 
         Args:
             request (Request): The incoming HTTP request.
 
         Returns:
-            Tuple[User, str] | None: A tuple containing the authenticated
-            user and the validated token if authentication is successful.
-            Otherwise, returns None.
+            Tuple[User, str] | None: A tuple containing the
+            authenticated user and the validated token if
+            authentication is successful. Otherwise, returns None.
         """
         try:
             header = self.get_header(request)
@@ -67,6 +62,8 @@ class CustomJWTAuthentication(JWTAuthentication):
 
             if raw_token is None:
                 return None
+            if isinstance(raw_token, str):
+                raw_token = raw_token.encode()
 
             validated_token = self.get_validated_token(raw_token)
 
@@ -76,9 +73,10 @@ class CustomJWTAuthentication(JWTAuthentication):
 
 
 class GoogleOIDCAuthentication(BaseAuthentication):
-    """
-    DRF authentication class to validate Google OIDC bearer tokens for service-to-service requests.
-    Returns (user, None) on success or None to allow other authentication classes to try.
+    """Validates Google OIDC bearer tokens for service requests.
+
+    Returns (user, None) on success or None to allow other
+    authentication classes to try.
     """
 
     def authenticate(self, request):
@@ -100,7 +98,10 @@ class GoogleOIDCAuthentication(BaseAuthentication):
             )
 
             issuer = claims.get("iss")
-            if issuer not in ("accounts.google.com", "https://accounts.google.com"):
+            if issuer not in (
+                "accounts.google.com",
+                "https://accounts.google.com",
+            ):
                 return None
 
             service_account_email = claims.get("email")
@@ -125,22 +126,24 @@ class GoogleOIDCAuthentication(BaseAuthentication):
 
 
 class OIDCAuthenticationBackend:
-    """
-    A custom Django authentication backend to validate OIDC tokens from Google.
+    """Django authentication backend that validates Google OIDC tokens.
 
-    This backend is designed to authenticate requests from services like Cloud Scheduler
-    by validating the OIDC token in the 'Authorization' header.
+    This backend is designed to authenticate requests from services
+    like Cloud Scheduler by validating the OIDC token in the
+    'Authorization' header.
     """
 
-    def authentication(self, request: HttpRequest) -> tuple[UserAccount, None] | None:
-        """
-        Authenticates the request by validating the OIDC token.
+    def authentication(
+        self, request: HttpRequest
+    ) -> tuple[UserAccount, None] | None:
+        """Authenticates the request by validating the OIDC token.
 
         Args:
             request: The HttpRequest object.
 
         Returns:
-            A tuple of (user, None) if authentication is successful, otherwise None.
+            A tuple of (user, None) if authentication is successful,
+            otherwise None.
         """
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
@@ -160,7 +163,10 @@ class OIDCAuthenticationBackend:
             )
 
             issuer = claims.get("iss")
-            if issuer not in ["accounts.google.com", "https://accounts.google.com"]:
+            if issuer not in [
+                "accounts.google.com",
+                "https://accounts.google.com",
+            ]:
                 raise ValueError("Incorrect token issuer.")
 
             service_account_email = claims.get("email")
@@ -176,7 +182,10 @@ class OIDCAuthenticationBackend:
             )
 
             if created:
-                print(f"Created new user for service account: {service_account_email}")
+                print(
+                    "Created new user for service account: "
+                    f"{service_account_email}"
+                )
 
             return (user, None)
 
@@ -185,9 +194,7 @@ class OIDCAuthenticationBackend:
             return None
 
     def get_user(self, user_id: int) -> UserAccount | None:
-        """
-        Allows Django to retrieve the user object by its primary key.
-        """
+        """Allows Django to retrieve the user object by its pk."""
         try:
             return UserAccount.objects.get(pk=user_id)
         except UserAccount.DoesNotExist:

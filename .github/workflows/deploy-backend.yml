@@ -116,6 +116,15 @@ jobs:
       - name: Install dependencies
         run: poetry install --with dev --no-root
 
+      - name: Run ruff check
+        run: poetry run ruff check .
+
+      - name: Run ruff format check
+        run: poetry run ruff format --check .
+
+      - name: Run mypy
+        run: poetry run mypy .
+
       - name: Run tests
         run: poetry run pytest
 

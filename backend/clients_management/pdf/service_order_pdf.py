@@ -1,8 +1,9 @@
 """PDF generation utilities for Service Orders (Ordem de Serviço).
 
-This module builds a printable PDF document for a given ServiceOrder using
-ReportLab. It renders client, unit and appointment metadata, the service subject,
-equipment list, and rich-text sections such as description and conclusion.
+This module builds a printable PDF document for a given ServiceOrder
+using ReportLab. It renders client, unit and appointment metadata,
+the service subject, equipment list, and rich-text sections such as
+description and conclusion.
 
 Dependencies:
     - reportlab: Layout and PDF generation
@@ -15,13 +16,13 @@ The main entry point is build_service_order_pdf().
 from __future__ import annotations
 
 import os
+from collections.abc import Sequence
 from io import BytesIO
-from typing import Sequence
-from pydantic import BaseModel
 
 import phonenumbers
 from django.conf import settings
 from django.utils import timezone
+from pydantic import BaseModel
 from reportlab.lib import colors, utils
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -39,12 +40,11 @@ from clients_management.models import (
     Appointment,
     Client,
     ServiceOrder,
-    Unit,
 )
 
 
 class InfoItem(BaseModel):
-    """Lightweight container for labeled information pairs used in PDF tables.
+    """Lightweight container for labeled info pairs in PDF tables.
 
     This is a Pydantic BaseModel to provide validation and type safety.
 
@@ -58,11 +58,12 @@ class InfoItem(BaseModel):
 
 
 def _get_stylesheet():
-    """Create and customize the ReportLab stylesheet used in the document.
+    """Creates the ReportLab stylesheet used for the document.
 
     Returns:
-        reportlab.lib.styles.StyleSheet1: Stylesheet containing base styles and
-        custom styles such as Title, OrderID, Section, and Label.
+        reportlab.lib.styles.StyleSheet1: Stylesheet containing base
+        styles and custom styles such as Title, OrderID, Section,
+        and Label.
     """
     styles = getSampleStyleSheet()
 
@@ -94,21 +95,24 @@ def _get_stylesheet():
         "Section",
     )
     styles.add(
-        ParagraphStyle("Label", parent=styles["Normal"], fontName="Helvetica-Bold"),
+        ParagraphStyle(
+            "Label", parent=styles["Normal"], fontName="Helvetica-Bold"
+        ),
         "Label",
     )
     return styles
 
 
 def _image_with_width(path: str, width):
-    """Create a ReportLab Image with fixed width preserving aspect ratio.
+    """Creates a ReportLab Image with a fixed, aspect-correct width.
 
     Args:
         path (str): Filesystem path to the image file.
         width (float): Desired width in points (1/72 inch).
 
     Returns:
-        reportlab.platypus.Image: Configured image flowable centered horizontally.
+        reportlab.platypus.Image: Configured image flowable, centered
+        horizontally.
 
     Raises:
         OSError: If the image cannot be opened or read.
@@ -122,20 +126,20 @@ def _image_with_width(path: str, width):
 def _make_info_table(
     data: Sequence[InfoItem],
     styles,
-    col1: float = 3.5 * cm,
-    col2: float = 9 * cm,
+    col_widths: tuple[float, float] = (3.5 * cm, 9 * cm),
 ) -> Table:
     """Build a two-column table for labeled information.
 
     Args:
-        data (Sequence[InfoItem]): Items to render as rows (label, value).
+        data (Sequence[InfoItem]): Rows to render as (label, value).
         styles: ReportLab stylesheet with "Label" and "Normal" styles.
-        col1 (float, optional): Width of the label column. Defaults to 3.5 cm.
-        col2 (float, optional): Width of the value column. Defaults to 9 cm.
+        col_widths (tuple[float, float], optional): Label and value
+            column widths. Defaults to (3.5 cm, 9 cm).
 
     Returns:
-        Table: A configured ReportLab table with alignment and padding set.
+        Table: A configured ReportLab table, aligned with padding set.
     """
+    col1, col2 = col_widths
     rows = [
         [
             Paragraph(item.label, styles["Label"]),
@@ -160,24 +164,29 @@ def _make_info_table(
 def build_service_order_pdf(order: ServiceOrder) -> bytes:
     """Build a Service Order PDF and return its bytes.
 
-    Renders a document with header/logo, order identifier, client/unit details,
-    appointment information, equipment table, and rich-text sections for subject,
-    description and conclusion.
+    Renders a document with header/logo, order identifier,
+    client/unit details, appointment information, equipment table,
+    and rich-text sections for subject, description and conclusion.
 
     Args:
         order (ServiceOrder): The ServiceOrder instance to render.
 
     Returns:
-        bytes: The generated PDF as a byte string suitable for file download
-        or attachment.
+        bytes: The generated PDF as a byte string suitable for file
+        download or attachment.
 
     Notes:
-        - If the logo is not found or cannot be loaded, the PDF is still built
-          without the logo.
+        - If the logo is not found or cannot be loaded, the PDF is
+          still built without the logo.
         - Dates are localized using Django timezone utilities.
     """
     appointment: Appointment = order.appointment
-    unit: Unit = appointment.unit
+    unit = appointment.unit
+    if unit is None or unit.client is None:
+        raise ValueError(
+            "Service order's appointment must have a unit and client "
+            "to build the PDF."
+        )
     client: Client = unit.client
 
     styles = _get_stylesheet()
@@ -194,7 +203,9 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
     story = []
 
     try:
-        logo_path = os.path.join(settings.BASE_DIR, "static", "prophy-logo.png")
+        logo_path = os.path.join(
+            settings.BASE_DIR, "static", "prophy-logo.png"
+        )
         if os.path.exists(logo_path):
             story.append(_image_with_width(logo_path, width=2 * cm))
             story.append(Spacer(1, 6))
@@ -208,7 +219,9 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
         Paragraph(
             client.name,
             ParagraphStyle(
-                "ClientName", parent=styles["Heading2"], fontName="Helvetica-Bold"
+                "ClientName",
+                parent=styles["Heading2"],
+                fontName="Helvetica-Bold",
             ),
         )
     )
@@ -246,10 +259,12 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
         ),
     ]
 
-    left_table = _make_info_table(left_info, styles, 3.2 * cm, 6.3 * cm)
-    right_table = _make_info_table(right_info, styles, 3.2 * cm, 4.3 * cm)
+    left_table = _make_info_table(left_info, styles, (3.2 * cm, 6.3 * cm))
+    right_table = _make_info_table(right_info, styles, (3.2 * cm, 4.3 * cm))
 
-    two_col = Table([[left_table, right_table]], colWidths=[9.5 * cm, 7.5 * cm])
+    two_col = Table(
+        [[left_table, right_table]], colWidths=[9.5 * cm, 7.5 * cm]
+    )
     two_col.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP")]))
     story.append(two_col)
     story.append(Spacer(1, 10))
@@ -261,7 +276,7 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
 
     # Equipments
     story.append(Paragraph("Equipamentos", styles["Section"]))
-    equip_rows = [["Equipamento", "Detalhamento"]]
+    equip_rows: list[list[str | Paragraph]] = [["Equipamento", "Detalhamento"]]
     for eq in order.equipments.all():
         equip_name = f"{eq.manufacturer} / {eq.model}"
         details_lines = []
@@ -326,7 +341,9 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
     if updates_text:
         story.append(Spacer(1, 6))
         story.append(Paragraph("Atualizações", styles["Section"]))
-        story.append(Paragraph(updates_text.replace("\n", "<br/>"), styles["Normal"]))
+        story.append(
+            Paragraph(updates_text.replace("\n", "<br/>"), styles["Normal"])
+        )
 
     doc.build(story)
     return buffer.getvalue()

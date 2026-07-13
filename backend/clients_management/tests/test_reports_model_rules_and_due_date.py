@@ -3,9 +3,9 @@ from datetime import date, timedelta
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from tests.factories import EquipmentFactory, UnitFactory
 
 from clients_management.models import Report
+from tests.factories import EquipmentFactory, UnitFactory
 
 
 def _pdf_file(name: str = "report.pdf") -> SimpleUploadedFile:

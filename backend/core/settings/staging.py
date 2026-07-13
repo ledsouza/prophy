@@ -4,7 +4,6 @@ from os import getenv
 
 from . import base as base_settings
 
-
 for _name in dir(base_settings):
     if not _name.isupper():
         continue
@@ -25,7 +24,7 @@ ALLOW_LOCAL_MEDIA_CLEANUP = True
 OIDC_AUDIENCE = getenv("OIDC_AUDIENCE", "staging")
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-ANYMAIL = {}
+ANYMAIL: dict[str, str | None] = {}
 DEFAULT_FROM_EMAIL = "no-reply@localhost"
 
 BASE_DIR = base_settings.BASE_DIR

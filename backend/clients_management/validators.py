@@ -1,10 +1,11 @@
+from typing import Any
+
 from django.core.exceptions import ValidationError
 from validate_docbr import CNPJ
 
 
 class CNPJValidator:
-    """
-    Validator for Brazilian CNPJ (Cadastro Nacional da Pessoa Jurídica) numbers.
+    """Validator for Brazilian CNPJ numbers.
 
     Raises:
         ValidationError: If the provided value is not a valid CNPJ.
@@ -14,7 +15,9 @@ class CNPJValidator:
 
         ```python
         class MyModel(models.Model):
-            cnpj = models.CharField(max_length=14, validators=[CNPJValidator()])
+            cnpj = models.CharField(
+                max_length=14, validators=[CNPJValidator()]
+            )
         ```
 
         This will ensure that `cnpj` field always contains a valid CNPJ.
@@ -26,10 +29,8 @@ class CNPJValidator:
             raise ValidationError("CNPJ inválido.")
 
     def deconstruct(self):
-        """
-        Tells Django how to deconstruct this validator for migrations.
-        """
+        """Tells Django how to deconstruct this validator."""
         path = "clients_management.validators.CNPJValidator"
         args = ()
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         return (path, args, kwargs)

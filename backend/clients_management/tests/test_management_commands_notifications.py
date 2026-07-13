@@ -87,7 +87,9 @@ def test_send_due_report_notifications__sends_to_eligible_client_users(
 
     call_command("send_due_report_notifications")
 
-    assert render_spy.call_args.args[0] == "emails/report_due_notification.html"
+    assert (
+        render_spy.call_args.args[0] == "emails/report_due_notification.html"
+    )
     anymail_message.assert_called_once()
     assert anymail_message.call_args.kwargs["to"] == [
         "internal@example.com",
@@ -100,7 +102,7 @@ def test_send_due_report_notifications__sends_to_eligible_client_users(
 
 
 @pytest.mark.django_db
-def test_send_due_report_notifications__excludes_managers_when_latest_contract_is_not_annual(
+def test_send_due_report_notifications__excludes_non_annual_managers(
     settings,
     mocker,
 ) -> None:
@@ -174,7 +176,7 @@ def test_send_due_report_notifications__excludes_managers_when_latest_contract_i
 
 
 @pytest.mark.django_db
-def test_send_contract_notifications__renewal_sends_to_gp_commercial_and_client_manager(
+def test_send_contract_notifications__renewal_notifies_all_managers(
     settings,
     mocker,
 ) -> None:
@@ -197,7 +199,9 @@ def test_send_contract_notifications__renewal_sends_to_gp_commercial_and_client_
     threshold_date = timezone.localdate() - relativedelta(months=11)
     cnpj = "12345678000190"
 
-    gp = UserFactory(role=UserAccount.Role.PROPHY_MANAGER, email="gp@example.com")
+    gp = UserFactory(
+        role=UserAccount.Role.PROPHY_MANAGER, email="gp@example.com"
+    )
     commercial = UserFactory(
         role=UserAccount.Role.COMMERCIAL,
         email="commercial@example.com",
@@ -228,7 +232,10 @@ def test_send_contract_notifications__renewal_sends_to_gp_commercial_and_client_
 
     call_command("send_contract_notifications")
 
-    assert render_spy.call_args.args[0] == "emails/contract_renewal_notification.html"
+    assert (
+        render_spy.call_args.args[0]
+        == "emails/contract_renewal_notification.html"
+    )
     anymail_message.assert_called_once()
     assert sorted(anymail_message.call_args.kwargs["to"]) == sorted(
         [
@@ -279,14 +286,17 @@ def test_send_contract_notifications__winback_sends_only_to_commercial(
 
     call_command("send_contract_notifications")
 
-    assert render_spy.call_args.args[0] == "emails/proposal_winback_notification.html"
+    assert (
+        render_spy.call_args.args[0]
+        == "emails/proposal_winback_notification.html"
+    )
     anymail_message.assert_called_once()
     assert anymail_message.call_args.kwargs["to"] == ["commercial@example.com"]
     message_instance.send.assert_called_once()
 
 
 @pytest.mark.django_db
-def test_send_contract_notifications__winback_skips_if_there_is_later_active_proposal(
+def test_send_contract_notifications__winback_skips_later_active_proposal(
     settings,
     mocker,
 ) -> None:

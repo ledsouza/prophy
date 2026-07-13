@@ -1,10 +1,10 @@
 import pytest
-from clients_management.models import Client
 from rest_framework import status
 from rest_framework.test import APIClient
+
+from clients_management.models import Client
 from tests.factories.clients_management import ClientFactory
 from tests.factories.users import UserFactory
-
 from users.models import UserAccount
 
 
@@ -112,7 +112,11 @@ def test_cannot_assign_second_client_general_manager():
     )
 
     assert response.status_code == status.HTTP_409_CONFLICT
-    assert response.data["current_client_general_manager"]["id"] == current_manager.id
     assert (
-        response.data["current_client_general_manager"]["name"] == current_manager.name
+        response.data["current_client_general_manager"]["id"]
+        == current_manager.id
+    )
+    assert (
+        response.data["current_client_general_manager"]["name"]
+        == current_manager.name
     )

@@ -1,10 +1,10 @@
 import pytest
-from validate_docbr import CPF
 from rest_framework import status
 from rest_framework.test import APIClient
+from validate_docbr import CPF
 
-from users.models import UserAccount
 from tests.factories import ClientFactory, UnitFactory, UserFactory
+from users.models import UserAccount
 
 
 @pytest.mark.django_db
@@ -34,7 +34,7 @@ def test_create_unit_manager_forbidden_for_non_manager_roles(mocker):
 
 
 @pytest.mark.django_db
-def test_create_unit_manager_as_client_manager_creates_user_assigns_unit_and_sends_email(
+def test_create_unit_manager_creates_user_assigns_unit_and_sends_email(
     mocker,
 ):
     client = APIClient()
@@ -72,7 +72,9 @@ def test_create_unit_manager_as_client_manager_creates_user_assigns_unit_and_sen
 
 
 @pytest.mark.django_db
-def test_create_unit_manager_as_prophy_manager_creates_user_and_sends_email(mocker):
+def test_create_unit_manager_as_prophy_manager_creates_user_and_sends_email(
+    mocker,
+):
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
     unit = UnitFactory()
@@ -96,7 +98,7 @@ def test_create_unit_manager_as_prophy_manager_creates_user_and_sends_email(mock
 
 
 @pytest.mark.django_db
-def test_create_unit_manager_invalid_unit_id_returns_400_and_does_not_send_email(
+def test_create_unit_manager_invalid_unit_id_returns_400_no_email(
     mocker,
 ):
     client = APIClient()
