@@ -434,14 +434,20 @@ export default function AppointmentSearchTab({
                                         header: "Endereço",
                                         cell: (appointment: AppointmentDTO) =>
                                             appointment.unit_full_address || "N/A",
+                                        width: "260px",
+                                        multiLine: true,
                                     },
                                     {
                                         header: "Modalidade",
+                                        align: "center",
+                                        width: "120px",
                                         cell: (appointment: AppointmentDTO) =>
                                             appointment.type_display || "N/A",
                                     },
                                     {
                                         header: "Situação",
+                                        align: "center",
+                                        width: "150px",
                                         cell: (appointment: AppointmentDTO) => {
                                             const statusClasses = getAppointmentStatusClasses(
                                                 appointment.status,
@@ -454,7 +460,6 @@ export default function AppointmentSearchTab({
                                                 </span>
                                             );
                                         },
-                                        width: "100px",
                                     },
                                     {
                                         header: "Ações",

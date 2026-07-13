@@ -264,17 +264,38 @@ const UsersPage = () => {
                         <Table
                             data={users}
                             columns={[
-                                { header: "CPF", cell: (u: UserDTO) => u.cpf },
-                                { header: "Nome", cell: (u: UserDTO) => u.name },
-                                { header: "E-mail", cell: (u: UserDTO) => u.email },
-                                { header: "Celular", cell: (u: UserDTO) => u.phone },
+                                {
+                                    header: "CPF",
+                                    cell: (u: UserDTO) => u.cpf,
+                                    width: "9rem",
+                                },
+                                {
+                                    header: "Nome",
+                                    cell: (u: UserDTO) => u.name,
+                                    width: "10rem",
+                                    multiLine: true,
+                                },
+                                {
+                                    header: "E-mail",
+                                    cell: (u: UserDTO) => u.email,
+                                    width: "14rem",
+                                },
+                                {
+                                    header: "Celular",
+                                    cell: (u: UserDTO) => u.phone,
+                                    width: "9rem",
+                                },
                                 {
                                     header: "Perfil",
                                     cell: (u: UserDTO) => roleLabel(u.role),
+                                    width: "10rem",
+                                    multiLine: true,
                                 },
                                 {
                                     header: "Ativo",
                                     cell: (u: UserDTO) => (u.is_active ? "Sim" : "Não"),
+                                    width: "6rem",
+                                    align: "center",
                                 },
                                 {
                                     header: "Ações",

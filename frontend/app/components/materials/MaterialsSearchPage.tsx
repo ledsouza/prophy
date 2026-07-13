@@ -556,6 +556,8 @@ const MaterialsSearchPage = () => {
                                                     <span>{row.title}</span>
                                                 </div>
                                             ),
+                                            width: "12rem",
+                                            multiLine: true,
                                         },
                                         {
                                             header: "Descrição",
@@ -567,18 +569,20 @@ const MaterialsSearchPage = () => {
                                             header: "Categoria",
                                             cell: (row: MaterialDTO) =>
                                                 getCategoryLabel(row.category),
+                                            width: "10rem",
+                                            multiLine: true,
                                         },
                                         {
                                             header: "Criado em",
                                             cell: (row: MaterialDTO) =>
                                                 formatISODate(row.created_at),
-                                            width: "1rem",
+                                            width: "9rem",
                                         },
                                         {
                                             header: "Atualizado em",
                                             cell: (row: MaterialDTO) =>
                                                 formatISODate(row.updated_at),
-                                            width: "1rem",
+                                            width: "9rem",
                                         },
                                         {
                                             header: "Ações",

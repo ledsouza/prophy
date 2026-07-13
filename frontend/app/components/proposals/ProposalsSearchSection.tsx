@@ -340,13 +340,14 @@ export function ProposalsSearchSection() {
                                     {
                                         header: "CNPJ",
                                         cell: (proposal: ProposalDTO) => cnpjMask(proposal.cnpj),
-                                        width: "140px",
+                                        width: "180px",
                                     },
                                     {
                                         header: "Endereço",
                                         cell: (proposal: ProposalDTO) =>
                                             `${proposal.city}, ${proposal.state}`,
-                                        width: "140px",
+                                        width: "160px",
+                                        multiLine: true,
                                     },
                                     {
                                         header: "Contato",
@@ -366,15 +367,17 @@ export function ProposalsSearchSection() {
                                         header: "Valor",
                                         cell: (proposal: ProposalDTO) =>
                                             formatCurrency(proposal.value),
-                                        width: "120px",
+                                        width: "150px",
                                     },
                                     {
                                         header: "Tipo de Contrato",
+                                        align: "center",
                                         cell: (proposal: ProposalDTO) =>
                                             getContractTypeDisplay(proposal.contract_type),
                                     },
                                     {
                                         header: "Situação",
+                                        align: "center",
                                         cell: (proposal: ProposalDTO) => {
                                             const statusInfo = getStatusDisplay(proposal.status);
                                             const showWarning =
@@ -382,7 +385,7 @@ export function ProposalsSearchSection() {
                                                     ProposalStatus.ACCEPTED &&
                                                 !proposal.is_registered_client;
                                             return (
-                                                <div className="flex flex-row items-center gap-1.5">
+                                                <div className="flex flex-row items-center justify-center gap-1.5">
                                                     <span
                                                         className={`inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}
                                                     >
@@ -406,8 +409,9 @@ export function ProposalsSearchSection() {
                                     },
                                     {
                                         header: "Arquivos",
+                                        align: "center",
                                         cell: (proposal: ProposalDTO) => (
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex flex-col items-center gap-1">
                                                 <a
                                                     href={resolveApiPath(
                                                         `/api/proposals/${proposal.id}/download/pdf/`,

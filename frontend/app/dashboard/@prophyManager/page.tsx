@@ -707,6 +707,7 @@ function SearchPage() {
                                                     },
                                                     {
                                                         header: "Situação",
+                                                        align: "center",
                                                         cell: (client: ClientDTO) => {
                                                             const statusInfo = getStatusDisplay(
                                                                 client.is_active.toString(),

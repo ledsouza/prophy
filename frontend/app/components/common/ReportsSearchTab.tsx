@@ -428,6 +428,7 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         {
             header: "Situação",
             width: "10rem",
+            align: "center" as const,
             cell: (report: ReportSearchDTO) => {
                 const statusInfo = getReportStatusDisplay(report.status);
                 return (
@@ -452,8 +453,9 @@ export function ReportsSearchTab({ currentUserRole }: ReportsSearchTabProps) {
         {
             header: "Arquivos",
             width: "5rem",
+            align: "center" as const,
             cell: (report: ReportSearchDTO) => (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col items-center gap-1">
                     <a
                         href={resolveApiPath(`/api/reports/${report.id}/download/pdf/`)}
                         className="text-primary hover:underline text-xs"

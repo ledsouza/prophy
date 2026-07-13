@@ -738,6 +738,7 @@ function SearchPage() {
                                                     },
                                                     {
                                                         header: "Situação",
+                                                        align: "center",
                                                         cell: (client: ClientDTO) => {
                                                             const statusInfo = getStatusDisplay(
                                                                 client.is_active.toString(),
@@ -1014,14 +1015,20 @@ function SearchPage() {
                                                         header: "Endereço",
                                                         cell: (appointment: AppointmentDTO) =>
                                                             appointment.unit_full_address || "N/A",
+                                                        width: "260px",
+                                                        multiLine: true,
                                                     },
                                                     {
                                                         header: "Modalidade",
+                                                        align: "center",
+                                                        width: "120px",
                                                         cell: (appointment: AppointmentDTO) =>
                                                             appointment.type_display || "N/A",
                                                     },
                                                     {
                                                         header: "Situação",
+                                                        align: "center",
+                                                        width: "150px",
                                                         cell: (appointment: AppointmentDTO) => {
                                                             const statusClasses =
                                                                 getAppointmentStatusClasses(
@@ -1039,7 +1046,6 @@ function SearchPage() {
                                                                 </span>
                                                             );
                                                         },
-                                                        width: "100px",
                                                     },
                                                     {
                                                         header: "Ações",

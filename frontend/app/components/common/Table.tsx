@@ -9,6 +9,7 @@ type ColumnDefinition<T> = {
     cell: (row: T) => React.ReactNode;
     width?: string;
     multiLine?: boolean;
+    align?: "left" | "center" | "right";
 };
 
 type TableRowField = {
@@ -199,6 +200,8 @@ const Table = <T extends {}>({
                                                     column.width && !column.multiLine && "truncate",
                                                     column.multiLine &&
                                                         "whitespace-pre-wrap wrap-break-word",
+                                                    column.align === "center" && "text-center",
+                                                    column.align === "right" && "text-right",
                                                 )}
                                                 style={
                                                     column.width
