@@ -43,8 +43,10 @@ services:
     image: prophy-frontend:prod
     depends_on:
       - backend
+    # NEXT_PUBLIC_HOST is baked in at build time (see docker-compose.yml
+    # frontend build.args) — setting it here at runtime would have no
+    # effect on the already-built client bundle.
     environment:
-      NEXT_PUBLIC_HOST: http://proxy:8080
       HOSTNAME: 0.0.0.0
       PORT: 8080
     ports:

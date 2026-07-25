@@ -12,6 +12,12 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       target: prod
+      # NEXT_PUBLIC_* vars are inlined into the client bundle at build
+      # time, so this must be a build arg, not a runtime `environment:`
+      # entry (those only affect the container after the bundle is
+      # already built and have no effect on NEXT_PUBLIC_* values).
+      args:
+        NEXT_PUBLIC_HOST: http://proxy:8080
 
   proxy:
     image: nginx:1.27-alpine
