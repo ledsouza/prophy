@@ -35,7 +35,7 @@
         "date-fns": "^4.1.0",
         "gerador-validador-cpf": "^6.3.0",
         "lodash": "^4.18.1",
-        "next": "16.2.6",
+        "next": "16.2.12",
         "pino": "^10.3.0",
         "react": "^19",
         "react-dom": "^19",
@@ -43,12 +43,18 @@
         "react-icons": "^5.5.0",
         "react-redux": "^9.2.0",
         "react-toastify": "^11.0.5",
-        "sharp": "^0.34.5",
+        "sharp": "^0.35.3",
         "validation-br": "^1.6.4",
         "yet-another-react-lightbox": "^3.32.1",
         "zod": "^4.3.6",
         "zod-form-data": "^3.0.1",
         "zxcvbn": "^4.4.2"
+    },
+    "overrides": {
+        "next": {
+            "postcss": "^8.5.23",
+            "sharp": "^0.35.3"
+        }
     },
     "devDependencies": {
         "@babel/core": "^7.28.6",
