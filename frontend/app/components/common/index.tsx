@@ -8,6 +8,7 @@ export { default as Modal } from "./Modal";
 export { default as Table } from "./Table";
 export { default as Tooltip } from "./Tooltip";
 export { default as ErrorDisplay } from "./ErrorDisplay";
+export { default as ImageLightbox } from "./ImageLightbox";
 export { default as Pagination } from "./Pagination";
 export { default as MobileResultCard } from "./MobileResultCard";
 export { default as RowActions } from "./RowActions";

@@ -26,6 +26,21 @@ declare global {
             ): Chainable<JQuery<HTMLElement>>;
 
             /**
+             * Narrows a subject to elements not hidden by a CSS
+             * `display: none` ancestor (e.g. Tailwind's
+             * `hidden`/`sm:hidden` responsive classes) - the pattern
+             * this app uses for duplicated desktop/mobile DOM trees.
+             *
+             * Unlike `.filter(":visible")`, this does NOT exclude
+             * elements that are merely scrolled out of view within an
+             * `overflow: auto` container - Cypress's `:visible`
+             * incorrectly treats those as hidden too, which breaks
+             * selecting the correct responsive copy before scrolling
+             * to it.
+             */
+            filterRendered(): Chainable<JQuery<HTMLElement>>;
+
+            /**
              * Reset the backend database to a deterministic seed.
              * Implemented as a Cypress task that runs Django management
              * commands.
@@ -54,6 +69,14 @@ Cypress.Commands.add(
 Cypress.Commands.add("setupDB", () => {
     return cy.task("db:seed");
 });
+
+Cypress.Commands.add(
+    "filterRendered",
+    { prevSubject: true },
+    (subject: JQuery<HTMLElement>) => {
+        return subject.filter((_, el) => el.offsetParent !== null);
+    },
+);
 
 Cypress.Commands.add("loginAs", (user: UserFixtureKey) => {
     const apiUrl = (Cypress.expose("apiUrl") as string | undefined)

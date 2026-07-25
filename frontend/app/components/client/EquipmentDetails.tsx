@@ -1,4 +1,8 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import {
     Disclosure,
     DisclosureButton,
@@ -15,12 +19,25 @@ import { useListReportsQuery } from "@/redux/features/reportApiSlice";
 import { AccessoryType } from "@/redux/features/modalityApiSlice";
 
 import notFound from "@/assets/image-not-found.png";
-import { CaretDownIcon, XCircleIcon } from "@phosphor-icons/react";
+import {
+    CaretDownIcon,
+    MagnifyingGlassPlusIcon,
+    XCircleIcon,
+} from "@phosphor-icons/react";
 
 import { Tab, TabList } from "@/components/common";
 import { resolveMediaPath } from "@/utils/url";
 import { Typography } from "@/components/foundation";
 import { EquipmentReportsTab } from "@/components/client";
+
+const ImageLightbox = dynamic(() => import("@/components/common/ImageLightbox"), {
+    ssr: false,
+});
+
+const ZOOM_BADGE_CLASSNAME =
+    "pointer-events-none absolute bottom-2 right-2 flex items-center justify-center rounded-full bg-black/60 p-1.5";
+const ZOOM_BADGE_CLASSNAME_SMALL =
+    "pointer-events-none absolute bottom-1 right-1 flex items-center justify-center rounded-full bg-black/60 p-1";
 
 type EquipmentDetailsProps = {
     equipment: EquipmentDTO;
@@ -40,7 +57,10 @@ function shouldDisableOptimization(src: string): boolean {
         return true;
     }
 
-    return src.startsWith("/media/");
+    // These paths redirect (302) to the actual media file, which Next's
+    // built-in image optimizer cannot resolve server-side when the
+    // request is relative, so serve the browser the redirect directly.
+    return src.startsWith("/media/") || src.startsWith("/api/");
 }
 
 function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
@@ -59,6 +79,57 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
         ? buildImageSrc(equipment.equipment_photo)
         : notFound;
 
+    const slides = useMemo(() => {
+        const items: { key: string; src: string; alt: string }[] = [];
+
+        if (equipment.equipment_photo) {
+            items.push({
+                key: "equipment-photo",
+                src: buildImageSrc(equipment.equipment_photo),
+                alt: "Imagem do equipamento",
+            });
+        }
+        if (equipment.label_photo) {
+            items.push({
+                key: "equipment-label",
+                src: buildImageSrc(equipment.label_photo),
+                alt: "Rótulo do equipamento",
+            });
+        }
+        equipmentAccessories.forEach((accessory) => {
+            if (accessory.equipment_photo) {
+                items.push({
+                    key: `accessory-photo-${accessory.id}`,
+                    src: buildImageSrc(accessory.equipment_photo),
+                    alt: `Acessório ${accessory.model}`,
+                });
+            }
+            if (accessory.label_photo) {
+                items.push({
+                    key: `accessory-label-${accessory.id}`,
+                    src: buildImageSrc(accessory.label_photo),
+                    alt: `Rótulo do acessório ${accessory.model}`,
+                });
+            }
+        });
+
+        return items;
+    }, [equipment.equipment_photo, equipment.label_photo, equipmentAccessories]);
+
+    const slideIndexByKey = useMemo(
+        () => new Map(slides.map((slide, i) => [slide.key, i])),
+        [slides],
+    );
+
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+    function openLightbox(key: string) {
+        const i = slideIndexByKey.get(key);
+        if (i !== undefined) {
+            setLightboxIndex(i);
+        }
+    }
+
     return (
         <div className="flex flex-col" data-testid="equipment-details">
             <div className="hidden sm:block">
@@ -72,17 +143,38 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                 </button>
 
                 <div className="relative w-full h-100">
-                    <Image
-                        src={equipmentPhotoSrc}
-                        alt="Imagem do equipamento"
-                        fill
-                        className="shadow-lg ring-2"
-                        unoptimized={
-                            typeof equipmentPhotoSrc === "string" &&
-                            shouldDisableOptimization(equipmentPhotoSrc)
-                        }
-                        style={{ objectFit: "contain" }}
-                    />
+                    <button
+                        type="button"
+                        onClick={() => openLightbox("equipment-photo")}
+                        className="group relative block h-full w-full cursor-zoom-in disabled:cursor-default"
+                        aria-label="Ampliar imagem do equipamento"
+                        data-cy="equipment-photo-zoom-trigger"
+                        disabled={!equipment.equipment_photo}
+                    >
+                        <Image
+                            src={equipmentPhotoSrc}
+                            alt="Imagem do equipamento"
+                            fill
+                            className="shadow-lg ring-2"
+                            unoptimized={
+                                typeof equipmentPhotoSrc === "string" &&
+                                shouldDisableOptimization(equipmentPhotoSrc)
+                            }
+                            style={{ objectFit: "contain" }}
+                        />
+                        {equipment.equipment_photo && (
+                            <>
+                                <span className="pointer-events-none absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
+                                <span className={ZOOM_BADGE_CLASSNAME}>
+                                    <MagnifyingGlassPlusIcon
+                                        size={20}
+                                        className="text-white"
+                                        weight="bold"
+                                    />
+                                </span>
+                            </>
+                        )}
+                    </button>
                 </div>
 
                 <div className="m-6">
@@ -140,21 +232,38 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                             >
                                                 Rótulo
                                             </Typography>
-                                            <Image
-                                                src={
-                                                    buildImageSrc(equipment.label_photo) || notFound
-                                                }
-                                                alt="Rótulo do equipamento"
-                                                width={200}
-                                                height={200}
-                                                className="ring-1 shadow-md rounded-md"
-                                                unoptimized={shouldDisableOptimization(
-                                                    buildImageSrc(equipment.label_photo),
-                                                )}
-                                                style={{
-                                                    objectFit: "contain",
-                                                }}
-                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => openLightbox("equipment-label")}
+                                                className="group relative inline-block h-50 w-50 cursor-zoom-in"
+                                                aria-label="Ampliar rótulo do equipamento"
+                                                data-cy="equipment-label-photo-zoom-trigger"
+                                            >
+                                                <Image
+                                                    src={
+                                                        buildImageSrc(equipment.label_photo) ||
+                                                        notFound
+                                                    }
+                                                    alt="Rótulo do equipamento"
+                                                    width={200}
+                                                    height={200}
+                                                    className="ring-1 shadow-md rounded-md"
+                                                    unoptimized={shouldDisableOptimization(
+                                                        buildImageSrc(equipment.label_photo),
+                                                    )}
+                                                    style={{
+                                                        objectFit: "contain",
+                                                    }}
+                                                />
+                                                <span className="pointer-events-none absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
+                                                <span className={ZOOM_BADGE_CLASSNAME}>
+                                                    <MagnifyingGlassPlusIcon
+                                                        size={20}
+                                                        className="text-white"
+                                                        weight="bold"
+                                                    />
+                                                </span>
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -218,7 +327,17 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                             >
                                                 <div className="flex gap-4">
                                                     {accessory.equipment_photo && (
-                                                        <div className="relative w-20 h-20 shrink-0">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                openLightbox(
+                                                                    `accessory-photo-${accessory.id}`,
+                                                                )
+                                                            }
+                                                            className="group relative h-20 w-20 shrink-0 cursor-zoom-in"
+                                                            aria-label={`Ampliar imagem do acessório ${accessory.model}`}
+                                                            data-cy={`accessory-photo-zoom-trigger-${accessory.id}`}
+                                                        >
                                                             <Image
                                                                 src={
                                                                     buildImageSrc(
@@ -235,7 +354,15 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                                 )}
                                                                 style={{ objectFit: "cover" }}
                                                             />
-                                                        </div>
+                                                            <span className="pointer-events-none absolute inset-0 rounded-md bg-black/0 transition-colors group-hover:bg-black/10" />
+                                                            <span className={ZOOM_BADGE_CLASSNAME_SMALL}>
+                                                                <MagnifyingGlassPlusIcon
+                                                                    size={12}
+                                                                    className="text-white"
+                                                                    weight="bold"
+                                                                />
+                                                            </span>
+                                                        </button>
                                                     )}
                                                     <div>
                                                         <Typography size="md" className="font-bold">
@@ -271,23 +398,43 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                         >
                                                             Rótulo:
                                                         </Typography>
-                                                        <Image
-                                                            src={
-                                                                buildImageSrc(
-                                                                    accessory.label_photo,
-                                                                ) || notFound
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                openLightbox(
+                                                                    `accessory-label-${accessory.id}`,
+                                                                )
                                                             }
-                                                            alt={`Rótulo do acessório ${accessory.model}`}
-                                                            width={100}
-                                                            height={100}
-                                                            className="ring-1 shadow-sm rounded-md"
-                                                            unoptimized={shouldDisableOptimization(
-                                                                buildImageSrc(
-                                                                    accessory.label_photo,
-                                                                ),
-                                                            )}
-                                                            style={{ objectFit: "contain" }}
-                                                        />
+                                                            className="group relative inline-block h-25 w-25 cursor-zoom-in"
+                                                            aria-label={`Ampliar rótulo do acessório ${accessory.model}`}
+                                                            data-cy={`accessory-label-photo-zoom-trigger-${accessory.id}`}
+                                                        >
+                                                            <Image
+                                                                src={
+                                                                    buildImageSrc(
+                                                                        accessory.label_photo,
+                                                                    ) || notFound
+                                                                }
+                                                                alt={`Rótulo do acessório ${accessory.model}`}
+                                                                width={100}
+                                                                height={100}
+                                                                className="ring-1 shadow-sm rounded-md"
+                                                                unoptimized={shouldDisableOptimization(
+                                                                    buildImageSrc(
+                                                                        accessory.label_photo,
+                                                                    ),
+                                                                )}
+                                                                style={{ objectFit: "contain" }}
+                                                            />
+                                                            <span className="pointer-events-none absolute inset-0 rounded-md bg-black/0 transition-colors group-hover:bg-black/10" />
+                                                            <span className={ZOOM_BADGE_CLASSNAME_SMALL}>
+                                                                <MagnifyingGlassPlusIcon
+                                                                    size={12}
+                                                                    className="text-white"
+                                                                    weight="bold"
+                                                                />
+                                                            </span>
+                                                        </button>
                                                     </div>
                                                 )}
                                             </div>
@@ -324,17 +471,35 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                 </div>
 
                 <div className="relative w-full h-72">
-                    <Image
-                        src={equipmentPhotoSrc}
-                        alt="Imagem do equipamento"
-                        fill
-                        className="shadow-lg ring-2"
-                        unoptimized={
-                            typeof equipmentPhotoSrc === "string" &&
-                            shouldDisableOptimization(equipmentPhotoSrc)
-                        }
-                        style={{ objectFit: "contain" }}
-                    />
+                    <button
+                        type="button"
+                        onClick={() => openLightbox("equipment-photo")}
+                        className="group relative block h-full w-full cursor-zoom-in disabled:cursor-default"
+                        aria-label="Ampliar imagem do equipamento"
+                        data-cy="equipment-photo-zoom-trigger"
+                        disabled={!equipment.equipment_photo}
+                    >
+                        <Image
+                            src={equipmentPhotoSrc}
+                            alt="Imagem do equipamento"
+                            fill
+                            className="shadow-lg ring-2"
+                            unoptimized={
+                                typeof equipmentPhotoSrc === "string" &&
+                                shouldDisableOptimization(equipmentPhotoSrc)
+                            }
+                            style={{ objectFit: "contain" }}
+                        />
+                        {equipment.equipment_photo && (
+                            <span className={ZOOM_BADGE_CLASSNAME}>
+                                <MagnifyingGlassPlusIcon
+                                    size={20}
+                                    className="text-white"
+                                    weight="bold"
+                                />
+                            </span>
+                        )}
+                    </button>
                 </div>
 
                 <div className="space-y-3 px-4 py-6">
@@ -399,19 +564,35 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                             >
                                                 Rótulo
                                             </Typography>
-                                            <Image
-                                                src={
-                                                    buildImageSrc(equipment.label_photo) || notFound
-                                                }
-                                                alt="Rótulo do equipamento"
-                                                width={420}
-                                                height={300}
-                                                className="w-full rounded-md ring-1 shadow-md"
-                                                unoptimized={shouldDisableOptimization(
-                                                    buildImageSrc(equipment.label_photo),
-                                                )}
-                                                style={{ objectFit: "contain" }}
-                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => openLightbox("equipment-label")}
+                                                className="group relative block w-full cursor-zoom-in"
+                                                aria-label="Ampliar rótulo do equipamento"
+                                                data-cy="equipment-label-photo-zoom-trigger"
+                                            >
+                                                <Image
+                                                    src={
+                                                        buildImageSrc(equipment.label_photo) ||
+                                                        notFound
+                                                    }
+                                                    alt="Rótulo do equipamento"
+                                                    width={420}
+                                                    height={300}
+                                                    className="w-full rounded-md ring-1 shadow-md"
+                                                    unoptimized={shouldDisableOptimization(
+                                                        buildImageSrc(equipment.label_photo),
+                                                    )}
+                                                    style={{ objectFit: "contain" }}
+                                                />
+                                                <span className={ZOOM_BADGE_CLASSNAME}>
+                                                    <MagnifyingGlassPlusIcon
+                                                        size={20}
+                                                        className="text-white"
+                                                        weight="bold"
+                                                    />
+                                                </span>
+                                            </button>
                                         </div>
                                     )}
                                 </DisclosurePanel>
@@ -507,7 +688,17 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                 >
                                                     <div className="flex gap-3">
                                                         {accessory.equipment_photo && (
-                                                            <div className="relative h-16 w-16 shrink-0">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    openLightbox(
+                                                                        `accessory-photo-${accessory.id}`,
+                                                                    )
+                                                                }
+                                                                className="group relative h-16 w-16 shrink-0 cursor-zoom-in"
+                                                                aria-label={`Ampliar imagem do acessório ${accessory.model}`}
+                                                                data-cy={`accessory-photo-zoom-trigger-${accessory.id}`}
+                                                            >
                                                                 <Image
                                                                     src={
                                                                         buildImageSrc(
@@ -526,7 +717,14 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                                         objectFit: "cover",
                                                                     }}
                                                                 />
-                                                            </div>
+                                                                <span className={ZOOM_BADGE_CLASSNAME_SMALL}>
+                                                                    <MagnifyingGlassPlusIcon
+                                                                        size={12}
+                                                                        className="text-white"
+                                                                        weight="bold"
+                                                                    />
+                                                                </span>
+                                                            </button>
                                                         )}
                                                         <div className="space-y-1">
                                                             <Typography
@@ -566,25 +764,44 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                                                             >
                                                                 Rótulo:
                                                             </Typography>
-                                                            <Image
-                                                                src={
-                                                                    buildImageSrc(
-                                                                        accessory.label_photo,
-                                                                    ) || notFound
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    openLightbox(
+                                                                        `accessory-label-${accessory.id}`,
+                                                                    )
                                                                 }
-                                                                alt={`Rótulo do acessório ${accessory.model}`}
-                                                                width={220}
-                                                                height={180}
-                                                                className="w-full rounded-md ring-1 shadow-sm"
-                                                                unoptimized={shouldDisableOptimization(
-                                                                    buildImageSrc(
-                                                                        accessory.label_photo,
-                                                                    ),
-                                                                )}
-                                                                style={{
-                                                                    objectFit: "contain",
-                                                                }}
-                                                            />
+                                                                className="group relative block w-full cursor-zoom-in"
+                                                                aria-label={`Ampliar rótulo do acessório ${accessory.model}`}
+                                                                data-cy={`accessory-label-photo-zoom-trigger-${accessory.id}`}
+                                                            >
+                                                                <Image
+                                                                    src={
+                                                                        buildImageSrc(
+                                                                            accessory.label_photo,
+                                                                        ) || notFound
+                                                                    }
+                                                                    alt={`Rótulo do acessório ${accessory.model}`}
+                                                                    width={220}
+                                                                    height={180}
+                                                                    className="w-full rounded-md ring-1 shadow-sm"
+                                                                    unoptimized={shouldDisableOptimization(
+                                                                        buildImageSrc(
+                                                                            accessory.label_photo,
+                                                                        ),
+                                                                    )}
+                                                                    style={{
+                                                                        objectFit: "contain",
+                                                                    }}
+                                                                />
+                                                                <span className={ZOOM_BADGE_CLASSNAME}>
+                                                                    <MagnifyingGlassPlusIcon
+                                                                        size={16}
+                                                                        className="text-white"
+                                                                        weight="bold"
+                                                                    />
+                                                                </span>
+                                                            </button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -620,6 +837,12 @@ function EquipmentDetails({ equipment, onClose }: EquipmentDetailsProps) {
                     </Disclosure>
                 </div>
             </div>
+
+            <ImageLightbox
+                slides={slides}
+                index={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+            />
         </div>
     );
 }
