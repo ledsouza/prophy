@@ -409,6 +409,8 @@ class Accessory(BaseEquipment, models.Model):
             ("Acessório")
         verbose_name_plural (str): Display name for multiple instances
             ("Acessórios")
+        ordering (list[str]): Default queryset ordering, alphabetical
+            by ``model``
     """
 
     equipment = models.ForeignKey(
@@ -421,6 +423,7 @@ class Accessory(BaseEquipment, models.Model):
     class Meta:
         verbose_name = "Acessório"
         verbose_name_plural = "Acessórios"
+        ordering = ["model"]
 
 
 class Proposal(models.Model):
