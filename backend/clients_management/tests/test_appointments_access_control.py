@@ -179,6 +179,39 @@ def test_appointments_update_as_internal_physicist_allowed_when_client_user():
 
 
 @pytest.mark.django_db
+def test_appointments_update_fulfilled_denied_for_non_prophy_manager():
+    client = APIClient()
+    commercial = UserFactory(role=UserAccount.Role.COMMERCIAL)
+    appointment = AppointmentFactory(status=Appointment.Status.FULFILLED)
+
+    client.force_authenticate(user=commercial)
+    response = client.patch(
+        f"/api/appointments/{appointment.id}/",
+        {"contact_name": "New"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_appointments_update_fulfilled_allowed_for_prophy_manager():
+    client = APIClient()
+    prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)
+    appointment = AppointmentFactory(status=Appointment.Status.FULFILLED)
+
+    client.force_authenticate(user=prophy_manager)
+    response = client.patch(
+        f"/api/appointments/{appointment.id}/",
+        {"contact_name": "New"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["contact_name"] == "New"
+
+
+@pytest.mark.django_db
 def test_appointments_delete_only_prophy_manager():
     client = APIClient()
     prophy_manager = UserFactory(role=UserAccount.Role.PROPHY_MANAGER)

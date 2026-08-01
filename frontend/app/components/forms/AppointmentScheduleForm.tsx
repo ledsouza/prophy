@@ -34,6 +34,7 @@ type AppointmentScheduleFormProps = {
     onCancel: () => void;
     onSuccess: () => void;
     title?: string;
+    mode?: "schedule" | "fix";
 };
 
 function toLocalDatetimeInputValue(iso: string): string {
@@ -96,6 +97,10 @@ function hasAppointmentScheduleChanges(
  *   here and perform any post-success actions.
  * - title?: string — optional custom title; defaults to "Atualizar agenda" in update mode,
  *   and "Agendar atendimento" in create mode.
+ * - mode?: "schedule" | "fix" — "fix" is a data-correction mode (Prophy Manager only,
+ *   used on already-fulfilled appointments): it never requires a justification and
+ *   never sets status to RESCHEDULED when the date changes, so it does not trigger the
+ *   reschedule workflow — the appointment's status is left untouched.
  */
 const AppointmentScheduleForm = ({
     appointment,
@@ -103,10 +108,12 @@ const AppointmentScheduleForm = ({
     onCancel,
     onSuccess,
     title,
+    mode = "schedule",
 }: AppointmentScheduleFormProps) => {
     const [updateAppointment] = useUpdateAppointmentMutation();
     const [createAppointment] = useCreateAppointmentMutation();
     const isUpdate = Boolean(appointment?.id);
+    const isFixMode = mode === "fix";
     const log = child({ component: "AppointmentScheduleForm" });
 
     const {
@@ -116,7 +123,9 @@ const AppointmentScheduleForm = ({
         watch,
         formState: { errors, isSubmitting },
     } = useForm<AppointmentScheduleFields>({
-        resolver: zodResolver(makeAppointmentScheduleSchema({ requireJustification: isUpdate })),
+        resolver: zodResolver(
+            makeAppointmentScheduleSchema({ requireJustification: isUpdate && !isFixMode }),
+        ),
         defaultValues: {
             date: appointment?.date ? toLocalDatetimeInputValue(appointment.date) : "",
             contact_name: appointment?.contact_name || "",
@@ -152,17 +161,23 @@ const AppointmentScheduleForm = ({
 
                 const payload: UpdateAppointmentPayload = {
                     ...basePayload,
-                    justification: data.justification ?? null,
+                    ...(isFixMode ? {} : { justification: data.justification ?? null }),
                 };
 
                 if (dateChanged) {
                     payload.date = new Date(data.date!).toISOString();
-                    payload.status = AppointmentStatus.RESCHEDULED;
+                    if (!isFixMode) {
+                        payload.status = AppointmentStatus.RESCHEDULED;
+                    }
                 }
 
                 await updateAppointment({ id: appointment.id, data: payload }).unwrap();
 
-                toast.success("Agenda atualizada com sucesso.");
+                toast.success(
+                    isFixMode
+                        ? "Dados do agendamento corrigidos com sucesso."
+                        : "Agenda atualizada com sucesso.",
+                );
                 onSuccess();
             } else {
                 if (!unitId) {
@@ -237,7 +252,12 @@ const AppointmentScheduleForm = ({
         <div className="p-6 w-full max-w-none">
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <Typography element="h3" size="title3" className="font-semibold">
-                    {title ?? (isUpdate ? "Atualizar agenda" : "Agendar atendimento")}
+                    {title ??
+                        (isFixMode
+                            ? "Corrigir dados do atendimento"
+                            : isUpdate
+                              ? "Atualizar agenda"
+                              : "Agendar atendimento")}
                 </Typography>
 
                 <Input
@@ -282,7 +302,7 @@ const AppointmentScheduleForm = ({
                     dataTestId="appointment-contact-phone-input"
                 ></Input>
 
-                {isUpdate && (
+                {isUpdate && !isFixMode && (
                     <Textarea
                         {...register("justification")}
                         errorMessage={errors.justification?.message}
@@ -297,7 +317,7 @@ const AppointmentScheduleForm = ({
                     isSubmitting={isSubmitting}
                     needReview={false}
                     onCancel={onCancel}
-                    submitLabel={isUpdate ? "Atualizar" : "Agendar"}
+                    submitLabel={isFixMode ? "Corrigir" : isUpdate ? "Atualizar" : "Agendar"}
                 />
             </Form>
         </div>

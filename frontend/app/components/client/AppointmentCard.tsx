@@ -39,6 +39,7 @@ import {
     CheckCircleIcon,
     FileArrowDownIcon,
     MonitorPlayIcon,
+    PencilSimpleIcon,
     PhoneCallIcon,
     UserCircleIcon,
     UsersIcon,
@@ -96,6 +97,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
         showRescheduleButton,
         showJustifyButton,
         showJustificationViewerButton,
+        showFixFulfilledDataButton,
         isCancelDisabled,
         isRescheduleDisabled,
         isMarkDoneDisabled,
@@ -123,6 +125,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
     // Local modal states
     const [detailsOpen, setDetailsOpen] = useState(false);
     const [scheduleOpen, setScheduleOpen] = useState(false);
+    const [fixDataOpen, setFixDataOpen] = useState(false);
     const [soCreateOpen, setSoCreateOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -284,7 +287,7 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
 
     const mobileActionGridClass = clsx(
         "grid gap-2",
-        showCreateServiceOrderButton ? "grid-cols-4" : "grid-cols-3",
+        showCreateServiceOrderButton || showFixFulfilledDataButton ? "grid-cols-4" : "grid-cols-3",
     );
 
     return (
@@ -348,6 +351,23 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 title="Exportar Ordem de Serviço"
                             >
                                 <FileArrowDownIcon size={20} />
+                            </Button>
+                        )}
+
+                        {showFixFulfilledDataButton && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setFixDataOpen(true);
+                                }}
+                                className="h-10 w-full sm:min-h-11"
+                                data-testid="btn-appointment-fix-data"
+                                dataCy={`appointment-fix-data-${appointment.id}`}
+                                aria-label="Corrigir dados do agendamento"
+                                title="Corrigir dados do agendamento"
+                                disabled={isUpdatingAppointment || isDeleting}
+                            >
+                                <PencilSimpleIcon size={20} />
                             </Button>
                         )}
 
@@ -553,6 +573,23 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                                 Justificativa
                             </Button>
                         )}
+                        {showFixFulfilledDataButton && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setFixDataOpen(true);
+                                }}
+                                className="w-full sm:w-auto"
+                                data-testid="btn-appointment-fix-data"
+                                dataCy={`appointment-fix-data-${appointment.id}`}
+                                aria-label="Corrigir dados do agendamento"
+                                title="Corrigir dados do agendamento"
+                                disabled={isUpdatingAppointment || isDeleting}
+                            >
+                                <PencilSimpleIcon size={20} />
+                            </Button>
+                        )}
+
                         {showRescheduleButton && (
                             <Button
                                 variant="primary"
@@ -719,6 +756,19 @@ function AppointmentCard({ appointment, dataTestId }: AppointmentCardProps) {
                     appointment={appointment}
                     onCancel={() => setScheduleOpen(false)}
                     onSuccess={() => setScheduleOpen(false)}
+                />
+            </Modal>
+
+            <Modal
+                isOpen={fixDataOpen}
+                onClose={() => setFixDataOpen(false)}
+                className="w-[95vw] max-w-none sm:max-w-2xl sm:px-6"
+            >
+                <AppointmentScheduleForm
+                    appointment={appointment}
+                    mode="fix"
+                    onCancel={() => setFixDataOpen(false)}
+                    onSuccess={() => setFixDataOpen(false)}
                 />
             </Modal>
 

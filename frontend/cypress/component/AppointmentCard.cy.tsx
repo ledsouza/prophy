@@ -54,4 +54,29 @@ describe("AppointmentCard (component)", () => {
             .should("be.visible")
             .should("contain.text", "Pendente");
     });
+
+    it("keeps Reschedule disabled for Prophy Manager on a fulfilled appointment", () => {
+        const fulfilled = { ...appointment, status: AppointmentStatus.FULFILLED };
+        cy.mount(<AppointmentCard appointment={fulfilled} />);
+
+        cy.get("[data-testid=btn-appointment-update-schedule]").should("be.disabled");
+    });
+
+    it("shows the fix-data action only for Prophy Manager on a fulfilled appointment", () => {
+        const fulfilled = { ...appointment, status: AppointmentStatus.FULFILLED };
+        cy.mount(<AppointmentCard appointment={fulfilled} />);
+
+        cy.get("[data-testid=btn-appointment-fix-data]").should("be.enabled");
+    });
+
+    it("hides the fix-data action for other roles on a fulfilled appointment", () => {
+        cy.intercept("GET", "**/users/me/**", {
+            statusCode: 200,
+            body: { id: 1, role: "C" },
+        });
+        const fulfilled = { ...appointment, status: AppointmentStatus.FULFILLED };
+        cy.mount(<AppointmentCard appointment={fulfilled} />);
+
+        cy.get("[data-testid=btn-appointment-fix-data]").should("not.exist");
+    });
 });

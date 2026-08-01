@@ -26,6 +26,7 @@ export function useAppointmentPermissions(appointment: AppointmentDTO, role?: Ro
         showRescheduleButton: shouldShow("rescheduleAppointment", appointment, role),
         showJustifyButton: shouldShow("justifyAppointment", appointment, role),
         showJustificationViewerButton: shouldShow("justificationViewer", appointment, role),
+        showFixFulfilledDataButton: shouldShow("fixFulfilledData", appointment, role),
 
         isRescheduleDisabled: _isRescheduleDisabled(appointment),
         isCancelDisabled: _isCancelDisabled(appointment),

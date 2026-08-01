@@ -51,6 +51,12 @@ const SHOW_RULES = {
     justificationViewer: (a: AppointmentDTO, role?: Role) =>
         can("viewJustification", role) &&
         (a.status === AppointmentStatus.UNFULFILLED || a.status === AppointmentStatus.RESCHEDULED),
+
+    // Lets the Prophy Manager fix a data-entry mistake (e.g. a wrong date)
+    // on an already-fulfilled appointment without going through the
+    // reschedule workflow.
+    fixFulfilledData: (a: AppointmentDTO, role?: Role) =>
+        role === Role.GP && a.status === AppointmentStatus.FULFILLED,
 } as const;
 
 export function shouldShow(

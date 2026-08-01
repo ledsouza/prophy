@@ -1496,6 +1496,18 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if (
+            appointment.status == Appointment.Status.FULFILLED
+            and not self._can_update_fulfilled_appointment(user)
+        ):
+            return Response(
+                {
+                    "detail": "Não é possível atualizar um agendamento "
+                    "já realizado."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         data = request.data
         serializer = AppointmentSerializer(
             appointment,
@@ -1667,6 +1679,10 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
             UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST,
             UserAccount.Role.COMMERCIAL,
         ]
+
+    def _can_update_fulfilled_appointment(self, user: UserAccount) -> bool:
+        """Check if user can update an already-fulfilled appointment."""
+        return user.role == UserAccount.Role.PROPHY_MANAGER
 
     def _has_appointment_access(
         self, user: UserAccount, appointment: Appointment
