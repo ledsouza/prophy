@@ -286,7 +286,10 @@ frontend/cypress/screenshots/
 
 # Local IDE settings
 .vscode/
-.claude/
+/.claude/*
+!/.claude/rules/
+!/.claude/skills/
+frontend/.claude/
 .mcp.json
 
 # Playwright MCP local files

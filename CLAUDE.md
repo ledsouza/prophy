@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Detailed rules live in `.claude/rules/` — consult those files for extended guidance on specific topics.
+Detailed rules live in `.claude/rules/` — consult those files for extended guidance on specific topics. Topic-triggered skills live in `.claude/skills/` — see the `python-standards` and `typescript-standards` skills below.
 
 ## Production
 
@@ -25,6 +25,8 @@ Infrastructure is Terraform-managed (`infra/terraform/`). CI/CD runs via GitHub 
 - **Do not run the application.** The user is responsible for running the dev server.
 - **Ask when ambiguous.** If a request is unclear or could be improved, raise it rather than guessing.
 - **Never edit `pyproject.toml` directly.** Always use the Poetry CLI (`poetry add`, `poetry remove`) to manage backend dependencies.
+- **Invoke the `python-standards` skill for any Python work.** Before planning, writing, reviewing, or discussing Python code, load the `python-standards` skill (`.claude/skills/python-standards/SKILL.md`) — it layers Pythonic idioms and AI-agent code-smell checks on top of `.claude/rules/`.
+- **Invoke the `typescript-standards` skill for any TypeScript/React/Next.js work.** Before planning, writing, reviewing, or discussing frontend code, load the `typescript-standards` skill (`.claude/skills/typescript-standards/SKILL.md`) — it layers React/Next.js App Router idioms and AI-agent code-smell checks on top of `.claude/rules/`.
 
 ## Commands
 
@@ -162,26 +164,29 @@ See `.claude/rules/cypress.md` for the full ruleset. Key points:
 
 ### Python
 
-See `.claude/rules/python_format_style.md` and `.claude/rules/soft_rules.md` for full detail.
+Load the **`python-standards`** skill before touching Python — it
+consolidates `.claude/rules/python_format_style.md`, `soft_rules.md`,
+`structural_pattern_matching.md`, and `security.md`, and adds Pythonic
+idioms (EAFP, `pathlib`, `enum`, generators, `Protocol` vs ABC) plus a
+checklist of AI-agent-specific code smells to self-check against.
 
 - **Line length**: 79 chars for code, 72 for docstrings/comments (`ruff` enforces this).
-- **Imports**: no wildcard imports. Use explicit names.
-- **Truthiness**: always explicit — `if x is not None:`, not `if x:`.
-- **No global mutable state**. Pass state via arguments or class instances.
-- **Context managers**: always use `with` for files, DB connections, and other resources.
-- **Type hints**: use built-in generics (`list[str]`, `dict[str, int]`), not `typing.List`/`typing.Dict`. Use `str | None` not `Optional[str]`. Avoid `Any`; prefer `TypedDict` or Pydantic models.
-- **Structural pattern matching**: `match/case` is preferred over chains of `isinstance` checks or `if/elif` dispatching. See `.claude/rules/structural_pattern_matching.md`.
-- **Logging**: `logger = logging.getLogger(__name__)` per module. Use `logger.exception()` inside `except` blocks to capture tracebacks. Never log secrets, tokens, or PII.
+- **Type hints**: built-in generics (`list[str]`, `dict[str, int]`), `str | None` not `Optional[str]`. Avoid `Any`.
+- **Logging**: `logger = logging.getLogger(__name__)` per module; pass lazy `%s` args in log calls, not f-strings, so interpolation is skipped when the level is disabled. Use `logger.exception()` inside `except` blocks. Never log secrets, tokens, or PII.
 
 ### TypeScript / Next.js
 
-See `.claude/rules/typescript_payload_types.md` for full detail.
+Load the **`typescript-standards`** skill before touching TS/React/Next.js
+code — it consolidates `.claude/rules/typescript_payload_types.md`,
+`logging_nextjs.md`, and `cypress.md`, and adds React 19 / App Router
+idioms (Server vs Client Component boundaries, hooks discipline, RTK
+Query patterns specific to this app) plus a checklist of AI-agent-specific
+frontend code smells to self-check against.
 
-- **API types**: prefer `type` over `interface` for payload shapes. Use `Partial<T>` for PATCH payloads. Define types in `app/redux/types/`, not inline.
+- **API types**: prefer `type` over `interface` for payload shapes. Define types in `app/redux/types/`, not inline.
 - **Forms**: always use Zod schemas paired with React Hook Form. Never build forms without schema validation.
 - **Icons**: use `@phosphor-icons/react`. Component names end in `Icon` (e.g., `ArrowClockwiseIcon`).
-- **UI consistency**: before adding new styles, check `styles/globals.css` and `tailwind.config.ts` for existing design tokens. Before using a library component, check if an equivalent already exists in `app/components/`.
-- **Logging**: use the Pino-based logger (`app/utils/logger.ts`), not `console.*` directly. Use `child()` for scoped loggers. Never log tokens, cookies, or personal data. See `.claude/rules/logging_nextjs.md`.
+- **Logging**: use the Pino-based logger (`app/utils/logger.ts`), not `console.*` directly. Use `child()` for scoped loggers. Never log tokens, cookies, or personal data.
 
 ### Comments (all languages)
 
