@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Detailed rules live in `.claude/rules/` — consult those files for extended guidance on specific topics. Topic-triggered skills live in `.claude/skills/` — see the `python-standards` and `typescript-standards` skills below.
+Detailed rules live in `.claude/rules/` — consult those files for extended guidance on specific topics.
 
 ## Production
 
@@ -25,8 +25,8 @@ Infrastructure is Terraform-managed (`infra/terraform/`). CI/CD runs via GitHub 
 - **Do not run the application.** The user is responsible for running the dev server.
 - **Ask when ambiguous.** If a request is unclear or could be improved, raise it rather than guessing.
 - **Never edit `pyproject.toml` directly.** Always use the Poetry CLI (`poetry add`, `poetry remove`) to manage backend dependencies.
-- **Invoke the `python-standards` skill for any Python work.** Before planning, writing, reviewing, or discussing Python code, load the `python-standards` skill (`.claude/skills/python-standards/SKILL.md`) — it layers Pythonic idioms and AI-agent code-smell checks on top of `.claude/rules/`.
-- **Invoke the `typescript-standards` skill for any TypeScript/React/Next.js work.** Before planning, writing, reviewing, or discussing frontend code, load the `typescript-standards` skill (`.claude/skills/typescript-standards/SKILL.md`) — it layers React/Next.js App Router idioms and AI-agent code-smell checks on top of `.claude/rules/`.
+- **Invoke the `python-standards` skill for any Python work.** Before planning, writing, reviewing, or discussing Python code, load the `python-standards` skill — it layers Pythonic idioms and AI-agent code-smell checks on top of `.claude/rules/`. (User-level skill, not stored in this repo.)
+- **Invoke the `typescript-standards` skill for any TypeScript/React/Next.js work.** Before planning, writing, reviewing, or discussing frontend code, load the `typescript-standards` skill — it layers React/Next.js App Router idioms and AI-agent code-smell checks on top of `.claude/rules/`. (User-level skill, not stored in this repo.)
 
 ## Commands
 

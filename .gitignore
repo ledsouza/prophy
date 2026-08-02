@@ -288,7 +288,6 @@ frontend/cypress/screenshots/
 .vscode/
 /.claude/*
 !/.claude/rules/
-!/.claude/skills/
 frontend/.claude/
 .mcp.json
 
