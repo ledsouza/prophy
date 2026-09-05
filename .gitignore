@@ -286,10 +286,17 @@ frontend/cypress/screenshots/
 
 # Local IDE settings
 .vscode/
+
+# Claude Code: share rules, commands and skills; keep personal settings local
 /.claude/*
 !/.claude/rules/
 !/.claude/commands/
+!/.claude/skills/
 frontend/.claude/
+
+# BMad: share config and modules; keep personal answers and output local
+_bmad/config.user.toml
+_bmad-output/
 .mcp.json
 
 # Playwright MCP local files
