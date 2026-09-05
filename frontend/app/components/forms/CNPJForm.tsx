@@ -13,6 +13,7 @@ import { Button } from "@/components/common";
 import prophyIcon from "@/../public/images/prophy-icon.png";
 import { useVerifyClientStatusMutation } from "@/redux/features/clientApiSlice";
 import { toast } from "react-toastify";
+import { child } from "@/utils/logger";
 
 const cnpjSchema = z.object({
     cnpj: z.string().length(14, { message: "O CNPJ deve conter 14 caracteres." }).refine(isCNPJ, {
@@ -26,6 +27,8 @@ type CNPJFields = z.infer<typeof cnpjSchema>;
 type CNPJFormProps = {
     onSubmit: (cnpj: string) => void;
 };
+
+const log = child({ component: "CNPJForm" });
 
 const CNPJForm = ({ onSubmit }: CNPJFormProps) => {
     const [getClientStatus] = useVerifyClientStatusMutation();
@@ -47,7 +50,7 @@ const CNPJForm = ({ onSubmit }: CNPJFormProps) => {
                 return toast.info("Este CNPJ já está cadastrado.");
             }
         } catch (error) {
-            console.log("handleCNPJSubmit Error: ", error);
+            log.error({ error: error instanceof Error ? error.message : String(error) }, "CNPJ verification failed");
             return toast.error(
                 "Algo deu errado. Tente novamente. Se o problem persistir, entre em contato conosco."
             );

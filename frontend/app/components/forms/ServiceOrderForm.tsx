@@ -12,6 +12,7 @@ import { Form, FormButtons, Input, MultiSelect, Textarea } from "@/components/fo
 import { Typography } from "@/components/foundation";
 import { useListAllEquipmentsQuery } from "@/redux/features/equipmentApiSlice";
 import clsx from "clsx";
+import { child } from "@/utils/logger";
 
 type ServiceOrderFields = z.infer<typeof serviceOrderSchema>;
 
@@ -69,13 +70,15 @@ type ServiceOrderFormProps = {
  * <ServiceOrderForm
  *   serviceOrder={serviceOrder}
  *   unitId={unitId}
- *   onCancel={() => console.log("Canceled")}
+ *   onCancel={closeForm}
  *   onSubmit={save}
  *   title="Ordem de Serviço"
  *   containerClassName="m-6 sm:mx-auto w-full sm:max-w-3xl max-w-3xl"
  *   containerTestId="os-form-section"
  * />
  */
+const log = child({ component: "ServiceOrderForm" });
+
 const ServiceOrderForm = ({
     serviceOrder,
     unitId,
@@ -197,14 +200,13 @@ const ServiceOrderForm = ({
                                         const hasBoth = Boolean(model && manufacturer);
 
                                         if (!hasBoth) {
-                                            console.error(
-                                                "[ServiceOrderForm] Equipment missing data (model and/or manufacturer)",
+                                            log.warn(
                                                 {
                                                     equipmentId: id,
-                                                    equipment: e ?? null,
                                                     missingModel: !model,
                                                     missingManufacturer: !manufacturer,
                                                 },
+                                                "Equipment missing model or manufacturer",
                                             );
                                         }
 

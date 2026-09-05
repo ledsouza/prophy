@@ -175,18 +175,22 @@ function getConflictName(error: unknown): string | null {
 
 import { toast } from "react-toastify";
 
+import { child } from "@/utils/logger";
+
+const log = child({ feature: "errorHandling" });
+
 /**
  * Handles API errors by displaying a toast notification and logging the error.
  * @param error The error object caught from an API call.
- * @param contextMessage An optional message to provide context for the console log.
+ * @param contextMessage An optional message to provide context for the log entry.
  */
 export function handleApiError(error: unknown, contextMessage: string = "API Error"): void {
     const status = getErrorStatus(error);
 
     if (status === 400 || status === 409 || status === 422) {
-        console.warn(contextMessage + ":", error);
+        log.warn({ status }, contextMessage);
     } else {
-        console.error(contextMessage + ":", error);
+        log.error({ status }, contextMessage);
     }
 
     if (status === 400 || status === 409 || status === 422) {

@@ -34,6 +34,13 @@ export default [
             // React Hooks rules
             "react-hooks/rules-of-hooks": "error",
             "react-hooks/exhaustive-deps": "warn",
+            "no-console": "error",
+        },
+    },
+    {
+        files: ["app/utils/logger.ts", "app/utils/logTransport.ts"],
+        rules: {
+            "no-console": "off",
         },
     },
 ];

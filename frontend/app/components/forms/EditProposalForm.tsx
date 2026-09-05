@@ -4,6 +4,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
+import { child } from "@/utils/logger";
 import { z } from "zod";
 
 import { ProposalStatus } from "@/enums";
@@ -61,6 +62,8 @@ const PROPOSAL_STATUS_OPTIONS = [
     { id: 3, value: "Pendente" },
 ];
 
+const log = child({ component: "EditProposalForm" });
+
 const EditProposalForm = ({ title, description, proposal }: EditProposalFormProps) => {
     const dispatch = useAppDispatch();
 
@@ -96,7 +99,7 @@ const EditProposalForm = ({ title, description, proposal }: EditProposalFormProp
             toast.success("Proposta atualizada com sucesso!");
             dispatch(closeModal());
         } catch (error) {
-            console.error("Failed to update proposal:", error);
+            log.error({ proposalId: proposal.id, error: error instanceof Error ? error.message : String(error) }, "Failed to update proposal");
             toast.error("Algo deu errado. Tente novamente mais tarde.");
         }
     };

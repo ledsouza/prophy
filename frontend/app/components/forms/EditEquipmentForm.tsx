@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { child } from "@/utils/logger";
 import { z } from "zod";
 
 import AccessoryCreationError from "@/errors/accessory-error";
@@ -98,6 +99,8 @@ type EditEquipmentFormProps = {
     equipment: EquipmentDTO | EquipmentOperationDTO;
     originalEquipment?: EquipmentDTO;
 };
+
+const log = child({ component: "EditEquipmentForm" });
 
 const EditEquipmentForm = ({
     title,
@@ -936,7 +939,7 @@ const EditEquipmentForm = ({
 
                 const deletionErrors = deletionResults.filter((result) => "error" in result);
                 if (deletionErrors.length > 0) {
-                    console.error("Errors deleting accessories:", deletionErrors);
+                    log.error({ failedCount: deletionErrors.length }, "Accessory deletion failed");
                     toast.error("Erro ao remover um ou mais acessórios. Tente novamente.");
                     setRemovedAccessoryIds([]);
                     return;
@@ -974,7 +977,7 @@ const EditEquipmentForm = ({
             dispatch(closeModal());
         } catch (error) {
             if (error instanceof AccessoryCreationError) {
-                console.error("Accessory creation error:", error.message);
+                log.error({ error: error.message }, "Accessory creation failed");
                 toast.error("Erro ao criar acessório. Verifique os dados e tente novamente.");
             } else {
                 handleApiError(error, "Failed to create equipment");

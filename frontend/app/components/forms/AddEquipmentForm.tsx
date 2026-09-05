@@ -6,6 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { child } from "@/utils/logger";
 
 import AccessoryCreationError from "@/errors/accessory-error";
 import { accessorySchema, equipmentSchema, requiredFileSchema } from "@/schemas";
@@ -48,6 +49,8 @@ type AddEquipmentFormProps = {
 };
 
 type AccessoryFields = AddEquipmentFields["accessories"][0];
+
+const log = child({ component: "AddEquipmentForm" });
 
 const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
     const dispatch = useAppDispatch();
@@ -189,7 +192,7 @@ const AddEquipmentForm = ({ unitId }: AddEquipmentFormProps) => {
             dispatch(closeModal());
         } catch (error) {
             if (error instanceof AccessoryCreationError) {
-                console.error("Accessory creation error:", error.message);
+                log.error({ unitId, error: error.message }, "Accessory creation failed");
                 toast.error("Erro ao criar acessório. Verifique os dados e tente novamente.");
             } else {
                 handleApiError(error, "Failed to create equipment");

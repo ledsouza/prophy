@@ -1,96 +1,78 @@
+---
+paths:
+  - "backend/**/tests/**"
+  - "backend/conftest.py"
+---
+
 # Django REST Framework Testing Guidelines
 
-You are an expert Senior Django Backend Engineer specializing in Test-Driven Development (TDD) and robust QA architecture. When writing, refactoring, or planning tests for this project, you must strictly adhere to the following principles and practices.
+## 1. Runner
 
-## 1. Tech Stack & Configuration
+- pytest only. No `unittest.TestCase` or `TransactionTestCase`.
+- Plugins in use: pytest-django, pytest-cov, pytest-mock, pytest-xdist.
+- `pyproject.toml` already sets `core.settings.test`, `--reuse-db` and coverage; do not add per-test settings overrides.
 
--   Runner: Use pytest exclusively. Do not use unittest.TestCase or Django's TransactionTestCase unless specifically working on legacy code that cannot be refactored.
+## 2. Philosophy
 
--   Plugins: Rely on pytest-django, pytest-cov, pytest-mock, and pytest-xdist.
+- Tests are plain functions. Setup and teardown come from pytest fixtures, never from class hierarchies.
+- Every test follows Arrange-Act-Assert: set up state with factories or fixtures, perform one action (usually one API call), then assert status, payload and side effects.
+- Mark database access with `@pytest.mark.django_db` so each test rolls back.
 
--   Configuration:
-    -   Configuration belongs in pyproject.toml.
-    -   Always set DJANGO_SETTINGS_MODULE to a dedicated test settings file (e.g., project.settings.test) to use optimized settings like in-memory databases or faster password hashers.
-    -   Use addopts = --reuse-db to speed up local test iteration.
+## 3. Layout
 
-## 2. Testing Philosophy
+- Unit tests live in the app's own `tests/` folder (for example `users/tests/test_models.py`).
+- Tests spanning several apps live in the top-level `backend/tests/`.
+- Shared fixtures go in `conftest.py`: the root one for `api_client` and the role fixtures, app-level ones for domain-specific setup.
 
--   Functional Paradigm: Write tests as simple functions, not classes. Use Dependency Injection via pytest fixtures for all setup/teardown logic.
+## 4. Data
 
--   AAA Pattern: Every test function must follow the Arrange-Act-Assert structure:
+- Use `factory_boy` factories from `backend/tests/factories/`. No Django JSON fixtures.
+- `factory.SubFactory` for foreign keys, `factory.Faker` for realistic values.
 
-    -   Arrange: Set up the database state and dependencies (using factories/fixtures).
-    -   Act: Execute the single behavior under test (usually one API call).
-    -   Assert: Verify the output (status code, payload) and side effects (DB changes).
+## 5. DRF specifics
 
--   Isolation: Tests must be atomic. Use @pytest.mark.django_db to ensure database transactions are rolled back after every test function.
+- Use `rest_framework.test.APIClient` from the `api_client` fixture, not `django.test.Client`.
+- Never obtain a token by posting credentials. Call `api_client.force_authenticate(user=user)`.
+- Assert `response.status_code` against `rest_framework.status` constants, never bare integers.
+- Check specific keys and values in the payload, not only their presence.
+- For PUT assert full replacement; for PATCH assert only the given fields changed.
 
-## 3. Directory Structure
+## 6. External dependencies
 
--   Hybrid Approach:
+- Never hit a real external service. Patch with the `mocker` fixture.
+- Patch where the name is used, not where it is defined: `myapp.views.send_email`, not `myapp.services.send_email`.
+- Stub with `return_value=...` to simulate responses; spy with `assert_called_once_with(...)` to verify calls.
 
-    -   Unit Tests: Place in tests/ folder inside the specific Django app (e.g., users/tests/test_models.py).
-    -   Integration Tests: Place in a top-level tests/integration/ directory for API workflows that span multiple apps.
-
--   Fixtures: Define shared fixtures in conftest.py.
-    -   Root conftest.py for global fixtures (api_client, user_factory).
-    -   App-level conftest.py for domain-specific fixtures.
-
-## 4. Data Generation (Arrange Phase)
-
--   Factories over Fixtures: Do not use Django JSON fixtures (manage.py dumpdata). Use Factory Boy (factory_boy) for all test data.
-
--   Explicit Definitions: Define factories in tests/factories.py or a top-level factories/ module.
-
--   SubFactories: Use factory.SubFactory for foreign keys to ensure all related data is generated automatically.
-
--   Faker: Use factory.Faker for realistic random data (emails, names, dates) to catch edge cases.
-
-## 5. DRF-Specific Testing Rules
-
--   APIClient: Use rest_framework.test.APIClient via a fixture, not django.test.Client.
-
--   Authentication:
-
-    -   Never post credentials to a login endpoint to get a token during tests (too slow/brittle).
-    -   Use force_authenticate: Create a fixture authenticated_client that creates a user and calls client.force_authenticate(user=user).
-
--   Validation:
-    -   Assert response.status_code matches rest_framework.status constants (e.g., status.HTTP_201_CREATED), not magic numbers (201).
-    -   Validate response payloads by checking specific keys and values, not just existence.
-    -   For PUT, ensure complete resource replacement. For PATCH, ensure partial updates.
-
-## 6. Mocking External Dependencies
-
--   Isolation: Never allow tests to hit real external APIs (Stripe, AWS, email, etc.).
-
--   Tooling: Use the mocker fixture from pytest-mock (wrapper around unittest.mock).
-
--   Patching Strategy:
-    -   Patch usage, not definition: If views.py imports send_email from services.py, patch myapp.views.send_email, NOT myapp.services.send_email.
-    -   Use Stubs (return_value=...) to simulate external service responses (success/fail modes).
-    -   Use Spies (assert_called_once_with) to verify the API was called correctly.
-
-## 7. Example Test Structure
-
-When asked to write a test, follow this template:
+## 7. Template
 
 ```python
-python import pytest from rest_framework import status from myapp.models import User
+import pytest
+from rest_framework import status
 
-@pytest.mark.django_db def test_user_registration_success(api_client, user_factory): # ARRANGE url = "/api/v1/register/" payload = { "email": "newuser@example.com", "password": "strong_password_123", "username": "newuser" }
+from users.models import UserAccount
 
-# ACT
-response = api_client.post(url, payload)
 
-# ASSERT
-assert response.status_code == status.HTTP_201_CREATED
-assert response.data["email"] == payload["email"]
-assert User.objects.filter(email=payload["email"]).exists()
+@pytest.mark.django_db
+def test_user_registration_success(api_client, user_factory):
+    # Arrange
+    url = "/api/users/"
+    payload = {
+        "email": "newuser@example.com",
+        "password": "strong_password_123",
+        "cpf": "12345678909",
+    }
+
+    # Act
+    response = api_client.post(url, payload)
+
+    # Assert
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["email"] == payload["email"]
+    assert UserAccount.objects.filter(email=payload["email"]).exists()
 ```
 
-## 8. Anti-Patterns to Avoid
+## 8. Anti-patterns
 
--   **Context Managers:** Avoid `with self.settings(...)`. Use the `settings` fixture instead.
--   **Boilerplate:** Do not repeat setup code. If 3 tests need a "premium user," create a `premium_user` fixture.
--   **Logic in Tests:** Avoid complex logic (loops, conditionals) in test bodies. Tests should be declarative.
+- `with self.settings(...)`: use the `settings` fixture.
+- Repeated setup across three or more tests: extract a fixture.
+- Loops and conditionals inside a test body: tests are declarative.

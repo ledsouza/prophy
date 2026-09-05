@@ -9,6 +9,9 @@ import {
     setError,
 } from "@/redux/features/authSlice";
 import { useVerifyMutation } from "@/redux/features/authApiSlice";
+import { child } from "@/utils/logger";
+
+const log = child({ hook: "useVerify" });
 
 export default function useVerify() {
     const dispatch = useAppDispatch();
@@ -25,7 +28,7 @@ export default function useVerify() {
                 if (error.status === 400 || error.status === 401) {
                     dispatch(setError("Usuário não autorizado"));
                 } else {
-                    console.error(error);
+                    log.error({ status: error.status }, "Session verification failed");
                 }
             })
             .finally(() => {

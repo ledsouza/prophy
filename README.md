@@ -471,8 +471,7 @@ This route is configured with `drf-yasg` in `backend/core/urls.py`.
 
 ## Contributing
 
-If you want to contribute:
-
-1. fork the repository
-2. create a feature branch
-3. open a pull request targeting `main`
+This is a solo project developed directly on `main` with
+[Conventional Commits](https://www.conventionalcommits.org/). Agent
+instructions live in `AGENTS.md`. Outside contributions are welcome
+through a fork and a pull request targeting `main`.

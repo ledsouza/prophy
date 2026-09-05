@@ -23,6 +23,7 @@ import { useAppDispatch } from "@/redux/hooks";
 import { isResponseError } from "@/redux/services/helpers";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { child } from "@/utils/logger";
 
 type UnitDetailsProps = {
     unit: UnitDTO;
@@ -35,6 +36,8 @@ enum ButtonsState {
     REJECTED,
     EDIT,
 }
+
+const log = child({ component: "UnitDetails" });
 
 function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
     const router = useRouter();
@@ -101,7 +104,7 @@ function UnitDetails({ unit, unitOperation }: UnitDetailsProps) {
 
     function handleReview() {
         if (!unitOperation) {
-            console.log("Couldn't handleReview in UnitDetails");
+            log.warn({ unitId: unit.id }, "Review requested without a pending unit operation");
             return toast.error("Algo deu errado! Tente novamente mais tarde.");
         }
         dispatch(setUnitOperation(unitOperation));

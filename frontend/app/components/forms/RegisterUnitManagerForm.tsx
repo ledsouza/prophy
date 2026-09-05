@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from "lodash";
 import { SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
+import { child } from "@/utils/logger";
 import { z } from "zod";
 
 import { unitManagerSchema } from "@/schemas";
@@ -31,6 +32,8 @@ type RegisterUnitManagerFormProps = {
     title?: string;
     description?: string;
 };
+
+const log = child({ component: "RegisterUnitManagerForm" });
 
 const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitManagerFormProps) => {
     const dispatch = useAppDispatch();
@@ -81,7 +84,7 @@ const RegisterUnitManagerForm = ({ unitID, title, description }: RegisterUnitMan
                             toast.info("Usuário já cadastrado. Dados preenchidos automaticamente.");
                         }
                     } catch (error) {
-                        console.error("Erro ao verificar CPF:", error);
+                        log.error({ error: error instanceof Error ? error.message : String(error) }, "CPF verification failed");
                     }
                 }
             }, 500),

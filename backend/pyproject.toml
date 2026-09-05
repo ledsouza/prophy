@@ -87,10 +87,34 @@ select = [
     "PLW0603", # no `global` statement
     "PLR0913", # too many function arguments
     "PLR2004", # magic value comparison
+    "S102",    # exec
+    "S103",    # overly permissive file mode
+    "S105",    # hardcoded password string
+    "S106",    # hardcoded password argument
+    "S107",    # hardcoded password default
+    "S108",    # insecure temp file
+    "S110",    # try/except/pass
+    "S301",    # pickle
+    "S302",    # marshal
+    "S307",    # eval
+    "S311",    # random for security
+    "S324",    # weak hash
+    "S602",    # subprocess with shell=True
+    "S603",    # subprocess without shell
+    "S605",    # os.system with shell
+    "S606",    # os.system without shell
+    "S607",    # partial executable path
+    "S608",    # SQL built from strings
 ]
 ignore = [
     "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"*/tests/*" = ["S105", "S106", "S311"]
+"conftest.py" = ["S105", "S106"]
+"*/management/commands/*" = ["S105", "S106", "S311"]
+"tests/factories/*" = ["S311"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

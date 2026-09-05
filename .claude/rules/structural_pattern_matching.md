@@ -1,3 +1,8 @@
+---
+paths:
+  - "backend/**/*.py"
+---
+
 # Structural Pattern Matching (Python `match/case`)
 
 Use `match/case` (PEP 634) instead of chains of `if/elif` or `isinstance` checks when dispatching on the structure or type of a value.

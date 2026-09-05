@@ -15,6 +15,7 @@ The main entry point is build_service_order_pdf().
 
 from __future__ import annotations
 
+import logging
 import os
 from collections.abc import Sequence
 from io import BytesIO
@@ -41,6 +42,8 @@ from clients_management.models import (
     Client,
     ServiceOrder,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class InfoItem(BaseModel):
@@ -202,15 +205,15 @@ def build_service_order_pdf(order: ServiceOrder) -> bytes:
     )
     story = []
 
-    try:
-        logo_path = os.path.join(
-            settings.BASE_DIR, "static", "prophy-logo.png"
-        )
-        if os.path.exists(logo_path):
+    logo_path = os.path.join(settings.BASE_DIR, "static", "prophy-logo.png")
+    if os.path.exists(logo_path):
+        try:
             story.append(_image_with_width(logo_path, width=2 * cm))
             story.append(Spacer(1, 6))
-    except Exception:
-        pass
+        except OSError:
+            logger.exception(
+                "Skipping service order logo for order %s", order.id
+            )
 
     # Title + Order ID + Client Name
     story.append(Paragraph("ORDEM DE SERVIÇO", styles["Title"]))

@@ -8,6 +8,9 @@ import {
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useCallback, useEffect, useState } from "react";
 import { UseFormSetValue } from "react-hook-form";
+import { child } from "@/utils/logger";
+
+const log = child({ hook: "useIBGELocalidades" });
 
 const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
     const {
@@ -18,7 +21,7 @@ const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
     const [selectedEstado, setSelectedEstado] = useState<ComboboxDataProps | null>(null);
 
     if (estadosError) {
-        console.error("useGetEstadosQuery error: ", estadosError);
+        log.error({ error: "status" in estadosError ? estadosError.status : "unknown" }, "IBGE estados query failed");
     }
 
     const {
@@ -29,7 +32,13 @@ const useIBGELocalidades = (setValue: UseFormSetValue<any>) => {
     const [selectedMunicipio, setSelectedMunicipio] = useState<ComboboxDataProps | null>(null);
 
     if (municipiosError) {
-        console.error("useGetMunicipiosByEstadosIdQuery error: ", municipiosError);
+        log.error(
+            {
+                estadoId: selectedEstado?.id,
+                error: "status" in municipiosError ? municipiosError.status : "unknown",
+            },
+            "IBGE municipios query failed",
+        );
     }
 
     const cleanSelectedMunicipio = useCallback(() => {

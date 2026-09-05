@@ -1,3 +1,8 @@
+---
+paths:
+  - "frontend/app/redux/**"
+---
+
 The best practices for defining HTTP payload types in TypeScript focus on consistency, explicitness, and maintaining a single source of truth for your API contract. Key practices include choosing between interface and type, ensuring type safety on both the request and response sides, and managing complex or partial payloads.
 
 ## 1. Choose between interface and type
