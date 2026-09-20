@@ -13,24 +13,27 @@ GitHub Actions (CI/CD)
 Cloud Scheduler (scheduler-sa, paused until enabled)
   └─ OIDC POST → prophy-backend /api/*/tasks/*
 
+Cloudflare (DNS + TLS proxy, in front of both custom domains)
+  └─ Proxies api.prophy.net.br / portal.prophy.net.br → *.run.app origins
+
 Cloud Monitoring
-  ├─ Uptime checks → backend + frontend *.run.app URLs
+  ├─ Uptime checks → backend + frontend custom domain URLs
   └─ Alert policies → email leandro.souza.159@gmail.com
 ```
 
 ### Services
 
-| Service | URL (current) | Service account |
-|---------|--------------|-----------------|
-| Backend (Django) | `https://prophy-backend-341810477176.southamerica-east1.run.app` | `backend-sa` |
-| Frontend (Next.js) | `https://prophy-frontend-341810477176.southamerica-east1.run.app` | `frontend-sa` |
-| Database | Cloud SQL PostgreSQL 15 `prophy-postgres` | — |
-| Media storage | GCS bucket `prophy-documents-prod` | — |
-| Images | Artifact Registry `southamerica-east1-docker.pkg.dev/prophy-497315/prophy/` | — |
+| Service | Public URL | Cloud Run origin URL | Service account |
+|---------|-----------|----------------------|-----------------|
+| Backend (Django) | `https://api.prophy.net.br` | `https://prophy-backend-341810477176.southamerica-east1.run.app` | `backend-sa` |
+| Frontend (Next.js) | `https://portal.prophy.net.br` | `https://prophy-frontend-341810477176.southamerica-east1.run.app` | `frontend-sa` |
+| Database | — | Cloud SQL PostgreSQL 15 `prophy-postgres` | — |
+| Media storage | — | GCS bucket `prophy-documents-prod` | — |
+| Images | — | Artifact Registry `southamerica-east1-docker.pkg.dev/prophy-497315/prophy/` | — |
 
-> When custom domains go live, update the URLs in the table above and in
-> `infra/terraform/terraform.tfvars` (`backend_run_host`, `frontend_run_host`,
-> `backend_run_url`). See [Custom domain migration](#custom-domain-migration).
+The public URLs resolve through Cloudflare, which proxies to the Cloud Run
+origin URLs over HTTPS. See [Custom domains](#custom-domains-cloudflare-proxy)
+for how that's wired up and what to change if the domain ever moves.
 
 ---
 
@@ -45,11 +48,11 @@ Cloud Monitoring
 | `POSTGRES_DB` | Cloud Run env | `prophy` |
 | `POSTGRES_USER` | Cloud Run env | `prophy` |
 | `GCS_BUCKET_NAME` | Cloud Run env (GitHub Actions var `GCS_BUCKET_NAME`) | `prophy-documents-prod` |
-| `DJANGO_ALLOWED_HOSTS` | Cloud Run env (GitHub Actions var `BACKEND_HOST`) | `prophy-backend-341810477176.southamerica-east1.run.app,localhost` |
-| `CSRF_TRUSTED_ORIGINS` | Cloud Run env | `https://prophy-backend-341810477176.southamerica-east1.run.app` |
-| `CORS_ALLOWED_ORIGINS` | Cloud Run env (GitHub Actions var `FRONTEND_HOST`) | `https://prophy-frontend-341810477176.southamerica-east1.run.app` |
-| `OIDC_AUDIENCE` | Cloud Run env (GitHub Actions var `OIDC_AUDIENCE`) | `https://prophy-backend-341810477176.southamerica-east1.run.app` |
-| `FRONTEND_URL` | Cloud Run env | `https://prophy-frontend-341810477176.southamerica-east1.run.app` |
+| `DJANGO_ALLOWED_HOSTS` | Cloud Run env (GitHub Actions var `BACKEND_HOST`) | `api.prophy.net.br,localhost` |
+| `CSRF_TRUSTED_ORIGINS` | Cloud Run env | `https://api.prophy.net.br` |
+| `CORS_ALLOWED_ORIGINS` | Cloud Run env (GitHub Actions var `FRONTEND_HOST`) | `https://portal.prophy.net.br` |
+| `OIDC_AUDIENCE` | Cloud Run env (GitHub Actions var `OIDC_AUDIENCE`) | `https://api.prophy.net.br` |
+| `FRONTEND_URL` | Cloud Run env | `https://portal.prophy.net.br` |
 | `DEFAULT_FROM_EMAIL` | Cloud Run env (GitHub Actions var `DEFAULT_FROM_EMAIL`) | `noreply@prophy.com` |
 | `DOMAIN` | Cloud Run env (GitHub Actions var `MAILGUN_DOMAIN`) | `mg.prophy.com` |
 | `DJANGO_SECRET_KEY` | Secret Manager `django-secret-key` | — |
@@ -60,7 +63,7 @@ Cloud Monitoring
 
 | Variable | Source | Example value |
 |----------|--------|---------------|
-| `NEXT_PUBLIC_HOST` | `--build-arg` (GitHub Actions var `BACKEND_HOST`) | `https://prophy-backend-341810477176.southamerica-east1.run.app` |
+| `NEXT_PUBLIC_HOST` | `--build-arg` (GitHub Actions var `BACKEND_HOST`) | `https://api.prophy.net.br` |
 | `HOSTNAME` | Cloud Run env | `0.0.0.0` |
 
 ### GitHub Actions variables (Settings → Secrets and variables → Actions → Variables)
@@ -180,37 +183,65 @@ enable them once the stakeholder has verified the application:
 
 ---
 
-## Custom domain migration
+## Custom domains (Cloudflare proxy)
 
-When the stakeholder configures DNS for `api.prophy.com` and `app.prophy.com`:
+Cloud Run has a native custom-domain feature (`gcloud run domain-mappings
+create`) that provisions a Google-managed TLS certificate automatically, but
+it is only available in a subset of Cloud Run regions and does not cover
+`southamerica-east1`, where both services run. Custom domains are instead
+handled by pointing DNS at Cloudflare, which proxies requests to the
+underlying `*.run.app` hostnames over HTTPS.
 
-1. **Cloud Run domain mapping** — configure in Cloud Console or via `gcloud`:
-   ```bash
-   gcloud run domain-mappings create --service prophy-backend \
-     --domain api.prophy.com --region southamerica-east1
-   gcloud run domain-mappings create --service prophy-frontend \
-     --domain app.prophy.com --region southamerica-east1
-   ```
-   Google-managed TLS certificates are provisioned automatically.
+### DNS (Cloudflare)
 
-2. **GitHub Actions variables** — update:
-   - `BACKEND_HOST` → `api.prophy.com`
-   - `FRONTEND_HOST` → `app.prophy.com`
-   - `OIDC_AUDIENCE` → `https://api.prophy.com`
+| Record | Type | Target | Proxy status |
+|--------|------|--------|--------------|
+| `api.prophy.net.br` | CNAME | `prophy-backend-341810477176.southamerica-east1.run.app` | Proxied (orange cloud) |
+| `portal.prophy.net.br` | CNAME | `prophy-frontend-341810477176.southamerica-east1.run.app` | Proxied (orange cloud) |
 
-3. **Re-run CI pipelines** — the backend deploy picks up the new `ALLOWED_HOSTS`,
-   `CORS_ALLOWED_ORIGINS`, and `CSRF_TRUSTED_ORIGINS`; the frontend rebuild
-   bakes the new `NEXT_PUBLIC_HOST`.
+The Cloudflare SSL/TLS mode is set to **Full (strict)**: Cloudflare opens its
+own HTTPS connection to the `*.run.app` origin, which presents Google's
+managed certificate (valid, so strict validation passes), and separately
+terminates a certificate for the custom domain at Cloudflare's edge. Cloud
+Run never sees or manages a certificate for the custom domain.
 
-4. **Update Terraform variables** — in `terraform.tfvars`:
-   ```hcl
-   backend_run_url   = "https://api.prophy.com"
-   backend_run_host  = "api.prophy.com"
-   frontend_run_host = "app.prophy.com"
-   ```
-   Then `terraform apply` to update uptime check URLs and Cloud Scheduler
-   targets.
+Cloudflare forwards the original `Host` header it received from the browser
+(the custom domain) to the origin rather than rewriting it to the `*.run.app`
+hostname, so the application must be configured to trust that hostname
+explicitly — see below.
 
-5. **Update `backend/core/settings/prod.py`** — `DJANGO_SETTINGS_MODULE` does
-   not need changing, but verify `ALLOWED_HOSTS` and `CORS_ALLOWED_ORIGINS`
-   reflect the new domains after the CI deploy.
+### Application configuration
+
+Set these GitHub Actions repository variables (Settings → Secrets and
+variables → Actions → Variables) to the custom domains:
+
+- `BACKEND_HOST` → `api.prophy.net.br`
+- `FRONTEND_HOST` → `portal.prophy.net.br`
+- `OIDC_AUDIENCE` → `https://api.prophy.net.br`
+
+Then re-run both CI pipelines. The backend deploy picks up the new
+`DJANGO_ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, and `CORS_ALLOWED_ORIGINS`
+values; the frontend rebuild bakes the new `NEXT_PUBLIC_HOST` build-arg,
+which only takes effect on a rebuild since it is compiled into the
+JavaScript bundle at `next build` rather than read at container runtime.
+
+Update `infra/terraform/terraform.tfvars` to match, then `terraform apply` to
+update the Cloud Monitoring uptime checks and the Cloud Scheduler jobs'
+target URL and OIDC audience:
+
+```hcl
+backend_run_url   = "https://api.prophy.net.br"
+backend_run_host  = "api.prophy.net.br"
+frontend_run_host = "portal.prophy.net.br"
+```
+
+No changes are needed in `backend/core/settings/prod.py` — `ALLOWED_HOSTS`,
+`CSRF_TRUSTED_ORIGINS`, and `CORS_ALLOWED_ORIGINS` are all read from
+environment variables, so updating the GitHub Actions variables above and
+redeploying is sufficient.
+
+### Migrating to a different domain later
+
+Repeat the DNS setup above with the new hostname, then the three application
+steps (GitHub Actions variables, CI re-run, Terraform variables + apply)
+with the new hostnames in place of `api.prophy.net.br` / `portal.prophy.net.br`.
