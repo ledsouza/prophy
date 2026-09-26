@@ -301,3 +301,6 @@ _bmad-output/
 
 # Playwright MCP local files
 .playwright-mcp/
+
+# Cloudflare Wrangler local state
+.wrangler/

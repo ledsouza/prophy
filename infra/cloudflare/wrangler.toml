@@ -1,0 +1,13 @@
+# Reverse proxy from the public subdomains to the Cloud Run services.
+# Deploy from this directory with Node 22+:
+#   CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... npx wrangler deploy
+# Custom domains (not Routes) make Cloudflare create the DNS records and
+# certificates itself; the hostnames must not already have a CNAME.
+name = "prophy-proxy"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+routes = [
+  { pattern = "api.phystack.com.br", custom_domain = true },
+  { pattern = "portal.phystack.com.br", custom_domain = true },
+]

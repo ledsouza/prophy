@@ -52,8 +52,15 @@ if not OIDC_AUDIENCE:  # noqa: F405
 # request.is_secure() returns False and secure cookies break.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# The Cloudflare Worker in infra/cloudflare/ rewrites Host to the
+# *.run.app origin and passes the public hostname in X-Forwarded-Host,
+# so redirects and absolute URLs use the public domain. The origin stays
+# publicly reachable and the header is forgeable; the exact
+# ALLOWED_HOSTS list is what keeps this safe, so never add wildcards.
+USE_X_FORWARDED_HOST = True
+
 # SameSite=None is required for the JWT cookie to cross the origin
-# boundary between app.prophy.com and api.prophy.com. Browsers
+# boundary between the portal and API subdomains. Browsers
 # mandate Secure=True whenever SameSite=None is used.
 AUTH_COOKIE_SAMESITE = "None"
 AUTH_COOKIE_SECURE = True

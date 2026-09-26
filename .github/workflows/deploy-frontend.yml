@@ -22,12 +22,9 @@
 #       terraform -chdir=infra/terraform output ci_sa_email
 #
 #   BACKEND_HOST
-#     The backend hostname without scheme (e.g. api.prophy.com).
-#     Used here to bake NEXT_PUBLIC_HOST into the image at build time.
-#     Until the custom domain is mapped, this is the Cloud Run generated hostname:
-#       gcloud run services describe prophy-backend \
-#         --region southamerica-east1 --format "value(status.url)" \
-#         | sed 's|https://||'
+#     The public backend hostname without scheme (e.g. api.prophy.net.br).
+#     Used here to bake NEXT_PUBLIC_HOST into the image at build time, so
+#     changing it needs a rebuild, not just a redeploy.
 #
 # ─── First-time setup (bootstrap) ───────────────────────────────────────────
 # Cloud Run service URLs are deterministic — the hash in the URL is derived

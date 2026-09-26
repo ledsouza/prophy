@@ -36,22 +36,28 @@
 #       terraform -chdir=infra/terraform output media_bucket_name
 #
 #   BACKEND_HOST
-#     The backend hostname without scheme (e.g. api.prophy.com).
-#     For initial deploys before a custom domain is mapped, use the Cloud Run
-#     generated URL — hostname only, no trailing slash, no https://.
-#     Retrieve the generated URL after the first deploy:
+#     The public backend hostname without scheme (e.g. api.prophy.net.br),
+#     served through the Cloudflare Worker in infra/cloudflare/.
+#     Used for DJANGO_ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS.
+#     Before a custom domain exists, set it to the same value as
+#     BACKEND_ORIGIN_HOST.
+#
+#   BACKEND_ORIGIN_HOST
+#     The Cloud Run generated backend hostname, no scheme, no trailing slash.
+#     Also added to DJANGO_ALLOWED_HOSTS because Cloud Scheduler and direct
+#     debugging requests reach the origin under this name, bypassing the proxy.
+#     Retrieve it after the first deploy:
 #       gcloud run services describe prophy-backend \
-#         --region southamerica-east1 --format "value(status.url)"
-#     then strip the leading https://.
+#         --region southamerica-east1 --format "value(status.url)" \
+#         | sed 's|https://||'
 #
 #   FRONTEND_HOST
-#     The frontend hostname without scheme (e.g. app.prophy.com).
+#     The public frontend hostname without scheme (e.g. portal.prophy.net.br).
 #     Used to set CORS_ALLOWED_ORIGINS and FRONTEND_URL on the backend service.
 #
 #   OIDC_AUDIENCE
-#     The full URL of the backend service, including scheme
-#     (e.g. https://api.prophy.com). Must match the audience configured in
-#     the Google OIDC provider used by Cloud Scheduler.
+#     https:// plus BACKEND_ORIGIN_HOST. Cloud Scheduler calls the origin
+#     directly, so this must match Terraform's backend_run_url exactly.
 #
 #   DEFAULT_FROM_EMAIL
 #     The sender address for outgoing email (e.g. noreply@prophy.com).
@@ -78,8 +84,8 @@
 #
 #   Pass 3 — set all GitHub Actions variables listed above, then push to main.
 #     CI will build the production image, run migrations, and deploy.
-#     After the first deploy, retrieve the Cloud Run URL, update BACKEND_HOST
-#     and OIDC_AUDIENCE to the real values, and push once more.
+#     After the first deploy, retrieve the Cloud Run URL, update BACKEND_HOST,
+#     BACKEND_ORIGIN_HOST and OIDC_AUDIENCE to the real values, and push once more.
 
 name: Deploy Backend
 
@@ -183,6 +189,7 @@ jobs:
           IMAGE_URI: ${{ steps.image.outputs.uri }}
           SQL_CONN: ${{ vars.CLOUD_SQL_CONNECTION_NAME }}
           BACKEND_HOST: ${{ vars.BACKEND_HOST }}
+          BACKEND_ORIGIN_HOST: ${{ vars.BACKEND_ORIGIN_HOST }}
           FRONTEND_HOST: ${{ vars.FRONTEND_HOST }}
           OIDC_AUD: ${{ vars.OIDC_AUDIENCE }}
           GCS_BUCKET: ${{ vars.GCS_BUCKET_NAME }}
@@ -195,7 +202,7 @@ jobs:
             --platform managed \
             --service-account "backend-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
             --add-cloudsql-instances "${SQL_CONN}" \
-            --set-env-vars "^|^DATABASE_ENGINE=postgres|POSTGRES_HOST=/cloudsql/${SQL_CONN}|POSTGRES_DB=prophy|POSTGRES_USER=prophy|GCS_BUCKET_NAME=${GCS_BUCKET}|DJANGO_ALLOWED_HOSTS=${BACKEND_HOST},localhost|CSRF_TRUSTED_ORIGINS=https://${BACKEND_HOST}|CORS_ALLOWED_ORIGINS=https://${FRONTEND_HOST}|OIDC_AUDIENCE=${OIDC_AUD}|FRONTEND_URL=https://${FRONTEND_HOST}|DEFAULT_FROM_EMAIL=${FROM_EMAIL}|DOMAIN=${MG_DOMAIN}" \
+            --set-env-vars "^|^DATABASE_ENGINE=postgres|POSTGRES_HOST=/cloudsql/${SQL_CONN}|POSTGRES_DB=prophy|POSTGRES_USER=prophy|GCS_BUCKET_NAME=${GCS_BUCKET}|DJANGO_ALLOWED_HOSTS=${BACKEND_HOST},${BACKEND_ORIGIN_HOST},localhost|CSRF_TRUSTED_ORIGINS=https://${BACKEND_HOST}|CORS_ALLOWED_ORIGINS=https://${FRONTEND_HOST}|OIDC_AUDIENCE=${OIDC_AUD}|FRONTEND_URL=https://${FRONTEND_HOST}|DEFAULT_FROM_EMAIL=${FROM_EMAIL}|DOMAIN=${MG_DOMAIN}" \
             --set-secrets "DJANGO_SECRET_KEY=django-secret-key:latest,POSTGRES_PASSWORD=postgres-password:latest,MAILGUN_API_KEY=mailgun-api-key:latest" \
             --min-instances=0 \
             --max-instances=1 \

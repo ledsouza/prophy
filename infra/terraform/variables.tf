@@ -21,7 +21,7 @@ variable "backend_image_uri" {
 }
 
 variable "backend_run_url" {
-  description = "Full backend Cloud Run URL with scheme (e.g. https://prophy-backend-341810477176.southamerica-east1.run.app). Used as the Cloud Scheduler OIDC audience and HTTP target base."
+  description = "Full backend Cloud Run URL with scheme (e.g. https://prophy-backend-341810477176.southamerica-east1.run.app). Used as the Cloud Scheduler OIDC audience and HTTP target base; stays on *.run.app so scheduled calls skip the proxy and its request quota."
   type        = string
 }
 
@@ -31,11 +31,11 @@ variable "alert_email" {
 }
 
 variable "backend_run_host" {
-  description = "Backend Cloud Run hostname without scheme (e.g. prophy-backend-341810477176.southamerica-east1.run.app). Used for uptime checks."
+  description = "Public backend hostname without scheme (e.g. api.prophy.net.br). Uptime checks go through the Cloudflare proxy, the path users take."
   type        = string
 }
 
 variable "frontend_run_host" {
-  description = "Frontend Cloud Run hostname without scheme (e.g. prophy-frontend-341810477176.southamerica-east1.run.app). Used for uptime checks."
+  description = "Public frontend hostname without scheme (e.g. portal.prophy.net.br). Uptime checks go through the Cloudflare proxy, the path users take."
   type        = string
 }
