@@ -382,6 +382,11 @@ Ports exposed to the host:
 | frontend | 3000 |
 | postgres | 5432 |
 
+The staging frontend is built with `CANONICAL_HOST=proxy`, so it serves the
+app only under `http://proxy:8080`, the address Cypress uses inside the
+compose network. From the host, `localhost:3000` and `localhost:8080`
+answer with a redirect to `https://proxy`.
+
 ## Production Image Strategy
 
 The production deployment target is Cloud Run with separate frontend and
@@ -404,6 +409,7 @@ Build the frontend production image from the `prod` target:
 ```bash
 docker build -f frontend/Dockerfile --target prod \
   --build-arg NEXT_PUBLIC_HOST=https://api.prophy.com \
+  --build-arg CANONICAL_HOST=portal.prophy.com \
   -t prophy-frontend:prod .
 ```
 
@@ -411,6 +417,11 @@ docker build -f frontend/Dockerfile --target prod \
 > client JavaScript bundle at `next build` time and cannot be overridden at
 > runtime. A frontend image is therefore tied to a specific backend URL; rebuild
 > the image whenever the backend URL changes.
+>
+> `CANONICAL_HOST` is the public frontend hostname, without a scheme. It is
+> baked in the same way: the image redirects requests addressed to any other
+> hostname there, and leaving it out disables the redirect. See "Redirecting
+> the Cloud Run URL" in `docs/deployment.md`.
 >
 > For local staging (docker-compose with the nginx proxy), omit
 > `--build-arg NEXT_PUBLIC_HOST` so the fallback `/api/` path is used instead.

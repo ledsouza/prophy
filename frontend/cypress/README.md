@@ -119,6 +119,12 @@ From `frontend/`:
 npm run e2e:docker
 ```
 
+The staging frontend is built with `CANONICAL_HOST=proxy`, which turns on
+the redirect to the canonical hostname that production uses.
+`e2e/canonical_host_redirect.cy.ts` checks it by requesting the frontend
+container directly at `CYPRESS_FRONTEND_ORIGIN_URL`; the spec skips itself
+when that variable is unset, as in a local run.
+
 CI-style (assumes Next already built):
 
 ```bash

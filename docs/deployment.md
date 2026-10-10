@@ -60,11 +60,12 @@ for how that's wired up and what to change if the domain ever moves.
 | `POSTGRES_PASSWORD` | Secret Manager `postgres-password` | — |
 | `MAILGUN_API_KEY` | Secret Manager `mailgun-api-key` | — |
 
-### Frontend (build arg — baked into image at `next build`)
+### Frontend (build args — baked into image at `next build`)
 
 | Variable | Source | Example value |
 |----------|--------|---------------|
 | `NEXT_PUBLIC_HOST` | `--build-arg` (GitHub Actions var `BACKEND_HOST`) | `https://api.phystack.com.br` |
+| `CANONICAL_HOST` | `--build-arg` (GitHub Actions var `FRONTEND_HOST`) | `portal.phystack.com.br` |
 | `HOSTNAME` | Cloud Run env | `0.0.0.0` |
 
 ### GitHub Actions variables (Settings → Secrets and variables → Actions → Variables)
@@ -118,7 +119,7 @@ terraform output -json | jq '{
 ### Run CI pipelines
 
 1. Push to `main` — the backend pipeline builds the image, runs migrations, and deploys.
-2. Push to `main` — the frontend pipeline builds (baking `NEXT_PUBLIC_HOST`) and deploys.
+2. Push to `main` — the frontend pipeline builds (baking `NEXT_PUBLIC_HOST` and `CANONICAL_HOST`) and deploys.
 
 Both pipelines can be re-triggered via **Actions → Re-run all jobs** if the image already exists.
 
@@ -126,6 +127,11 @@ Both pipelines can be re-triggered via **Actions → Re-run all jobs** if the im
 
 - [ ] **Login / logout** — POST `https://<backend>/api/jwt/create/` returns `Set-Cookie: access=...; SameSite=None; Secure; HttpOnly`; subsequent requests from the frontend include the cookie.
 - [ ] **File upload** — upload an equipment photo; verify the file persists in GCS (`gsutil ls gs://prophy-documents-prod/`) after a container restart.
+- [ ] **Canonical hostname redirect** — the frontend's Cloud Run origin URL answers `307` with a `Location` on the public hostname, and the public hostname answers `200` with no `Location`:
+  ```bash
+  curl -sI https://<frontend-origin>/auth/login/ | grep -iE "^HTTP|^location"
+  curl -sI https://<frontend>/auth/login/ | grep -iE "^HTTP|^location"
+  ```
 - [ ] **Django admin** — `https://<backend>/admin/` loads correctly.
 - [ ] **Scheduled task (manual trigger)** — call one task endpoint with a valid OIDC token:
   ```bash
@@ -156,6 +162,17 @@ gcloud run services update-traffic prophy-backend \
 gcloud run services update-traffic prophy-frontend \
   --region southamerica-east1 \
   --to-revisions=<REVISION_NAME>=100
+```
+
+Routing to a named revision pins traffic there: later `gcloud run deploy`
+runs create revisions that receive no traffic, although CI still reports
+success. Once the fix is deployed, unpin both services:
+
+```bash
+gcloud run services update-traffic prophy-backend \
+  --region southamerica-east1 --to-latest
+gcloud run services update-traffic prophy-frontend \
+  --region southamerica-east1 --to-latest
 ```
 
 ---
@@ -199,7 +216,8 @@ only a Worker is available.
 
 The Worker `prophy-proxy` lives in `infra/cloudflare/`. It maps each public
 hostname to its Cloud Run origin, sets the outbound `Host` to the `*.run.app`
-hostname, passes the public one in `X-Forwarded-Host`, and returns the origin
+hostname, passes the public one (lowercase, without a port) in
+`X-Forwarded-Host`, and returns the origin
 response untouched so the separate `access` and `refresh` `Set-Cookie` headers
 survive. Requests use `cache: "no-store"` so authenticated responses are
 never cached.
@@ -242,7 +260,54 @@ stays publicly reachable and `X-Forwarded-Host` can be forged, so keep
 
 After changing the variables, re-run both pipelines. The frontend must be
 rebuilt, not only redeployed, because `NEXT_PUBLIC_HOST` is compiled into the
-JavaScript bundle at `next build`.
+JavaScript bundle and `CANONICAL_HOST` into the redirect table at
+`next build`.
+
+### Redirecting the Cloud Run URL
+
+The frontend's `*.run.app` URL cannot be switched off, because the Worker
+uses it as its origin. Left alone it serves a portal that cannot log in:
+the page calls the API from an origin that is not in `CORS_ALLOWED_ORIGINS`,
+so the browser blocks the request. Adding that origin would not help
+either. The `access` and `refresh` cookies are set by `api.phystack.com.br`,
+which is a different site from `run.app`, and browsers increasingly drop
+such third-party cookies.
+
+Instead, `redirects()` in `frontend/next.config.mjs` answers page and
+`public/` file requests that were not addressed to `CANONICAL_HOST` with a
+`307` to that hostname, keeping the path and query string. A request counts
+as addressed to the canonical hostname when either `X-Forwarded-Host` (set
+by the Worker) or `Host` equals it. The `Host` condition makes the redirect
+a no-op whenever `FRONTEND_HOST` is the Cloud Run hostname itself, and keeps
+it correct if a future proxy forwards `Host` unchanged.
+
+Three details of how Next.js applies the rule:
+
+- Paths under `/_next/` (bundles and the image optimizer) are never
+  redirected. A page has to load before it requests them, so this does not
+  leave a usable entry point on the `*.run.app` URL.
+- The `Location` has no trailing slash, so a redirected page takes one more
+  hop on the public hostname, where the app's own trailing-slash redirect
+  adds it back.
+- The image optimizer loads files in `public/` through the same router with
+  a request that carries no headers. The rule requires a `Host` header so
+  that those internal requests are served; without that, optimized images
+  such as the navigation bar logo answer `400`.
+
+An empty `CANONICAL_HOST` disables the redirect, which is how local
+development runs. The staging stack sets it to `proxy`, the hostname
+Cypress browses, and `frontend/cypress/e2e/canonical_host_redirect.cy.ts`
+checks each branch of the rule there. Cloud Run's startup probe is a TCP
+check and the uptime check goes through the public hostname, so neither is
+affected.
+
+If the public hostname ever redirects to itself in a loop,
+`X-Forwarded-Host` is not reaching the container: check that the Worker
+still sets it, and roll the frontend back to the previous revision in
+the meantime.
+
+The backend's `*.run.app` URL is left reachable on purpose: Cloud
+Scheduler calls it directly.
 
 Terraform (`infra/terraform/terraform.tfvars`):
 
@@ -259,17 +324,33 @@ must match it exactly.
 
 ### Migrating to a different domain
 
+The frontend redirects every hostname except `FRONTEND_HOST` to
+`FRONTEND_HOST`, so the Worker must serve the old and the new hostnames
+side by side until the rebuilt frontend is live. Replacing them in one step
+leaves the new hostname redirecting to an old one that no longer resolves.
+
 1. Add the domain to the Cloudflare account and delete any existing records
-   for the two hostnames.
-2. Change the hostnames in `infra/cloudflare/wrangler.toml` and the `ORIGINS`
-   map in `infra/cloudflare/src/index.js`, then deploy the Worker.
+   for the two new hostnames.
+2. Add the new hostnames to `infra/cloudflare/wrangler.toml` and to the
+   `ORIGINS` map in `infra/cloudflare/src/index.js`, keeping the old
+   entries, then deploy the Worker. The old hostnames keep working; the new
+   portal hostname redirects to the old one for now.
 3. Update `BACKEND_HOST` and `FRONTEND_HOST`, then re-run both pipelines.
+   From here the new hostnames are canonical and the old portal hostname
+   redirects to the new one.
 4. Update `backend_run_host` and `frontend_run_host`, then `terraform apply`.
+5. Run the canonical hostname redirect smoke test against the new hostname.
+6. Optionally remove the old hostnames from the Worker and redeploy.
+   Keeping the old portal hostname is what sends existing bookmarks to the
+   new domain. The old API hostname serves nothing useful after step 3,
+   because the backend no longer lists it in `DJANGO_ALLOWED_HOSTS`.
 
 ### Rolling back the proxy
 
 Set `BACKEND_HOST` and `FRONTEND_HOST` back to the `*.run.app` hostnames,
 re-run both pipelines, and use `gcloud run services update-traffic` to
-return to the previous revisions if needed. Deleting the Worker's custom
+return to the previous revisions if needed. The rebuilt frontend stops
+redirecting on its own, because its canonical hostname is then the
+`*.run.app` one. Deleting the Worker's custom
 domains disables the proxy but leaves the edge certificates Cloudflare
 issued; delete those under **SSL/TLS → Edge Certificates** for a clean slate.

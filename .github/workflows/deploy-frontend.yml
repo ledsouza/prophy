@@ -4,8 +4,8 @@
 # Pipeline steps (deploy job):
 #   1. Authenticate to GCP using Workload Identity Federation (no long-lived keys).
 #   2. Build the frontend Docker image (target: prod) from the repo root with
-#      NEXT_PUBLIC_HOST baked in, then push to Artifact Registry tagged with
-#      the git SHA and :latest.
+#      NEXT_PUBLIC_HOST and CANONICAL_HOST baked in, then push to Artifact
+#      Registry tagged with the git SHA and :latest.
 #   3. Deploy the new revision to Cloud Run.
 #
 # ─── Required GitHub Actions variables ──────────────────────────────────────
@@ -25,6 +25,12 @@
 #     The public backend hostname without scheme (e.g. api.prophy.net.br).
 #     Used here to bake NEXT_PUBLIC_HOST into the image at build time, so
 #     changing it needs a rebuild, not just a redeploy.
+#
+#   FRONTEND_HOST
+#     The public frontend hostname without scheme (e.g. portal.prophy.net.br).
+#     Baked into the image as CANONICAL_HOST: requests that reach the service
+#     under any other hostname, such as its *.run.app URL, are redirected
+#     here. Leaving it empty disables the redirect.
 #
 # ─── First-time setup (bootstrap) ───────────────────────────────────────────
 # Cloud Run service URLs are deterministic — the hash in the URL is derived
@@ -81,6 +87,7 @@ jobs:
       - name: Build
         env:
           NEXT_PUBLIC_HOST: https://${{ vars.BACKEND_HOST }}
+          CANONICAL_HOST: ${{ vars.FRONTEND_HOST }}
         run: npm run build
 
   deploy:
@@ -115,6 +122,7 @@ jobs:
             --target prod \
             -f frontend/Dockerfile \
             --build-arg NEXT_PUBLIC_HOST=https://${{ vars.BACKEND_HOST }} \
+            --build-arg CANONICAL_HOST=${{ vars.FRONTEND_HOST }} \
             -t "${IMAGE}" \
             -t "${{ env.IMAGE_BASE }}:latest" \
             .

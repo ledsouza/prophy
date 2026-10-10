@@ -46,6 +46,13 @@ services:
 
   frontend:
     image: prophy-frontend:staging
+    # Bakes the canonical-host redirect into the staging build so the
+    # Cypress suite runs with it active, as production does. Side effect:
+    # the app answers only under http://proxy:8080; the published ports
+    # (localhost:3000 and localhost:8080) redirect to https://proxy.
+    build:
+      args:
+        CANONICAL_HOST: proxy
     depends_on:
       - backend
     # NEXT_PUBLIC_HOST is baked in at build time (see docker-compose.yml
@@ -83,6 +90,7 @@ services:
     environment:
       CYPRESS_BASE_URL: http://proxy:8080
       CYPRESS_API_URL: http://backend:8080/api
+      CYPRESS_FRONTEND_ORIGIN_URL: http://frontend:8080
     volumes:
       - e2e-fixtures:/app/frontend/cypress/fixtures
 

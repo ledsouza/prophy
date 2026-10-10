@@ -17,6 +17,10 @@ const backendHostname =
         ? new URL(process.env.NEXT_PUBLIC_HOST).hostname
         : "api.prophy.com";
 
+// Public hostname without scheme, baked in at build time. Unset outside
+// production, which leaves the app reachable under any hostname.
+const canonicalHost = process.env.CANONICAL_HOST;
+
 const devRemotePatterns = isProd
     ? []
     : [
@@ -68,6 +72,40 @@ const nextConfig = {
             },
             ...devRemotePatterns,
         ],
+    },
+    async redirects() {
+        if (!canonicalHost) {
+            return [];
+        }
+
+        const canonicalHostPattern = canonicalHost.replaceAll(".", "\\.");
+
+        // The API only accepts the canonical origin, so the app cannot log
+        // in under its *.run.app address. The Cloudflare Worker in
+        // infra/cloudflare/ rewrites Host to that address and carries the
+        // public hostname in X-Forwarded-Host, hence the two "missing"
+        // conditions.
+        // The image optimizer fetches files in public/ through this same
+        // router with a request that has no headers; requiring a Host keeps
+        // the rule off those, which would otherwise answer 400.
+        // Temporary on purpose: browsers cache a permanent redirect
+        // indefinitely, which would outlive a change of domain.
+        return [
+            {
+                source: "/:path*",
+                has: [{ type: "host", value: ".+" }],
+                missing: [
+                    {
+                        type: "header",
+                        key: "x-forwarded-host",
+                        value: canonicalHostPattern,
+                    },
+                    { type: "host", value: canonicalHostPattern },
+                ],
+                destination: `https://${canonicalHost}/:path*`,
+                permanent: false,
+            },
+        ];
     },
 };
 

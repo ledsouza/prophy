@@ -86,5 +86,6 @@ export default defineConfig({
 
     expose: {
         apiUrl: process.env.CYPRESS_API_URL || "http://localhost:8000/api",
+        frontendOriginUrl: process.env.CYPRESS_FRONTEND_ORIGIN_URL,
     },
 });

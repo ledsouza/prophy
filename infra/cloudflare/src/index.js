@@ -9,7 +9,8 @@ const ORIGINS = {
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const origin = ORIGINS[url.hostname];
+    const publicHostname = url.hostname;
+    const origin = ORIGINS[publicHostname];
 
     if (origin === undefined) {
       return new Response("Unknown host", { status: 404 });
@@ -18,8 +19,11 @@ export default {
     // fetch() derives the outbound Host from the URL; it cannot be set as a header.
     url.hostname = origin;
 
+    // The parsed hostname rather than the raw Host header: it is lowercase
+    // and has no port, which the exact matches in Django's ALLOWED_HOSTS and
+    // the frontend's canonical-host redirect depend on.
     const proxied = new Request(url.toString(), request);
-    proxied.headers.set("X-Forwarded-Host", request.headers.get("Host"));
+    proxied.headers.set("X-Forwarded-Host", publicHostname);
 
     // Returned untouched: rebuilding headers can fold the access and refresh
     // Set-Cookie headers into one. no-store keeps authenticated responses
