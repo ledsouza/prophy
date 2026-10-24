@@ -70,13 +70,12 @@ Cypress.Commands.add("setupDB", () => {
     return cy.task("db:seed");
 });
 
-Cypress.Commands.add(
-    "filterRendered",
-    { prevSubject: true },
-    (subject: JQuery<HTMLElement>) => {
-        return subject.filter((_, el) => el.offsetParent !== null);
-    },
-);
+// A query rather than a command, so an action chained after it re-runs
+// the whole chain when React re-renders and detaches the element.
+Cypress.Commands.addQuery("filterRendered", function () {
+    return (subject: JQuery<HTMLElement>) =>
+        subject.filter((_, el) => el.offsetParent !== null);
+});
 
 Cypress.Commands.add("loginAs", (user: UserFixtureKey) => {
     const apiUrl = (Cypress.expose("apiUrl") as string | undefined)
