@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.pagination import PaginationMixin
+from core.request_data import request_body_mapping
 from users.models import UserAccount
 
 from .models import InstitutionalMaterial
@@ -142,7 +143,7 @@ class InstitutionalMaterialViewSet(PaginationMixin, viewsets.ModelViewSet):
             )
 
         if role == UserAccount.Role.INTERNAL_MEDICAL_PHYSICIST:
-            visibility = request.data.get("visibility")
+            visibility = request_body_mapping(request).get("visibility")
             if visibility != InstitutionalMaterial.Visibility.PUBLIC:
                 return Response(
                     {

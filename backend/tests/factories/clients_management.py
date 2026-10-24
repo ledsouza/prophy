@@ -81,7 +81,7 @@ class EquipmentFactory(factory.django.DjangoModelFactory):
     unit = factory.SubFactory(UnitFactory)
     modality = factory.SubFactory(ModalityFactory)
 
-    manufacturer = factory.Faker("company")
+    manufacturer = factory.Sequence(lambda n: f"Fabricante {n}")
     model = factory.Faker("word")
     series_number = factory.Sequence(lambda n: f"SN-{n}")
     equipment_photo = SimpleUploadedFile(
@@ -103,7 +103,7 @@ class AccessoryFactory(factory.django.DjangoModelFactory):
 
     equipment = factory.SubFactory(EquipmentFactory)
     category = Modality.AccessoryType.NONE
-    manufacturer = factory.Faker("company")
+    manufacturer = factory.Sequence(lambda n: f"Fabricante {n}")
     model = factory.Faker("word")
     series_number = factory.Sequence(lambda n: f"ASN-{n}")
     equipment_photo = SimpleUploadedFile(

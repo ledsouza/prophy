@@ -74,7 +74,7 @@ class EquipmentOperationFactory(factory.django.DjangoModelFactory):
     modality = factory.SubFactory(
         "tests.factories.clients_management.ModalityFactory"
     )
-    manufacturer = factory.Faker("company")
+    manufacturer = factory.Sequence(lambda n: f"Fabricante {n}")
     model = factory.Faker("word")
     series_number = factory.Sequence(lambda n: f"SNOP-{n}")
     equipment_photo = factory.LazyFunction(

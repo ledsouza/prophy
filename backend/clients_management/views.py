@@ -66,6 +66,7 @@ from clients_management.serializers import (
     UnitSerializer,
 )
 from core.pagination import PaginationMixin
+from core.request_data import request_body_mapping
 from requisitions.models import (
     ClientOperation,
     EquipmentOperation,
@@ -1377,8 +1378,8 @@ class AppointmentViewSet(PaginationMixin, viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        unit_id = request.data.get("unit")
-        if unit_id is None:
+        unit_id = request_body_mapping(request).get("unit")
+        if not isinstance(unit_id, int | str):
             return Response(
                 {"unit": "This field is required."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -2192,7 +2193,8 @@ class ServiceOrderViewSet(viewsets.ViewSet):
             UserAccount.Role.EXTERNAL_MEDICAL_PHYSICIST,
         ]:
             allowed_keys = {"updates"}
-            incoming_keys = set(request.data.keys())
+            body = request_body_mapping(request)
+            incoming_keys = set(body.keys())
 
             if not partial:
                 return Response(
@@ -2230,7 +2232,7 @@ class ServiceOrderViewSet(viewsets.ViewSet):
 
             serializer = ServiceOrderSerializer(
                 order,
-                data={"updates": request.data.get("updates", None)},
+                data={"updates": body.get("updates")},
                 partial=True,
             )
             if serializer.is_valid():
@@ -2876,9 +2878,10 @@ class ReportViewSet(PaginationMixin, viewsets.ViewSet):
             )
 
         # Check both query params and request body for hard parameter
+        body_hard = request_body_mapping(request).get("hard", "false")
         hard_delete = (
             request.query_params.get("hard", "false").lower() == "true"
-            or str(request.data.get("hard", "false")).lower() == "true"
+            or str(body_hard).lower() == "true"
         )
 
         if hard_delete:
