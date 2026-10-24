@@ -92,7 +92,7 @@ confirm the fix works:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.staging.yml \
-  run --rm cypress npx cypress run --spec "frontend/cypress/e2e/<failing-spec>.cy.ts"
+  run --rm cypress npx cypress run --spec "cypress/e2e/<failing-spec>.cy.ts"
 ```
 
 Only once that single spec passes should you re-run the full suite (Step 1)
