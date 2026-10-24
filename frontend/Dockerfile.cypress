@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM cypress/included:15.17.0
+FROM cypress/included:16.2.0
 
 WORKDIR /app/frontend
 

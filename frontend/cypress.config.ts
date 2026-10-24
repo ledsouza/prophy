@@ -13,7 +13,9 @@ export default defineConfig({
 
     video: false,
 
-    allowCypressEnv: false,
+    // Cypress 16 types instantly by default, and then the client edit
+    // form never sends its request; 10 ms was the v15 default.
+    keystrokeDelay: 10,
 
     e2e: {
         baseUrl: process.env.CYPRESS_BASE_URL || "http://localhost:3000",
