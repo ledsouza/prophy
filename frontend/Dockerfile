@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22.14-bookworm-slim AS deps
+FROM node:22.23.4-bookworm-slim AS deps
 
 WORKDIR /app/frontend
 
@@ -17,7 +17,7 @@ FROM deps AS dev
 CMD ["sh", "-c", "cd /app/frontend && npm run dev -- --hostname 0.0.0.0 --port 3000"]
 
 
-FROM node:22.14-bookworm-slim AS builder
+FROM node:22.23.4-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -35,7 +35,7 @@ WORKDIR /app/frontend
 RUN npm run build
 
 
-FROM node:22.14-bookworm-slim AS prod
+FROM node:22.23.4-bookworm-slim AS prod
 
 WORKDIR /app
 
