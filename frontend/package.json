@@ -54,6 +54,15 @@
         "next": {
             "postcss": "^8.5.23",
             "sharp": "^0.35.5"
+        },
+        "@typescript-eslint/typescript-estree": {
+            "minimatch": "^11.0.1"
+        },
+        "@eslint/config-array": {
+            "minimatch": "^11.0.1"
+        },
+        "eslint": {
+            "minimatch": "^11.0.1"
         }
     },
     "devDependencies": {
